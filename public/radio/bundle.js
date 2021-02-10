@@ -390,7 +390,8 @@ module.exports = function ( jq ) {
   const apiconnector = require('./apiconnect.js')($);
 
 	const caseReadWaitStatus = [1];
-	const caseResultWaitStatus = [2, 8, 9, 13];
+	const caseResultWaitStatus = [2, 8, 9, 13, 14];
+	const casePositiveStatus = [2,8,9];
 	const caseNegativeStatus = [3,4,7];
 	const caseReadSuccessStatus = [5];
 	const caseAllStatus = [1,2,3,4,5,6,7];
@@ -407,7 +408,8 @@ module.exports = function ( jq ) {
 		{value: 10, DisplayText: 'เจ้าของเคสดูผลแล้ว'},
 		{value: 11, DisplayText: 'เจ้าของเคสพิมพ์ผลแล้ว'},
 		{value: 12, DisplayText: 'มีการแก้ไขผลอ่าน'},
-		{value: 13, DisplayText: 'มีผลอ่านชั่วคราว'}
+		{value: 13, DisplayText: 'มีผลอ่านชั่วคราว'},
+		{value: 14, DisplayText: 'มีข้อความประเด็นเคส'}
 	];
 
 	const defaultProfile = {
@@ -425,6 +427,8 @@ module.exports = function ( jq ) {
       mancall:0
     }
   };
+
+  const pageLineStyle = {'border': '2px solid blue', /*'border-radius': '10px',*/ 'background-color': 'grey', 'margin-top': '4px', 'padding': '2px'};
 
   const doCallApi = function(url, rqParams) {
 		return new Promise(function(resolve, reject) {
@@ -774,15 +778,78 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doCreateCaseCmd = function(cmd, data, clickCallbak) {
+		const cmdIcon = $('<img class="pacs-command" data-toggle="tooltip"/>');
+		switch (cmd) {
+			case 'view':
+			$(cmdIcon).attr('src','/images/pdf-icon.png');
+			$(cmdIcon).attr('title', 'Open Result Report.');
+			break;
+
+			case 'print':
+			$(cmdIcon).attr('src','/images/print-icon.png');
+			$(cmdIcon).attr('title', 'Print Result Report.');
+			break;
+
+			case 'convert':
+			$(cmdIcon).attr('src','/images/convert-icon.png');
+			$(cmdIcon).attr('title', 'Convert Result Report to Synapse (PACS).');
+			break;
+
+			case 'callzoom':
+			$(cmdIcon).attr('src','/images/zoom-black-icon.png');
+			$(cmdIcon).attr('title', 'Call Radiologist by zoom App.');
+			break;
+
+			case 'upd':
+			$(cmdIcon).attr('src','/images/update-icon.png');
+			$(cmdIcon).attr('title', 'Update Case data.');
+			break;
+
+			case 'delete':
+			$(cmdIcon).attr('src','/images/delete-icon.png');
+			$(cmdIcon).attr('title', 'Delete Case.');
+			break;
+
+			case 'ren':
+			$(cmdIcon).attr('src','/images/renew-icon.png');
+			$(cmdIcon).attr('title', 'Re-New Case.');
+			break;
+
+			case 'cancel':
+			$(cmdIcon).attr('src','/images/cancel-icon.png');
+			$(cmdIcon).attr('title', 'Cancel Case.');
+			break;
+
+			case 'edit':
+			console.log('test');
+			$(cmdIcon).attr('src','/images/status-icon.png');
+			$(cmdIcon).attr('title', 'Edit Result.');
+			break;
+
+			case 'close':
+			$(cmdIcon).attr('src','/images/closed-icon.png');
+			$(cmdIcon).attr('title', 'Edit Result.');
+			break;
+
+		}
+		$(cmdIcon).on('click', (evt)=>{
+			clickCallbak(data);
+		});
+		return $(cmdIcon);
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
 		caseResultWaitStatus,
+		casePositiveStatus,
 		caseNegativeStatus,
 		caseReadSuccessStatus,
 		caseAllStatus,
 		allCaseStatus,
 		defaultProfile,
+		pageLineStyle,
 		/* Function share */
 		doCallApi,
 		doGetApi,
@@ -804,7 +871,8 @@ module.exports = function ( jq ) {
 		getPatientFullNameEN,
 		doRenderScanpartSelectedBox,
 		doRenderScanpartSelectedAbs,
-		doExtractList
+		doExtractList,
+		doCreateCaseCmd
 	}
 }
 
@@ -1351,6 +1419,9 @@ module.exports = function ( jq ) {
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
 			wsm.onmessage = wsmMessageRedio.onMessageRadio;
+		} else if (usertype == 5) {
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($);
+			wsm.onmessage = wsmMessageRefer.onMessageRefer;
 		}
 
 	  wsm.onclose = function(event) {
@@ -1429,6 +1500,41 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const isMobileDeviceCheck = function(){
+	  if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
+      || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
+      return true;
+	  } else {
+			return false;
+		}
+	}
+
+	const contains = function(needle) {
+    // Per spec, the way to identify NaN is that it is not equal to itself
+    var findNaN = needle !== needle;
+    var indexOf;
+
+    if(!findNaN && typeof Array.prototype.indexOf === 'function') {
+      indexOf = Array.prototype.indexOf;
+    } else {
+      indexOf = function(needle) {
+        var i = -1, index = -1;
+
+        for(i = 0; i < this.length; i++) {
+          var item = this[i];
+
+          if((findNaN && item !== item) || item === needle) {
+            index = i;
+            break;
+          }
+        }
+
+        return index;
+      };
+    }
+    return indexOf.call(this, needle) > -1;
+	};
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -1455,11 +1561,16 @@ module.exports = function ( jq ) {
 		doResetPingCounter,
 		doSetScreenState,
 		doConnectWebsocketMaster,
-		doConnectWebsocketLocal
+		doConnectWebsocketLocal,
+		isMobileDeviceCheck,
+		contains,
+		/*  Web Socket Interface */
+		wsm,
+		wsl
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":15,"./websocketmessage.js":6}],6:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":16,"../../refer/mod/websocketmessage.js":19,"./websocketmessage.js":6}],6:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsLocal ) {
 	const $ = jq;
@@ -1488,7 +1599,10 @@ module.exports = function ( jq, wsLocal ) {
         $.notify('The system will be start store dicom to your local.', "success");
       }
 		} else if (data.type == 'refresh') {
-			console.log('refresh', data);
+			let eventName = 'triggercounter'
+			let triggerData = {caseId : data.caseId, statusId: data.statusId};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -1528,8 +1642,25 @@ module.exports = function ( jq, wsLocal ) {
       let evtData = {result: data.result};
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
+		} else if (data.type == 'message') {
+      $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+      let eventData = {msg: data.msg, from: data.from, context: data.context};
+      $('#SimpleChatBox').trigger('messagedrive', [eventData]);
     }
   };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMessage = localStorage.getItem('localmessage');
+		let localMessageJson = JSON.parse(localMessage);
+		if (localMessageJson) {
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		} else {
+			localMessageJson = [];
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		}
+		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+	}
 
   return {
     onMessageHospital
@@ -1554,7 +1685,30 @@ window.$.fn.center = function () {
   this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +  $(window).scrollLeft()) + "px");
   return this;
 }
+
+$.fn.simplelog = function(dataPairObj){
+  let logMessages = $('<div style="width: 100%;"></div>');
+  let keyTags = Object.getOwnPropertyNames(dataPairObj);
+  for (let i=0; i<keyTags.length; i++) {
+    let logItem = $('<div style="width: 100%; border: 1px solid grey;"></div>');
+    let key = keyTags[i];
+    let value = dataPairObj[key]
+    let logKey = $('<span>' + key + '</span>');
+    $(logKey).css({'color': 'black'});
+    let logValue = $('<span>' + value + '</span>');
+    $(logValue).css({'color': 'blue'});
+    $(logItem).append($(logKey));
+    $(logItem).append($('<span> => </span>'));
+    $(logItem).append($(logValue));
+    $(logMessages).append($(logItem));
+  }
+  this.append($(logMessages));
+  return this;
+}
+
 /*****************************/
+
+var noti, wsm;
 
 const util = require('../case/mod/utilmod.js')($);
 const common = require('../case/mod/commonlib.js')($);
@@ -1570,7 +1724,6 @@ const template = require('./mod/templatelib.js')($);
 const profile = require('./mod/profilelib.js')($);
 
 const modalLockScreeStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
-var noti, wsm;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -1668,7 +1821,7 @@ function doUserLogout() {
 	localStorage.removeItem('userdata');
   localStorage.removeItem('userconfigs');
   $('#LogoutCommand').hide();
-  let url = '/radio/index.html';
+  let url = '/index.html';
   window.location.replace(url);
 }
 
@@ -1685,6 +1838,7 @@ function doLoadMainPage(){
 	let countdownclockPluginUrl = "../setting/plugin/jquery-countdown-clock-plugin.js";
 	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js"
   let readystatePlugin = "../setting/plugin/jqury-readystate-plugin.js"
+  let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
 
 	$('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
 	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -1696,6 +1850,7 @@ function doLoadMainPage(){
 	$('head').append('<script src="' + countdownclockPluginUrl + '"></script>');
 	$('head').append('<script src="' + controlPagePlugin + '"></script>');
   $('head').append('<script src="' + readystatePlugin + '"></script>');
+  $('head').append('<script src="' + chatBoxPlugin + '"></script>');
 
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
@@ -1717,6 +1872,7 @@ function doLoadMainPage(){
 
   let userdata = JSON.parse(doGetUserData());
   console.log(userdata);
+  //localStorage.removeItem('localmessage');
   //let radioConfigs = JSON.parse(doGetUserConfigs());
   //console.log(radioConfigs);
 
@@ -1759,6 +1915,7 @@ function doLoadMainPage(){
         $(".mainfull").empty().append($(searchTitlePage));
 
         let response = await common.doCallApi('/api/cases/search/key', defaultSearchParam);
+
         $('body').loading('stop');
 
         if (response.status.code === 200) {
@@ -1828,7 +1985,7 @@ function doCreatePasswordUnlockScreen(unlockActionCallback){
   let passwordInputbox = $('<div style="width: 100%;"></div>');
   $(passwordInputbox).appendTo($(passwordUnlockBox));
   let yourPassword = $('<input type="password"/>');
-  $(passwordInputbox).append($('<span>รหัสผ่านของคุณ:&nbsp;&nbsp;</span>'));
+  $(passwordInputbox).append($('<span>ป้อนรหัสผ่านของคุณ:&nbsp;&nbsp;</span>'));
   $(passwordInputbox).append($(yourPassword));
 
   let cmdBar = $('<div style="width: 100%; margin-top: 10px;"></div>');
@@ -1892,15 +2049,23 @@ function unlockAction(modalBox) {
 }
 
 function onLockScreenTrigger() {
-  let lockScreenBox = $('<div style="width: 100%; text-align: center;"></div>');
+  let lockScreenBox = $('<div style="width: 100%; text-align: center;" tabindex="0"></div>');
   $(lockScreenBox).append('<h2>This Lock Screen for Safety Your Content.</h2>');
   $(lockScreenBox).append('<h3>You can Unlock by Click mouse or press any key.</h3>');
   $(lockScreenBox).css(opencase.quickReplyContentStyle);
-  $('#quickreply').append($(lockScreenBox));
+  $('#quickreply').empty().append($(lockScreenBox));
+  $('#quickreply').attr('tabindex', 0);
+  $('#quickreply').focus();
   $('#quickreply').css(modalLockScreeStyle);
   util.doSetScreenState(1);
+  /*
   $('#quickreply').on('mousemove', (evt)=>{
     $('#quickreply').attr('onmousemove', '').unbind("mousemove");
+    unlockAction(lockScreenBox);
+  });
+  */
+  $('#quickreply').on('click', (evt)=>{
+    $('#quickreply').attr('onclick', '').unbind("click");
     unlockAction(lockScreenBox);
   });
   $('#quickreply').on('keypress', (evt)=>{
@@ -1911,6 +2076,7 @@ function onLockScreenTrigger() {
 
 function onUnLockScreenTrigger(){
   resetScreen();
+  util.doSetScreenState(0);
 }
 
 function doGetToken(){
@@ -1942,7 +2108,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":9,"./mod/opencase.js":11,"./mod/profilelib.js":12,"./mod/searchcaselib.js":13,"./mod/templatelib.js":14,"./mod/welcomelib.js":16,"jquery":17}],8:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":10,"./mod/opencase.js":12,"./mod/profilelib.js":13,"./mod/searchcaselib.js":14,"./mod/templatelib.js":15,"./mod/welcomelib.js":17,"jquery":18}],8:[function(require,module,exports){
 /* acccaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2045,7 +2211,7 @@ module.exports = function ( jq ) {
 			casedateSegment = casedateSegment.join('');
 			let casedate = util.formatStudyDate(casedateSegment);
 			let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
-			let patientName = caseItem.patient.Patient_NameEN/* + caseItem.patient.Patient_NameTH*/;
+			let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
 			let patientSA = caseItem.patient.Patient_Sex + '/' + caseItem.patient.Patient_Age;
 			let patientHN = caseItem.patient.Patient_HN;
 			let caseScanparts = caseItem.Case_ScanPart;
@@ -2164,6 +2330,278 @@ module.exports = function ( jq ) {
 }
 
 },{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],9:[function(require,module,exports){
+/* chatmanager.js */
+module.exports = function ( jq ) {
+	const $ = jq;
+  const util = require('../../case/mod/utilmod.js')($);
+	const apiconnector = require('../../case/mod/apiconnect.js')($);
+
+  const contactIconUrl = '/images/user-account.png';
+  const closeContactIconUrl = '/images/cancel-icon.png';
+
+  /* List of Audiences */
+  let contactLists = [];
+
+  const doCreateContactContainer = function(caseId, openCase){
+		contactLists = [];
+    let contactContainer = $('<div id="ContactContainer" style=" position: relative; width: 100%; padding: 4px; margin-top: 10px; text-align: right;"></div>');
+		let contactIconBar = $('<div id="ContactBar" style="position: relative; width: 100%"></div>');
+		$(contactIconBar).appendTo($(contactContainer));
+		let chatBoxContainer = $('<div id="ChatBoxContainer" style="position: relative; width: 100%;"></div>');
+		$(chatBoxContainer).css('display', 'none');
+		$(chatBoxContainer).appendTo($(contactContainer));
+
+		$(contactContainer).on('newconversation', async (evt, data) =>{
+			if (data.topicId == caseId){
+				let isHide = $(chatBoxContainer).css('display');
+				if (isHide === 'none') {
+					$(chatBoxContainer).css('display', 'block');
+				}
+				let contact = await doCreateNewAudience(data.audienceId, data.audienceName, data.topicId, data.topicName);
+				if (contact) {
+					$(contact).appendTo($(contactIconBar));
+					let simpleChat = doCreateSimpleChatBox(data.topicId, data.topicName, data.audienceId, data.audienceName, data.topicStatusId);
+					$(simpleChat.chatBox).css('display', 'none');
+					$(simpleChat.chatBox).appendTo($(chatBoxContainer));
+					simpleChat.handle.restoreLocal();
+					let chatBoxTarget = contactLists.find((item)=>{
+						if (item.Id == data.audienceId) { return item}
+					});
+					if (chatBoxTarget){
+						chatBoxTarget.chatBox = simpleChat.chatBox;
+						chatBoxTarget.handle = simpleChat.handle;
+						chatBoxTarget.contact = contact;
+					}
+					contactLists.forEach((item, i) => {
+						$(item.chatBox).slideToggle();
+					});
+				} else {
+					let eventData = {msg: data.message.msg, from: data.message.from, context: data.message.context};
+					setTimeout(()=>{
+						let selector = '#'+data.audienceId + ' .chatbox';
+						let targetChatBox = $(selector);
+		      	$(targetChatBox).trigger('messagedrive', [eventData]);
+					}, 300);
+				}
+			}
+		});
+
+		/* ในกรณี เคสเคยมีการ chat มาก่อน (casestatusId==14) ต้องเปิด simppleChat มารอไว้เลย */
+		/* ของ reffer ปรับให้คุยได้เฉพาะ topic นั้นเท่านั้น */
+
+		if (openCase.case.casestatusId == 14){
+			doSeachChatHistory(caseId).then(async (history) => {
+				if (history) {
+					const userdata = JSON.parse(localStorage.getItem('userdata'));
+					let lastHis = history.find((item)=>{
+						if (item.from !== userdata.username) return item;
+					});
+					let audienceId = lastHis.from;
+					let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
+					let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
+					let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
+					let contact = await doCreateNewAudience(audienceId, audienceName, caseId, topicName);
+					if (contact) {
+						$(contact).appendTo($(contactIconBar));
+						let simpleChat = doCreateSimpleChatBox(caseId, topicName, audienceId, audienceName, openCase.case.casestatusId);
+						$(chatBoxContainer).css('display', 'block');
+						$(simpleChat.chatBox).css('display', 'block');
+						$(simpleChat.chatBox).appendTo($(chatBoxContainer));
+						simpleChat.handle.restoreLocal();
+						simpleChat.handle.scrollDown();
+						let chatBoxTarget = contactLists.find((item)=>{
+							if (item.Id == audienceId) { return item}
+						});
+						if (chatBoxTarget){
+							chatBoxTarget.chatBox = simpleChat.chatBox;
+							chatBoxTarget.handle = simpleChat.handle;
+							chatBoxTarget.contact = contact;
+						}
+					}
+				}
+			});
+		}
+
+    return $(contactContainer);
+  }
+
+  const doCreateNewAudience = function(Id, Name, topicId, topicName){
+    /* Id=username, Name=displayName */
+    return new Promise(async function(resolve, reject) {
+      let chatBoxTarget = await contactLists.find((item)=>{
+        if ((item.Id == Id) && (item.topicId == topicId)) { return item}
+      });
+      if (!chatBoxTarget){
+        let newAudience = {Id: Id, Name: Name, topicId: topicId, topicName: topicName};
+        contactLists.push(newAudience);
+        let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
+        resolve($(contactIcon));
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  const doCreateContactIcon = function(Id, Name, onContactIconClickCallback, onCloseContactClickCallback) {
+    let contactBox = $('<div class="contact" style="position: relative; display: inline-block; text-align: center; margin-right: 2px;"></div>');
+    let contactIcon = $('<img style="postion: relative; width: 40px; height: auto; cursor: pointer;"/>');
+    $(contactIcon).attr('src', contactIconUrl);
+    let closeContactIcon = $('<img style="position: absolute; width: 20px; height: 20px; cursor: pointer; margin-left: 20px; margin-top: -70px;"/>');
+    $(closeContactIcon).attr('src', closeContactIconUrl);
+		//$(closeContactIcon).css('display', 'none');
+		//$(contactIcon).hover((evt) =>{$(closeContactIcon).toggle()});
+    let contactName = $('<div style="position: relative; font-size: 16px; color: auto;"></div>');
+		$(contactName).text(Name);
+		let reddot = doCreateReddot(Id, 0);
+    $(contactBox).on('click', async (evt)=>{
+      await onContactIconClickCallback(Id);
+    });
+    $(closeContactIcon).on('click', async (evt)=>{
+      await onCloseContactClickCallback(Id, contactBox);
+    });
+		$(contactBox).attr('id', Id);
+    return $(contactBox).append($(contactIcon)).append($(contactName)).append($(closeContactIcon)).append($(reddot));
+  }
+
+	const doCreateReddot = function(Id, value) {
+		let reddot = $('<span class="reddot" style="position: absolute; width: 30px; height: 30px; border-radius:50%; background-color: red; color: white; margin-top: -50px;"></span>');
+		$(reddot).attr('id', Id);
+		$(reddot).text(value);
+		return $(reddot);
+	}
+
+	const doSetReddotValue = function(Id, value){
+		let selector = '#'+Id + ' .reddot';
+		let lastValue = $(selector).text();
+		let newValue = Number(lastValue) + value;
+		if (newValue > 0) {
+			$(selector).text(newValue);
+			$(selector).show()
+		} else {
+			$(selector).hide()
+		}
+	}
+
+  const onContactIconClickCallback = function(Id){
+		//{Id: Id, Name: Name, chatBox, handle}
+		if (contactLists.length == 1){
+			$(contactLists[0].chatBox).slideToggle();
+		} else {
+			contactLists.forEach((item, i) => {
+				$(item.chatBox).css('display', 'none');
+			});
+
+			contactLists.forEach((item, i) => {
+				if (item.Id === Id) {
+					$(item.chatBox).slideToggle();
+				}
+			});
+		}
+  }
+
+  const onCloseContactClickCallback = function(Id, contactBox) {
+    return new Promise(async function(resolve, reject) {
+      let indexAt = undefined;
+      let chatBoxTarget = await contactLists.find((item, index)=>{
+        if (item.Id == Id) {
+          indexAt = index;
+          return item
+        }
+      });
+      if (chatBoxTarget){
+				let selector = '#'+Id + ' .chatbox';
+				let targetChatBox = $(selector);
+				$(targetChatBox).remove();
+				$(contactBox).remove();
+        contactLists.splice(indexAt, 1);
+      }
+    });
+  }
+
+	const doCreateSimpleChatBox = function(topicId, topicName, audienceId, audienceName, topicStatusId) {
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		let simpleChatBoxOption = {
+			myId: userdata.username,
+			myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
+			myDisplayName: 'ฉัน',
+			topicId: topicId,
+			topicName: topicName,
+			topicStatusId: topicStatusId,
+			audienceId: audienceId,
+			audienceName: audienceName,
+			wantBackup: true,
+			externalClassStyle: {},
+			sendMessageCallback: doSendMessageCallback,
+			resetUnReadMessageCallback: doResetUnReadMessageCallback
+		};
+		let simpleChat = doInitChatBox(simpleChatBoxOption);
+		return simpleChat;
+	}
+
+	const doInitChatBox = function(options){
+	  let simpleChatBoxOption = {
+	    topicId: options.topicId,
+	    topicName: options.topicName,
+			topicStatusId: options.topicStatusId,
+	    myId: options.myId,
+	    myName: options.myName,
+	    myDisplayName: options.myDisplayName,
+	    audienceId: options.audienceId,
+	    audienceName: options.audienceName,
+	    wantBackup: options.wantBackup,
+	    externalClassStyle: options.externalClassStyle,
+	    sendMessageCallback: options.sendMessageCallback,
+			resetUnReadMessageCallback: options.resetUnReadMessageCallback
+	  };
+	  let simpleChatBox = $('<div></div>');
+	  $(simpleChatBox).attr('id', options.audienceId);
+	  let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
+	  return {chatBox: $(simpleChatBox), handle: simpleChatBoxHandle};
+	}
+
+	const doSendMessageCallback = function(msg, sendto, from, context){
+	  return new Promise(async function(resolve, reject){
+			console.log(msg, sendto, from, context);
+			const main = require('../main.js');
+			const myWsm = main.doGetWsm();
+	    let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
+	    myWsm.send(JSON.stringify(msgSend));
+	    resolve();
+	  });
+	}
+
+	const doResetUnReadMessageCallback = function(audienceId, value){
+		doSetReddotValue(audienceId, value);
+	}
+
+	const doSeachChatHistory = function(topicId){
+		return new Promise(async function(resolve, reject){
+	    let historyJson = JSON.parse(localStorage.getItem('localmessage'));
+			if (historyJson) {
+				let history = await historyJson.filter((item)=>{
+					if (item.topicId == topicId) {
+						return item;
+					}
+				});
+				resolve(history);
+			} else {
+				resolve();
+			}
+		});
+	}
+
+  return {
+    //contactLists,
+    doCreateContactContainer,
+    doCreateNewAudience,
+
+		doCreateSimpleChatBox,
+		doSendMessageCallback,
+		doResetUnReadMessageCallback
+	}
+}
+
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":5,"../main.js":7}],10:[function(require,module,exports){
 /* newcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2173,8 +2611,7 @@ module.exports = function ( jq ) {
   const common = require('../../case/mod/commonlib.js')($);
 
   const doCreateNewCaseTitlePage = function() {
-		const main = require('../main.js');
-    const userdata = JSON.parse(main.doGetUserData());
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
     const newcaseTitle = 'แจ้งงานใหม่';
     let newcaseTitleBox = $('<div class="title-content"></div>');
     let logoPage = $('<img src="/images/new-case-icon.png" width="40px" height="auto" style="float: left;"/>');
@@ -2182,12 +2619,12 @@ module.exports = function ( jq ) {
     let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + newcaseTitle + '</h3></div>');
     $(titleText).appendTo($(newcaseTitleBox));
 
-		let readySwitchBox = $('<div style="float: right; margin-right: 4px;"></div>');
+		let readySwitchBox = $('<div id="ReadyState" style="float: right; margin-right: 4px;"></div>');
 		let readyOption = {onActionCallback: ()=>{doUpdateReadyState(1);}, offActionCallback: ()=>{doUpdateReadyState(0);} };
 		let readySwitch = $(readySwitchBox).readystate(readyOption);
 		$(readySwitchBox).appendTo($(newcaseTitleBox));
 		if (userdata.userprofiles.length > 0) {
-			if (userdata.userprofiles[0].Profile.raeadyState == 1) {
+			if (userdata.userprofiles[0].Profile.readyState == 1) {
 				readySwitch.onAction();
 			} else {
 				readySwitch.offAction();
@@ -2201,9 +2638,8 @@ module.exports = function ( jq ) {
 
 	const doUpdateReadyState = async function(state) {
 		$('body').loading('start');
-		const main = require('../main.js');
-		const userdata = JSON.parse(main.doGetUserData());
-		userdata.userprofiles[0].Profile.raeadyState = state;
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		userdata.userprofiles[0].Profile.readyState = state;
 		userdata.userprofiles[0].Profile.readyBy = 'user';
 		localStorage.setItem('userdata', JSON.stringify(userdata));
 		let rqParams = {data: userdata.userprofiles[0].Profile, userId: userdata.id};
@@ -2265,8 +2701,7 @@ module.exports = function ( jq ) {
   }
 
   function doCreateCaseItemCommand(caseItem) {
-    const main = require('../main.js');
-    let userdata = JSON.parse(main.doGetUserData());
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
     let caseCmdBox = $('<div style="text-align: center; padding: 4px; width: 100%;"></div>');
     let acceptCmd = $('<div>Accept</div>');
     $(acceptCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '1px 5px', 'border-radius': '12px', 'cursor': 'pointer', 'background-color' : 'green', 'color': 'white'});
@@ -2305,7 +2740,7 @@ module.exports = function ( jq ) {
 			let casedate = util.formatStudyDate(casedateSegment);
 			let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
 
-			let patientName = caseItem.patient.Patient_NameEN/* + caseItem.patient.Patient_NameTH*/;
+			let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
 			let patientSA = caseItem.patient.Patient_Sex + '/' + caseItem.patient.Patient_Age;
 			let patientHN = caseItem.patient.Patient_HN;
 			let caseScanparts = caseItem.Case_ScanPart;
@@ -2372,8 +2807,7 @@ module.exports = function ( jq ) {
 
   const doCallMyNewCase = function(){
     return new Promise(async function(resolve, reject) {
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let rqParams = {userId: userId, statusId: common.caseReadWaitStatus};
 			let apiUrl = '/api/cases/filter/radio';
@@ -2421,12 +2855,12 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],10:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],11:[function(require,module,exports){
 /* onrefreshtrigger.js */
-module.exports = function ( jq, newstatusCases, accstatusCases ) {
+module.exports = function ( jq ) {
 	const $ = jq;
 
-  const doShowCaseCounter = function(){
+  const doShowCaseCounter = function(newstatusCases, accstatusCases){
     $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').text('(' + newstatusCases.length + ')');
     if (newstatusCases.length > 0) {
       $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'red'});
@@ -2450,6 +2884,10 @@ module.exports = function ( jq, newstatusCases, accstatusCases ) {
         }
       break;
       case 2:
+			case 8:
+      case 9:
+      case 13:
+			case 14:
         if (accstatusCases.indexOf(Number(caseId)) < 0) {
           accstatusCases.push(caseId);
         }
@@ -2463,8 +2901,6 @@ module.exports = function ( jq, newstatusCases, accstatusCases ) {
       case 5:
       case 6:
       case 7:
-      case 8:
-      case 9:
       case 10:
       case 11:
       case 12:
@@ -2487,14 +2923,14 @@ module.exports = function ( jq, newstatusCases, accstatusCases ) {
 	}
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* opencase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
-
 	const apiconnector = require('../../case/mod/apiconnect.js')($);
   const util = require('../../case/mod/utilmod.js')($);
   const common = require('../../case/mod/commonlib.js')($);
+	const chatman = require('./chatmanager.js')($);
 
 	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
@@ -2532,8 +2968,7 @@ module.exports = function ( jq ) {
   const onDownloadCmdClick = function(evt) {
 		return new Promise(async function(resolve, reject) {
 	    $('body').loading('start');
-			const main = require('../main.js');
-			const userdata = JSON.parse(main.doGetUserData());
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
 	    const downloadCmd = $(evt.currentTarget);
 	    const downloadData = $(downloadCmd).data('downloadData');
 			let downloadRes = await doDownloadDicom(downloadData.studyID, downloadData.hospitalId, downloadData.casedate);
@@ -2549,8 +2984,7 @@ module.exports = function ( jq ) {
   }
 
   const onOpenThirdPartyCmdClick = function(evt) {
-		const main = require('../main.js');
-		const userdata = JSON.parse(main.doGetUserData());
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		const defaultDownloadPath = userdata.userinfo.User_PathRadiant;
 		//const defaultDownloadPath = 'C:/Users/Administrator/Downloads';
 		let thirdPartyLink = 'radiant://?n=f&v=';
@@ -2598,8 +3032,7 @@ module.exports = function ( jq ) {
 		if (responseHTML !== '') {
 			$('body').loading('start');
 			const createNewResponseCmd = $(evt.currentTarget);
-			const main = require('../main.js');
-	    const userdata = JSON.parse(main.doGetUserData());
+	    const userdata = JSON.parse(localStorage.getItem('userdata'));
 			const saveNewResponseData = $(createNewResponseCmd).data('createNewResponseData');
 
 			let type = 'draft';
@@ -2610,16 +3043,17 @@ module.exports = function ( jq ) {
 			let saveData = {Response_Text: responseHTML, Response_Type: type};
 			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId};
 			let saveResponseRes = await doCallSaveResponse(params);
+			//console.log(saveResponseRes);
 			if (saveResponseRes.status.code == 200){
 				caseResponseId = saveResponseRes.result.responseId;
 				if (!caseResponseId) {
 					$.notify("เกิดความผิดพลาด Case Response API", "error");
 				}
 				let casedate = saveNewResponseData.casedate;
-				let patentFullName = saveNewResponseData.patentFullName;
+				let patientFullName = saveNewResponseData.patientFullName;
 		    let reportCreateCallerEndPoint = "/api/casereport/create";
 				let fileExt = 'pdf';
-				let fileName = (patentFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
+				let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		    params = {caseId: saveNewResponseData.caseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
 				let reportPdf = await $.post(reportCreateCallerEndPoint, params);
 				let embetObject = $('<object data="' + reportPdf.reportLink + '" type="application/pdf" width="100%" height="480"></object>');
@@ -2649,7 +3083,7 @@ module.exports = function ( jq ) {
 		let selectSaveTypeOptionGuide = $('<div style="display: table-row; width: 100%;"></div>');
 		$(selectSaveTypeOptionGuide).appendTo($(saveTypeOptionBox));
 		$(selectSaveTypeOptionGuide).append($('<div style="display: table-cell; padding: 4px; background-color: #02069B; color: white;"><img src="/images/figger-right-icon.png" width="25px" height="auto"/></div>'));
-		let guideCell = $('<div style="display: table-cell; padding: 4px; background-color: #02069B; vertical-align: middle; text-align: center;"></div>');
+		let guideCell = $('<div style="display: table-cell; padding: 4px; background-color: #02069B; vertical-align: middle; text-align: center; color: white;"></div>');
 		$(guideCell).append($('<span>โปรดเลือกว่า ต้องการส่งผลอ่านแบบไหนจากรายการเลือก</span>'));
 		$(guideCell).appendTo($(selectSaveTypeOptionGuide));
 
@@ -2746,8 +3180,7 @@ module.exports = function ( jq ) {
 	function doSaveResponse(responseType, reportType, saveResponseData){
 		return new Promise(async function(resolve, reject) {
 			$('body').loading('start');
-			const main = require('../main.js');
-	    const userdata = JSON.parse(main.doGetUserData());
+	    const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let caseId = saveResponseData.caseId
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
@@ -2774,10 +3207,9 @@ module.exports = function ( jq ) {
 
 	function doSaveDraft(saveDraftResponseData) {
 		return new Promise(async function(resolve, reject) {
-			const main = require('../main.js');
 			let type = saveDraftResponseData.type;
 			let caseId = saveDraftResponseData.caseId
-			let userdata = JSON.parse(main.doGetUserData());
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
 			let saveData = {Response_Text: responseHTML, Response_Type: type};
@@ -2880,9 +3312,8 @@ module.exports = function ( jq ) {
 				$.notify("โปรดใส่ข้อมูล Template ก่อนครับ", "warn");
 			} else {
 				$(saveTypeOptionBox).find('#SimpleEditor').css('border', '');
-				const main = require('../main.js');
 				let yourTemplate = templateContent;
-				let userdata = JSON.parse(main.doGetUserData());
+				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let userId = userdata.id;
 				let rqParams = {userId: userId, data: {Name: templateName, Content: yourTemplate}};
 				let callAddTemplateUrl = '/api/template/add';
@@ -2914,22 +3345,31 @@ module.exports = function ( jq ) {
 		$('#AcceptedCaseCmd').click();
 	}
 
-  const doOpenHR = function(link, patentFullName, casedate){
+  const doOpenHR = function(link, patientFullName, casedate){
 		$('body').loading('start');
     //window.open(link, '_blank');
 		let filePaths = link.split('/');
 		let fileNames = filePaths[filePaths.length-1];
 		let fileName = fileNames.split('.');
 		let fileExt = fileName[1];
-		fileName = (patentFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
+		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		var pom = document.createElement('a');
-		pom.setAttribute('href', link);
-		pom.setAttribute('download', fileName);
-		pom.click();
+		$.ajax({
+	    url: link,
+			xhrFields:{
+	 			responseType: 'blob'
+			},
+	    success: function(data){
+				let stremLink = URL.createObjectURL(new Blob([data], {type: 'image/jpeg'}));
+				pom.setAttribute('href', stremLink);
+				pom.setAttribute('download', fileName);
+				pom.click();
+			}
+		});
 		$('body').loading('stop');
   }
 
-  const doRenderPatientHR = function(hrlinks, patentFullName, casedate) {
+  const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
     return new Promise(async function(resolve, reject) {
       let hrBox = $('<div style="100%"></div>');
 			$(hrBox).css({'display': 'inline-block', 'float': 'right'});
@@ -2940,16 +3380,16 @@ module.exports = function ( jq ) {
 					let fileNames = filePaths[filePaths.length-1];
 					let fileName = fileNames.split('.');
 					let fileExt = fileName[1];
-					let patientName = patentFullName.split(' ').join('_');
+					let patientName = patientFullName.split(' ').join('_');
 					let linkText = patientName + '(' + (i+1) + ')' + '.' + fileExt;
 					$(patientHRLink).text(linkText);
-					$(patientHRLink).on("click", function(evt){
-	          doOpenHR(item.link, patentFullName, casedate);
-	    		});
 					let clipIcon = new Image();
 					clipIcon.src = '/images/clip-icon.png';
 					$(clipIcon).css({"width": "25px", "height": "auto", "margin-top": "10px"});
 					$(patientHRLink).prepend($(clipIcon));
+					$(patientHRLink).on("click", function(evt){
+	          doOpenHR(item.link, patientFullName, casedate);
+	    		});
 					$(patientHRLink).appendTo($(hrBox));
 	      });
 			}
@@ -2976,7 +3416,7 @@ module.exports = function ( jq ) {
 		return $(dicomCmdBox);
 	}
 
-	const doCreateHRBackwardBox = function(patentFullName, patientHRLinks){
+	const doCreateHRBackwardBox = function(patientFullName, patientHRLinks, casedate){
 		return new Promise(async function(resolve, reject) {
 			let hrbackwardBox = $('<div style="width: 100%;"></div>');
 			if ((patientHRLinks) && (patientHRLinks.length > 0)){
@@ -2989,7 +3429,7 @@ module.exports = function ( jq ) {
 					$(hrbackwardBox).append($(codeLink));
 					$(codeLink).css(commandButtonStyle);
 					$(codeLink).on('click',(evt)=>{
-						doOpenHR(item.link, patentFullName);
+						doOpenHR(item.link, patientFullName, casedate);
 					});
 				});
 			}
@@ -2997,18 +3437,17 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreateResponseBackwardBox = function(backwardCaseId, responseText, patentFullName, casedate){
+	const doCreateResponseBackwardBox = function(backwardCaseId, responseText, patientFullName, casedate){
 		let responseBackwarBox = $('<div></div>');
 		let downloadCmd = $('<span>Download</span>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(responseBackwarBox));
 		$(downloadCmd).on('click', async (evt)=>{
 			$('body').loading('start');
-			const main = require('../main.js');
-      const userdata = JSON.parse(main.doGetUserData());
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
       let reportCreateCallerEndPoint = "/api/casereport/create";
 			let fileExt = 'pdf';
-			let fileName = (patentFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
+			let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
       let params = {caseId: backwardCaseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
 			let reportPdf = await $.post(reportCreateCallerEndPoint, params);
 			var pom = document.createElement('a');
@@ -3030,7 +3469,7 @@ module.exports = function ( jq ) {
 		return $(responseBackwarBox);
 	}
 
-	const doCreateToggleSwitch = function(patentFullName, backwardView) {
+	const doCreateToggleSwitch = function(patientFullName, backwardView) {
 		let switchBox = $('<div></div>');
 		let toggleSwitch = $('<label class="switch"></label>');
 		let input = $('<input type="checkbox">');
@@ -3047,14 +3486,14 @@ module.exports = function ( jq ) {
 				let limit = 2;
 				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
 			}
-			let backwardContent = await doCreateBackwardItem(patentFullName, patientBackwards.Records, backwardView);
+			let backwardContent = await doCreateBackwardItem(patientFullName, patientBackwards.Records, backwardView);
 			$(backwardView).loading('stop');
 		});
 		$(switchBox).append($(toggleSwitch));
 		return $(switchBox);
 	}
 
-	const doCreateBackwardItem = function(patentFullName, backwards, backwardView) {
+	const doCreateBackwardItem = function(patientFullName, backwards, backwardView) {
 		return new Promise(function(resolve, reject) {
 			$(backwardView).empty();
 			let backwardHeader = $('<div style="display: table-row; width: 100%;"></div>');
@@ -3076,10 +3515,10 @@ module.exports = function ( jq ) {
 					casedateSegment = casedateSegment.join('');
 					let casedate = casedateSegment;
 					let dicomCmdBox = doCreateDicomCmdBox(backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, casedate, backward.hospitalId);
-					let patientHRBackwardBox = await doCreateHRBackwardBox(patentFullName, backward.Case_PatientHRLink, casedate);
+					let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
 					let responseBackwardBox = undefined;
 					if ((backward.caseresponses) && (backward.caseresponses.length > 0)) {
-						responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_Text, patentFullName, casedate);
+						responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_Text, patientFullName, casedate);
 					} else {
 						responseBackwardBox = $('<span>-</span>');
 					}
@@ -3109,7 +3548,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreatePatientBackward = function(backwards, patentFullName) {
+	const doCreatePatientBackward = function(backwards, patientFullName) {
 		return new Promise(async function(resolve, reject) {
 			let backwardBox = $('<div style="100%"></div>');
 			let titleBox = $('<div style="100%"></div>');
@@ -3120,11 +3559,11 @@ module.exports = function ( jq ) {
 			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			$(backwardView).appendTo($(backwardBox));
 
-			let limitToggle = doCreateToggleSwitch(patentFullName, backwardView);
+			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView);
 			$(limitToggle).appendTo($(titleBox));
 			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
 
-			let backwardContentView = await doCreateBackwardItem(patentFullName, backwards, backwardView);
+			let backwardContentView = await doCreateBackwardItem(patientFullName, backwards, backwardView);
 			$(backwardBox).append($(backwardContentView));
 			resolve($(backwardBox));
 		});
@@ -3138,19 +3577,18 @@ module.exports = function ( jq ) {
 			let jqtePluginScriptUrl = '../../lib/jqte/jquery-te-1.4.0.min.js';
 			$('head').append('<script src="' + jqtePluginScriptUrl + '"></script>');
 
-      const main = require('../main.js');
-      const userdata = JSON.parse(main.doGetUserData());
-      const pageLineStyle = {'border': '2px solid blue', /*'border-radius': '10px',*/ 'background-color': 'grey', 'margin-top': '4px', 'padding': '2px'};
-			const patentFullName = caseOpen.case.patient.Patient_NameEN + ' ' + caseOpen.case.patient.Patient_LastNameEN;
 			caseHospitalId = caseOpen.case.hospitalId;
 			casePatientId = caseOpen.case.patientId;
 			caseId = caseOpen.case.id;
+
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+			const patientFullName = caseOpen.case.patient.Patient_NameEN + ' ' + caseOpen.case.patient.Patient_LastNameEN;
 			let limit = 2;
 			let patientBackward = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
 
 			let patientBackwardView = undefined;
 			if (patientBackward.Records.length > 0) {
-				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patentFullName);
+				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName);
 			} else {
 				patientBackwardView = $('<div style="100%"><span><b>ไม่พบประวัติการตรวจ</b></span></div>');
 			}
@@ -3160,14 +3598,14 @@ module.exports = function ( jq ) {
       $(summaryFirstLine).append($('<span><b>HN:</b> </span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.patient.Patient_HN + '</span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Name:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + patentFullName + '</span>'));
+      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + patientFullName + '</span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Age/sex:</b> </span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.patient.Patient_Age + '/' + caseOpen.case.patient.Patient_Sex + '</span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Body Part:</b> </span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.Case_BodyPart + '</span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>โรงพยาบาล:</b> </span>'));
       $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.hospital.Hos_Name + '</span>'));
-      $(summaryFirstLine).css(pageLineStyle);
+      $(summaryFirstLine).css(common.pageLineStyle);
       $(summaryFirstLine).appendTo($(summary));
 
       let summarySecondLine = $('<div></div>');
@@ -3199,17 +3637,25 @@ module.exports = function ( jq ) {
 
       if ((caseOpen.case.Case_PatientHRLink) && (caseOpen.case.Case_PatientHRLink.length > 0)) {
         $(summarySecondLine).append($('<span>  </span>'));
-        let patientHRBox = await doRenderPatientHR(caseOpen.case.Case_PatientHRLink, patentFullName, casedate);
+        let patientHRBox = await doRenderPatientHR(caseOpen.case.Case_PatientHRLink, patientFullName, casedate);
         $(summarySecondLine).append($(patientHRBox));
       }
 
-      $(summarySecondLine).css(pageLineStyle);
+      $(summarySecondLine).css(common.pageLineStyle);
       $(summarySecondLine).appendTo($(summary));
 
 			let summaryThirdLine = $('<div></div>');
 			$(summaryThirdLine).append($(patientBackwardView));
-			$(summaryThirdLine).css(pageLineStyle);
+			$(summaryThirdLine).css(common.pageLineStyle);
 			$(summaryThirdLine).appendTo($(summary));
+
+
+			let contactToolsLine = $('<div style="width: 99%; min-height: 80px;"></div>');
+			let contactContainer = chatman.doCreateContactContainer(caseId, caseOpen);
+			$(contactToolsLine).append($(contactContainer));
+			$(contactToolsLine).css(common.pageLineStyle);
+			$(contactToolsLine).appendTo($(summary));
+
 
       let summaryFourthLine = $('<div></div>');
       $(summaryFourthLine).append($('<span><b>Templat:</b> </span>'));
@@ -3227,7 +3673,7 @@ module.exports = function ( jq ) {
 			$(addNewTemplateCmd).hide();
 			$(addNewTemplateCmd).appendTo($(summaryFourthLine));
 			$(addNewTemplateCmd).on('click', onAddNewTemplateCmdClick)
-      $(summaryFourthLine).css(pageLineStyle);
+      $(summaryFourthLine).css(common.pageLineStyle);
       $(summaryFourthLine).appendTo($(summary));
 
       let simpleEditorBox = $('<div></div>');
@@ -3250,12 +3696,12 @@ module.exports = function ( jq ) {
       $(simpleEditorBox).appendTo($(summary));
 
 			let createNewResponseCmd = $('<input type="button" value=" ส่งผลอ่าน "/>');
-			let createNewResponseData = {caseId: caseOpen.case.id, hospitalId: caseHospitalId, patentFullName: patentFullName, casedate: casedate};
+			let createNewResponseData = {caseId: caseOpen.case.id, hospitalId: caseHospitalId, patientFullName: patientFullName, casedate: casedate};
 			$(createNewResponseCmd).data('createNewResponseData', createNewResponseData);
 			$(createNewResponseCmd).on('click', onCreateNewResponseCmdClick);
 
 			let saveDraftResponseCmd = $('<input type="button" value=" Draft "/>');
-			let saveDraftResponseData = {caseId: caseOpen.case.id, patentFullName: patentFullName, casedate: casedate, type: 'draft'};
+			let saveDraftResponseData = {caseId: caseOpen.case.id, patientFullName: patientFullName, casedate: casedate, type: 'draft'};
 			$(saveDraftResponseCmd).data('saveDraftResponseData', saveDraftResponseData);
 			$(saveDraftResponseCmd).on('click', onSaveDraftResponseCmdClick);
 
@@ -3265,7 +3711,7 @@ module.exports = function ( jq ) {
 			$(backToOpenCaseCmd).on('click', onBackToOpenCaseCmdClick);
 
 			let summaryFifthLine = $('<div></div>');
-			$(summaryFifthLine).css(pageLineStyle);
+			$(summaryFifthLine).css(common.pageLineStyle);
 			$(summaryFifthLine).css({'text-align': 'center'});
 			$(summaryFifthLine).append($(createNewResponseCmd));
 			$(summaryFifthLine).append($('<span>  </span>'));
@@ -3274,12 +3720,12 @@ module.exports = function ( jq ) {
 			$(summaryFifthLine).append($(backToOpenCaseCmd));
 			$(summaryFifthLine).appendTo($(summary));
 
-			if (caseOpen.case.casestatusId == 9) {
+			if ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)) {
 				let draftResponseRes = await doCallDraftRespons(caseId);
 				if (draftResponseRes.Record.length > 0) {
 					caseResponseId = draftResponseRes.Record[0].id;
 					let resType = draftResponseRes.Record[0].Response_Type;
-					if (resType === 'draft') {
+					if ((resType === 'draft') || ((resType === 'normal') && ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)))) {
 						let cloudUpdatedAt = new Date(draftResponseRes.Record[0].updatedAt);
 						let draftBackup = doRestoreDraft();
 						if (draftBackup) {
@@ -3315,8 +3761,7 @@ module.exports = function ( jq ) {
 
   const doCallMyOpenCase = function(caseId){
     return new Promise(async function(resolve, reject) {
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let rqParams = {userId: userId};
 			let apiUrl = '/api/cases/select/' + caseId;
@@ -3475,7 +3920,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],12:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./chatmanager.js":9}],13:[function(require,module,exports){
 /* profilelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3528,7 +3973,7 @@ module.exports = function ( jq ) {
     let webmessageSwitchControl = $('<div id="WebmessageSwitchControl"></div>');
     let webmessageSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let webmessageSwitch = $(webmessageSwitchControl).readystate(webmessageSwitchOption);
-    if (profile.casenotify.webmessage == 1) {
+    if (profile.Profile.casenotify.webmessage == 1) {
       webmessageSwitch.onAction();
     } else {
       webmessageSwitch.offAction();
@@ -3541,7 +3986,7 @@ module.exports = function ( jq ) {
     let lineSwitchControl = $('<div id="LineSwitchControl"></div>');
     let lineSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let lineSwitch = $(lineSwitchControl).readystate(lineSwitchOption);
-    if (profile.casenotify.line == 1) {
+    if (profile.Profile.casenotify.line == 1) {
       lineSwitch.onAction();
     } else {
       lineSwitch.offAction();
@@ -3555,7 +4000,7 @@ module.exports = function ( jq ) {
     let autocallSwitchControl = $('<div id="AutocallSwitchControl"></div>');
     let autocallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let autocallSwitch = $(autocallSwitchControl).readystate(autocallSwitchOption);
-    if (profile.casenotify.autocall == 1) {
+    if (profile.Profile.casenotify.autocall == 1) {
       autocallSwitch.onAction();
     } else {
       autocallSwitch.offAction();
@@ -3568,7 +4013,7 @@ module.exports = function ( jq ) {
     let mancallSwitchControl = $('<div id="MancallSwitchControl"></div>');
     let mancallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let mancallSwitch = $(mancallSwitchControl).readystate(mancallSwitchOption);
-    if (profile.casenotify.mancall == 1) {
+    if (profile.Profile.casenotify.mancall == 1) {
       mancallSwitch.onAction();
     } else {
       mancallSwitch.offAction();
@@ -3584,7 +4029,7 @@ module.exports = function ( jq ) {
     let caseAccSwitchControl = $('<div id="CaseAcccallSwitchControl"></div>');
     let caseAccSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let caseAccSwitch = $(caseAccSwitchControl).readystate(caseAccSwitchOption);
-    if (profile.casenotify.auotacc == 1) {
+    if (profile.Profile.casenotify.auotacc == 1) {
       caseAccSwitch.onAction();
     } else {
       caseAccSwitch.offAction();
@@ -3637,7 +4082,7 @@ module.exports = function ( jq ) {
     $(unlockOptionBox).appendTo($(lockOptionRow));
 
     let minuteValue = $('<input id="MinuteValue" type="text" id="MinuteLockValue" size="4"/>');
-    $(minuteValue).val(profile.screen.lock);
+    $(minuteValue).val(profile.Profile.screen.lock);
     $(minuteValueLockBox).append($('<span>ล็อคเมื่อไม่ได้ใช้งานเกิน&nbsp;&nbsp;</span>'));
     $(minuteValueLockBox).append($(minuteValue));
     $(minuteValueLockBox).append($('<span>&nbsp;&nbsp;นาที่&nbsp;&nbsp;(สูงสุด 60 นาที)</span>'));
@@ -3645,7 +4090,7 @@ module.exports = function ( jq ) {
     let unlockOptionControl = $('<div id="UnlockOptionControl"></div>');
     let unlockOptionSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let unlockOptionSwitch = $(unlockOptionControl).readystate(unlockOptionSwitchOption);
-    if (profile.screen.unlock == 1) {
+    if (profile.Profile.screen.unlock == 1) {
       unlockOptionSwitch.onAction();
     } else {
       unlockOptionSwitch.offAction();
@@ -3672,9 +4117,11 @@ module.exports = function ( jq ) {
       let caseAcccallSwitchControl = $(pageHandle).find('#CaseAcccallSwitchControl').find('input[type=checkbox]').prop('checked');
       let minuteValue = $(pageHandle).find('#MinuteValue').val();
       let unlockOptionControl = $(pageHandle).find('#UnlockOptionControl').find('input[type=checkbox]').prop('checked');
+			let readyState = $('#ReadyState').find('input[type=checkbox]').prop('checked');
       if ((minuteValue > 0) && (minuteValue < 61)) {
         $(pageHandle).find('#MinuteValue').css('border', '');
         let profileValue = {
+					readyState: readyState? 1:0,
           screen: {
             lock: minuteValue,
             unlock: unlockOptionControl? 1:0
@@ -3705,7 +4152,7 @@ module.exports = function ( jq ) {
 			let rqParams = undefined;
 			let apiUrl = undefined;
       let readyState = 1;
-      let myProfileRes = await doCallMyProfile();
+      let myProfileRes = await doCallMyProfile(radioId);
       if (myProfileRes.Record.length > 0) {
         readyState = myProfileRes.Record[0].readyState;
         apiUrl = '/api/userprofile/update';
@@ -3736,11 +4183,8 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCallMyProfile = function(){
+  const doCallMyProfile = function(radioId){
     return new Promise(async function(resolve, reject) {
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
-			let radioId = userdata.id;
 			let rqParams = {};
 			let apiUrl = '/api/userprofile/select/' + radioId;
 			try {
@@ -3755,6 +4199,8 @@ module.exports = function ( jq ) {
   const doCreateProfilePage = function(){
     return new Promise(async function(resolve, reject) {
       $('body').loading('start');
+			const main = require('../main.js');
+			const userdata = JSON.parse(main.doGetUserData());
       let myProfilePage = $('<div style="width: 100%;"></div>');
       let myProfileView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
       let myLockOptionBox = $('<div style="width: 100%;"></div>');
@@ -3763,15 +4209,13 @@ module.exports = function ( jq ) {
       let headerRow = doCreateHeader();
       $(headerRow).appendTo($(myProfileView));
       let statusNameColumnWidth = $(headerRow).find('#StatusNameColumn').css('width');
-      let myProfileRes = await doCallMyProfile();
+      let myProfileRes = await doCallMyProfile(userdata.id);
       let myProfile = undefined;
       if (myProfileRes.Record.length > 0) {
         myProfile = myProfileRes.Record[0];
       } else {
-        const main = require('../main.js');
-  			let userdata = JSON.parse(main.doGetUserData());
         //myProfile = common.defaultProfile;
-        myProfile = userdata.userprofiles[0].Profile;
+        myProfile = userdata.userprofiles[0];
       }
       let activeRow = doCreateActiveRow(myProfile);
       let lockRow = doCreateLockRow(myProfile);
@@ -3795,7 +4239,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],13:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],14:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3804,57 +4248,8 @@ module.exports = function ( jq ) {
   const util = require('../../case/mod/utilmod.js')($);
   const common = require('../../case/mod/commonlib.js')($);
 
-	const doCreateCaseCmd = function(cmd, data, clickCallbak) {
-		const cmdIcon = $('<img class="pacs-command" data-toggle="tooltip"/>');
-		switch (cmd) {
-			case 'view':
-			$(cmdIcon).attr('src','/images/pdf-icon.png');
-			$(cmdIcon).attr('title', 'Open Result Report.');
-			break;
-
-			case 'print':
-			$(cmdIcon).attr('src','/images/print-icon.png');
-			$(cmdIcon).attr('title', 'Print Result Report.');
-			break;
-
-			case 'convert':
-			$(cmdIcon).attr('src','/images/convert-icon.png');
-			$(cmdIcon).attr('title', 'Convert Result Report to Synapse (PACS).');
-			break;
-
-			case 'callzoom':
-			$(cmdIcon).attr('src','/images/zoom-black-icon.png');
-			$(cmdIcon).attr('title', 'Call Radiologist by zoom App.');
-			break;
-
-			case 'upd':
-			$(cmdIcon).attr('src','/images/update-icon.png');
-			$(cmdIcon).attr('title', 'Update Case data.');
-			break;
-
-			case 'delete':
-			$(cmdIcon).attr('src','/images/delete-icon.png');
-			$(cmdIcon).attr('title', 'Delete Case.');
-			break;
-
-			case 'ren':
-			$(cmdIcon).attr('src','/images/renew-icon.png');
-			$(cmdIcon).attr('title', 'Re-New Case.');
-			break;
-
-			case 'cancel':
-			$(cmdIcon).attr('src','/images/cancel-icon.png');
-			$(cmdIcon).attr('title', 'Cancel Case.');
-			break;
-
-		}
-		$(cmdIcon).on('click', (evt)=>{
-			clickCallbak(data);
-		});
-		return $(cmdIcon);
-	}
-
   function doCreateCaseItemCommand(ownerRow, caseItem) {
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		let cmdColumn = $('<div style="text-align: center;"></div>');
 		let operationCmdButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/arrow-down-icon.png" title="คลิกเพื่อเปิดรายการคำสั่งใช้งานของคุณ"/>');
 		$(operationCmdButton).click(async function() {
@@ -3864,15 +4259,32 @@ module.exports = function ( jq ) {
 				let cmdRow = $('<div class="cmd-row" style="display: tbable-row; width: 100%;"></div>');
 				$(cmdRow).append($('<div style="display: table-cell; border-color: transparent;"></div>'));
 				let mainBoxWidth = parseInt($(".mainfull").css('width'), 10);
-				console.log(mainBoxWidth);
+				//console.log(mainBoxWidth);
 				// left: 0px; width: 100%;
 				let cmdCell = $('<div style="display: table-cell; position: absolute; width: ' + (mainBoxWidth-8) + 'px; border: 1px solid black; background-color: #ccc; text-align: right;"></div>');
 				$(cmdRow).append($(cmdCell));
 				await cando.next.actions.forEach((item, i) => {
-					let iconCmd = doCreateCaseCmd(item, caseItem.case.id, (data)=>{
-						console.log(data);
-					});
-					$(iconCmd).appendTo($(cmdCell));
+					let cmd = item.substr(0, (item.length-1));
+					let frag = item.substr((item.length-1), item.length);
+					if ((frag==='H') &&(userdata.usertypeId==2)) {
+						let iconCmd = common.doCreateCaseCmd(cmd, caseItem.case.id, (data)=>{
+							console.log(data);
+							//hospital Action todo
+						});
+						$(iconCmd).appendTo($(cmdCell));
+					} else if ((frag==='R') &&(userdata.usertypeId==4)) {
+						console.log(cmd);
+						console.log(caseItem);
+						let iconCmd = common.doCreateCaseCmd(cmd, caseItem.case.id, (data)=>{
+							console.log(data);
+							//readio Action todo
+							if (cmd === 'edit') {
+								let eventData = {caseId: caseItem.case.id};
+					      $(iconCmd).trigger('opencase', [eventData]);
+							}
+						});
+						$(iconCmd).appendTo($(cmdCell));
+					}
 				});
 				$('.cmd-row').remove();
 				$(cmdRow).insertAfter(ownerRow);
@@ -4070,8 +4482,7 @@ module.exports = function ( jq ) {
       }
       if (searchKey) {
         $('body').loading('start');
-        const main = require('../main.js');
-        let userdata = JSON.parse(main.doGetUserData());
+				const userdata = JSON.parse(localStorage.getItem('userdata'));
         let hospitalId = userdata.hospitalId;
         let userId = userdata.id;
         let usertypeId = userdata.usertypeId;
@@ -4100,7 +4511,7 @@ module.exports = function ( jq ) {
       casedateSegment = casedateSegment.join('');
       let casedate = util.formatStudyDate(casedateSegment);
       let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
-      let patientName = caseItem.case.patient.Patient_NameEN/* + caseItem.case.patient.Patient_NameTH*/;
+      let patientName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
       let patientSA = caseItem.case.patient.Patient_Sex + '/' + caseItem.case.patient.Patient_Age;
       let patientHN = caseItem.case.patient.Patient_HN;
       let caseMODA = caseItem.case.Case_Modality;
@@ -4207,8 +4618,9 @@ module.exports = function ( jq ) {
       */
       $('body').loading('start');
 
-      const main = require('../main.js');
-      let userItemPerPage = main.doGetUserItemPerPage();
+			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+
+      let userItemPerPage = userDefualtSetting.itemperpage;
       let showCases = [];
 
       let allCaseRecords = response.Records;
@@ -4261,7 +4673,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],14:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],15:[function(require,module,exports){
 /* templatelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4562,12 +4974,13 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],16:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq ) {
 	const $ = jq;
 
   const onMessageRadio = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
@@ -4588,7 +5001,6 @@ module.exports = function ( jq ) {
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
-
     } else if (data.type == 'notify') {
 			$.notify(data.message, "info");
     } else if (data.type == 'callzoom') {
@@ -4602,9 +5014,14 @@ module.exports = function ( jq ) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			} else if (tryLockModTime == 0) {
 				let eventName = 'lockscreen';
 	      let evtData = {};
 	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
@@ -4615,25 +5032,46 @@ module.exports = function ( jq ) {
 			let evtData = {};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'message') {
+			$.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+			/* จุดระวัง */
+			/* จุด Swap หรือ จุดไขว้ค่า myId กับ audienceId ระหว่าง sendto กับ from */
+			let newConversationData = {topicId: data.context.topicId, topicName: data.context.topicName, topicStatusId: data.context.topicStatusId, audienceId: data.context.myId, audienceName: data.context.myName, myId: data.context.audienceId, myName: data.context.audienceName };
+			newConversationData.message = {msg: data.msg, from: data.from, context: data.context};
+			$('#ContactContainer').trigger('newconversation', [newConversationData]);
     }
   };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
+		//console.log(localMessage);
+		let localMessageJson = localMessage;
+		if (localMessageJson) {
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		} else {
+			localMessageJson = [];
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		}
+		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+	}
 
   return {
     onMessageRadio
 	}
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* welcomelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	const newstatusCases = [];
-  const accstatusCases = [];
-
 	const apiconnector = require('../../case/mod/apiconnect.js')($);
 	const common = require('../../case/mod/commonlib.js')($);
-	const caseCounter = require('./onrefreshtrigger.js')($, newstatusCases, accstatusCases);
+	const caseCounter = require('./onrefreshtrigger.js')($);
+
+	let newstatusCases = [];
+  let accstatusCases = [];
 
   const doCreateHomeTitlePage = function() {
     const welcomeTitle = 'ยินดีต้อนรับเข้าสู่ระบบ Rad Connext';
@@ -4660,12 +5098,12 @@ module.exports = function ( jq ) {
     }
   }
 
-	/** Case Vent Counter **/
+	/** Case Event Counter **/
   const onCaseChangeStatusTrigger = function(evt) {
 		let trigerData = evt.detail.data;
 		let caseId = trigerData.caseId;
 		let statusId = trigerData.statusId;
-    let indexAt =undefined;
+    let indexAt = undefined;
     switch (Number(statusId)) {
       case 1:
         if (newstatusCases.indexOf(Number(caseId)) < 0) {
@@ -4676,6 +5114,7 @@ module.exports = function ( jq ) {
 			case 8:
       case 9:
       case 13:
+			case 14:
         if (accstatusCases.indexOf(Number(caseId)) < 0) {
           accstatusCases.push(caseId);
         }
@@ -4711,7 +5150,7 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId};
 			rqParams.casestatusIds = [1];
 			let newList = await common.doCallApi(loadUrl, rqParams);
-			rqParams.casestatusIds = [2, 8, 9, 13];
+			rqParams.casestatusIds = [2, 8, 9, 13, 14];
 			let accList = await common.doCallApi(loadUrl, rqParams);
 			resolve({newList, accList});
 		});
@@ -4720,10 +5159,12 @@ module.exports = function ( jq ) {
 	const doSetupCounter = function() {
 		return new Promise(async function(resolve, reject) {
 			$('body').loading('start');
-			const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let myList = await doLoadCaseForSetupCounter(userId);
+
+			newstatusCases = [];
+		  accstatusCases = [];
 
 			await myList.newList.Records.forEach((item, i) => {
 				newstatusCases.push(Number(item.id));
@@ -4731,11 +5172,13 @@ module.exports = function ( jq ) {
 			await myList.accList.Records.forEach((item, i) => {
 				accstatusCases.push(Number(item.id));
 			});
-			caseCounter.doShowCaseCounter();
+
+			caseCounter.doShowCaseCounter(newstatusCases, accstatusCases);
 			$('body').loading('stop');
+			resolve();
 		});
 	}
-	/** Case Vent Counter **/
+	/** Case event Counter **/
 
 	/** Zoom Calle Event **/
 	const doInterruptZoomCallEvt = function(evt) {
@@ -4760,8 +5203,10 @@ module.exports = function ( jq ) {
 	}
 
   return {
+		/*
 		newstatusCases,
 	  accstatusCases,
+		*/
 
 		doCreateHomeTitlePage,
 		onCaseChangeStatusTrigger,
@@ -4769,7 +5214,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":10}],17:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":11}],18:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -15642,5 +16087,94 @@ if ( typeof noGlobal === "undefined" ) {
 
 return jQuery;
 } );
+
+},{}],19:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const onMessageRefer = function (msgEvt) {
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type !== 'test') {
+      let masterNotify = localStorage.getItem('masternotify');
+      let MasterNotify = JSON.parse(masterNotify);
+      if (MasterNotify) {
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      } else {
+        MasterNotify = [];
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      }
+      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+    }
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'refresh') {
+			let eventName = 'triggercounter'
+			let triggerData = {caseId : data.caseId, statusId: data.statusId};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+
+    } else if (data.type == 'notify') {
+			$.notify(data.message, "info");
+    } else if (data.type == 'callzoom') {
+      let eventName = 'callzoominterrupt';
+      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoomback') {
+      let eventName = 'stopzoominterrupt';
+      let evtData = {result: data.result};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+      document.dispatchEvent(event);
+		} else if (data.type == 'ping') {
+      console.log('Ping Data =>', data);
+      /*
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+			if (data.counterping == minuteLockScreen) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			} else if (tryLockModTime == 0) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			}
+        */
+		} else if (data.type == 'unlockscreen') {
+      /*
+			let eventName = 'unlockscreen';
+			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+      */
+    } else if (data.type == 'message') {
+      $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+      let eventData = {msg: data.msg, from: data.from, context: data.context};
+      $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+    }
+  };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
+		let localMessageJson = localMessage;
+		if (localMessageJson) {
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		} else {
+			localMessageJson = [];
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		}
+		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+	}
+
+  return {
+    onMessageRefer
+	}
+}
 
 },{}]},{},[7]);

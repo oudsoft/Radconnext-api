@@ -24,10 +24,13 @@ const doExistUser = function(username){
 const doVerifyUser = function (username, password) {
   return new Promise(function(resolve, reject) {
     doExistUser(username).then((users) => {
-      //log.info(users);
       if (users.length > 0) {
-        const isCorect = users[0].correctPassword(password);
-        resolve({ result: isCorect, data: users[0] });
+        if (users[0].username) {
+          const isCorect = users[0].correctPassword(password);
+          resolve({ result: isCorect, data: users[0] });
+        } else {
+          resolve({ result: false, reson: 'Invalid username or password'});
+        }
       } else {
         resolve({ result: false, reson: 'Invalid username'});
       }

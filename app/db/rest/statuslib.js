@@ -90,14 +90,22 @@ const doActionAfterChange = function(fromStatus, onStatus, caseId) {
         actions = await onOpenCaseEvent(caseId);
       break;
       case 9:
-        actions = await onDraftCaseEvent(caseId);
+        actions = await onDraftResultCaseEvent(caseId);
       break;
       case 10:
-        actions = await onViewCaseEvent(caseId);
+        actions = await onViewResultCaseEvent(caseId);
       break;
       case 11:
+        actions = await onPrintResultCaseEvent(caseId);
       break;
       case 12:
+        actions = await onEditResultCaseEvent(caseId);
+      break;
+      case 13:
+        actions = await onPreliminaryResultCaseEvent(caseId);
+      break;
+      case 14:
+        actions = await onIssueMessageResultCaseEvent(caseId);
       break;
     }
     resolve(actions);
@@ -392,7 +400,7 @@ const onOpenCaseEvent = function(caseId){
   });
 }
 
-const onDraftCaseEvent = function(caseId){
+const onDraftResultCaseEvent = function(caseId){
   return new Promise(async function(resolve, reject) {
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
@@ -426,7 +434,195 @@ const onDraftCaseEvent = function(caseId){
   });
 }
 
-const onViewCaseEvent = function(caseId) {
+const onViewResultCaseEvent = function(caseId) {
+  return new Promise(async function(resolve, reject) {
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+    const targetCase = targetCases[0];
+    const userId = targetCase.userId;
+    const hospitalId = targetCase.hospitalId;
+    const radioId = targetCase.Case_RadiologistId;
+    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+
+    /* Update Report Status */
+    const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
+    let updateStatus = 'view';
+    let appendLog = {status: updateStatus, by: radioId, at: new Date()};
+    let newReportLog = reportLogs[0];
+    if (reportLogs.length > 0){
+      newReportLog = reportLogs[0];
+      newReportLog.push(appendLog);
+    } else {
+      newReportLog = [appendLog];
+    }
+    await db.casereports.update({Status: updateStatus, Log: reportLog}, { where: { caseId: targetCase.id } });
+
+    //Load Radio radioProfile
+    let radioProfile = await common.doLoadRadioProfile(radioId);
+    //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+    let userProfile = await common.doLoadUserProfile(userId);
+
+    let refreshViewCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id};
+
+    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
+    await socket.sendMessage(refreshViewCase, radioProfile.username);
+    await socket.sendMessage(radioNotify, radioProfile.username);
+
+    /*
+    let lineCaseDetaileMsg = uti.parseStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
+    */
+
+    let hospitalNotify = {type: 'notify', message: 'You can view Result of case success.'};
+    await socket.sendMessage(refreshViewCase , userProfile.username);
+    await socket.sendMessage(hospitalNotify, userProfile.username);
+
+    let actions = await doGetControlStatusAt(targetCase.casestatusId);
+    resolve(actions);
+  });
+}
+
+const onPrintResultCaseEvent = function(caseId) {
+  return new Promise(async function(resolve, reject) {
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+    const targetCase = targetCases[0];
+    const userId = targetCase.userId;
+    const hospitalId = targetCase.hospitalId;
+    const radioId = targetCase.Case_RadiologistId;
+    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+
+    /* Update Report Status */
+    const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
+    let updateStatus = 'print';
+    let appendLog = {status: updateStatus, by: radioId, at: new Date()};
+    let newReportLog = reportLogs[0];
+    if (reportLogs.length > 0){
+      newReportLog = reportLogs[0];
+      newReportLog.push(appendLog);
+    } else {
+      newReportLog = [appendLog];
+    }
+    await db.casereports.update({Status: updateStatus, Log: reportLog}, { where: { caseId: targetCase.id } });
+
+    //Load Radio radioProfile
+    let radioProfile = await common.doLoadRadioProfile(radioId);
+    //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+    let userProfile = await common.doLoadUserProfile(userId);
+
+    let refreshViewCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id};
+
+    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
+    await socket.sendMessage(refreshViewCase, radioProfile.username);
+    await socket.sendMessage(radioNotify, radioProfile.username);
+
+    /*
+    let lineCaseDetaileMsg = uti.parseStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
+    */
+
+    let hospitalNotify = {type: 'notify', message: 'You can view Result of case success.'};
+    await socket.sendMessage(refreshViewCase , userProfile.username);
+    await socket.sendMessage(hospitalNotify, userProfile.username);
+
+    let actions = await doGetControlStatusAt(targetCase.casestatusId);
+    resolve(actions);
+  });
+}
+
+const onEditResultCaseEvent = function(caseId) {
+  return new Promise(async function(resolve, reject) {
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+    const targetCase = targetCases[0];
+    const userId = targetCase.userId;
+    const hospitalId = targetCase.hospitalId;
+    const radioId = targetCase.Case_RadiologistId;
+    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+
+    /* Update Report Status */
+    const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
+    let updateStatus = 'edit';
+    let appendLog = {status: updateStatus, by: radioId, at: new Date()};
+    let newReportLog = reportLogs[0];
+    if (reportLogs.length > 0){
+      newReportLog = reportLogs[0];
+      newReportLog.push(appendLog);
+    } else {
+      newReportLog = [appendLog];
+    }
+    await db.casereports.update({Status: updateStatus, Log: newReportLog}, { where: { caseId: targetCase.id } });
+
+    //Load Radio radioProfile
+    let radioProfile = await common.doLoadRadioProfile(radioId);
+    //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+    let userProfile = await common.doLoadUserProfile(userId);
+
+    let refreshViewCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id};
+
+    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
+    await socket.sendMessage(refreshViewCase, radioProfile.username);
+    await socket.sendMessage(radioNotify, radioProfile.username);
+
+    /*
+    let lineCaseDetaileMsg = uti.parseStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
+    */
+
+    let hospitalNotify = {type: 'notify', message: 'You can view Result of case success.'};
+    await socket.sendMessage(refreshViewCase , userProfile.username);
+    await socket.sendMessage(hospitalNotify, userProfile.username);
+
+    let actions = await doGetControlStatusAt(targetCase.casestatusId);
+    resolve(actions);
+  });
+}
+
+const onPreliminaryResultCaseEvent = function(caseId) {
+  return new Promise(async function(resolve, reject) {
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+    const targetCase = targetCases[0];
+    const userId = targetCase.userId;
+    const hospitalId = targetCase.hospitalId;
+    const radioId = targetCase.Case_RadiologistId;
+    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+
+    /* Update Report Status */
+    const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
+    let updateStatus = 'preliminay';
+    let appendLog = {status: updateStatus, by: radioId, at: new Date()};
+    let newReportLog = reportLogs[0];
+    if (reportLogs.length > 0){
+      newReportLog = reportLogs[0];
+      newReportLog.push(appendLog);
+    } else {
+      newReportLog = [appendLog];
+    }
+    await db.casereports.update({Status: updateStatus, Log: reportLog}, { where: { caseId: targetCase.id } });
+
+    //Load Radio radioProfile
+    let radioProfile = await common.doLoadRadioProfile(radioId);
+    //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+    let userProfile = await common.doLoadUserProfile(userId);
+
+    let refreshViewCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id};
+
+    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
+    await socket.sendMessage(refreshViewCase, radioProfile.username);
+    await socket.sendMessage(radioNotify, radioProfile.username);
+
+    /*
+    let lineCaseDetaileMsg = uti.parseStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
+    */
+
+    let hospitalNotify = {type: 'notify', message: 'You can view Result of case success.'};
+    await socket.sendMessage(refreshViewCase , userProfile.username);
+    await socket.sendMessage(hospitalNotify, userProfile.username);
+
+    let actions = await doGetControlStatusAt(targetCase.casestatusId);
+    resolve(actions);
+  });
+}
+
+const onIssueMessageResultCaseEvent = function(caseId) {
   return new Promise(async function(resolve, reject) {
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
@@ -457,6 +653,7 @@ const onViewCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
   });
 }
 
@@ -480,7 +677,11 @@ module.exports = (dbconn, monitor, casetask, websocket) => {
     onCloseCaseEvent,
     onCancelCaseEvent,
     onOpenCaseEvent,
-    onDraftCaseEvent,
-    onViewCaseEvent
+    onDraftResultCaseEvent,
+    onViewResultCaseEvent,
+    onPrintResultCaseEvent,
+    onEditResultCaseEvent,
+    onPreliminaryResultCaseEvent,
+    onIssueMessageResultCaseEvent
   }
 }

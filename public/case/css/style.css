@@ -219,3 +219,7 @@ input[type='checkbox'] {
 	font-size: 30px;
 	cursor: pointer;
 }
+
+.img-thumb-active {
+	border: 2px solid yellow;
+}

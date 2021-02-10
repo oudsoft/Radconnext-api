@@ -194,13 +194,15 @@ const RadPatientDef = {
 			},
 			Patient_LastNameTH : {
 				type: Sequelize.STRING(80),
-				allowNull: false
+				allowNull: true
 			},
 			Patient_NameEN : {
-				type: Sequelize.STRING(80)
+				type: Sequelize.STRING(80),
+				allowNull: false
 			},
 			Patient_LastNameEN : {
-				type: Sequelize.STRING(80)
+				type: Sequelize.STRING(80),
+				allowNull: true
 			},
 			Patient_CitizenID : {
 				type: Sequelize.STRING(20)
@@ -377,6 +379,12 @@ const RadCaseReportDef = {
 			},
 			PDF_Filename : {
 				type: Sequelize.STRING(90)
+			},
+			Status : {
+				type: Sequelize.STRING(10)
+			},
+			Log : {
+				type: Sequelize.JSON
 			}
 		};
 
@@ -452,6 +460,12 @@ const RadKeepLogDef = {
 			}
 		};
 
+const RadChatLogDef = {
+			Log : {
+				type: Sequelize.JSONB
+			}
+		};
+
 module.exports = {
 	RadUserTypeDef,
 	RadUserStatusDef,
@@ -477,5 +491,6 @@ module.exports = {
 	RadRisInterfaceDef,
 	RadScanPartRefDef,
 	RadScanPartAuxDef,
-	RadKeepLogDef
+	RadKeepLogDef,
+	RadChatLogDef
 }

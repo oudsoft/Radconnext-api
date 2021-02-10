@@ -311,7 +311,7 @@
           <img src="/images/new-case-icon.png" width="30px" height="auto"/>
         </div>
         <div class="NavSubTextCell">
-          เคสใหม่
+          เคสใหม่ <span class="case-counter"></span>
         </div>
       </div>
       <div class="NavSub" id="AcceptedStatusSubCmd">
@@ -320,7 +320,7 @@
           <img src="/images/case-accepted-icon-1.png" width="30px" height="auto"/>
         </div>
         <div class="NavSubTextCell">
-          หมอตอบรับแล้ว(รอผลอ่าน)
+          หมอตอบรับแล้ว(รอผลอ่าน) <span class="case-counter"></span>
         </div>
       </div>
       <div class="NavSub" id="SuccessStatusSubCmd">
@@ -329,7 +329,7 @@
           <img src="/images/case-accepted-icon.png" width="30px" height="auto"/>
         </div>
         <div class="NavSubTextCell">
-          ได้ผลอ่านแล้ว
+          ได้ผลอ่านแล้ว <span class="case-counter"></span>
         </div>
       </div>
       <div class="NavSub" id="NegativeStatusSubCmd">
@@ -338,7 +338,7 @@
           <img src="/images/fail-icon.png" width="30px" height="auto"/>
         </div>
         <div class="NavSubTextCell">
-          เคสไม่สมบูรณ์/รอคำสั่ง
+          เคสไม่สมบูรณ์/รอคำสั่ง <span class="case-counter"></span>
         </div>
       </div>
       <div class="NavSub" id="SearchCaseSubCmd">
@@ -353,6 +353,7 @@
     </div>
 
     <!-- Message Menu -->
+    <!--
     <div class="NavRow" id="MessageMainCmd">
       <div class="NavRowIconCell">
         <img src="/images/message-icon.png" width="30px" height="auto"/>
@@ -381,7 +382,7 @@
         </div>
       </div>
     </div>
-
+    -->
     <!-- Tools Menu -->
     <div class="NavRow" id="ToolsMainCmd">
       <div class="NavRowIconCell">
@@ -401,6 +402,7 @@
           ตั้งค่ารูปแบบรายงานผลอ่าน
         </div>
       </div>
+      <!--
       <div class="NavSub" id="UrgentTypeSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -410,6 +412,7 @@
           ตั้งค่า Urgent Type
         </div>
       </div>
+      -->
       <div class="NavSub" id="ScanpartAuxConfigSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -419,6 +422,7 @@
           ตั้งค่าจดจำ Scan Part
         </div>
       </div>
+      <!--
       <div class="NavSub" id="MessageConfigSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -428,6 +432,7 @@
           ตั้งค่าการแจ้งเตือน
         </div>
       </div>
+      -->
     </div>
 
     <!-- User Info Menu -->
@@ -552,9 +557,22 @@
   $(hospitalNameBox).append('<h4 style="text-align: center;">โรงพยาบาล' + yourUserdata.hospital.Hos_Name + '</h4>')
   $('#NavHeader').append($(hospitalNameBox));
 
-  let userFullName = yourUserdata.userinfo.User_NameEN + ' ' + yourUserdata.userinfo.User_LastNameEN + ' (' + yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH + ')';
+  function doDisplayUserFullName(userinfo) {
+    let userFullNameTH = userinfo.userinfo.User_NameTH + ' ' + userinfo.userinfo.User_LastNameTH;
+    let userFullNameEN = userinfo.userinfo.User_NameEN + ' ' + userinfo.userinfo.User_LastNameEN;
 
-  $('#UserInfoMenu').empty().append($('<span>' + userFullName + '</span>'));
+    let userFullName = undefined;
+    if (userFullNameTH !== '') {
+      userFullName = userFullNameTH;
+    } else {
+      userFullName = userFullNameEN;
+    }
+
+    $('#UserInfoMenu').empty().append($('<span>' + userFullName + '</span>'));
+  }
+
+  doDisplayUserFullName(yourUserdata);
+
   $('#UserInfoMenu').css({'color': 'white'});
   $('#UserInfoMenu').hover(()=>{$('#UserInfoMenu').css({'color': 'black'})}, ()=>{$('#UserInfoMenu').css({'color': 'white'})});
 

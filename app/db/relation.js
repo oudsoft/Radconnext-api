@@ -132,6 +132,9 @@ scanpartauxs.belongsTo(users);
 const radkeeplogs = sequelize.define('radkeeplogs', Def.RadKeepLogDef);
 radkeeplogs.belongsTo(cases);
 
+const radchatlogs = sequelize.define('radchatlogs', Def.RadChatLogDef);
+radchatlogs.belongsTo(cases);
+
 module.exports =  {
   sequelize,
   Op,
@@ -160,5 +163,6 @@ module.exports =  {
   risinterfaces,
   scanpartrefs,
   scanpartauxs,
-  radkeeplogs
+  radkeeplogs,
+  radchatlogs
 }

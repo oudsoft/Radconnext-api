@@ -278,6 +278,64 @@ app.post('/list', (req, res) => {
   }
 });
 
+//Select by caseId
+app.post('/select/(:caseId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const caseId = req.params.caseId;
+          const caserep = await Report.findAll({attributes: excludeColumn, where: {caseId: caseId}});
+          //res.json({status: {code: 200}, types: types});
+          //log.info('Result=> ' + JSON.stringify(types));
+          res.json({ status: {code: 200}, Records: caserep});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//Select by caseId
+app.post('/appendlog/(:caseId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const caseId = req.params.caseId;
+					const appendLog = req.body.log;
+          const caserep = await Report.findAll({attributes: ['Log'], where: {caseId: caseId}});
+					const currentLog = caserep[0].Log;
+					const newLog = [];
+					newLog.push(currentLog);
+					newLog.push(appendLog);
+					await Report.update({Log: newLog}, { where: { caseId: caseId }});
+          res.json({ status: {code: 200}});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //insert API
 app.post('/add', (req, res) => {
   let token = req.headers.authorization;
@@ -420,15 +478,22 @@ app.post('/convert', (req, res) => {
 				const studyID = req.body.studyID;
 				const modality = req.body.modality;
 				const studyInstanceUID = req.body.studyInstanceUID;
-				const pdfFileName = genUniqueID();
 
+				/*
+				const pdfFileName = genUniqueID();
 				const reports = await db.hospitalreports.findAll({ attributes: ['Content'], where: {hospitalId: hospitalId}});
 			  const reportElements = reports[0].Content;
-
 				const reportVar = await doLoadVariable(caseId, userId);
-
 				let report = await reportCreator(reportElements, reportVar, pdfFileName);
+				*/
 
+				const caserep = await Report.findAll({attributes: excludeColumn, where: {caseId: caseId}});
+				const pdfFileLink = caserep[0].PDF_Filename;
+
+				let pdfLinkPaths = pdfFileLink.split('/');
+				let pdfFiles = pdfLinkPaths[pdfLinkPaths.length-1];
+				pdfFiles = pdfFiles.split('.');
+				let pdfFileName = pdfFiles[0];
 				let dicom = await dicomConvertor(studyID, modality, pdfFileName, hospitalId);
 
 				log.info('If you are => ' + ur[0].username + ', you will be recieve notity for trigger on local ORTHANC.')

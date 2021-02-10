@@ -225,6 +225,7 @@ app.post('/caseaccept/reset/(:radioId)/(:hospitalId)', (req, res) => {
   }
 });
 
+/* Remove */
 //load full radio config API
 app.post('/load/config/(:radioId)', (req, res) => {
   let token = req.headers.authorization;
@@ -258,6 +259,43 @@ app.post('/load/config/(:radioId)', (req, res) => {
           }).catch((err)=>{
             log.error(error);
             res.json({status: {code: 500}, error: error});
+          });
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+// API Call current State of radio
+app.post('/state/current', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
+          const radioUsers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {usertypeId: 4}, order: [['id', 'ASC']]});
+          let currentStates = [];
+          const promiseList = new Promise(async function(resolve, reject) {
+            await radioUsers.forEach(async (radio, i) => {
+              let currentState = await common.doCollectRadioCurrentState(radio.id, radio.username, socket);
+              currentStates.push({user: radio, currentState: currentState});
+            });
+            setTimeout(()=> {
+              resolve(currentStates);
+            },800);
+          });
+          Promise.all([promiseList]).then(async (ob)=> {
+            res.json({status: {code: 200}, Records: ob[0]});
           });
         } catch(error) {
           log.error(error);

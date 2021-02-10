@@ -4,6 +4,7 @@ const fs = require('fs');
 const util = require("util");
 const path = require('path');
 const url = require('url');
+const archiver = require('archiver');
 const request = require('request-promise');
 const exec = require('child_process').exec;
 const express = require('express');
@@ -20,7 +21,7 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const runcommand = function (command) {
 	return new Promise(function(resolve, reject) {
-		log.info("Exec Command " + command);
+		log.info("Exec Command=>" + command);
 		exec(command, (error, stdout, stderr) => {
 			if(error === null) {
 				resolve(`${stdout}`);
@@ -64,6 +65,26 @@ const doLoadOrthancTarget = function(hospitalId, hostname){
 	});
 }
 */
+
+const formatStr = function (str) {
+  var args = [].slice.call(arguments, 1),
+      i = 0;
+  return str.replace(/%s/g, () => args[i++]);
+}
+
+const zipDirectory = function(source, out) {
+  const archive = archiver('zip', { zlib: { level: 9 }});
+  const stream = fs.createWriteStream(out);
+
+  return new Promise((resolve, reject) => {
+    archive
+      .directory(source, false)
+      .on('error', err => reject(err))
+      .pipe(stream);
+    stream.on('close', () => resolve());
+    archive.finalize();
+  });
+}
 
 var db, Orthanc, log, auth, uti;
 
@@ -122,7 +143,7 @@ app.post('/find', function(req, res) {
 });
 
 app.get('/find', function(req, res) {
-	hospitalId = req.body.hospitalId;
+	let hospitalId = req.body.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 		let rqBody = req.body.body;
 		let username = req.body.username;
@@ -138,7 +159,7 @@ app.get('/find', function(req, res) {
 });
 
 app.post('/preview/(:instanceID)', function(req, res) {
-	hospitalId = req.body.hospitalId;
+	let hospitalId = req.body.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 		var instanceID = req.params.instanceID;
 		var username = req.body.username;
@@ -155,8 +176,107 @@ app.post('/preview/(:instanceID)', function(req, res) {
 	});
 });
 
+app.post('/create/preview', function(req, res) {
+	let hospitalId = req.body.hospitalId;
+	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async(orthanc) => {
+		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
+		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
+		let seriesId = req.body.seriesId;
+		let username = req.body.username;
+		let instanceList = req.body.instanceList;
+
+		var command = formatStr('rm -rf %s/%s', usrPreviewDir, seriesId);
+		var stdout = await runcommand(command);
+
+		command = formatStr('mkdir %s/%s', usrPreviewDir, seriesId);
+		stdout = await runcommand(command);
+
+		command = formatStr('chmod 0777 %s/%s', usrPreviewDir, seriesId);
+		stdout = await runcommand(command);
+
+		var targetDir = usrPreviewDir + '/' + seriesId;
+		var stdouts = [];
+		let	promiseList = new Promise(async function(resolve2, reject2){
+			instanceList.forEach(async(item, i) => {
+				var targetFilename = item + '.png';
+				command = formatStr('curl --user %s:%s -H "user: %s" %s/instances/%s/preview > %s/%s', cloud.user, cloud.pass, cloud.user, orthancUrl, item, targetDir, targetFilename);
+				stdout = await runcommand(command);
+				stdouts.push({id: item, result: stdout});
+			});
+			setTimeout(()=>{
+				resolve2(stdouts);
+			}, 500);
+		});
+		Promise.all([promiseList]).then((ob)=>{
+			res.status(200).send({result: ob[0]});
+		});
+	});
+});
+
+app.post('/create/zip/instance', function(req, res) {
+	let hospitalId = req.body.hospitalId;
+	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async(orthanc) => {
+		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
+		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
+		let seriesId = req.body.seriesId;
+		let username = req.body.username;
+		let instanceId = req.body.instanceId;
+
+		var command = formatStr('rm -rf %s/%s/%s', usrPreviewDir, seriesId, instanceId);
+		var stdout = await runcommand(command);
+
+		command = formatStr('mkdir %s/%s/%s', usrPreviewDir, seriesId, instanceId);
+		stdout = await runcommand(command);
+
+		command = formatStr('chmod 0777 %s/%s/%s', usrPreviewDir, seriesId, instanceId);
+		stdout = await runcommand(command);
+
+		var targetDir = formatStr('%s/%s/%s', usrPreviewDir, seriesId, instanceId);
+		let dcmTargetFilename = instanceId + '.dcm';
+		command = formatStr('curl --user %s:%s -H "user: %s" %s/instances/%s/file > %s/%s', cloud.user, cloud.pass, cloud.user, orthancUrl, instanceId, targetDir, dcmTargetFilename);
+		stdout = await runcommand(command);
+		let zipTargetFilename = instanceId + '.zip';
+		let zipPath = formatStr('%s/%s/%s', usrPreviewDir, seriesId, zipTargetFilename);
+		/*
+		command = formatStr('zip %s %s', zipPath, dcmPath);
+		stdout = await runcommand(command);
+		*/
+		await zipDirectory(targetDir, zipPath);
+		res.status(200).send({result: stdout, archive: {link: '/img/usr/preview/' + seriesId + '/' + zipTargetFilename}});
+	});
+});
+
+app.post('/sendai', function(req, res) {
+	const { AIChest4allAsyncCall, downloadAIChestFile, checkStatus } = require('./mod/aichest4all_call.js');
+
+	const printAIProps = function(data){
+	  log.info('AI Result=>' + JSON.stringify(data.data.result));
+	}
+
+	let seriesId = req.body.seriesId;
+	let instanceId = req.body.instanceId;
+
+	let zipTargetFilename = instanceId + '.zip';
+	let zipPath = formatStr('%s/%s/%s', usrPreviewDir, seriesId, zipTargetFilename);
+
+	AIChest4allAsyncCall(zipPath, "zip").then(aiRes => {
+		log.info("Upload done")
+		if (!aiRes.ids) {
+		  throw new Error("No have IDs")
+		}
+		return aiRes.ids.map(id => checkStatus(id, async (airesult) => {
+			printAIProps(airesult)
+			let resultLink = await downloadAIChestFile(airesult.data.id, 'pdf');
+			res.status(200).send({result: {link: resultLink}});
+		}, console.error))
+	}).catch(error => {
+		console.error("Error!!!", error.message);
+		res.status(500).send({error: error.message});
+	})
+});
+
 app.post('/loadarchive/(:studyID)', function(req, res) {
-	hospitalId = req.body.hospitalId;
+	let hospitalId = req.body.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 		var studyID = req.params.studyID;
 		var username = req.body.username;
@@ -173,7 +293,7 @@ app.post('/loadarchive/(:studyID)', function(req, res) {
 });
 
 app.post('/deletedicom/(:studyID)', function(req, res) {
-	hospitalId = req.body.hospitalId;
+	let hospitalId = req.body.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 		var studyID = req.params.studyID;
 		let cloud = JSON.parse(orthanc.Orthanc_Cloud);

@@ -1,12 +1,13 @@
 /* websocket.js */
 
-function RadconWebSocketServer (arg, log) {
+function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
 	this.httpsServer = arg;
 	const WebSocketServer = require('ws').Server;
 	const wss = new WebSocketServer({server: this.httpsServer/*, path: '/' + roomname */});
 	this.socket = wss;
 	this.clients = [];
+	this.db = db;
 
 	wss.on('connection', async function (ws, req) {
 		$this.clients.push(ws);
@@ -140,6 +141,15 @@ function RadconWebSocketServer (arg, log) {
 					case "set":
 						ws.screenstate = data.value;
 					break;
+					case "message":
+						let sendto = data.sendto;
+						let from = data.from;
+						let msgSend = {type: 'message', msg: data.msg, from: from, context: data.context};
+						$this.sendMessage(msgSend, sendto);
+						if (data.context.topicId) {
+							$this.saveChatLog(data.context.topicId, msgSend);
+						}
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
@@ -172,10 +182,10 @@ function RadconWebSocketServer (arg, log) {
 		});
 	}, 60000);
 
-	this.findUserSocket = function(fromWs, username) {
+	this.findUserSocket = function(username) {
 		return new Promise(async function(resolve, reject) {
 			let yourSocket = await $this.clients.find((ws) =>{
-				if ((ws.id == username) /*&& (ws !== fromWs)*/ && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+				if ((ws.id == username) && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
 			});
 			resolve(yourSocket);
 		});
@@ -202,7 +212,7 @@ function RadconWebSocketServer (arg, log) {
 	}
 
 	this.selfSendMessage = async function(fromWs, message, sendto) {
-		let userSocket = await $this.findUserSocket(fromWs, sendto);
+		let userSocket = await $this.findUserSocket(sendto);
 		if (userSocket) {
 			userSocket.send(JSON.stringify(message));
 			return true;
@@ -264,7 +274,32 @@ function RadconWebSocketServer (arg, log) {
 			}
 		});
 	}
-	
+	//$this.db.radkeeplogs
+	this.saveChatLog = function(caseId, msgSend){
+		return new Promise(async function(resolve, reject) {
+			$this.db.radchatlogs.findAll({
+				where: {caseId: caseId}
+			}).then(async (caseLog)=>{
+				if (caseLog.length > 0) {
+					let newCaseLog = caseLog;
+					newCaseLog.push(msgSend);
+					$this.db.radchatlogs.update({
+				    Log: newCaseLog
+				  },{
+				    where: {
+				      caseId: caseId
+				    }
+				  }).then((caseLog) => resolve(caseLog));
+				} else {
+					let newCaseLog = [msgSend];
+					let newLog = await $this.db.radchatlogs.create({Log: newCaseLog});
+					$this.db.radchatlogs.update({caseId: caseId}, {where: {id: newLog.id}});
+					resolve(newLog);
+				}
+			});
+		});
+	}
+
 	this.runCommand = function (command) {
 		return new Promise(function(resolve, reject) {
 			const exec = require('child_process').exec;
@@ -280,7 +315,7 @@ function RadconWebSocketServer (arg, log) {
 
 }
 
-module.exports = ( arg, monitor ) => {
-	const webSocketServer = new RadconWebSocketServer(arg, monitor);
+module.exports = ( arg, relation, monitor ) => {
+	const webSocketServer = new RadconWebSocketServer(arg, relation, monitor);
 	return webSocketServer;
 }

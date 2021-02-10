@@ -11,19 +11,20 @@ const casestatusFlowTable = [
     /* acc = accept rej = reject upd = update */
     /* Update หมายถึงการแก้ไขข้อมูลที่เป็นเนื้อหาของเคส */
     /* Renew หมายถึงเปลี่ยนรังสีแพทย์ ซึ่งจะทำให้เคสมีสถานะเป็น new ใหม่อีกครั้ง แต่เป็นรังสีแพทย์คนใหม่(หรือคนเดมก็ได้)*/
-    {now: 1, next: [2, 3, 7], actions: ['acc', 'rej', 'upd', 'cancel']},
-    {now: 2, next: [8], actions: ['open', 'upd']},
-    {now: 3, next: [7], actions: ['cancel', 'renew', 'upd']},
-    {now: 4, next: [7], actions: ['cancel', 'renew', 'upd']},
-    {now: 5, next: [10, 11], actions: ['view', 'print', 'convert', 'callzoom']},
-    {now: 6, next: [12], actions: ['edit']},
-    {now: 7, next: [1], actions: ['renew', 'delete', 'upd']},
-    {now: 8, next: [9, 5, 13], actions: ['draft', 'reply']},
-    {now: 9, next: [5, 13], actions: ['reply']},
-    {now: 10, next: [11], actions: ['view', 'print', 'convert', 'callzoom']},
-    {now: 11, next: [6, 12], actions: ['view', 'print', 'convert', 'close', 'edit', 'callzoom']},
-    {now: 12, next: [], actions: ['edit', 'callzoom']},
-    {now: 13, next: [5], actions: ['edit', 'callzoom']}
+    {now: 1, next: [2, 3, 7], actions: ['accR', 'rejR', 'updH', 'cancelH', 'changeH']},
+    {now: 2, next: [8], actions: ['openR', 'updH']},
+    {now: 3, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
+    {now: 4, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
+    {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH']},
+    {now: 6, next: [12], actions: ['editR']},
+    {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH']},
+    {now: 8, next: [9, 5, 13], actions: ['draftR', 'replyR']},
+    {now: 9, next: [5, 13], actions: ['replyR']},
+    {now: 10, next: [11], actions: ['viewH', 'printH', 'convertH', 'callzoomH']},
+    {now: 11, next: [6, 12], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH']},
+    {now: 12, next: [13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH']},
+    {now: 13, next: [12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH']},
+    {now: 14, next: [12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH']}
 ];
 
 const msgNewCaseRadioDetailFormat = 'เคสใหม่\nจากโรงพยาบาล %s\nผู้ป่วยชื่อ %s\nStudyDescription %s\nProtocolName %s\nBodyPart %s\nModality %s\n';
@@ -101,9 +102,11 @@ const doGenNewCaseOptions = function(hospitalId) {
         let tempRef = {Value: user.id, DisplayText: user.userinfo.User_NameTH + ' ' + user.userinfo.User_LastNameTH};
         refes.push(tempRef);
       });
+      /*
       let rades = await doSearchRadioForHospital(hospitalId);
+      */
       setTimeout(()=> {
-        resolve({Result: "OK", Options: {cliames, urgents, rades, refes}});
+        resolve({Result: "OK", Options: {cliames, urgents, /* rades,*/ refes}});
       },400);
     });
     Promise.all([promiseList]).then((ob)=> {
@@ -278,6 +281,30 @@ const doCaseChangeStatusKeepLog = function(data) {
   });
 }
 
+const doCollectRadioCurrentState = function(radioId, radioUsername, socket) {
+  return new Promise(async function(resolve, reject) {
+    const profiles = await db.userprofiles.findAll({attributes: ['Profile'], where: { userId: radioId } });
+    const radioSocket = await socket.findUserSocket(radioUsername);
+    let readyState = undefined;
+    if ((profiles) && (profiles.length > 0)){
+      readyState = profiles[0].Profile.readyState;
+    } else {
+      readyState = 0;
+    }
+    let screenState = undefined;
+    if (radioSocket) {
+      screenState = {online: 1, state: radioSocket.screenstate, minute: radioSocket.counterping};
+    } else {
+      screenState = {online: 0};
+    }
+    let currentState = {
+      readyState: readyState,
+      screenState: screenState
+    }
+    resolve(currentState);
+  });
+}
+
 module.exports = (dbconn, monitor, casetask) => {
 	db = dbconn;
 	log = monitor;
@@ -302,6 +329,7 @@ module.exports = (dbconn, monitor, casetask) => {
     doCaseExpireAction,
     doCreatetaskAction,
     doSaveScanpartAux,
-    doCaseChangeStatusKeepLog
+    doCaseChangeStatusKeepLog,
+    doCollectRadioCurrentState
   }
 }

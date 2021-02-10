@@ -48,7 +48,7 @@ app.post('/select/(:userId)', (req, res) => {
       if (ur.length > 0){
         try {
           let userId = req.params.userId;
-          const profile = await UserProfile.findAll({attributes: excludeColumn, where: { id: userId } });
+          const profile = await UserProfile.findAll({attributes: excludeColumn, where: { userId: userId } });
           res.json({status: {code: 200}, Record: profile});
         } catch(error) {
           log.error(error);

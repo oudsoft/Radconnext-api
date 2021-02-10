@@ -44,8 +44,10 @@ apiApp.post('/', (req, res) => {
 
 require('./lib/v2/pdfconvertor.js')(apiApp);
 
-module.exports = ( webSocketServer, monitor ) => {
+module.exports = ( httpsServer, monitor ) => {
 	log = monitor;
+
+	const webSocketServer = require('./lib/websocket.js')(httpsServer, db, log);
 
 	const externalapiproxy = require('./lib/v2/apiproxy.js')(db, log);
 	const orthancproxy = require('./lib/orthancproxy_new.js')(db, log);
@@ -61,7 +63,7 @@ module.exports = ( webSocketServer, monitor ) => {
 	const user = require('./db/rest/user.js')(db, log);
 	const usertypes = require('./db/rest/usertypes.js')(db, log);
 	const userstatuses = require('./db/rest/userstatuses.js')(db, log);
-	const userprofile = require('./db/rest/userprofile.js')(db, log);	
+	const userprofile = require('./db/rest/userprofile.js')(db, log);
 	const hospital = require('./db/rest/hospital.js')(db, log);
 	const urgenttypes = require('./db/rest/urgenttypes.js')(db, log);
 	const generalstatus = require('./db/rest/generalstatus.js')(db, log);

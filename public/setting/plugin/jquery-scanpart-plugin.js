@@ -248,7 +248,7 @@
         await foundItems.forEach((item, i) => {
           let itemRow = $('<div style="display: table-row; width: 100%; cursor: pointer; border: 2px solid blue;" class="item-list"></div>');
           $(itemRow).appendTo($(foundListBox));
-          let itemCell = $('<div style="display: table-cell; padding: 4px;">' + (i+1) + '</div>');
+          let itemCell = $('<div style="display: table-cell; padding: 4px;">' + (i+1) + '.</div>');
           $(itemCell).appendTo($(itemRow));
           itemCell = $('<div style="display: table-cell; padding: 4px;">' + item.Code + '</div>');
           $(itemCell).appendTo($(itemRow));
@@ -285,7 +285,13 @@
         let targetItem = await doGetItemByCodeFromMain(code);
         if (targetItem.foundItem) {
 
-          $this.selectedMainJson.push(targetItem.foundItem);
+          let haveList = await $this.selectedMainJson.find((item)=>{
+            if (item.Code == code) return item
+          });
+
+          if (!haveList) {
+            $this.selectedMainJson.push(targetItem.foundItem);
+          }
 
           doRemoveItemFromMainAt(targetItem.foundIndex);
           if ($this.selectedMainJson.length == 1) {
@@ -333,7 +339,7 @@
             if (item) {
               let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
               $(itemRow).appendTo($(selectedBox));
-              let itemCell = $('<div style="display: table-cell; padding: 4px;">' + (i+1) + '</div>');
+              let itemCell = $('<div style="display: table-cell; padding: 4px;">' + (i+1) + '.</div>');
               $(itemCell).appendTo($(itemRow));
               itemCell = $('<div style="display: table-cell; padding: 4px;">' + item.Code + '</div>');
               $(itemCell).appendTo($(itemRow));
@@ -360,9 +366,12 @@
     }
 
     const doCreateSearchForm = function(){
+      //const searchView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+      const searchView = $('<div style="width: 100%;"></div>');
       let searchForm = $('<div style="display: table-row; width: 100%;"></div>');
+      $(searchForm).appendTo($(searchView));
       $(searchForm).css({'border': '1px solid #ccc'});
-      let searchIcon = $('<img width="40" height="auto" src="/images/search-icon.png"/>');
+      let searchIcon = $('<img width="30" height="auto" src="/images/search-icon.png"/>');
       $(searchIcon).css({'margin-top': '4px'});
       let searchInputBox = $('<input type="text" id="SearchScanPart" class="search-input"/>');
 
@@ -373,7 +382,7 @@
       $(cellForm).append($(searchIcon)).appendTo($(searchForm));
       cellForm = $('<div style="display: table-cell"></div>');
       $(cellForm).append($(searchInputBox)).appendTo($(searchForm));
-      cellForm = $('<div style="display: table-cell;vertical-align: middle;"></div>');
+      cellForm = $('<div style="display: table-cell; vertical-align: middle;"></div>');
       let toggleSwitch = doCreateToggleSwitch();
       $(cellForm).append($(toggleSwitch)).appendTo($(searchForm));
       $(searchInputBox).on('keyup', (evt)=>{
@@ -384,9 +393,11 @@
       let guideToggle = $('<span style="padding-left: 8px;">แสดงรายการเลือกทั้งหมด</span>');
       $(searchForm).append($(guideToggle));
 
-      let modalControlBox = $('<div style="display: table-cell;vertical-align: middle; padding-left: 8px;"></div>');
+      //let searchCommand = $('<div style="width: 100%;"></div>');
+      //$(searchCommand).appendTo($(searchView));
+      let modalControlBox = $('<div style="width: 100%; padding: 4px; text-align: center;"></div>');
       //$(modalControlBox).css(modalFooterClass);
-      $(searchForm).append($(modalControlBox));
+      $(searchView).append($(modalControlBox));
 
       let okCmd = $('<input type="button" value=" OK "/>');
       $(okCmd).appendTo($(modalControlBox));
@@ -400,13 +411,17 @@
       });
 
       $(okCmd).on('click', async (evt)=>{
-        let selectedListBox = await doCreateSelectedListBox('');
-        eventData = {selectedData: $this.selectedMainJson, selectedBox: selectedListBox};
-        settings.successCallback(eventData);
-        $(searchForm).trigger('closedialog', [eventData]);
+        if ($this.selectedMainJson.length > 0) {
+          let selectedListBox = await doCreateSelectedListBox('');
+          eventData = {selectedData: $this.selectedMainJson, selectedBox: selectedListBox};
+          settings.successCallback(eventData);
+          $(searchForm).trigger('closedialog', [eventData]);
+        } else {
+          $.notify('ต้องเลือก Scan Part อย่างน้อย 1 รายการก่อน', 'warn');
+        }
       });
 
-      return $(searchForm);
+      return $(searchView);
     }
 
     const doCreateModalContent = function(){
@@ -414,7 +429,7 @@
         let modalWrapper = $('<div></div>');
         $(modalWrapper).css(modalContentWrapperClass);
         $(modalWrapper).css(settings.externalStyle);
-        let modalHeader = $('<div><h3>ส่วนที่ตรวจ</h3></div>');
+        let modalHeader = $('<div><h3>ส่วนที่ตรวจ (Scan Part)</h3></div>');
         $(modalHeader).css(modalHeaderClass);
         $(modalWrapper).append($(modalHeader));
 
@@ -428,7 +443,7 @@
         //console.log($this.optionJson);
 
         let modalContent = $('<div id="ModalContent"></div>');
-        let guideBox = $('<divstyle="width: 100%; padding: 10px; margin-top: 10px; background: #ddd;>โปรดค้นหา Scan Part ที่ต้องการเพิ่มลงในเคส โดยพิมพ์ชื่อ Scan Part และเลือกรายการที่ปรากฎ</div>');
+        let guideBox = $('<divstyle="width: 100%; padding: 10px; margin-top: 10px; background: #ddd;>โปรดค้นหา Scan Part ที่ต้องการเพิ่มลงในเคส โดยพิมพ์ชื่อ Scan Part และเลือกรายการที่ต้องการจากที่ปรากฎขึ้นมา</div>');
         $(guideBox).appendTo($(modalContent));
         let selectedItemBox = $('<div id="SelectedItemBox"></div>');
         $(modalContent).append($(selectedItemBox));
@@ -644,7 +659,6 @@
       getItemByCodeFromMain: function(code){
         return new Promise(async function(resolve, reject) {
           doGetItemByCodeFromMain(code).then((mainItems)=>{
-            console.log(mainItems);
             resolve(mainItems);
           })
         });

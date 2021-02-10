@@ -204,16 +204,21 @@ app.post('/select/(:caseId)', (req, res) => {
       if (ur.length > 0){
         try {
           const caseId = req.params.caseId;
-          const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}];
+          const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
           const cases = await Case.findAll({include: caseInclude, where: {id: caseId}});
           const casesFormat = [];
           const promiseList = new Promise(async function(resolve, reject) {
             cases.forEach(async (item, i) => {
-              const radUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RadiologistId}});
+              const radUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RadiologistId}});
               const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
-              const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
+              const radioData = {id: rades[0].id, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH, username: radUser[0].username};
+              const refUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RefferalId}});
               const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
-              casesFormat.push({case: item, Radiologist: rades[0], Refferal: refes[0]});
+              const referData = {id: refes[0].id, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH, username: refUser[0].username};
+              const ownerUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.userId}});
+              const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
+              const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, username: ownerUser[0].username};
+              casesFormat.push({case: item, Radiologist: radioData, Refferal: referData, Owner: ownerData});
             });
             setTimeout(()=> {
               resolve(casesFormat);
@@ -488,7 +493,7 @@ app.post('/search/key', async (req, res) => {
         let usertypeId = req.body.usertypeId;
 
         let casewhereClous = undefined;
-        if (usertypeId == 2) {
+        if ((usertypeId == 2) || (usertypeId == 5)) {
           casewhereClous = {hospitalId: { [db.Op.eq]: hospitalId}, userId: { [db.Op.eq]: userId}};
         } else if (usertypeId == 4) {
           casewhereClous = { Case_RadiologistId: { [db.Op.eq]: userId}};
@@ -578,7 +583,7 @@ app.post('/search/key', async (req, res) => {
   }
 });
 
-//Load case by status API
+//Radio Load case by status API
 app.post('/load/list/by/status/radio', async (req, res) => {
   let token = req.headers.authorization;
   if (token) {
@@ -588,6 +593,68 @@ app.post('/load/list/by/status/radio', async (req, res) => {
         const radioId = req.body.userId;
         const youCcases = await Case.findAll({attributes: ['id'], where: {Case_RadiologistId: radioId, casestatusId: { [db.Op.in]: casestatusIds }}});
         res.json({status: {code: 200}, Records: youCcases});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//Owner Load case by status API
+app.post('/load/list/by/status/owner', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        const casestatusIds = req.body.casestatusIds;
+        const userId = req.body.userId;
+        const youCcases = await Case.findAll({attributes: ['id'], where: {userId: userId, casestatusId: { [db.Op.in]: casestatusIds }}});
+        res.json({status: {code: 200}, Records: youCcases});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//API for Reffer Calling Case Info
+app.get('/status/by/dicom/(:dicomId)', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        const dicomId = req.params.dicomId;
+        const caseInclude = [{model: db.casestatuses, attributes: ['CS_Name_EN']}];
+        const youCcases = await Case.findAll({attributes:['id', 'casestatusId'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
+        res.json({status: {code: 200}, Records: youCcases});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//API for Reffer Calling Case' Result
+app.post('/result/(:caseId)', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        const caseId = req.params.caseId;
+        const youReports = await db.casereports.findAll({attributes:['id', 'Report_Type', 'PDF_Filename'],  where: {caseId: caseId}, order: [['id', 'DESC']]});
+        res.json({status: {code: 200}, Records: youReports});
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});

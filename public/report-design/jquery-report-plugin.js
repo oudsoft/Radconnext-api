@@ -15,6 +15,7 @@ $.widget( "custom.textelement", {
   _create: function() {
     let $this = this;
     this.options.type = this.options.type;
+    this.element.addClass("ui-widget-content");
     this.element.addClass("reportElement");
     this.element.addClass("textElement");
     this.element.css({"left": this.options.x + "px", "top": this.options.y + "px", "width": this.options.width + "px", "height": this.options.height + "px"});
@@ -27,17 +28,22 @@ $.widget( "custom.textelement", {
         $this._trigger("elementdrop", null, $this.options);
       }
     });
-    this.element.resizable({
+    this.element.resizable(/*{
       containment: "parent",
-      stop: function(e) {
-        //console.log(e);
-        $this._setOption("width", e.target.clientWidth);
-        $this._setOption("height", e.target.clientHeight);
-        $this._trigger("elementresizestop", null, $this.options);
+      start: function(e, ui) {
+        e.preventDefault();
+        console.log('start resize text element on create');
+      },
+      resize: function(e, ui) {
+        e.preventDefault();
+        console.log('process resize text element on create');
+      },
+      stop: function(e, ui) {
+        e.preventDefault();
+        console.log('stop resize text element on create');
       }
-    });
-    this.element.on('click', function(event) {
-      //console.log(event);
+    }*/);
+    this.element.on('click', function(e, ui) {
       $this._trigger("elementselect", null, $this.options);
     });
   },
@@ -50,6 +56,7 @@ $.widget( "custom.textelement", {
     this.refresh();
   },
   refresh: function() {
+    console.log('refresh called.');
     let $this = this;
     this.element.resizable('destroy');
     this.element.text(this.options.title);
@@ -60,10 +67,21 @@ $.widget( "custom.textelement", {
     this.element.css({"text-align": this.options.fontalign});
     this.element.resizable({
       containment: "parent",
+      start: function(e, ui) {
+        console.log('start resize text element  on refresh');
+        e.preventDefault();
+      },
+      resize: function(e, ui) {
+        console.log('process resize text element  on refresh');
+        e.preventDefault();
+      },
       stop: function(e) {
+        console.log('stop resize text element on refresh');
         $this._setOption("width", e.target.clientWidth);
         $this._setOption("height", e.target.clientHeight);
+        //$this.refresh();
         $this._trigger("elementresizestop", null, $this.options);
+        e.preventDefault();
       }
     });
   }
@@ -96,8 +114,10 @@ $.widget( "custom.hrelement", {
       containment: "parent",
       stop: function(e) {
         //console.log(e);
+        console.log('stop resize hr element');
         $this._setOption("width", e.target.clientWidth);
         $this._setOption("height", e.target.clientHeight);
+        $this.refresh();
         $this._trigger("elementresizestop", null, $this.options);
       }
     });
@@ -148,6 +168,7 @@ $.widget( "custom.imageelement", {
       containment: "parent",
       stop: function(e) {
         //console.log(e);
+        console.log('stop resize image element');
         $this._setOption("width", e.target.clientWidth);
         $this._setOption("height", e.target.clientHeight);
         $this.refresh();

@@ -46,8 +46,9 @@ mainApp.use('/', express.static(__dirname + '/../public'));
 
 //doGetAllRootApp().then((rootUri) => {
   httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
-	webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
-  const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
+	//webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
+  //const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
+  const {api, db} = require(__dirname + '/../app/api.js')(httpsServer, log);
   const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
   mainApp.use('/api', api);
   mainApp.use('/app', app);
@@ -62,7 +63,8 @@ mainApp.use('/', express.static(__dirname + '/../public'));
   */
 
   const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
-  const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
+  //const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
+  
   mainApp.use('/api/login', login);
 
   //const util = require(__dirname + '/../app/lib/mod/util.js')(log);

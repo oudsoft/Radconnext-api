@@ -77,15 +77,19 @@ app.post('/add', (req, res) => {
         const nowStatusId = cases[0].casestatusId;
         let nextStatus = undefined;
         let remark = 'Radilo Save normal Response success.';
-        if (responseType === 'normal'){
-          const reportType = req.body.reporttype;
-          if (reportType === 'preliminary') {
-            nextStatus = 13;
-          } else {
-            nextStatus = 5;
+        if ((nowStatusId == 8) || (nowStatusId == 9) || (nowStatusId == 13)) {
+          if (responseType === 'normal'){
+            const reportType = req.body.reporttype;
+            if (reportType === 'preliminary') {
+              nextStatus = 13;
+            } else {
+              nextStatus = 5;
+            }
+          } else if (responseType === 'draft'){
+            nextStatus = 9;
           }
-        } else if (responseType === 'draft'){
-          nextStatus = 9;
+        } else if ((nowStatusId == 10) || (nowStatusId == 11) || (nowStatusId == 14)) {
+          nextStatus = 12;
         }
         if (nowStatusId == 8) {
           let newResponse = req.body.data;
@@ -97,14 +101,14 @@ app.post('/add', (req, res) => {
           } else {
             res.json({ status: {code: 203}, result: {responseId: adResponse.id}});
           }
-        } else if (nowStatusId == 9 ) {
+        } else if ((nowStatusId == 9 ) || (nowStatusId == 12 ) || (nowStatusId == 13 ) || (nowStatusId == 14 )){
           let responseId = req.body.responseId;
           let updateResponse = req.body.data;
           let upResponse = await Response.update(updateResponse, { where: { id: responseId } });
           if (responseType === 'normal'){
             let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
             if (changeResult.change.status) {
-              let newCaseReport = {Remark: remark, Report_Type: req.body.reporttype, PDF_Filename: req.body.PDF_Filename};
+              let newCaseReport = {Remark: remark, Report_Type: req.body.reporttype, PDF_Filename: req.body.PDF_Filename, Status: 'new'};
               let adReport = await db.casereports.create(newCaseReport);
               await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
               res.json({ status: {code: 200}, result: changeResult});
