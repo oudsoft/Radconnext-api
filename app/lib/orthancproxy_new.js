@@ -249,10 +249,15 @@ app.post('/create/zip/instance', function(req, res) {
 app.post('/sendai', function(req, res) {
 	const { AIChest4allAsyncCall, downloadAIChestFile, checkStatus } = require('./mod/aichest4all_call.js');
 
-	const printAIProps = function(data){
-	  log.info('AI Result=>' + JSON.stringify(data.data.result));
+	const printAIProps = async function(userId, caseId, seriesId, instanceId, data){
+		//log.info('AI Data=>' + JSON.stringify(data.data));
+	  //log.info('AI Result=>' + JSON.stringify(data.data.result));
+		let newAILog = {seriesId: seriesId, instanceId: instanceId, ResultId: data.data.id, ResultJson: data.data.result};
+		let adAILog = await db.radailogs.create(newAILog);
+		await db.radailogs.update({userId: userId, caseId: caseId}, {where: {id: adAILog.id}});
 	}
-
+	let userId = req.body.userId;
+	let caseId = req.body.caseId;
 	let seriesId = req.body.seriesId;
 	let instanceId = req.body.instanceId;
 
@@ -265,14 +270,66 @@ app.post('/sendai', function(req, res) {
 		  throw new Error("No have IDs")
 		}
 		return aiRes.ids.map(id => checkStatus(id, async (airesult) => {
-			printAIProps(airesult)
 			let resultLink = await downloadAIChestFile(airesult.data.id, 'pdf');
-			res.status(200).send({result: {link: resultLink}});
+			printAIProps(userId, caseId, seriesId,instanceId, airesult, resultLink);
+			res.status(200).send({result: {link: resultLink, id: airesult.data.id}});
 		}, console.error))
 	}).catch(error => {
 		console.error("Error!!!", error.message);
 		res.status(500).send({error: error.message});
 	})
+});
+
+app.post('/convert/ai/report', function(req, res) {
+	let hospitalId = req.body.hospitalId;
+	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async(orthanc) => {
+		const publicDir = path.normalize(__dirname + '/../..');
+    const aiDownloadDir = publicDir + process.env.AIDOWNLOAD_DIR;
+
+		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
+		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
+		let userPASS = cloud.user + ':' + cloud.pass;
+		let studyId = req.body.studyId;
+		let username = req.body.username;
+		let reportFileCode = req.body.pdffilecode;
+		let modality = req.body.modality;
+
+		let pdfFileName = reportFileCode + '.pdf';
+
+		let outterCommand = formatStr('curl --user %s %s/studies/%s', userPASS, orthancUrl, studyId);
+		let stdout = await runcommand(outterCommand);
+
+		let studyObj = JSON.parse(stdout);
+		let mainTags = Object.keys(studyObj.MainDicomTags);
+		let patientMainTags = Object.keys(studyObj.PatientMainDicomTags);
+		let bpmFile = reportFileCode + '.bmp';
+		let dcmFile = reportFileCode + '.dcm';
+		let command = '';
+		command += 'convert -verbose -density 150 -trim ' + aiDownloadDir + '/' + pdfFileName + '[0]';
+		command += ' -define bmp:format=BMP3 -quality 100 -flatten -sharpen 0x1.0 ';
+		command += ' ' + aiDownloadDir + '/' + bpmFile;
+		command += ' && cd ' + aiDownloadDir;
+		command += ' && img2dcm -i BMP ' + bpmFile + ' ' + dcmFile;
+		await mainTags.forEach((tag, i) => {
+			command += formatStr(' -k "%s=%s"', tag, Object.values(studyObj.MainDicomTags)[i]);
+		});
+		await patientMainTags.forEach((tag, i) => {
+			if (tag !== 'OtherPatientIDs')	{
+				command += formatStr(' -k "%s=%s"', tag, Object.values(studyObj.PatientMainDicomTags)[i]);
+			}
+		});
+
+		command += formatStr(' -k "Modality=%s" -v', modality);
+
+		command += ' && storescu';
+		command += formatStr(' %s %s', cloud.ip, cloud.dicomport);
+		command +=  ' ' + dcmFile;
+		command +=  ' -v';
+
+		stdout = await runcommand(command);
+
+		res.status(200).send({result: {code: 200}});
+	});
 });
 
 app.post('/loadarchive/(:studyID)', function(req, res) {

@@ -466,6 +466,23 @@ const RadChatLogDef = {
 			}
 		};
 
+//Case_ID
+//User_ID
+const RadAILogDef = {
+			seriesId : {
+				type: Sequelize.STRING(50)
+			},
+			instanceId : {
+				type: Sequelize.STRING(50)
+			},
+			ResultId : {
+				type: Sequelize.STRING(50)
+			},
+			ResultJson : {
+				type: Sequelize.JSONB
+			}
+		};
+
 module.exports = {
 	RadUserTypeDef,
 	RadUserStatusDef,
@@ -492,5 +509,6 @@ module.exports = {
 	RadScanPartRefDef,
 	RadScanPartAuxDef,
 	RadKeepLogDef,
-	RadChatLogDef
+	RadChatLogDef,
+	RadAILogDef
 }
