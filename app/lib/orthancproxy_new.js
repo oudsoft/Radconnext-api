@@ -5,10 +5,24 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 const archiver = require('archiver');
+const unzip = require('unzip');
 const request = require('request-promise');
 const exec = require('child_process').exec;
 const express = require('express');
 const app = express();
+
+const { promisify } = require('util');
+const { resolve } = require('path');
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
+const getFiles = async function(dir) {
+  const subdirs = await readdir(dir);
+  const files = await Promise.all(subdirs.map(async (subdir) => {
+    const res = resolve(dir, subdir);
+    return (await stat(res)).isDirectory() ? getFiles(res) : res;
+  }));
+  return files.reduce((a, f) => a.concat(f), []);
+}
 
 const userpass = process.env.ORTHANC_USER + ':' + process.env.ORTHANC_PASSWORD;
 const currentDir = __dirname;
@@ -68,7 +82,7 @@ const doLoadOrthancTarget = function(hospitalId, hostname){
 
 const formatStr = function (str) {
   var args = [].slice.call(arguments, 1),
-      i = 0;
+    i = 0;
   return str.replace(/%s/g, () => args[i++]);
 }
 
@@ -86,7 +100,7 @@ const zipDirectory = function(source, out) {
   });
 }
 
-var db, Orthanc, log, auth, uti;
+var db, Orthanc, log, auth, uti, socket;
 
 app.post('/find', function(req, res) {
 	/*
@@ -332,6 +346,83 @@ app.post('/convert/ai/report', function(req, res) {
 	});
 });
 
+app.post('/importarchive', function(req, res) {
+	let hospitalId = req.body.hospitalId;
+	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async (orthanc) => {
+		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
+		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
+		let archiveCode = req.body.archivecode;
+		let username = req.body.username;
+    let pacsImportOption = req.body.pacsImportOption;
+    log.info('option=>' + pacsImportOption);
+		let archiveFileName = archiveCode + '.zip';
+		let archiveParh = usrUploadDir + '/' + archiveFileName;
+		let archiveDir = formatStr('%s/%s', usrUploadDir, archiveCode);
+		let command = formatStr('mkdir %s', archiveDir);
+		let stdout = await runcommand(command);
+		fs.createReadStream(archiveParh).pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
+			log.info('Unzip Archive Success, and start import for you.');
+			getFiles(archiveDir).then((files) => {
+				const delay = 5000;
+				const importDicom = function(dicomFile, pos){
+					return new Promise(async function(resolve, reject){
+						let command = formatStr('curl -X POST --user %s:%s %s/instances --data-binary @%s', cloud.user, cloud.pass, orthancUrl, dicomFile);
+						let stdout = await runcommand(command);
+						setTimeout(()=>{
+							log.info('order => ' + pos);
+							resolve(stdout);
+						}, 415);
+					});
+				}
+
+				let execResults = [];
+				let	promiseList = new Promise(async function(resolve2, reject2){
+					let i = 0;
+					while (i < files.length) {
+						let item = files[i];
+						let pathFormat = item.split(' ').join('\\ ');
+						let importRes = await importDicom(pathFormat, i);
+            //socket
+            if (pacsImportOption) {
+              let startUrlAt = item.indexOf('/img');
+              let internalUrl = item.substring(startUrlAt);
+              var port = req.app.settings.port || process.env.SERVER_PORT;
+              let downloadlink = req.protocol + '://' + req.hostname  + ( port == 80 || port == 443 ? '' : ':'+port )  + internalUrl;
+              //let downloadlink = 'https://' + req.host + internalUrl;
+              let socketTrigger = {type: 'import', message: 'Please sync new dicom to Pacs', download: {link: downloadlink} };
+              await socket.sendMessage(socketTrigger, username);
+
+              const workerFarm = require('worker-farm');
+              const importService = workerFarm(require.resolve('./mod/import-worker.js'));
+              let importData = {download: {link: downloadlink}};
+              await importService(importData, function (err, output) {
+                log.info('output=>' + JSON.stringify(output));
+              });
+            }
+						execResults.push(importRes);
+						i++;
+					}
+					setTimeout(()=>{
+						resolve2(execResults);
+					}, delay);
+				});
+				log.info('countt all Files => ' + files.length);
+				if (files.length > 200) {
+					log.info('test => ' + files.length);
+					res.status(200).send({result: files});
+				} else {
+					Promise.all([promiseList]).then((ob)=>{
+						res.status(200).send({result: ob[0]});
+					});
+				}
+			}).catch((error) => {
+				log.error('Error=>'+ JSON.stringify(error));
+				res.status(500).send({error: error});
+			});
+		});
+	});
+});
+
 app.post('/loadarchive/(:studyID)', function(req, res) {
 	let hospitalId = req.body.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
@@ -341,7 +432,7 @@ app.post('/loadarchive/(:studyID)', function(req, res) {
 		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
 		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
 		var command = 'curl --user ' + cloud.user + ':' + cloud.pass + ' -H "user: ' + cloud.user + '" ' + orthancUrl + '/studies/' + studyID + '/archive > ' + usrArchiveDir + '/' + archiveFileName;
-		log.info('Load Dicom achive with command >>', command);
+		log.info('Download Dicom achive with command >>', command);
 		runcommand(command).then((stdout) => {
 			let link = process.env.USRARCHIVE_PATH + '/' + archiveFileName;
 			res.status(200).send({link: link});
@@ -372,9 +463,10 @@ app.get('/orthancexternalport', function(req, res) {
 	});
 });
 
-module.exports = ( dbconn, monitor ) => {
+module.exports = ( dbconn, monitor, websocket ) => {
   db = dbconn;
   log = monitor;
+  socket = websocket;
   Orthanc = db.orthancs;
 	uti = require('./mod/util.js')(db, log);
   return app;

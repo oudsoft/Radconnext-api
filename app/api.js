@@ -50,7 +50,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const webSocketServer = require('./lib/websocket.js')(httpsServer, db, log);
 
 	const externalapiproxy = require('./lib/v2/apiproxy.js')(db, log);
-	const orthancproxy = require('./lib/orthancproxy_new.js')(db, log);
+	const orthancproxy = require('./lib/orthancproxy_new.js')(db, log, webSocketServer);
 	const uploader = require('./lib/uploader.js')(apiApp);
 	const pdfconvertor = require('./lib/pdfconvertor.js')(apiApp, webSocketServer);
 	//const pdfconvertorV2 = require('./lib/v2/pdfconvertor.js')(apiApp);

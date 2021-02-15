@@ -111,6 +111,28 @@ module.exports = function (app) {
 		});
 	});
 
+  app.post('/portal/archiveupload', upload.array('archiveupload'), function(req, res) {
+		var filename = req.files[0].originalname;
+		var fullnames = filename.split('.');
+		var newFileName = genUniqueID() + '.zip';
+		var archivePath = req.files[0].destination + '/' + req.files[0].filename;
+		var newPath = req.files[0].destination + '/'  + newFileName;
+		var readStream = fs.createReadStream(archivePath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+
+		var command = parseStr('rm %s', archivePath);
+		runcommand(command).then((stdout) => {
+			var link =  DWLD + '/' + newFileName;
+
+      res.status(200).send({status: {code: 200}, text: 'ok archive upload.', link: link, file: newFileName});
+
+		}).catch((err) => {
+			console.log('err: 500 >>', err);
+			res.status(500).send({status: {code: 500}, error: err});
+		});
+	});
+
 	return {
 		genUniqueID,
 		parseStr,

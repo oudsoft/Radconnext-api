@@ -2530,6 +2530,12 @@ module.exports = function ( jq ) {
 		return formatDateStr(d);
 	}
 
+	const getYesterdayDevFormat = function(){
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
+		return formatDateStr(d);
+	}
+
 	const getToday = function(){
 		var d = new Date();
 		var td = formatDateStr(d);
@@ -2908,6 +2914,7 @@ module.exports = function ( jq ) {
 	return {
 		formatDateStr,
 		getTodayDevFormat,
+		getYesterdayDevFormat,
 		getToday,
 		getYesterday,
 		getDateLastThreeDay,
@@ -3341,6 +3348,7 @@ $.fn.simplelog = function(dataPairObj){
   this.append($(logMessages));
   return this;
 }
+
 /*****************************/
 
 //require('../case/mod/jquery-ex.js');
@@ -3368,11 +3376,15 @@ $( document ).ready(function() {
 			doLoadLogin()
 		}
 	};
+  const doLoadLogin = function(){
+    window.location.replace('/index.html');
+  }
 
 	initPage();
 
 });
 
+/*
 function doCallLoginApi(user) {
   return new Promise(function(resolve, reject) {
     var loginApiUri = '/api/login/';
@@ -3432,6 +3444,7 @@ function doLoadLogin() {
     });
 	});
 }
+*/
 
 function doUserLogout() {
   localStorage.removeItem('token');

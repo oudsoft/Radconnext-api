@@ -599,10 +599,21 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallSendAI = function(seriesId, instanceId){
+	const doCallSendAI = function(caseId, seriesId, instanceId){
 		return new Promise(async function(resolve, reject) {
-			let params = {seriesId: seriesId, instanceId: instanceId};
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = {caseId: caseId, userId: userdata.id, seriesId: seriesId, instanceId: instanceId};
 			let apiurl = '/api/orthancproxy/sendai';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doConvertAIResult = function(studyId, pdffilecode, modality){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = {hospitalId: userdata.hospitalId, username: userdata.id, studyId: studyId, pdffilecode: pdffilecode, modality: modality};
+			let apiurl = '/api/orthancproxy/convert/ai/report';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
 		});
@@ -909,6 +920,7 @@ module.exports = function ( jq ) {
 		doCallCreatePreviewSeries,
 		doCallCreateZipInstance,
 		doCallSendAI,
+		doConvertAIResult,
 		doUpdateCaseStatus,
 		doCreateNewCustomUrgent,
 		doCallSelectUrgentType,
@@ -1589,8 +1601,8 @@ module.exports = function ( jq ) {
 	const doShowHome = function(){
 		$('body').css({'background-image': 'url("/images/logo-radconnext.png")', 'background-color': '#cccccc'});
 
-		doLoadLoginForm();
-
+		//doLoadLoginForm();
+		login.doCheckUserData();
 	}
 
 	const doLoadLoginForm = function(){
@@ -1714,8 +1726,23 @@ module.exports = function ( jq ) {
     }
   }
 
+	const doCheckUserData = function(){
+		let yourToken = localStorage.getItem('token');
+		if (yourToken) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			if (userdata && userdata.usertype){
+				gotoYourPage(userdata.usertype.id)
+			} else {
+				doLoadLoginForm();
+			}
+		} else {
+			doLoadLoginForm();
+		}
+	}
+
 	return {
-    doLoadLoginForm
+    doLoadLoginForm,
+		doCheckUserData
 	}
 }
 

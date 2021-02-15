@@ -10,15 +10,16 @@
     var $this = this;
 
     const onActionFromExternal = function() {
-      $(readySwitch).find('input[type=checkbox]').prop('checked', true);
+      $(readySwitch).find('input[type="checkbox"]').prop('checked', true);
     }
 
     const offActionFromExternal = function() {
-      $(readySwitch).find('input[type=checkbox]').prop('checked', false);
+      $(readySwitch).find('input[type="checkbox"]').prop('checked', false);
     }
 
     const doGetState = function(){
-      $(readySwitch).find('input[type=checkbox]').prop('checked');
+      let state = $(readySwitch).find('input[type="checkbox"]').prop('checked');
+      return state;
     }
 
     const init = function(onAction, offAction) {

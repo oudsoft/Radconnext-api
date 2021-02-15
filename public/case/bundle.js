@@ -31,11 +31,14 @@ $( document ).ready(function() {
 			doLoadLogin()
 		}
 	};
+  const doLoadLogin = function(){
+    window.location.replace('/index.html');
+  }
 
 	initPage();
 
 });
-
+/*
 function doCallLoginApi(user) {
   return new Promise(function(resolve, reject) {
     var loginApiUri = '/api/login/';
@@ -96,6 +99,7 @@ function doLoadLogin() {
     });
 	});
 }
+*/
 
 function doUserLogout() {
   localStorage.removeItem('token');
@@ -2022,6 +2026,63 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doGetOrthancSeriesDicom = function(seriesId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let rqBody = '{"Level": "Series", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/series/' + seriesId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallCreatePreviewSeries = function(seriesId, instanceList){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceList: instanceList};
+			let apiurl = '/api/orthancproxy/create/preview';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallCreateZipInstance = function(seriesId, instanceId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceId: instanceId};
+			let apiurl = '/api/orthancproxy/create/zip/instance';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallSendAI = function(caseId, seriesId, instanceId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = {caseId: caseId, userId: userdata.id, seriesId: seriesId, instanceId: instanceId};
+			let apiurl = '/api/orthancproxy/sendai';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doConvertAIResult = function(studyId, pdffilecode, modality){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = {hospitalId: userdata.hospitalId, username: userdata.id, studyId: studyId, pdffilecode: pdffilecode, modality: modality};
+			let apiurl = '/api/orthancproxy/convert/ai/report';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
 	const doUpdateCaseStatus = function(id, newStatus, newDescription){
 		return new Promise(async function(resolve, reject) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -2319,6 +2380,11 @@ module.exports = function ( jq ) {
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetOrthancStudyDicom,
+		doGetOrthancSeriesDicom,
+		doCallCreatePreviewSeries,
+		doCallCreateZipInstance,
+		doCallSendAI,
+		doConvertAIResult,
 		doUpdateCaseStatus,
 		doCreateNewCustomUrgent,
 		doCallSelectUrgentType,

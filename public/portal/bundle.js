@@ -938,7 +938,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":1,"./utilmod.js":5}],3:[function(require,module,exports){
+},{"./apiconnect.js":1,"./utilmod.js":4}],3:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1085,64 +1085,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":5}],4:[function(require,module,exports){
-/* userprofilelib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-  const util = require('./utilmod.js')($);
-  const apiconnector = require('./apiconnect.js')($);
-  const common = require('./commonlib.js')($);
-
-  const showScanpartProfile = function(scanpartAuxs, deleteCallback){
-    return new Promise(function(resolve, reject) {
-      let scanpartBox = $('<div style="display: table; width: 100%; border-collapse: collapse; padding: 5px;"></div>');
-      let headRow = $('<div style="display: table-row; width: 100%; background-color: blue; color: white;"></div>');
-      $(headRow).appendTo($(scanpartBox));
-      $(headRow).append($('<div style="display: table-cell;">ลำดับที่</div>'));
-      $(headRow).append($('<div style="display: table-cell;">Study Description</div>'));
-      $(headRow).append($('<div style="display: table-cell;">Protocol Name</div>'));
-      $(headRow).append($('<div style="display: table-cell;">Scan Part</div>'));
-      $(headRow).append($('<div style="display: table-cell;">คำสั่ง</div>'));
-      let promiseList = new Promise(async function(resolve2, reject2){
-        for (let i=0; i < scanpartAuxs.length; i++) {
-          let item = scanpartAuxs[i];
-          let itemRow = $('<div style="display: table-row; width: 100%"></div>');
-          $(itemRow).appendTo($(scanpartBox));
-          $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + (i+1) + '</div>'));
-          $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.StudyDesc + '</div>'));
-          $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.ProtocolName + '</div>'));
-          let scanPartCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
-          let scanPartBox = await common.doRenderScanpartSelectedBox(item.Scanparts);
-          $(scanPartBox).appendTo($(scanPartCell));
-          $(itemRow).append($(scanPartCell));
-          let scanPartCmdCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
-          let deleteCmd = $('<img class="pacs-command" data-toggle="tooltip" src="../images/delete-icon.png" title="ลบรายการนี้"/>');
-          $(deleteCmd).appendTo($(scanPartCmdCell));
-          $(itemRow).append($(scanPartCmdCell));
-          $(deleteCmd).on('click', (evt)=>{
-            let yourComfirm = confirm('โปรดยืนยันการลบรายการโดยคลิก ตกลง หรือ OK');
-            if (yourComfirm) {
-              deleteCallback(item.id);
-            }
-          });
-        }
-        setTimeout(()=>{
-          resolve2($(scanpartBox));
-        }, 500);
-      });
-      Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
-    });
-  }
-
-  return {
-    showScanpartProfile
-  }
-}
-
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":5}],5:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":4}],4:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -1639,7 +1582,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":17,"../../refer/mod/websocketmessage.js":20,"./websocketmessage.js":6}],6:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":8,"../../refer/mod/websocketmessage.js":9,"./websocketmessage.js":5}],5:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsLocal ) {
 	const $ = jq;
@@ -1736,67 +1679,37 @@ module.exports = function ( jq, wsLocal ) {
 	}
 }
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
-
 /*****************************/
 window.$.ajaxSetup({
   beforeSend: function(xhr) {
     xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
   }
 });
-
-window.$.fn.center = function () {
-  this.css("position","absolute");
-  this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");
-  this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +  $(window).scrollLeft()) + "px");
-  return this;
+/*****************************/
+const urlQueryToObject = function(url) {
+  let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+        return paramPair.split(/=(.+)?/).slice(0, 2);
+    }).reduce(function (obj, pairArray) {
+        obj[pairArray[0]] = pairArray[1];
+        return obj;
+    }, {});
+  return result;
 }
-
-$.fn.simplelog = function(dataPairObj){
-  let logMessages = $('<div style="width: 100%;"></div>');
-  let keyTags = Object.getOwnPropertyNames(dataPairObj);
-  for (let i=0; i<keyTags.length; i++) {
-    let logItem = $('<div style="width: 100%; border: 1px solid grey;"></div>');
-    let key = keyTags[i];
-    let value = dataPairObj[key]
-    let logKey = $('<span>' + key + '</span>');
-    $(logKey).css({'color': 'black'});
-    let logValue = $('<span>' + value + '</span>');
-    $(logValue).css({'color': 'blue'});
-    $(logItem).append($(logKey));
-    $(logItem).append($('<span> => </span>'));
-    $(logItem).append($(logValue));
-    $(logMessages).append($(logItem));
-  }
-  this.append($(logMessages));
-  return this;
-}
-
 /*****************************/
 
-var noti, wsm;
-
 const util = require('../case/mod/utilmod.js')($);
-const common = require('../case/mod/commonlib.js')($);
 const userinfo = require('../case/mod/userinfolib.js')($);
-const userprofile = require('../case/mod/userprofilelib.js')($);
-const apiconnector = require('../case/mod/apiconnect.js')($);
-const welcome = require('./mod/welcomelib.js')($);
-const newcase = require('./mod/newcaselib.js')($);
-const acccase = require('./mod/acccaselib.js')($);
-const searchcase = require('./mod/searchcaselib.js')($);
-const opencase = require('./mod/opencase.js')($);
-const template = require('./mod/templatelib.js')($);
-const profile = require('./mod/profilelib.js')($);
+const {doCallApi} = require('../case/mod/commonlib.js')($);
 
-const modalLockScreeStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
+const maxSizeDef = 1000000000;
 
 $( document ).ready(function() {
   const initPage = function() {
-		var token = doGetToken();
+		var token = localStorage.getItem('token');
 		if (token) {
 			doLoadMainPage()
 		} else {
@@ -1812,3668 +1725,282 @@ $( document ).ready(function() {
 
 });
 
-/*
-function doCallLoginApi(user) {
-  return new Promise(function(resolve, reject) {
-    var loginApiUri = '/api/login/';
-    var params = user;
-    $.post(loginApiUri, params, function(response){
-			resolve(response);
-		}).catch((err) => {
-			console.log(JSON.stringify(err));
-      reject(err);
-		})
-	});
-}
-*/
-
-function doLoadRadioConfigApi(userId) {
-  return new Promise(function(resolve, reject) {
-    var loadOriginUrl = '/api/radiologist/load/config/' + userId;
-    var params = {userId};
-    $.post(loadOriginUrl, params, function(response){
-			resolve(response);
-		}).catch((err) => {
-			console.log(JSON.stringify(err));
-      reject(err);
-		})
-  });
-}
-
-/*
-function doLogin(){
-	var username = $("#username").val();
-	var password = $("#password").val();
-	if( username == '' || password == ''){
-		$('input[type="text"],input[type="password"]').css("border","2px solid red");
-		$('input[type="text"],input[type="password"]').css("box-shadow","0 0 3px red");
-		$('#login-msg').html('<p>Please fill all fields...!!!!!!</p>');
-		$('#login-msg').show();
-	} else {
-    $('#login-msg').hide();
-		let user = {username: username, password: password};
-		doCallLoginApi(user).then(async (response) => {
-			if (response.success == false) {
-				$('input[type="text"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
-				$('input[type="password"]').css({"border":"2px solid #00F5FF","box-shadow":"0 0 5px #00F5FF"});
-				$('#login-msg').html('<p>Username or Password incorrect. Please try with other username and password again.</p>');
-				$('#login-msg').show();
-			} else {
-				//Save resBody to localStorage
-        $('#login-msg').hide();
-				//const defualtDicomFilter = {"Level": "Study", "Expand": true, "Query": {"Modality": "*"}, "Limit": 30};
-				const defualtSettings = {"itemperpage" : "20"}
-        localStorage.setItem('token', response.token);
-        if (response.data.userprofiles.length == 0){
-          response.data.userprofiles.push({Profile: common.defaultProfile});
-        }
-        localStorage.setItem('userdata', JSON.stringify(response.data));
-				localStorage.setItem('defualsettings', JSON.stringify(defualtSettings));
-        //let radioConfigs = await doLoadRadioConfigApi(response.data.id);
-        //localStorage.setItem('userconfigs', JSON.stringify(radioConfigs));
-				doLoadMainPage();
-			}
-		});
-	}
-}
-
-function doLoadLogin() {
-	$('#app').load('form/login.html', function(){
-		$(".container").css({"min-height": "100%"});
-		$(".main").center();
-		$("#login-cmd").click(function(){
-			doLogin();
-		});
-    $("#password").on('keypress',function(e) {
-      if(e.which == 13) {
-        doLogin();
-      };
-    });
-	});
-}
-*/
-
-function doUserLogout() {
-  localStorage.removeItem('token');
-	localStorage.removeItem('userdata');
-  localStorage.removeItem('userconfigs');
-  $('#LogoutCommand').hide();
-  let url = '/index.html';
-  window.location.replace(url);
-}
-
-function doLoadMainPage(){
-	/*
-		jquery loading api
-		https://carlosbonetti.github.io/jquery-loading/
-	*/
+const doLoadMainPage = function(){
   let jqueryUiCssUrl = "../lib/jquery-ui.min.css";
 	let jqueryUiJsUrl = "../lib/jquery-ui.min.js";
 	let jqueryLoadingUrl = '../lib/jquery.loading.min.js';
 	let jqueryNotifyUrl = '../lib/notify.min.js';
-
-	let countdownclockPluginUrl = "../setting/plugin/jquery-countdown-clock-plugin.js";
-	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js"
+  let jquerySimpleUploadUrl = '../lib/simpleUpload.min.js';
   let readystatePlugin = "../setting/plugin/jqury-readystate-plugin.js"
-  let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
 
-	$('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
+  $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
 	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
 	//https://carlosbonetti.github.io/jquery-loading/
 	$('head').append('<script src="' + jqueryLoadingUrl + '"></script>');
 	//https://notifyjs.jpillora.com/
 	$('head').append('<script src="' + jqueryNotifyUrl + '"></script>');
 
-	$('head').append('<script src="' + countdownclockPluginUrl + '"></script>');
-	$('head').append('<script src="' + controlPagePlugin + '"></script>');
-  $('head').append('<script src="' + readystatePlugin + '"></script>');
-  $('head').append('<script src="' + chatBoxPlugin + '"></script>');
+  $('head').append('<script src="' + jquerySimpleUploadUrl + '"></script>');
 
+  $('head').append('<script src="' + readystatePlugin + '"></script>');
+
+  $('head').append('<link rel="stylesheet" href="../form/v2/style.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
-
   $('body').loading({overlay: $("#overlay"), stoppable: true});
 
-	$('body').on('loading.start', function(event, loadingObj) {
-	  //console.log('=== loading show ===');
-	});
+  const mainForm = 'form/main.html';
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
 
-	$('body').on('loading.stop', function(event, loadingObj) {
-	  //console.log('=== loading hide ===');
-	});
+  $('#app').load(mainForm, async function(){
+    $('.header').append('<h3>นำภาพทางการแพทย์เข้าระบบ</h3>');
+    let queryObj = urlQueryToObject(window.location.href);
+    //if (queryObj.caseId) {
 
-  document.addEventListener("triggercounter", welcome.onCaseChangeStatusTrigger);
-  document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
-  document.addEventListener("lockscreen", onLockScreenTrigger);
-  document.addEventListener("unlockscreen", onUnLockScreenTrigger);
+    let importManualBox = doCreateManualImport(queryObj.caseId);
+    let importCloudBox = await doCreateCloudImport();
+    $('.mainfull').append($(importManualBox));
+    $('.mainfull').append($(importCloudBox));
 
-  let userdata = JSON.parse(doGetUserData());
-  console.log(userdata);
-  //localStorage.removeItem('localmessage');
-  //let radioConfigs = JSON.parse(doGetUserConfigs());
-  //console.log(radioConfigs);
+    $('.accorhead').click(function (e){
+      let accorCont = $(this).next('.accorcont');
+      if($(accorCont).css('display') != 'block'){
+        $('.active').slideUp('fast').removeClass('accoractive');
+        $(accorCont).addClass('accoractive').slideDown('slow');
+      } else {
+        $(accorCont).slideUp('fast').removeClass('accoractive');
+      }
+    });
 
-	$('#app').load('form/main.html', function(){
-		$('#Menu').load('form/menu.html', function(){
-      $(document).on('openedituserinfo', (evt, data)=>{
-				userinfo.doShowUserProfile();
-        util.doResetPingCounter();
-			});
-			$(document).on('userlogout', (evt, data)=>{
-				doUserLogout();
-			});
-			$(document).on('openhome', (evt, data)=>{
-        doLoadDefualtPage();
-        util.doResetPingCounter();
-			});
-      $(document).on('opennewstatuscase', async (evt, data)=>{
-        let newcaseTitlePage = newcase.doCreateNewCaseTitlePage();
-        $(".mainfull").empty().append($(newcaseTitlePage));
-        let newcasePage = await newcase.doCreateNewCasePage();
-        $(".mainfull").append($(newcasePage));
-        util.doResetPingCounter();
-      });
-      $(document).on('openacceptedstatuscase', async (evt, data)=>{
-        let acccaseTitlePage = acccase.doCreateAccCaseTitlePage();
-        $(".mainfull").empty().append($(acccaseTitlePage));
-        let acccasePage = await acccase.doCreateAccCasePage();
-        $(".mainfull").append($(acccasePage));
-        util.doResetPingCounter();
-      });
-      $(document).on('opensearchcase', async (evt, data)=>{
-        $('body').loading('start');
-        let toDayFormat = util.getYesterdayDevFormat();
+    $('.footer').load('../lib/feeder.js', (code)=>{
+      let execResult = eval(code);
+      $('.footer').empty().append($(execResult.handle));
+    });
 
-        let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
-        let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
-
-        let searchTitlePage = searchcase.doCreateSearchTitlePage();
-
-        $(".mainfull").empty().append($(searchTitlePage));
-
-        let response = await common.doCallApi('/api/cases/search/key', defaultSearchParam);
-
-        $('body').loading('stop');
-
-        if (response.status.code === 200) {
-          let searchResultViewDiv = $('<div id="SearchResultView"></div>');
-          $(".mainfull").append($(searchResultViewDiv));
-          await searchcase.doShowSearchResultCallback(response);
-        } else {
-          $(".mainfull").append('<h3>ระบบค้นหาเคสขัดข้อง โปรดแจ้งผู้ดูแลระบบ</h3>');
-        }
-        util.doResetPingCounter();
-      });
-      $(document).on('opencase', async (evt, data)=>{
-        let opencaseTitlePage = acccase.doCreateAccCaseTitlePage();
-        $(".mainfull").empty().append($(opencaseTitlePage));
-        let opencasePage = await opencase.doCreateOpenCasePage(data.caseId);
-        $(".mainfull").append($(opencasePage));
-        util.doResetPingCounter();
-      });
-      $(document).on('openprofile', async (evt, data)=>{
-        let profileTitlePage = profile.doCreateProfileTitlePage();
-        $(".mainfull").empty().append($(profileTitlePage));
-        let profilePage = await profile.doCreateProfilePage();
-        $(".mainfull").append($(profilePage));
-      });
-      $(document).on('opentemplatedesign', async (evt, data)=>{
-        let templateTitlePage = template.doCreateTemplateTitlePage();
-        $(".mainfull").empty().append($(templateTitlePage));
-        let templatePage = await template.doCreateTemplatePage();
-        $(".mainfull").append($(templatePage));
-      });
-      $(document).on('defualsettingschange', (evt, data)=>{
-				doUpdateDefualSeeting(data.key, data.value);
-        util.doResetPingCounter();
-			});
-
-			doUseFullPage();
-			doLoadDefualtPage();;
-
-      wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+    util.doConnectWebsocketLocal(userdata.username).then((localWsl) => {
+      if ((localWsl.readyState == 0) || (localWsl.readyState == 1)) {
+        wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'local');
+      } else {
+        wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+      }
+      $('body').loading('stop');
+    }).catch ((err) =>{
+      console.log(err);
       $('body').loading('stop');
     });
+
+    //$('body').loading('stop');
   });
 }
 
-function doUseFullPage() {
-	$(".row").show();
-	$(".mainfull").show();
-	$(".mainfull").empty();
-}
-
-function doLoadDefualtPage() {
-  let homeTitlePage = welcome.doCreateHomeTitlePage();
-  $(".mainfull").empty().append($(homeTitlePage));
-  welcome.doSetupCounter();
-}
-
-const doUpdateDefualSeeting = function (key, value){
-	let lastDefualt = JSON.parse(localStorage.getItem('defualsettings'));
-	if (lastDefualt.hasOwnProperty(key)) {
-		lastDefualt[key] = value;
-		localStorage.setItem('defualsettings', JSON.stringify(lastDefualt));
-	}
-}
-
-function doCreatePasswordUnlockScreen(unlockActionCallback){
-  let passwordUnlockBox = $('<div style="position: relative; width: 100%;"></div>');
-  let passwordInputbox = $('<div style="width: 100%;"></div>');
-  $(passwordInputbox).appendTo($(passwordUnlockBox));
-  let yourPassword = $('<input type="password"/>');
-  $(passwordInputbox).append($('<span>ป้อนรหัสผ่านของคุณ:&nbsp;&nbsp;</span>'));
-  $(passwordInputbox).append($(yourPassword));
-
-  let cmdBar = $('<div style="width: 100%; margin-top: 10px;"></div>');
-  $(cmdBar).appendTo($(passwordUnlockBox));
-  let unlockCmd = $('<input type="button" value=" ปลดล็อค "/>');
-  $(unlockCmd).appendTo($(cmdBar));
-  $(unlockCmd).on('click', (evt)=>{
-    if($(yourPassword).val() !== '') {
-      $(yourPassword).css('border', '');
-      unlockActionCallback($(yourPassword).val());
-    } else {
-      $(yourPassword).css('border', '1px solid red');
-      $.notify("คุณยังไม่ได้ป้อนรหัสผ่าน", "error");
-    }
-  });
-  $(yourPassword).on('keypress', (evt)=>{
-    if(evt.which == 13) {
-      if($(yourPassword).val() !== '') {
-        $(yourPassword).css('border', '');
-        unlockActionCallback($(yourPassword).val());
-      } else {
-        $(yourPassword).css('border', '1px solid red');
-        $.notify("คุณยังไม่ได้ป้อนรหัสผ่าน", "error");
-      }
-    }
-  });
-
-  return $(passwordUnlockBox);
-}
-
-const resetScreen = function(){
-  $('#quickreply').empty();
-  $('#quickreply').removeAttr('style');
-  util.doSetScreenState(0);
-  util.doResetPingCounter();
-}
-
-function unlockAction(modalBox) {
-  const userdata = JSON.parse(doGetUserData());
-
-  const unlockCallbackAction = function(yourPassword){
-    let user = {username: userdata.username, password: yourPassword};
-		doCallLoginApi(user).then((response) => {
-			if (response.success == true) {
-        $.notify("ปลดล็อคสำเร็จ", "success");
-        resetScreen();
-      } else {
-        $.notify("รหัสผ่านของคุณไม่ถูกต้อง", "error");
-      }
-    });
-  }
-
-  if (userdata.userprofiles[0].Profile.screen.unlock == 1) {
-    $(modalBox).empty();
-    let passwordBox = doCreatePasswordUnlockScreen( unlockCallbackAction );
-    $(modalBox).append($(passwordBox));
-    $(modalBox).css({ height: 'auto'});
-  } else {
-    resetScreen();
-  }
-}
-
-function onLockScreenTrigger() {
-  let lockScreenBox = $('<div style="width: 100%; text-align: center;" tabindex="0"></div>');
-  $(lockScreenBox).append('<h2>This Lock Screen for Safety Your Content.</h2>');
-  $(lockScreenBox).append('<h3>You can Unlock by Click mouse or press any key.</h3>');
-  $(lockScreenBox).css(opencase.quickReplyContentStyle);
-  $('#quickreply').empty().append($(lockScreenBox));
-  $('#quickreply').attr('tabindex', 0);
-  $('#quickreply').focus();
-  $('#quickreply').css(modalLockScreeStyle);
-  util.doSetScreenState(1);
-  /*
-  $('#quickreply').on('mousemove', (evt)=>{
-    $('#quickreply').attr('onmousemove', '').unbind("mousemove");
-    unlockAction(lockScreenBox);
-  });
-  */
-  $('#quickreply').on('click', (evt)=>{
-    $('#quickreply').attr('onclick', '').unbind("click");
-    unlockAction(lockScreenBox);
-  });
-  $('#quickreply').on('keypress', (evt)=>{
-    $('#quickreply').attr('onkeypress', '').unbind("keypress");
-    unlockAction(lockScreenBox);
-  });
-}
-
-function onUnLockScreenTrigger(){
-  resetScreen();
-  util.doSetScreenState(0);
-}
-
-function doGetToken(){
-	return localStorage.getItem('token');
-}
-
-function doGetUserData(){
-  return localStorage.getItem('userdata');
-}
-
-function doGetUserConfigs(){
-  return localStorage.getItem('userconfigs');
-}
-
-function doGetUserItemPerPage(){
-	let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
-  return userDefualtSetting.itemperpage;
-}
-
-function doGetWsm(){
-	return wsm;
-}
-
-module.exports = {
-  doGetToken,
-  doGetUserData,
-  doGetUserConfigs,
-	doGetUserItemPerPage,
-	doGetWsm
-}
-
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":11,"./mod/opencase.js":13,"./mod/profilelib.js":14,"./mod/searchcaselib.js":15,"./mod/templatelib.js":16,"./mod/welcomelib.js":18,"jquery":19}],8:[function(require,module,exports){
-/* acccaselib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-  const doCreateAccCaseTitlePage = function() {
-    const acccaseTitle = 'เคสใหม่';
-    let acccaseTitleBox = $('<div class="title-content"></div>');
-    let logoPage = $('<img src="/images/case-accepted-icon-1.png" width="40px" height="auto" style="float: left;"/>');
-    $(logoPage).appendTo($(acccaseTitleBox));
-    let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + acccaseTitle + '</h3></div>');
-    $(titleText).appendTo($(acccaseTitleBox));
-    return $(acccaseTitleBox);
-  }
-
-  const doCreateHeaderRow = function() {
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
-		let headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Time Receive</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Time Left</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Scan Part</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Urgent</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>HN</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Name</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Sex/Age</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Hospital</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Status</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Process</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    return $(headerRow);
-  }
-
-  function doCreateCaseItemCommand(caseItem) {
-    const main = require('../main.js');
-    let userdata = JSON.parse(main.doGetUserData());
-    let caseCmdBox = $('<div style="text-align: center; padding: 4px;"></div>');
-    let openCmd = $('<div>อ่านผล</div>');
-    $(openCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '5px 12px', 'border-radius': '12px', 'cursor': 'pointer', 'color': 'white'});
-		if (caseItem.casestatusId == 2) {
-			$(openCmd).css({'background-color' : 'orange'});
-		} else {
-			$(openCmd).css({'background-color' : 'green'});
-		}
-    $(openCmd).on('click', async (evt)=>{
-			if (caseItem.casestatusId == 2) {
-	      let response = await common.doUpdateCaseStatus(caseItem.id, 8, 'Radiologist Open accepted case by Web App');
-				if (response.status.code == 200) {
-		      let eventData = {caseId: caseItem.id};
-		      $(openCmd).trigger('opencase', [eventData]);
-				} else {
-					alert('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้');
-				}
-			} else {
-				let eventData = {caseId: caseItem.id};
-	      $(openCmd).trigger('opencase', [eventData]);
-			}
-    });
-    $(caseCmdBox).append($(openCmd));
-
-    return $(caseCmdBox);
-  }
-
-  const doCreateCaseItemRow = function(caseItem) {
-    return new Promise(async function(resolve, reject) {
-      let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
-			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
-			let casedatetime = caseDate.split('T');
-			let casedateSegment = casedatetime[0].split('-');
-			casedateSegment = casedateSegment.join('');
-			let casedate = util.formatStudyDate(casedateSegment);
-			let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
-			let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
-			let patientSA = caseItem.patient.Patient_Sex + '/' + caseItem.patient.Patient_Age;
-			let patientHN = caseItem.patient.Patient_HN;
-			let caseScanparts = caseItem.Case_ScanPart;
-			let yourSelectScanpartContent = $('<div></div>');
-			if ((caseScanparts) && (caseScanparts.length > 0)) {
-				yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
-			}
-			let caseUG = caseItem.urgenttype.UGType_Name;
-      let caseHosName = caseItem.hospital.Hos_Name;
-      let caseSTA = caseItem.casestatus.CS_Name_EN;
-
-			let caseCMD = doCreateCaseItemCommand(caseItem);
-
-      let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
-
-  		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-      if ((caseTask.Records) && (caseTask.Records.length > 0) && (caseTask.Records[0].triggerAt)){
-        let caseTriggerAt = new Date(caseTask.Records[0].triggerAt);
-        let diffTime = Math.abs(caseTriggerAt - new Date());
-        let hh = parseInt(diffTime/(1000*60*60));
-        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
-        let clockCountdownDiv = $('<div></div>');
-        $(clockCountdownDiv).countdownclock({countToHH: hh, countToMN: mn});
-        $(caseColumn).append($(clockCountdownDiv));
-      } else {
-        $(caseColumn).append($('<span>not found Task</span>'));
-  		}
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($(yourSelectScanpartContent));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + caseUG + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientHN + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientName + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientSA + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + caseHosName + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + caseSTA + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($(caseCMD));
-  		$(caseColumn).appendTo($(caseRow));
-
-      resolve($(caseRow));
-    });
-  }
-
-  const doCallMyAccCase = function(){
-    return new Promise(async function(resolve, reject) {
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
-			let userId = userdata.id;
-			let rqParams = {userId: userId, statusId: common.caseResultWaitStatus};
-			let apiUrl = '/api/cases/filter/radio';
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        resolve(response);
-			} catch(e) {
-	      reject(e);
-    	}
-    });
-  }
-
-  const doCreateAccCasePage = function() {
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-      let myAccCase = await doCallMyAccCase();
-      let myAccCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      let caseHearder = doCreateHeaderRow();
-      $(myAccCaseView).append($(caseHearder));
-      let caseLists = myAccCase.Records;
-      if (caseLists.length > 0) {
-        for (let i=0; i < caseLists.length; i++) {
-          let caseItem = caseLists[i];
-          let caseRow = await doCreateCaseItemRow(caseItem);
-          $(myAccCaseView).append($(caseRow));
-        }
-      } else {
-        let notFoundMessage = $('<h3>ไม่พบรายการเคสใหม่ของคุณในขณะนี้</h3>')
-        $(myAccCaseView).append($(notFoundMessage));
-      }
-      resolve($(myAccCaseView));
-      $('body').loading('stop');
-    });
-  }
-
-  return {
-    doCreateAccCaseTitlePage,
-    doCreateHeaderRow,
-    doCreateCaseItemRow,
-    doCallMyAccCase,
-    doCreateAccCasePage
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],9:[function(require,module,exports){
-/*ai-lib.js*/
-module.exports = function ( jq ) {
-	const $ = jq;
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-  const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
-	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
-	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
-
-  const doCallCheckSeries = function(studyID) {
-    return new Promise(async function(resolve, reject) {
-      let seriesList = await common.doGetOrthancStudyDicom(studyID);
-      let seriesDescList = [];
-      let	promiseList = new Promise(async function(resolve2, reject2){
-        seriesList.Series.forEach(async(item, i) => {
-          let seriesTags = await common.doGetOrthancSeriesDicom(item);
-          let seriesView = {id: item, desc: seriesTags.MainDicomTags.SeriesDescription};
-          seriesDescList.push(seriesView);
-        });
-        setTimeout(()=>{
-					resolve2(seriesDescList);
-				}, 500);
-			});
-      Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
-    });
-  }
-
-  const doCreateSeriesSelect = function(caseData, dicomSeries){
-    return new Promise(async function(resolve, reject) {
-      let selectView = $('<div style="width: 100%;"></div>');
-      let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
-      let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
-      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
-      $(titleGuide).append($(figgerIcon)).append($(guideText));
-      $(titleGuide).appendTo($(selectView));
-
-      let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-      await dicomSeries.forEach((item, i) => {
-        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-        $(seriesItem).text(item.desc);
-        $(seriesItem).css({'cursor': 'pointer'});
-        $(seriesItem).hover(()=>{
-          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
-        }, ()=>{
-          $(seriesItem).css({'background-color': '', 'color': ''});
-        });
-        $(seriesItem).on('click', async (evt)=>{
-          $(selectView).loading('start');
-          $('#quickreply').empty();
-					$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
-				  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
-          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
-          $(galleryView).css(quickReplyContentStyle);
-          $(galleryView).css({'width': '720px', 'height': 'auto'});
-  			  $('#quickreply').append($(galleryView));
-          $('#quickreply').loading('stop');
-        });
-        $(seriesItem).appendTo($(seriesContent));
-      });
-      $(seriesContent).appendTo($(selectView));
-      resolve($(selectView));
-    });
-  }
-
-  const doCreateThumbPreview = function(caseData, seriesId, seriesDesc, instanceList){
-    return new Promise(async function(resolve, reject) {
-			let aiResultId = undefined;
-
-      let galleryView = $('<div style="width: 100%;"></div>');
-      let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
-      let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
-      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกภาพที่ต้องการส่งให้ AI</span>');
-      let dialogCmdBox = $('<div style="position: relative; display: inline-block; float: right; padding: 2px;"></div>');
-      $(titleGuide).append($(figgerIcon)).append($(guideText)).append($(dialogCmdBox));
-      $(titleGuide).appendTo($(galleryView));
-
-      let okCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
-      $(okCmd).appendTo($(dialogCmdBox));
-      $(dialogCmdBox).append($('<span>  </span>'));
-      let cancelCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: red; cursor: pointer; border-radius: 10px;">ยกเลิก</span>');
-      $(cancelCmd).appendTo($(dialogCmdBox));
-
-      let seriesNameBox = $('<div style="width: 100%; text-align: center; margin-top: 5px;"></div>');
-      $(seriesNameBox).html('<h4>' + seriesDesc + '</h4>');
-      $(seriesNameBox).appendTo($(galleryView));
-
-      let imagePreview = $('<div style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px;"></div>');
-      $(imagePreview).appendTo($(galleryView));
-      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%;"></div>');
-      $(thumbSelector).appendTo($(galleryView));
-
-      let previewPath = '/img/usr/preview/' + seriesId
-      await instanceList.forEach((item, i) => {
-        let thumbImg = $('<img width="60" height="auto"/>');
-        $(thumbImg).attr('src', previewPath + '/' + item + '.png');
-        $(thumbImg).css({'cursor': 'pointer'});
-        $(thumbImg).data('thumbImgData', {instanceId: item});
-        $(thumbImg).on('click', async (evt)=>{
-          $(thumbSelector).find('img').removeClass('img-thumb-active');
-          $(thumbImg).addClass('img-thumb-active');
-          let previewImg = $('<img width="360" height="auto"/>');
-          $(previewImg).attr('src', previewPath + '/' + item + '.png');
-          $(imagePreview).empty().append($(previewImg));
-        })
-        $(thumbImg).appendTo($(thumbSelector));
-      });
-      $(okCmd).on('click', async (evt)=>{
-        let thumbSelected = $(thumbSelector).find('img.img-thumb-active');
-        if (thumbSelected.length > 0){
-					$('#quickreply').loading('start');
-          let thumbData = $(thumbSelected).data('thumbImgData');
-          let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
-					//aiResultId = aiRes.result.id;
-					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-		      let embetObject = $('<object data="' + aiRes.result.link + '" type="application/pdf" width="100%" height="480"></object>');
-		      $(embetObject).appendTo($(resultBox));
-					$(thumbSelector).empty().append($(resultBox));
-					/* start convert on cloud */
-					const studyId = caseData.case.Case_OrthancStudyID;
-					const modality = caseData.case.Case_Modality
-					//let pdffilecode = aiResultId;
-					let pdffilecode = aiRes.result.id;
-					let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-					console.log(convertRes);
-					/********/
-					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
-					$(okCmd).text(' ปืด ');
-					$(cancelCmd).hide();
-					$('#quickreply').loading('stop');
-        } else {
-					if (aiResultId) {
-						//start convert ai result to pacs
-						/* ต้องมี wsl ใช้งาน */
-						$('#quickreply').loading('start');
-						const studyId = caseData.case.Case_OrthancStudyID;
-						const modality = caseData.case.Case_Modality
-						let pdffilecode = aiResultId;
-						let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-						console.log(convertRes);
-						$('#quickreply').loading('stop');
-					} else {
-						$(cancelCmd).click();
-					}
-        }
-      });
-      $(cancelCmd).on('click', (evt)=>{
-        $('#quickreply').empty();
-        $('#quickreply').removeAttr('style');
-      });
-      $(thumbSelector).find('img').first().click();
-      resolve($(galleryView));
-    });
-  }
-
-  const doCallSendAI = function(caseId, seriesId, instanceId){
-    return new Promise(async function(resolve, reject) {
-      let callZipRes = await common.doCallCreateZipInstance(seriesId, instanceId);
-      let callSendAIRes = await common.doCallSendAI(caseId, seriesId, instanceId);
-      resolve(callSendAIRes);
-    });
-  }
-
-  return {
-    commandButtonStyle,
-  	quickReplyDialogStyle,
-  	quickReplyContentStyle,
-
-    doCallCheckSeries,
-    doCreateSeriesSelect,
-    doCreateThumbPreview,
-    doCallSendAI
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],10:[function(require,module,exports){
-/* chatmanager.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-  const util = require('../../case/mod/utilmod.js')($);
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-
-  const contactIconUrl = '/images/user-account.png';
-  const closeContactIconUrl = '/images/cancel-icon.png';
-
-  /* List of Audiences */
-  let contactLists = [];
-
-  const doCreateContactContainer = function(caseId, openCase){
-		contactLists = [];
-    let contactContainer = $('<div id="ContactContainer" style=" position: relative; width: 100%; padding: 4px; margin-top: 10px; text-align: right;"></div>');
-		let contactIconBar = $('<div id="ContactBar" style="position: relative; width: 100%"></div>');
-		$(contactIconBar).appendTo($(contactContainer));
-		let chatBoxContainer = $('<div id="ChatBoxContainer" style="position: relative; width: 100%;"></div>');
-		$(chatBoxContainer).css('display', 'none');
-		$(chatBoxContainer).appendTo($(contactContainer));
-
-		$(contactContainer).on('newconversation', async (evt, data) =>{
-			if (data.topicId == caseId){
-				let isHide = $(chatBoxContainer).css('display');
-				if (isHide === 'none') {
-					$(chatBoxContainer).css('display', 'block');
-				}
-				let contact = await doCreateNewAudience(data.audienceId, data.audienceName, data.topicId, data.topicName);
-				if (contact) {
-					$(contact).appendTo($(contactIconBar));
-					let simpleChat = doCreateSimpleChatBox(data.topicId, data.topicName, data.audienceId, data.audienceName, data.topicStatusId);
-					$(simpleChat.chatBox).css('display', 'none');
-					$(simpleChat.chatBox).appendTo($(chatBoxContainer));
-					simpleChat.handle.restoreLocal();
-					let chatBoxTarget = contactLists.find((item)=>{
-						if (item.Id == data.audienceId) { return item}
-					});
-					if (chatBoxTarget){
-						chatBoxTarget.chatBox = simpleChat.chatBox;
-						chatBoxTarget.handle = simpleChat.handle;
-						chatBoxTarget.contact = contact;
-					}
-					contactLists.forEach((item, i) => {
-						$(item.chatBox).slideToggle();
-					});
-				} else {
-					let eventData = {msg: data.message.msg, from: data.message.from, context: data.message.context};
-					setTimeout(()=>{
-						let selector = '#'+data.audienceId + ' .chatbox';
-						let targetChatBox = $(selector);
-		      	$(targetChatBox).trigger('messagedrive', [eventData]);
-					}, 300);
-				}
-			}
-		});
-
-		/* ในกรณี เคสเคยมีการ chat มาก่อน (casestatusId==14) ต้องเปิด simppleChat มารอไว้เลย */
-		/* ของ reffer ปรับให้คุยได้เฉพาะ topic นั้นเท่านั้น */
-
-		if (openCase.case.casestatusId == 14){
-			doSeachChatHistory(caseId).then(async (history) => {
-				if (history) {
-					const userdata = JSON.parse(localStorage.getItem('userdata'));
-					let lastHis = history.find((item)=>{
-						if (item.from !== userdata.username) return item;
-					});
-					let audienceId = lastHis.from;
-					let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
-					let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
-					let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
-					let contact = await doCreateNewAudience(audienceId, audienceName, caseId, topicName);
-					if (contact) {
-						$(contact).appendTo($(contactIconBar));
-						let simpleChat = doCreateSimpleChatBox(caseId, topicName, audienceId, audienceName, openCase.case.casestatusId);
-						$(chatBoxContainer).css('display', 'block');
-						$(simpleChat.chatBox).css('display', 'block');
-						$(simpleChat.chatBox).appendTo($(chatBoxContainer));
-						simpleChat.handle.restoreLocal();
-						simpleChat.handle.scrollDown();
-						let chatBoxTarget = contactLists.find((item)=>{
-							if (item.Id == audienceId) { return item}
-						});
-						if (chatBoxTarget){
-							chatBoxTarget.chatBox = simpleChat.chatBox;
-							chatBoxTarget.handle = simpleChat.handle;
-							chatBoxTarget.contact = contact;
-						}
-					}
-				}
-			});
-		}
-
-    return $(contactContainer);
-  }
-
-  const doCreateNewAudience = function(Id, Name, topicId, topicName){
-    /* Id=username, Name=displayName */
-    return new Promise(async function(resolve, reject) {
-      let chatBoxTarget = await contactLists.find((item)=>{
-        if ((item.Id == Id) && (item.topicId == topicId)) { return item}
-      });
-      if (!chatBoxTarget){
-        let newAudience = {Id: Id, Name: Name, topicId: topicId, topicName: topicName};
-        contactLists.push(newAudience);
-        let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
-        resolve($(contactIcon));
-      } else {
-        resolve();
-      }
-    });
-  }
-
-  const doCreateContactIcon = function(Id, Name, onContactIconClickCallback, onCloseContactClickCallback) {
-    let contactBox = $('<div class="contact" style="position: relative; display: inline-block; text-align: center; margin-right: 2px;"></div>');
-    let contactIcon = $('<img style="postion: relative; width: 40px; height: auto; cursor: pointer;"/>');
-    $(contactIcon).attr('src', contactIconUrl);
-    let closeContactIcon = $('<img style="position: absolute; width: 20px; height: 20px; cursor: pointer; margin-left: 20px; margin-top: -70px;"/>');
-    $(closeContactIcon).attr('src', closeContactIconUrl);
-		//$(closeContactIcon).css('display', 'none');
-		//$(contactIcon).hover((evt) =>{$(closeContactIcon).toggle()});
-    let contactName = $('<div style="position: relative; font-size: 16px; color: auto;"></div>');
-		$(contactName).text(Name);
-		let reddot = doCreateReddot(Id, 0);
-    $(contactBox).on('click', async (evt)=>{
-      await onContactIconClickCallback(Id);
-    });
-    $(closeContactIcon).on('click', async (evt)=>{
-      await onCloseContactClickCallback(Id, contactBox);
-    });
-		$(contactBox).attr('id', Id);
-    return $(contactBox).append($(contactIcon)).append($(contactName)).append($(closeContactIcon)).append($(reddot));
-  }
-
-	const doCreateReddot = function(Id, value) {
-		let reddot = $('<span class="reddot" style="position: absolute; width: 30px; height: 30px; border-radius:50%; background-color: red; color: white; margin-top: -50px;"></span>');
-		$(reddot).attr('id', Id);
-		$(reddot).text(value);
-		return $(reddot);
-	}
-
-	const doSetReddotValue = function(Id, value){
-		let selector = '#'+Id + ' .reddot';
-		let lastValue = $(selector).text();
-		let newValue = Number(lastValue) + value;
-		if (newValue > 0) {
-			$(selector).text(newValue);
-			$(selector).show()
-		} else {
-			$(selector).hide()
-		}
-	}
-
-  const onContactIconClickCallback = function(Id){
-		//{Id: Id, Name: Name, chatBox, handle}
-		if (contactLists.length == 1){
-			$(contactLists[0].chatBox).slideToggle();
-		} else {
-			contactLists.forEach((item, i) => {
-				$(item.chatBox).css('display', 'none');
-			});
-
-			contactLists.forEach((item, i) => {
-				if (item.Id === Id) {
-					$(item.chatBox).slideToggle();
-				}
-			});
-		}
-  }
-
-  const onCloseContactClickCallback = function(Id, contactBox) {
-    return new Promise(async function(resolve, reject) {
-      let indexAt = undefined;
-      let chatBoxTarget = await contactLists.find((item, index)=>{
-        if (item.Id == Id) {
-          indexAt = index;
-          return item
-        }
-      });
-      if (chatBoxTarget){
-				let selector = '#'+Id + ' .chatbox';
-				let targetChatBox = $(selector);
-				$(targetChatBox).remove();
-				$(contactBox).remove();
-        contactLists.splice(indexAt, 1);
-      }
-    });
-  }
-
-	const doCreateSimpleChatBox = function(topicId, topicName, audienceId, audienceName, topicStatusId) {
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-		let simpleChatBoxOption = {
-			myId: userdata.username,
-			myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
-			myDisplayName: 'ฉัน',
-			topicId: topicId,
-			topicName: topicName,
-			topicStatusId: topicStatusId,
-			audienceId: audienceId,
-			audienceName: audienceName,
-			wantBackup: true,
-			externalClassStyle: {},
-			sendMessageCallback: doSendMessageCallback,
-			resetUnReadMessageCallback: doResetUnReadMessageCallback
-		};
-		let simpleChat = doInitChatBox(simpleChatBoxOption);
-		return simpleChat;
-	}
-
-	const doInitChatBox = function(options){
-	  let simpleChatBoxOption = {
-	    topicId: options.topicId,
-	    topicName: options.topicName,
-			topicStatusId: options.topicStatusId,
-	    myId: options.myId,
-	    myName: options.myName,
-	    myDisplayName: options.myDisplayName,
-	    audienceId: options.audienceId,
-	    audienceName: options.audienceName,
-	    wantBackup: options.wantBackup,
-	    externalClassStyle: options.externalClassStyle,
-	    sendMessageCallback: options.sendMessageCallback,
-			resetUnReadMessageCallback: options.resetUnReadMessageCallback
-	  };
-	  let simpleChatBox = $('<div></div>');
-	  $(simpleChatBox).attr('id', options.audienceId);
-	  let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
-	  return {chatBox: $(simpleChatBox), handle: simpleChatBoxHandle};
-	}
-
-	const doSendMessageCallback = function(msg, sendto, from, context){
-	  return new Promise(async function(resolve, reject){
-			console.log(msg, sendto, from, context);
-			const main = require('../main.js');
-			const myWsm = main.doGetWsm();
-	    let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
-	    myWsm.send(JSON.stringify(msgSend));
-	    resolve();
-	  });
-	}
-
-	const doResetUnReadMessageCallback = function(audienceId, value){
-		doSetReddotValue(audienceId, value);
-	}
-
-	const doSeachChatHistory = function(topicId){
-		return new Promise(async function(resolve, reject){
-	    let historyJson = JSON.parse(localStorage.getItem('localmessage'));
-			if (historyJson) {
-				let history = await historyJson.filter((item)=>{
-					if (item.topicId == topicId) {
-						return item;
-					}
-				});
-				resolve(history);
-			} else {
-				resolve();
-			}
-		});
-	}
-
-  return {
-    //contactLists,
-    doCreateContactContainer,
-    doCreateNewAudience,
-
-		doCreateSimpleChatBox,
-		doSendMessageCallback,
-		doResetUnReadMessageCallback
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":5,"../main.js":7}],11:[function(require,module,exports){
-/* newcaselib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-  const doCreateNewCaseTitlePage = function() {
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-    const newcaseTitle = 'แจ้งงานใหม่';
-    let newcaseTitleBox = $('<div class="title-content"></div>');
-    let logoPage = $('<img src="/images/new-case-icon.png" width="40px" height="auto" style="float: left;"/>');
-    $(logoPage).appendTo($(newcaseTitleBox));
-    let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + newcaseTitle + '</h3></div>');
-    $(titleText).appendTo($(newcaseTitleBox));
-
-		let readySwitchBox = $('<div id="ReadyState" style="float: right; margin-right: 4px;"></div>');
-		let readyOption = {onActionCallback: ()=>{doUpdateReadyState(1);}, offActionCallback: ()=>{doUpdateReadyState(0);} };
-		let readySwitch = $(readySwitchBox).readystate(readyOption);
-		$(readySwitchBox).appendTo($(newcaseTitleBox));
-		if (userdata.userprofiles.length > 0) {
-			if (userdata.userprofiles[0].Profile.readyState == 1) {
-				readySwitch.onAction();
-			} else {
-				readySwitch.offAction();
-			}
-		} else {
-			readySwitch.offAction();
-		}
-
-    return $(newcaseTitleBox);
-  }
-
-	const doUpdateReadyState = async function(state) {
-		$('body').loading('start');
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-		userdata.userprofiles[0].Profile.readyState = state;
-		userdata.userprofiles[0].Profile.readyBy = 'user';
-		localStorage.setItem('userdata', JSON.stringify(userdata));
-		let rqParams = {data: userdata.userprofiles[0].Profile, userId: userdata.id};
-		let profileRes = await common.doCallApi('/api/userprofile/update', rqParams);
-		let onoffText = undefined;
-		if (state==1) {
-			onoffText = 'เปิด';
-		} else {
-			onoffText = 'ปิด';
-		}
-		if (profileRes.status.code == 200){
-			$.notify("แจ้ง" + onoffText + "รับงานใหม่สำเร็จ", "success");
-			$('body').loading('stop');
-		} else {
-			$.notify("แจ้ง" + onoffText + "รับงานใหม่ไม่สำเร็จ", "error");
-			$('body').loading('stop');
-		}
-	}
-
-  const doCreateHeaderRow = function() {
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
-		let headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Time Receive</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Time Left</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Scan Part</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Urgent</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>HN</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Name</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Sex/Age</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Hospital</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Command</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    return $(headerRow);
-  }
-
-  function doCreateCaseItemCommand(caseItem) {
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-    let caseCmdBox = $('<div style="text-align: center; padding: 4px; width: 100%;"></div>');
-    let acceptCmd = $('<div>Accept</div>');
-    $(acceptCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '1px 5px', 'border-radius': '12px', 'cursor': 'pointer', 'background-color' : 'green', 'color': 'white'});
-    $(acceptCmd).on('click', async (evt)=>{
-      let response = await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Web App')
-			if (response.status.code == 200) {
-				$('#NewCaseCmd').click();
-			} else {
-				alert('เกิดข้อผิดพลาด ไม่สามารถตอบรับเคสได้ในขณะนี้');
-			}
-    });
-    $(caseCmdBox).append($(acceptCmd));
-
-    let notAacceptCmd = $('<div>Reject</div>');
-    $(notAacceptCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '1px 5px', 'border-radius': '12px', 'cursor': 'pointer', 'background-color' : 'red', 'color': 'white'});
-    $(notAacceptCmd).on('click', async (evt)=>{
-      let response = await common.doUpdateCaseStatus(caseItem.id, 3, 'Radiologist Reject case by Web App')
-			if (response.status.code == 200) {
-				$('#NewCaseCmd').click();
-			} else {
-				alert('เกิดข้อผิดพลาด ไม่สามารถตอบปฏิเสธเคสได้ในขณะนี้');
-			}
-    });
-    $(caseCmdBox).append($(notAacceptCmd))
-
-    return $(caseCmdBox);
-  }
-
-  const doCreateCaseItemRow = function(caseItem) {
-    return new Promise(async function(resolve, reject) {
-      let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
-			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
-			let casedatetime = caseDate.split('T');
-			let casedateSegment = casedatetime[0].split('-');
-			casedateSegment = casedateSegment.join('');
-			let casedate = util.formatStudyDate(casedateSegment);
-			let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
-
-			let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
-			let patientSA = caseItem.patient.Patient_Sex + '/' + caseItem.patient.Patient_Age;
-			let patientHN = caseItem.patient.Patient_HN;
-			let caseScanparts = caseItem.Case_ScanPart;
-			let yourSelectScanpartContent = $('<div></div>');
-			if ((caseScanparts) && (caseScanparts.length > 0)) {
-				yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
-			}
-			let caseUG = caseItem.urgenttype.UGType_Name;
-      let caseHosName = caseItem.hospital.Hos_Name;
-
-			let caseCMD = doCreateCaseItemCommand(caseItem);
-
-      let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
-
-  		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-      if ((caseTask.Records) && (caseTask.Records.length > 0) && (caseTask.Records[0].triggerAt)){
-        let caseTriggerAt = new Date(caseTask.Records[0].triggerAt);
-        let diffTime = Math.abs(caseTriggerAt - new Date());
-        let hh = parseInt(diffTime/(1000*60*60));
-        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
-        let clockCountdownDiv = $('<div></div>');
-        $(clockCountdownDiv).countdownclock({countToHH: hh, countToMN: mn});
-        $(caseColumn).append($(clockCountdownDiv));
-      } else {
-        $(caseColumn).append($('<span>not found Task</span>'));
-  		}
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($(yourSelectScanpartContent));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + caseUG + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientHN + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientName + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + patientSA + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($('<span>' + caseHosName + '</span>'));
-  		$(caseColumn).appendTo($(caseRow));
-
-      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
-  		$(caseColumn).append($(caseCMD));
-  		$(caseColumn).appendTo($(caseRow));
-
-      resolve($(caseRow));
-    });
-  }
-
-  const doCallMyNewCase = function(){
-    return new Promise(async function(resolve, reject) {
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let userId = userdata.id;
-			let rqParams = {userId: userId, statusId: common.caseReadWaitStatus};
-			let apiUrl = '/api/cases/filter/radio';
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        resolve(response);
-			} catch(e) {
-	      reject(e);
-    	}
-    });
-  }
-
-  const doCreateNewCasePage = function() {
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-      let myNewCase = await doCallMyNewCase();
-			let myCaseViewBox = $('<div style="width: 100%;"></div>');
-      let myNewCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-			$(myNewCaseView).appendTo($(myCaseViewBox));
-      let caseHearder = doCreateHeaderRow();
-      $(myNewCaseView).append($(caseHearder));
-      let caseLists = myNewCase.Records;
-      if (caseLists.length > 0) {
-        for (let i=0; i < caseLists.length; i++) {
-          let caseItem = caseLists[i];
-          let caseRow = await doCreateCaseItemRow(caseItem);
-          $(myNewCaseView).append($(caseRow));
-        }
-      } else {
-        let notFoundMessage = $('<h3>ไม่พบรายการเคสใหม่ของคุณในขณะนี้</h3>')
-        $(myCaseViewBox).append($(notFoundMessage));
-      }
-
-      resolve($(myCaseViewBox));
-      $('body').loading('stop');
-    });
-  }
-
-  return {
-    doCreateNewCaseTitlePage,
-    doCreateHeaderRow,
-    doCreateCaseItemRow,
-    doCallMyNewCase,
-    doCreateNewCasePage
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],12:[function(require,module,exports){
-/* onrefreshtrigger.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-  const doShowCaseCounter = function(newstatusCases, accstatusCases){
-    $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').text('(' + newstatusCases.length + ')');
-    if (newstatusCases.length > 0) {
-      $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'red'});
-    } else {
-      $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'white'});
-    }
-    $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').text('(' + accstatusCases.length + ')');
-    if (accstatusCases.length > 0) {
-      $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'red'});
-    } else {
-      $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'white'});
-    }
-  }
-
-  const onTrigger = function(caseId, statusId) {
-    let indexAt =undefined;
-    switch (Number(statusId)) {
-      case 1:
-        if (newstatusCases.indexOf(Number(caseId)) < 0) {
-          newstatusCases.push(caseId);
-        }
-      break;
-      case 2:
-			case 8:
-      case 9:
-      case 13:
-			case 14:
-        if (accstatusCases.indexOf(Number(caseId)) < 0) {
-          accstatusCases.push(caseId);
-        }
-        indexAt = newstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          newstatusCases.splice(indexAt, 1);
-        }
-      break;
-      case 3:
-      case 4:
-      case 5:
-      case 6:
-      case 7:
-      case 10:
-      case 11:
-      case 12:
-        indexAt = newstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          newstatusCases.splice(indexAt, 1);
-        }
-        indexAt = accstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          accstatusCases.splice(indexAt, 1);
-        }
-      break;
-    }
-    doShowCaseCounter();
-  }
-
-  return {
-    onTrigger,
-    doShowCaseCounter
-	}
-}
-
-},{}],13:[function(require,module,exports){
-/* opencase.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-	const chatman = require('./chatmanager.js')($);
-	const ai = require('./ai-lib.js')($);
-
-	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
-	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
-	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
-
-	const backwardCaseStatus = [5, 6, 10, 11, 12];
-	let caseHospitalId = undefined;
-	let casePatientId = undefined;
-	let caseId = undefined;
-	let caseResponseId = undefined;
-	let keytypecounter = undefined;
-	let backupDraftCounter = undefined;
-	let downloadDicomList = [];
-
-	const doDownloadDicom = function(studyID, hospitalId, casedate) {
-		return new Promise(async function(resolve, reject) {
-			apiconnector.doCallDownloadDicom(studyID, hospitalId).then(async (response) => {
-				console.log(response);
-	      var fullNameENRes = await common.getPatientFullNameEN(casePatientId);
-				var patientFullNameEN = fullNameENRes.fullNameEN;
-	      patientFullNameEN.split(' ').join('_');
-				patientFullNameEN = patientFullNameEN.trim();
-				console.log(patientFullNameEN + '*');
-	      var dicomFilename = patientFullNameEN + '-' + casedate + '.zip';
-				var pom = document.createElement('a');
-				pom.setAttribute('href', response.link);
-				pom.setAttribute('download', dicomFilename);
-				pom.click();
-				downloadDicomList.push(dicomFilename);
-				resolve(response);
-	  	});
-		});
-	}
-
-  const onDownloadCmdClick = function(evt) {
-		return new Promise(async function(resolve, reject) {
-	    $('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-	    const downloadCmd = $(evt.currentTarget);
-	    const downloadData = $(downloadCmd).data('downloadData');
-			let downloadRes = await doDownloadDicom(downloadData.studyID, downloadData.hospitalId, downloadData.casedate);
-			$('body').loading('stop');
-			resolve(downloadRes);
-  	})
-  }
-
-  const onOpenStoneWebViewerCmdClick = function(evt) {
-    const openCmd = $(evt.currentTarget);
-    const openData = $(openCmd).data('openData');
-    common.doOpenStoneWebViewer(openData.studyInstanceUID);
-  }
-
-  const onOpenThirdPartyCmdClick = function(evt) {
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-		const defaultDownloadPath = userdata.userinfo.User_PathRadiant;
-		//const defaultDownloadPath = 'C:/Users/Administrator/Downloads';
-		let thirdPartyLink = 'radiant://?n=f&v=';
-		if (downloadDicomList.length > 0) {
-			if (downloadDicomList.length <= 3) {
-				downloadDicomList.forEach((item, i) => {
-					if (i < (downloadDicomList.length-1)) {
-						thirdPartyLink += defaultDownloadPath + '/' + item + '&v=';
-					} else {
-						thirdPartyLink += defaultDownloadPath + '/' + item;
-					}
-				});
-				console.log(thirdPartyLink);
-				var pom = document.createElement('a');
-				pom.setAttribute('href', thirdPartyLink);
-				//pom.setAttribute('download', dicomFilename);
-				pom.click();
-				downloadDicomList = [];
-			} else {
-				$.notify("sorry, not support exceed three file download", "warn");
-			}
-		} else {
-			$.notify("ขออภัย ยังไม่พบรายการดาวน์โหลดไฟล์", "warn");
-		}
-  }
-
-  const onTemplateSelectorChange = async function(evt) {
-		$('body').loading('start');
-		let yourResponse = $('#SimpleEditor').val();
-		let templateId = $('#TemplateSelector').val();
-		if ((templateId) && (templateId > 0)){
-			let result = await doLoadTemplate(templateId);
-			if ((result.Record) && (result.Record.length > 0)) {
-				let yourNewResponse = yourResponse + '<br/>' + result.Record[0].Content;
-				$('#SimpleEditor').jqteVal(yourNewResponse);
-				doBackupDraft(yourNewResponse);
-				keytypecounter = 0;
-			}
-		}
-		$('body').loading('stop');
-  }
-
-	const onCreateNewResponseCmdClick = async function(evt) {
-		let responseHTML = $('#SimpleEditor').val();
-		if (responseHTML !== '') {
-			$('body').loading('start');
-			const createNewResponseCmd = $(evt.currentTarget);
-	    const userdata = JSON.parse(localStorage.getItem('userdata'));
-			const saveNewResponseData = $(createNewResponseCmd).data('createNewResponseData');
-
-			let type = 'draft';
-			let caseId = saveNewResponseData.caseId
-			let userId = userdata.id;
-			let responseHTML = $('#SimpleEditor').val();
-			doBackupDraft(responseHTML);
-			let saveData = {Response_Text: responseHTML, Response_Type: type};
-			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId};
-			let saveResponseRes = await doCallSaveResponse(params);
-			//console.log(saveResponseRes);
-			if (saveResponseRes.status.code == 200){
-				caseResponseId = saveResponseRes.result.responseId;
-				if (!caseResponseId) {
-					$.notify("เกิดความผิดพลาด Case Response API", "error");
-				}
-				let casedate = saveNewResponseData.casedate;
-				let patientFullName = saveNewResponseData.patientFullName;
-		    let reportCreateCallerEndPoint = "/api/casereport/create";
-				let fileExt = 'pdf';
-				let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
-		    params = {caseId: saveNewResponseData.caseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
-				let reportPdf = await $.post(reportCreateCallerEndPoint, params);
-				let embetObject = $('<object data="' + reportPdf.reportLink + '" type="application/pdf" width="100%" height="480"></object>');
-				$("#dialog").load('form/response-dialog.html', function() {
-					saveNewResponseData.reportLink = reportPdf.reportLink;
-					$('#ResponsePreview').append($(embetObject));
-					$('#ResponsePreview').css({'text-align': 'center', 'width': '830px', 'min-height': '500px', 'overflow': 'scroll'});
-					$('#SaveResponeCmd').data('saveResponseData', saveNewResponseData);
-					$('#SaveResponeCmd').on('click', onSaveResponseCmdClick);
-					$('body').loading('stop');
-				});
-			} else {
-				$.notify("เกิดความผิดพลาดไม่สามารถบันทึกผลอ่านได้ในขณะนี้", "error");
-				$('body').loading('stop');
-			}
-		} else {
-			$.notify("โปรดพิมพ์ผลอ่านก่อนครับ", "warn");
-		}
-	}
-
-	const onSaveResponseCmdClick = function(evt){
-		const saveResponseCmd = $(evt.currentTarget);
-		const saveResponseData = $(saveResponseCmd).data('saveResponseData');
-
-		let saveTypeOptionBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-
-		let selectSaveTypeOptionGuide = $('<div style="display: table-row; width: 100%;"></div>');
-		$(selectSaveTypeOptionGuide).appendTo($(saveTypeOptionBox));
-		$(selectSaveTypeOptionGuide).append($('<div style="display: table-cell; padding: 4px; background-color: #02069B; color: white;"><img src="/images/figger-right-icon.png" width="25px" height="auto"/></div>'));
-		let guideCell = $('<div style="display: table-cell; padding: 4px; background-color: #02069B; vertical-align: middle; text-align: center; color: white;"></div>');
-		$(guideCell).append($('<span>โปรดเลือกว่า ต้องการส่งผลอ่านแบบไหนจากรายการเลือก</span>'));
-		$(guideCell).appendTo($(selectSaveTypeOptionGuide));
-
-		let normalSaveTypeOption = $('<div style="display: table-row; width: 100%; cursor: pointer;" class="case-row"></div>');
-		$(normalSaveTypeOption).appendTo($(saveTypeOptionBox));
-		let normalPointIconCell = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey; vertical-align: middle; text-align: center;"></div>');
-		let normalPointIcon = $('<img src="/images/triangle-right-icon.png" width="25px" height="auto"/>');
-		$(normalPointIcon).hide();
-		$(normalPointIcon).appendTo($(normalPointIconCell));
-		$(normalPointIconCell).appendTo($(normalSaveTypeOption));
-		$(normalSaveTypeOption).hover(()=>{$(normalPointIcon).toggle();})
-		let labelOption = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey;">Normal</div>');
-		$(labelOption).appendTo($(normalSaveTypeOption));
-
-		let attentionSaveTypeOption = $('<div style="display: table-row; width: 100%; cursor: pointer;" class="case-row"></div>');
-		$(attentionSaveTypeOption).appendTo($(saveTypeOptionBox));
-		let attentionPointIconCell = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey; vertical-align: middle; text-align: center;"></div>');
-		let attentionPointIcon = $('<img src="/images/triangle-right-icon.png" width="25px" height="auto"/>');
-		$(attentionPointIcon).hide();
-		$(attentionPointIcon).appendTo($(attentionPointIconCell));
-		$(attentionPointIconCell).appendTo($(attentionSaveTypeOption));
-		$(attentionSaveTypeOption).hover(()=>{$(attentionPointIcon).toggle();})
-		labelOption = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey;">Need Attention</div>');
-		$(labelOption).appendTo($(attentionSaveTypeOption));
-
-		let criticalSaveTypeOption = $('<div style="display: table-row; width: 100%; cursor: pointer;" class="case-row"></div>');
-		$(criticalSaveTypeOption).appendTo($(saveTypeOptionBox));
-		let criticalPointIconCell = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey; vertical-align: middle; text-align: center;"></div>');
-		let criticalPointIcon = $('<img src="/images/triangle-right-icon.png" width="25px" height="auto"/>');
-		$(criticalPointIcon).hide();
-		$(criticalPointIcon).appendTo($(criticalPointIconCell));
-		$(criticalPointIconCell).appendTo($(criticalSaveTypeOption));
-		$(criticalSaveTypeOption).hover(()=>{$(criticalPointIcon).toggle();})
-		labelOption = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey;">Critical</div>');
-		$(labelOption).appendTo($(criticalSaveTypeOption));
-
-		let preliminarySaveTypeOption = $('<div style="display: table-row; width: 100%; cursor: pointer;" class="case-row"></div>');
-		$(preliminarySaveTypeOption).appendTo($(saveTypeOptionBox));
-		let preliminaryPointIconCell = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey; vertical-align: middle; text-align: center;"></div>');
-		let preliminaryPointIcon = $('<img src="/images/triangle-right-icon.png" width="25px" height="auto"/>');
-		$(preliminaryPointIcon).hide();
-		$(preliminaryPointIcon).appendTo($(preliminaryPointIconCell));
-		$(preliminaryPointIconCell).appendTo($(preliminarySaveTypeOption));
-		$(preliminarySaveTypeOption).hover(()=>{$(preliminaryPointIcon).toggle();})
-		labelOption = $('<div style="display: table-cell; padding: 4px; border: 2px solid grey;">Pre-Liminary</div>');
-		$(labelOption).appendTo($(preliminarySaveTypeOption));
-
-		$('#quickreply').css(quickReplyDialogStyle);
-		$(saveTypeOptionBox).css(quickReplyContentStyle);
-		$('#quickreply').append($(saveTypeOptionBox));
-
-		$(normalSaveTypeOption).data('saveResponseData', saveResponseData);
-		$(normalSaveTypeOption).on('click', onNormalSaveOptionCmdClick);
-		$(attentionSaveTypeOption).data('saveResponseData', saveResponseData);
-		$(attentionSaveTypeOption).on('click', onAttentionSaveOptionCmdClick);
-		$(criticalSaveTypeOption).data('saveResponseData', saveResponseData);
-		$(criticalSaveTypeOption).on('click', onCriticalSaveOptionCmdClick);
-		$(preliminarySaveTypeOption).data('saveResponseData', saveResponseData);
-		$(preliminarySaveTypeOption).on('click', onPreliminarySaveOptionCmdClick);
-	}
-
-	const onNormalSaveOptionCmdClick = async function(evt) {
-		const responseType = 'normal';
-		const reportType = 'normal';
-		const normalSaveResponseCmd = $(evt.currentTarget);
-		const saveResponseData = $(normalSaveResponseCmd).data('saveResponseData');
-		await doSaveResponse(responseType, reportType, saveResponseData)
-	}
-
-	const onAttentionSaveOptionCmdClick = async function(evt) {
-		const responseType = 'normal';
-		const reportType = 'attention';
-		const normalSaveResponseCmd = $(evt.currentTarget);
-		const saveResponseData = $(normalSaveResponseCmd).data('saveResponseData');
-		await doSaveResponse(responseType, reportType, saveResponseData)
-	}
-
-	const onCriticalSaveOptionCmdClick = async function(evt) {
-		const responseType = 'normal';
-		const reportType = 'cristical';
-		const normalSaveResponseCmd = $(evt.currentTarget);
-		const saveResponseData = $(normalSaveResponseCmd).data('saveResponseData');
-		await doSaveResponse(responseType, reportType, saveResponseData)
-	}
-
-	const onPreliminarySaveOptionCmdClick = async function(evt) {
-		const responseType = 'normal';
-		const reportType = 'preliminary';
-		const normalSaveResponseCmd = $(evt.currentTarget);
-		const saveResponseData = $(normalSaveResponseCmd).data('saveResponseData');
-		await doSaveResponse(responseType, reportType, saveResponseData)
-	}
-
-	function doSaveResponse(responseType, reportType, saveResponseData){
-		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
-	    const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let caseId = saveResponseData.caseId
-			let userId = userdata.id;
-			let responseHTML = $('#SimpleEditor').val();
-			doBackupDraft(responseHTML);
-			let saveData = {Response_Text: responseHTML, Response_Type: responseType};
-			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId, reporttype: reportType, PDF_Filename: saveResponseData.reportLink};
-			let saveResponseRes = await doCallSaveResponse(params);
-			if ((saveResponseRes.status.code == 200) || (saveResponseRes.status.code == 203)){
-				$('#quickreply').empty();
-				$('#quickreply').removeAttr('style');
-				$("#dialog").empty();
-				doCloseDialog();
-				$.notify("ส่งผลอ่านได้สำเร็จ", "success");
-				$('body').loading('stop');
-				resolve(saveResponseRes);
-				$('#AcceptedCaseCmd').click();
-			} else {
-				$.notify("เกิดความผิดพลาดไม่สามารถบันทึกผลอ่านได้ในขณะนี้", "error");
-				$('body').loading('stop');
-				reject({errer: 'Save Case Response Error'});
-			}
-		});
-	}
-
-	function doSaveDraft(saveDraftResponseData) {
-		return new Promise(async function(resolve, reject) {
-			let type = saveDraftResponseData.type;
-			let caseId = saveDraftResponseData.caseId
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			let userId = userdata.id;
-			let responseHTML = $('#SimpleEditor').val();
-			let saveData = {Response_Text: responseHTML, Response_Type: type};
-			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId};
-			let saveResponseRes = await doCallSaveResponse(params);
-			resolve(saveResponseRes);
-		});
-	}
-
-	const onSaveDraftResponseCmdClick = function(evt) {
-		return new Promise(async function(resolve, reject) {
-			let responseHTML = $('#SimpleEditor').val();
-			if (responseHTML !== '') {
-				$('body').loading('start');
-				const saveDraftResponseCmd = $(evt.currentTarget);
-		    const saveDraftResponseData = $(saveDraftResponseCmd).data('saveDraftResponseData');
-				let draftResponseRes = await doSaveDraft(saveDraftResponseData);
-				console.log(draftResponseRes);
-				if (draftResponseRes.status.code == 200){
-					caseResponseId = draftResponseRes.result.responseId;
-					if (!caseResponseId) {
-						$.notify("เกิดความผิดพลาด Case Response API", "error");
-					}
-					$.notify("บันทึกผลอ่านเป็น Draft สำเร็จ", "success");
-					$('body').loading('stop');
-				} else {
-					$.notify("บันทึกผลอ่านเป็น Draft ไม่สำเร็จ", "error");
-					$('body').loading('stop');
-				}
-				resolve(draftResponseRes);
-			} else {
-				$.notify("โปรดพิมพ์ผลอ่านก่อนครับ", "warn");
-				resolve({});
-			}
-		});
-	}
-
-	const onAddNewTemplateCmdClick = function(evt) {
-		let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
-		$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
-		$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
-		let jqtePluginScriptUrl = '../../lib/jqte/jquery-te-1.4.0.min.js';
-		$('head').append('<script src="' + jqtePluginScriptUrl + '"></script>');
-
-		let saveTypeOptionBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-
-		let selectSaveTypeOptionGuide = $('<div style="display: table-row; width: 100%;"></div>');
-		$(selectSaveTypeOptionGuide).appendTo($(saveTypeOptionBox));
-		$(selectSaveTypeOptionGuide).append($('<div style="display: table-cell; padding: 4px; background-color: #02069B; vertical-align: middle;"><img src="/images/figger-right-icon.png" width="25px" height="auto"/></div>'));
-		let guideCell = $('<div style="display: table-cell; padding: 4px; background-color: #02069B; vertical-align: middle; text-align: left;"></div>');
-		$(guideCell).append($('<span style="color: white;">โปรดตั้งชื่อและแก้ไขข้อมูล Template ก่อนเพิ่มเป็นรายการ Template ใหม่</span>'));
-		$(guideCell).appendTo($(selectSaveTypeOptionGuide));
-
-		let templateNameRow = $('<div style="display: table-row; width: 100%;"></div>');
-		$(templateNameRow).appendTo($(saveTypeOptionBox));
-		let labelNameCell = $('<div style="display: table-cell; padding: 4px;"><span>ขื่อ</span></div>');
-		$(labelNameCell).appendTo($(templateNameRow));
-		let inputNameCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-		$(inputNameCell).appendTo($(templateNameRow));
-		let inputName = $('<input type="text"/>');
-		$(inputName).appendTo($(inputNameCell));
-
-		let templateContentRow = $('<div style="display: table-row; width: 100%;"></div>');
-		$(templateContentRow).appendTo($(saveTypeOptionBox));
-		let labelContentCell = $('<div style="display: table-cell; padding: 4px;"><span>ข้อมูล</span></div>');
-		$(labelContentCell).appendTo($(templateContentRow));
-		let inputContentCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-		$(inputContentCell).appendTo($(templateContentRow));
-		let simpleEditor = $('<input type="text" id="NewSimpleEditor"/>');
-		$(simpleEditor).appendTo($(inputContentCell));
-		$(simpleEditor).jqte();
-		let yourTemplateContent = $('#SimpleEditor').val();
-		$(saveTypeOptionBox).find('#NewSimpleEditor').jqteVal(yourTemplateContent);
-		$(saveTypeOptionBox).find('.jqte_editor').css({ height: '260px' });
-
-		let cmdRow = $('<div style="display: table-row; width: 100%; text-align: center;"></div>');
-		$(cmdRow).appendTo($(saveTypeOptionBox));
-		let dummyCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-		$(dummyCell).appendTo($(cmdRow))
-		let cmdCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-		$(cmdCell).appendTo($(cmdRow))
-		let okCmd = $('<input type="button" value=" ตกลง "/>');
-		$(okCmd).appendTo($(cmdCell));
-		$(cmdCell).append($('<span>  </span>'));
-		let cancelCmd = $('<input type="button" value=" ยกเลิก "/>');
-		$(cancelCmd).appendTo($(cmdCell));
-		$(cancelCmd).on('click', (evt)=>{
-			$('#quickreply').empty();
-			$('#quickreply').removeAttr('style');
-		});
-		$(okCmd).on('click', async (evt)=>{
-			let templateName = $(inputName).val();
-			let templateContent = $(saveTypeOptionBox).find('#NewSimpleEditor').val();
-			if(templateName === '') {
-				$(inputName).css('border', '1px solid red');
-				$.notify("โปรดตั้งชื่อ Template ก่อนครับ", "warn");
-			} else if(templateContent === '') {
-				$(inputName).css('border', '');
-				$(saveTypeOptionBox).find('#SimpleEditor').css('border', '1px solid red');
-				$.notify("โปรดใส่ข้อมูล Template ก่อนครับ", "warn");
-			} else {
-				$(saveTypeOptionBox).find('#SimpleEditor').css('border', '');
-				let yourTemplate = templateContent;
-				let userdata = JSON.parse(localStorage.getItem('userdata'));
-				let userId = userdata.id;
-				let rqParams = {userId: userId, data: {Name: templateName, Content: yourTemplate}};
-				let callAddTemplateUrl = '/api/template/add';
-				let response = await common.doCallApi(callAddTemplateUrl, rqParams);
-				if (response.status.code == 200) {
-					$.notify('บันทึกข้อมูลสำเร็จ', "success");
-					let yourTemplates = await doLoadTemplateList(userId);
-					$("#TemplateSelector").empty();
-					$("#TemplateSelector").append('<option value="0">เลือก Template ของฉัน</option>');
-					if (yourTemplates.Options.length > 0) {
-						yourTemplates.Options.forEach((item, i) => {
-							$("#TemplateSelector").append('<option value="' + item.Value + '">' + item.DisplayText + '</option>');
-						});
-					}
-					$(cancelCmd).click();
-				} else {
-					$.notify('ไม่สามารถบันทึกข้อมูลได้ในขณะนี้', "error");
-				}
-			}
-		});
-
-		$('#quickreply').css(quickReplyDialogStyle);
-		$(saveTypeOptionBox).css(quickReplyContentStyle);
-		$(saveTypeOptionBox).css({'width' : '720px', 'max-height': '320px', 'margin': '10% auto'});
-		$('#quickreply').append($(saveTypeOptionBox));
-	}
-
-	const onBackToOpenCaseCmdClick = function(evt) {
-		$('#AcceptedCaseCmd').click();
-	}
-
-  const doOpenHR = function(link, patientFullName, casedate){
-		$('body').loading('start');
-    //window.open(link, '_blank');
-		let filePaths = link.split('/');
-		let fileNames = filePaths[filePaths.length-1];
-		let fileName = fileNames.split('.');
-		let fileExt = fileName[1];
-		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
-		var pom = document.createElement('a');
-		$.ajax({
-	    url: link,
-			xhrFields:{
-	 			responseType: 'blob'
-			},
-	    success: function(data){
-				let stremLink = URL.createObjectURL(new Blob([data], {type: 'image/jpeg'}));
-				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', fileName);
-				pom.click();
-			}
-		});
-		$('body').loading('stop');
-  }
-
-  const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
-    return new Promise(async function(resolve, reject) {
-      let hrBox = $('<div style="100%"></div>');
-			$(hrBox).css({'display': 'inline-block', 'float': 'right'});
-			if ((hrlinks) && (hrlinks.length > 0)){
-	      await hrlinks.forEach((item, i) => {
-					let patientHRLink = $('<span style="padding: 5px; text-decoration: underline; cursor: pointer; color: white;"></span>');
-					let filePaths = item.link.split('/');
-					let fileNames = filePaths[filePaths.length-1];
-					let fileName = fileNames.split('.');
-					let fileExt = fileName[1];
-					let patientName = patientFullName.split(' ').join('_');
-					let linkText = patientName + '(' + (i+1) + ')' + '.' + fileExt;
-					$(patientHRLink).text(linkText);
-					let clipIcon = new Image();
-					clipIcon.src = '/images/clip-icon.png';
-					$(clipIcon).css({"width": "25px", "height": "auto", "margin-top": "10px"});
-					$(patientHRLink).prepend($(clipIcon));
-					$(patientHRLink).on("click", function(evt){
-	          doOpenHR(item.link, patientFullName, casedate);
-	    		});
-					$(patientHRLink).appendTo($(hrBox));
-	      });
-			}
-      resolve($(hrBox));
-    });
-  }
-
-	const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, hospitalId){
-		let dicomCmdBox = $('<div></div>');
-		let downloadCmd = $('<span>Download</span>');
-		$(downloadCmd).css(commandButtonStyle);
-		$(downloadCmd).appendTo($(dicomCmdBox));
-		$(downloadCmd).on('click', async (evt)=>{
-			$('body').loading('start');
-			let downloadRes = await doDownloadDicom(orthancStudyID, hospitalId, casedate);
-			$('body').loading('stop');
-		});
-		let openViewerCmd = $('<span>Open</span>');
-		$(openViewerCmd).appendTo($(dicomCmdBox));
-		$(openViewerCmd).css(commandButtonStyle);
-		$(openViewerCmd).on('click', async (evt)=>{
-			common.doOpenStoneWebViewer(studyInstanceUID);
-		});
-		return $(dicomCmdBox);
-	}
-
-	const doCreateHRBackwardBox = function(patientFullName, patientHRLinks, casedate){
-		return new Promise(async function(resolve, reject) {
-			let hrbackwardBox = $('<div style="width: 100%;"></div>');
-			if ((patientHRLinks) && (patientHRLinks.length > 0)){
-				await patientHRLinks.forEach((item, i) => {
-					let filePaths = item.link.split('/');
-					let fileNames = filePaths[filePaths.length-1];
-					let fileName = fileNames.split('.');
-					let fileCode = fileName[0];
-					let codeLink = $('<div style="width: 100%;">' + fileCode + '</div>');
-					$(hrbackwardBox).append($(codeLink));
-					$(codeLink).css(commandButtonStyle);
-					$(codeLink).on('click',(evt)=>{
-						doOpenHR(item.link, patientFullName, casedate);
-					});
-				});
-			}
-			resolve($(hrbackwardBox));
-		});
-	}
-
-	const doCreateResponseBackwardBox = function(backwardCaseId, responseText, patientFullName, casedate){
-		let responseBackwarBox = $('<div></div>');
-		let downloadCmd = $('<span>Download</span>');
-		$(downloadCmd).css(commandButtonStyle);
-		$(downloadCmd).appendTo($(responseBackwarBox));
-		$(downloadCmd).on('click', async (evt)=>{
-			$('body').loading('start');
-      const userdata = JSON.parse(localStorage.getItem('userdata'));
-      let reportCreateCallerEndPoint = "/api/casereport/create";
-			let fileExt = 'pdf';
-			let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
-      let params = {caseId: backwardCaseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
-			let reportPdf = await $.post(reportCreateCallerEndPoint, params);
-			var pom = document.createElement('a');
-			pom.setAttribute('href', reportPdf.reportLink);
-			pom.setAttribute('download', fileName);
-			pom.click();
-			$('body').loading('stop');
-		});
-		let pasteCmd = $('<span>Paste</span>');
-		$(pasteCmd).css(commandButtonStyle);
-		$(pasteCmd).appendTo($(responseBackwarBox));
-		$(pasteCmd).on('click', async (evt)=>{
-			let yourResponse = $('#SimpleEditor').val();
-			let yourNewResponse = yourResponse + '<br/>' + responseText;
-			$('#SimpleEditor').jqteVal(yourNewResponse);
-			doBackupDraft(yourNewResponse);
-			keytypecounter = 0;
-		});
-		return $(responseBackwarBox);
-	}
-
-	const doCreateToggleSwitch = function(patientFullName, backwardView) {
-		let switchBox = $('<div></div>');
-		let toggleSwitch = $('<label class="switch"></label>');
-		let input = $('<input type="checkbox">');
-		let slider = $('<span class="slider"></span>');
-		$(toggleSwitch).append($(input));
-		$(toggleSwitch).append($(slider));
-		$(input).on('click', async (evt)=>{
-			$(backwardView).loading('start');
-			let patientBackwards = undefined;
-			let isOn = $(input).prop('checked');
-			if (isOn) {
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus);
-			} else {
-				let limit = 2;
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
-			}
-			let backwardContent = await doCreateBackwardItem(patientFullName, patientBackwards.Records, backwardView);
-			$(backwardView).loading('stop');
-		});
-		$(switchBox).append($(toggleSwitch));
-		return $(switchBox);
-	}
-
-	const doCreateBackwardItem = function(patientFullName, backwards, backwardView) {
-		return new Promise(function(resolve, reject) {
-			$(backwardView).empty();
-			let backwardHeader = $('<div style="display: table-row; width: 100%;"></div>');
-			$(backwardHeader).appendTo($(backwardView));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">#</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">วันที่</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">รายการ</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ภาพ</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ไฟล์ประวัติ</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ผลอ่าน</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">หมายเหตุ/อื่นๆ</span>'));
-			const promiseList = new Promise(async function(resolve2, reject2){
-				for (let i=0; i < backwards.length; i++) {
-					let backwardRow = $('<div style="display: table-row; width: 100%;"></div>');
-					let backward = backwards[i];
-					let caseCreateAt = util.formatDateTimeStr(backward.createdAt);
-					let casedatetime = caseCreateAt.split('T');
-					let casedateSegment = casedatetime[0].split('-');
-					casedateSegment = casedateSegment.join('');
-					let casedate = casedateSegment;
-					let dicomCmdBox = doCreateDicomCmdBox(backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, casedate, backward.hospitalId);
-					let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
-					let responseBackwardBox = undefined;
-					if ((backward.caseresponses) && (backward.caseresponses.length > 0)) {
-						responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_Text, patientFullName, casedate);
-					} else {
-						responseBackwardBox = $('<span>-</span>');
-					}
-
-					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));
-					$(backwardRow).append($('<span style="display: table-cell; text-align: left; padding: 4px; vertical-align: middle;">' + casedate + '</span>'));
-					$(backwardRow).append($('<span style="display: table-cell; text-align: left; vertical-align: middle;">' + backward.Case_BodyPart + '</span>'));
-					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
-					$(dicomCmdCell).append($(dicomCmdBox));
-					$(backwardRow).append($(dicomCmdCell));
-					let hrBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
-					$(hrBackwardCell).append($(patientHRBackwardBox));
-					$(backwardRow).append($(hrBackwardCell));
-					let responseBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
-					$(responseBackwardCell).append($(responseBackwardBox));
-					$(backwardRow).append($(responseBackwardCell));
-					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">-</span>'));
-					$(backwardRow).appendTo($(backwardView));
-				}
-				setTimeout(()=> {
-					resolve2($(backwardView));
-				}, 500);
-			});
-			Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
-		});
-	}
-
-	const doCreatePatientBackward = function(backwards, patientFullName) {
-		return new Promise(async function(resolve, reject) {
-			let backwardBox = $('<div style="100%"></div>');
-			let titleBox = $('<div style="100%"></div>');
-			$(titleBox).appendTo($(backwardBox));
-			let titleText = $('<span><b>ประวัติการตรวจ</b></span>');
-			$(titleText).appendTo($(titleBox));
-
-			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-			$(backwardView).appendTo($(backwardBox));
-
-			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView);
-			$(limitToggle).appendTo($(titleBox));
-			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
-
-			let backwardContentView = await doCreateBackwardItem(patientFullName, backwards, backwardView);
-			$(backwardBox).append($(backwardContentView));
-			resolve($(backwardBox));
-		});
-	}
-
-  const doCreateSummaryDetailCase = function(caseOpen){
-    return new Promise(async function(resolve, reject) {
-      let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
-			$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
-			$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
-			let jqtePluginScriptUrl = '../../lib/jqte/jquery-te-1.4.0.min.js';
-			$('head').append('<script src="' + jqtePluginScriptUrl + '"></script>');
-
-			caseHospitalId = caseOpen.case.hospitalId;
-			casePatientId = caseOpen.case.patientId;
-			caseId = caseOpen.case.id;
-
-      const userdata = JSON.parse(localStorage.getItem('userdata'));
-			const patientFullName = caseOpen.case.patient.Patient_NameEN + ' ' + caseOpen.case.patient.Patient_LastNameEN;
-			let limit = 2;
-			let patientBackward = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
-
-			let patientBackwardView = undefined;
-			if (patientBackward.Records.length > 0) {
-				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName);
-			} else {
-				patientBackwardView = $('<div style="100%"><span><b>ไม่พบประวัติการตรวจ</b></span></div>');
-			}
-      const yourTemplates = await doLoadTemplateList(userdata.id);
-      let summary = $('<div></div>');
-      let summaryFirstLine = $('<div></div>');
-      $(summaryFirstLine).append($('<span><b>HN:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.patient.Patient_HN + '</span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Name:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + patientFullName + '</span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Age/sex:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.patient.Patient_Age + '/' + caseOpen.case.patient.Patient_Sex + '</span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Body Part:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.Case_BodyPart + '</span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>โรงพยาบาล:</b> </span>'));
-      $(summaryFirstLine).append($('<span style="margin-left: 4px; color: white;">' + caseOpen.case.hospital.Hos_Name + '</span>'));
-      $(summaryFirstLine).css(common.pageLineStyle);
-      $(summaryFirstLine).appendTo($(summary));
-
-      let summarySecondLine = $('<div></div>');
-      let downloadCmd = $('<input type="button" value=" Download "/>');
-
-			let caseCreateAt = util.formatDateTimeStr(caseOpen.case.createdAt);
-			let casedatetime = caseCreateAt.split('T');
-			let casedateSegment = casedatetime[0].split('-');
-			casedateSegment = casedateSegment.join('');
-			let casedate = casedateSegment;
-
-      let downloadData = {patientId: caseOpen.case.patient.id, studyID: caseOpen.case.Case_OrthancStudyID, casedate: casedate, hospitalId: caseOpen.case.hospitalId};
-      $(downloadCmd).data('downloadData', downloadData);
-      $(downloadCmd).on('click', onDownloadCmdClick);
-      $(downloadCmd).appendTo($(summarySecondLine))
-      $(summarySecondLine).append($('<span>  </span>'));
-
-      let openStoneWebViewerCmd = $('<input type="button" value=" Open "/>');
-      let openData = {studyInstanceUID: caseOpen.case.Case_StudyInstanceUID};
-      $(openStoneWebViewerCmd).data('openData', openData);
-      $(openStoneWebViewerCmd).on('click', onOpenStoneWebViewerCmdClick);
-      $(openStoneWebViewerCmd).appendTo($(summarySecondLine));
-      $(summarySecondLine).append($('<span>  </span>'));
-
-      let openThirdPartyCmd = $('<input type="button" value=" Open (3rd Party)"/>');
-      $(openThirdPartyCmd).on('click', onOpenThirdPartyCmdClick);
-      $(openThirdPartyCmd).appendTo($(summarySecondLine));
-      $(summarySecondLine).append($('<span>  </span>'));
-
-      if ((caseOpen.case.Case_PatientHRLink) && (caseOpen.case.Case_PatientHRLink.length > 0)) {
-        $(summarySecondLine).append($('<span>  </span>'));
-        let patientHRBox = await doRenderPatientHR(caseOpen.case.Case_PatientHRLink, patientFullName, casedate);
-        $(summarySecondLine).append($(patientHRBox));
-      }
-
-      $(summarySecondLine).css(common.pageLineStyle);
-      $(summarySecondLine).appendTo($(summary));
-
-			let summaryThirdLine = $('<div></div>');
-			$(summaryThirdLine).append($(patientBackwardView));
-			$(summaryThirdLine).css(common.pageLineStyle);
-			$(summaryThirdLine).appendTo($(summary));
-
-
-			let contactToolsLine = $('<div style="width: 99%; min-height: 80px;"></div>');
-			let contactContainer = chatman.doCreateContactContainer(caseId, caseOpen);
-			$(contactToolsLine).append($(contactContainer));
-			$(contactToolsLine).css(common.pageLineStyle);
-			$(contactToolsLine).appendTo($(summary));
-
-
-      let summaryFourthLine = $('<div></div>');
-      $(summaryFourthLine).append($('<span><b>Templat:</b> </span>'));
-      let templateSelector = $('<select id="TemplateSelector"></select>');
-			$(templateSelector).append('<option value="0">เลือก Template ของฉัน</option>');
-      if (yourTemplates.Options.length > 0) {
-        yourTemplates.Options.forEach((item, i) => {
-          $(templateSelector).append('<option value="' + item.Value + '">' + item.DisplayText + '</option>');
-        });
-      }
-      $(templateSelector).on('change', onTemplateSelectorChange);
-      $(templateSelector).appendTo($(summaryFourthLine));
-			$(summaryFourthLine).append($('<span>  </span>'));
-			let addNewTemplateCmd = $('<input type="button" id="AddNewTemplateCmd" value=" Save New Template"/>');
-			$(addNewTemplateCmd).hide();
-			$(addNewTemplateCmd).appendTo($(summaryFourthLine));
-			$(addNewTemplateCmd).on('click', onAddNewTemplateCmdClick)
-      $(summaryFourthLine).css(common.pageLineStyle);
-      $(summaryFourthLine).appendTo($(summary));
-
-      let simpleEditorBox = $('<div></div>');
-      let simpleEditor = $('<input type="text" id="SimpleEditor"/>');
-      $(simpleEditor).appendTo($(simpleEditorBox));
-			keytypecounter = 0;
-			backupDraftCounter = 0;
-      $(simpleEditor).jqte({change: (evt)=>{
-				//auto backup on local storage
-				if (keytypecounter == 10) {
-					let currentContent = $(summary).find('#SimpleEditor').val();
-					doBackupDraft(currentContent);
-					keytypecounter = 0;
-					//let draftRestore = doRestoreDraft();
-					// doViewBackupDraft(draftRestore.content);
-				} else {
-					keytypecounter += 1;
-				}
-			}});
-      $(simpleEditorBox).appendTo($(summary));
-
-			let createNewResponseCmd = $('<input type="button" value=" ส่งผลอ่าน "/>');
-			let createNewResponseData = {caseId: caseOpen.case.id, hospitalId: caseHospitalId, patientFullName: patientFullName, casedate: casedate};
-			$(createNewResponseCmd).data('createNewResponseData', createNewResponseData);
-			$(createNewResponseCmd).on('click', onCreateNewResponseCmdClick);
-
-			let saveDraftResponseCmd = $('<input type="button" value=" Draft "/>');
-			let saveDraftResponseData = {caseId: caseOpen.case.id, patientFullName: patientFullName, casedate: casedate, type: 'draft'};
-			$(saveDraftResponseCmd).data('saveDraftResponseData', saveDraftResponseData);
-			$(saveDraftResponseCmd).on('click', onSaveDraftResponseCmdClick);
-
-			let backToOpenCaseCmd = $('<input type="button" value=" กลับ "/>');
-			let backToOpenCaseData = {};
-			$(backToOpenCaseCmd).data('backToOpenCaseData', backToOpenCaseData);
-			$(backToOpenCaseCmd).on('click', onBackToOpenCaseCmdClick);
-
-			let summaryFifthLine = $('<div></div>');
-			$(summaryFifthLine).css(common.pageLineStyle);
-			$(summaryFifthLine).css({'text-align': 'center'});
-			$(summaryFifthLine).append($(createNewResponseCmd));
-			$(summaryFifthLine).append($('<span>  </span>'));
-			$(summaryFifthLine).append($(saveDraftResponseCmd));
-			$(summaryFifthLine).append($('<span>  </span>'));
-			$(summaryFifthLine).append($(backToOpenCaseCmd));
-			$(summaryFifthLine).appendTo($(summary));
-
-			if ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)) {
-				let draftResponseRes = await doCallDraftRespons(caseId);
-				if (draftResponseRes.Record.length > 0) {
-					caseResponseId = draftResponseRes.Record[0].id;
-					let resType = draftResponseRes.Record[0].Response_Type;
-					if ((resType === 'draft') || ((resType === 'normal') && ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)))) {
-						let cloudUpdatedAt = new Date(draftResponseRes.Record[0].updatedAt);
-						let draftBackup = doRestoreDraft();
-						if (draftBackup) {
-							let localUpdateAt = new Date(draftBackup.backupAt);
-							if (localUpdateAt.getTime() > cloudUpdatedAt.getTime()) {
-								let yourAnwser = confirm('พบว่ามีข้อมูลผลอ่านแบ็คอัพที่ Local ปรับปรุงล่าสุดกว่าที่ Server\nต้องการให้กู้ข้อมูลผลอ่านจาก Lacal มาแทนที่หรือไม่');
-								if (yourAnwser) {
-									$(summary).find('#SimpleEditor').jqteVal(draftBackup.content);
-								} else {
-									$(summary).find('#SimpleEditor').jqteVal(draftResponseRes.Record[0].Response_Text);
-								}
-							} else {
-								$(summary).find('#SimpleEditor').jqteVal(draftResponseRes.Record[0].Response_Text);
-							}
-						} else {
-							$(summary).find('#SimpleEditor').jqteVal(draftResponseRes.Record[0].Response_Text);
-						}
-					}
-				}
-			} else {
-				/*
-				let defualTemplateId = yourTemplates.Options[0].Value;
-				let templateSelectResult = await doLoadTemplate(defualTemplateId);
-				$(summary).find('#SimpleEditor').jqteVal(templateSelectResult.Record[0].Content);
-				*/
-			}
-
-			$(summary).find('.jqte_editor').css({ height: '350px' });
-
-      resolve($(summary));
-    });
-  }
-
-  const doCallMyOpenCase = function(caseId){
-    return new Promise(async function(resolve, reject) {
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			let userId = userdata.id;
-			let rqParams = {userId: userId};
-			let apiUrl = '/api/cases/select/' + caseId;
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        resolve(response);
-			} catch(e) {
-	      reject(e);
-    	}
-    });
-  }
-
-  const doLoadTemplateList = function(radioId) {
-		return new Promise(function(resolve, reject) {
-			var apiUri = '/api/template/options/' + radioId;
-			var params = {};
-			$.post(apiUri, params, function(response){
-				resolve(response);
-			}).catch((err) => {
-				console.log(JSON.stringify(err));
-				reject(err);
-			})
-		});
-	}
-
-  const doLoadTemplate = function(templateId) {
-		return new Promise(function(resolve, reject) {
-			var apiUri = '/api/template/select/' + templateId;
-			var params = {};
-			$.post(apiUri, params, function(response){
-				resolve(response);
-			}).catch((err) => {
-				console.log(JSON.stringify(err));
-				reject(err);
-			})
-		});
-	}
-
-	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, limit) {
-		return new Promise(function(resolve, reject) {
-			var apiUri = '/api/cases/filter/patient';
-			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId};
-			if ((limit) && (limit > 0)) {
-				params.limit = limit;
-			}
-			$.post(apiUri, params, function(response){
-				resolve(response);
-			}).catch((err) => {
-				console.log(JSON.stringify(err));
-				reject(err);
-			})
-		});
-	}
-
-	const doCallSaveResponse = function(params){
-		return new Promise(function(resolve, reject) {
-			var apiUri = '/api/caseresponse/add';
-			$.post(apiUri, params, function(response){
-				resolve(response);
-			}).catch((err) => {
-				console.log(JSON.stringify(err));
-				reject(err);
-			})
-		});
-	}
-
-	const doCallDraftRespons = function(caseId){
-		return new Promise(function(resolve, reject) {
-			var apiUri = '/api/caseresponse/select/' + caseId;
-			var params = {caseId: caseId};
-			$.post(apiUri, params, function(response){
-				resolve(response);
-			}).catch((err) => {
-				console.log(JSON.stringify(err));
-				reject(err);
-			})
-		});
-	}
-
-  const doCreateOpenCasePage = function(caseId) {
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-      let myOpenCase = await doCallMyOpenCase(caseId);
-      let myOpenCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      if (myOpenCase.Records.length > 0) {
-        let caseOpen = myOpenCase.Records[0];
-        let caseSummaryDetail = await doCreateSummaryDetailCase(caseOpen);
-        $(myOpenCaseView).append($(caseSummaryDetail));
-      } else {
-        let notFoundMessage = $('<h3>เกิดข้อผิดพลาด ไม่พบรายการเคสที่คุณเลือกในขณะนี้</h3>')
-        $(myOpenCaseView).append($(notFoundMessage));
-      }
-      resolve($(myOpenCaseView));
-      $('body').loading('stop');
-    });
-  }
-
-	const doBackupDraft = function(content){
-		return new Promise(async function(resolve, reject) {
-			let draftbackup = {caseId: caseId, content: content, backupAt: new Date()};
-			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
-			if (backupDraftCounter == 30) {
-				let saveDraftResponseData = {type: 'draft', caseId: caseId};
-				await doSaveDraft(saveDraftResponseData);
-				backupDraftCounter = 0;
-			} else {
-				backupDraftCounter =+ 1;
-			}
-			let isShowNewTemplateCmd = $('#AddNewTemplateCmd').css('display');
-			if (isShowNewTemplateCmd === 'none') {
-				$('#AddNewTemplateCmd').show();
-			}
-			resolve(draftbackup);
-		});
-	}
-
-	const doRestoreDraft = function(){
-		let draftbackup = JSON.parse(localStorage.getItem('draftbackup'));
-		return draftbackup;
-	}
-
-	const doViewBackupDraft = function(draftHTML){
-		let backupDrafBox = $('<div></div>');
-		$('#quickreply').css(quickReplyDialogStyle);
-		$(backupDrafBox).css(quickReplyContentStyle);
-		$('#quickreply').append($(backupDrafBox));
-		let htmlView = $('<div></div>');
-		$(htmlView).html(draftHTML);
-		$(htmlView).appendTo($(backupDrafBox));
-		let closeCmd = $('<input type="button" value=" Close"/>');
-		$(closeCmd).appendTo($(backupDrafBox));
-		$(closeCmd).on('click', (evt)=>{
-			$('#quickreply').empty();
-			$('#quickreply').removeAttr('style');
-		});
-	}
-
-  return {
-		commandButtonStyle,
-		quickReplyDialogStyle,
-		quickReplyContentStyle,
-
-    onDownloadCmdClick,
-    onOpenStoneWebViewerCmdClick,
-    onOpenThirdPartyCmdClick,
-    onTemplateSelectorChange,
-    doOpenHR,
-    doRenderPatientHR,
-		doCreatePatientBackward,
-    doCreateSummaryDetailCase,
-    doCallMyOpenCase,
-    doLoadTemplateList,
-    doLoadTemplate,
-		doLoadPatientBackward,
-    doCreateOpenCasePage
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./ai-lib.js":9,"./chatmanager.js":10}],14:[function(require,module,exports){
-/* profilelib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-
-  const doCreateProfileTitlePage = function(){
-    const profileTitle = 'ตั้งค่าการแจ้งเตือนและรับเคส';
-    let profileTitleBox = $('<div class="title-content"></div>');
-    let logoPage = $('<img src="/images/setting-icon-2.png" width="40px" height="auto" style="float: left;"/>');
-    $(logoPage).appendTo($(profileTitleBox));
-    let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + profileTitle + '</h3></div>');
-    $(titleText).appendTo($(profileTitleBox));
-    return $(profileTitleBox);
-  }
-
-  const doCreateHeader = function(){
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-		let headColumn = $('<div id="StatusNameColumn" style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>สถานะ</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การแจ้งเตือน</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การรับเคส</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    return $(headerRow);
-  }
-
-  const doCreateActiveRow = function(profile){
-    let activeRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(activeRow));
-    $(statusNameCell).append($('<span>Active</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(activeRow));
-
-    let webmessageNotityBox = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
-    $(webmessageNotityBox).appendTo($(notifyCell));
-    let webmessageSwitchControl = $('<div id="WebmessageSwitchControl"></div>');
-    let webmessageSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let webmessageSwitch = $(webmessageSwitchControl).readystate(webmessageSwitchOption);
-    if (profile.Profile.casenotify.webmessage == 1) {
-      webmessageSwitch.onAction();
-    } else {
-      webmessageSwitch.offAction();
-    }
-    $(webmessageSwitchControl).appendTo($(webmessageNotityBox));
-    $(webmessageSwitchControl).append($('<label style="position: absolute; top: 10px; left: 70px;">Website</label>'));
-
-    let lineNotityBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(lineNotityBox).appendTo($(notifyCell));
-    let lineSwitchControl = $('<div id="LineSwitchControl"></div>');
-    let lineSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let lineSwitch = $(lineSwitchControl).readystate(lineSwitchOption);
-    if (profile.Profile.casenotify.line == 1) {
-      lineSwitch.onAction();
-    } else {
-      lineSwitch.offAction();
-    }
-    $(lineSwitchControl).appendTo($(lineNotityBox)); //&nbsp;&nbsp;
-    $(lineNotityBox).append($('<label style="position: absolute; top: 10px; left: 70px;">LINE</label>'));
-
-
-    let autocallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(autocallBox).appendTo($(notifyCell));
-    let autocallSwitchControl = $('<div id="AutocallSwitchControl"></div>');
-    let autocallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let autocallSwitch = $(autocallSwitchControl).readystate(autocallSwitchOption);
-    if (profile.Profile.casenotify.autocall == 1) {
-      autocallSwitch.onAction();
-    } else {
-      autocallSwitch.offAction();
-    }
-    $(autocallSwitchControl).appendTo($(autocallBox)); //&nbsp;&nbsp;
-    $(autocallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Auto Call</label>'));
-
-    let mancallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(mancallBox).appendTo($(notifyCell));
-    let mancallSwitchControl = $('<div id="MancallSwitchControl"></div>');
-    let mancallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let mancallSwitch = $(mancallSwitchControl).readystate(mancallSwitchOption);
-    if (profile.Profile.casenotify.mancall == 1) {
-      mancallSwitch.onAction();
-    } else {
-      mancallSwitch.offAction();
-    }
-    $(mancallSwitchControl).appendTo($(mancallBox)); //&nbsp;&nbsp;
-    $(mancallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Manual Call</label>'));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(activeRow));
-
-    let caseAccBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(caseAccBox).appendTo($(caseAccCell));
-    let caseAccSwitchControl = $('<div id="CaseAcccallSwitchControl"></div>');
-    let caseAccSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let caseAccSwitch = $(caseAccSwitchControl).readystate(caseAccSwitchOption);
-    if (profile.Profile.casenotify.auotacc == 1) {
-      caseAccSwitch.onAction();
-    } else {
-      caseAccSwitch.offAction();
-    }
-    $(caseAccSwitchControl).appendTo($(caseAccBox)); //&nbsp;&nbsp;
-    $(caseAccBox).append($('<label style="position: absolute; top: 10px; left: 70px;">รับเคสอัตโนมัติ</label>'));
-
-    return $(activeRow);
-  }
-
-  const doCreateLockRow = function(profile){
-    let lockRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(lockRow));
-    $(statusNameCell).append($('<span>Lock</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(lockRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(lockRow));
-
-    return $(lockRow);
-  }
-
-  const doCreateOfflinekRow = function(profile){
-    let offlineRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(offlineRow));
-    $(statusNameCell).append($('<span>Offline</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(offlineRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(offlineRow));
-
-    return $(offlineRow);
-  }
-
-  const doCreateLockOptionRow = function(profile, statusNameColumnWidth){
-    let lockOptionRow = $('<div style="position: relative; width: 99.95%; margin-top: 5px; border: 2px solid grey;"></div>');
-    let minuteValueLockBox = $('<div style="width: 100%;"></div>');
-    $(minuteValueLockBox).css('margin-left', statusNameColumnWidth);
-    let unlockOptionBox = $('<div style="width: 100%; position: relative;"></div>');
-    $(unlockOptionBox).css('margin-left', statusNameColumnWidth);
-    $(minuteValueLockBox).appendTo($(lockOptionRow));
-    $(unlockOptionBox).appendTo($(lockOptionRow));
-
-    let minuteValue = $('<input id="MinuteValue" type="text" id="MinuteLockValue" size="4"/>');
-    $(minuteValue).val(profile.Profile.screen.lock);
-    $(minuteValueLockBox).append($('<span>ล็อคเมื่อไม่ได้ใช้งานเกิน&nbsp;&nbsp;</span>'));
-    $(minuteValueLockBox).append($(minuteValue));
-    $(minuteValueLockBox).append($('<span>&nbsp;&nbsp;นาที่&nbsp;&nbsp;(สูงสุด 60 นาที)</span>'));
-
-    let unlockOptionControl = $('<div id="UnlockOptionControl"></div>');
-    let unlockOptionSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let unlockOptionSwitch = $(unlockOptionControl).readystate(unlockOptionSwitchOption);
-    if (profile.Profile.screen.unlock == 1) {
-      unlockOptionSwitch.onAction();
-    } else {
-      unlockOptionSwitch.offAction();
-    }
-    $(unlockOptionControl).appendTo($(unlockOptionBox)); //&nbsp;&nbsp;
-    $(unlockOptionBox).append($('<label style="position: absolute; top: 5px; left: 70px;">ต้องการใช้ Password ในการปลดล็อค</label>'));
-
-    return $(lockOptionRow);
-  }
-
-  const doCreatePageCmd = function(pageHandle, saveCallBack){
-    let cmdBar = $('<div style="width: 100%; margin-top: 5px; text-align: center;"></div>');
-    let saveCmd = $('<input type="button" value=" Save "/>');
-    let backCmd = $('<input type="button" value=" Back "/>');
-    $(saveCmd).appendTo($(cmdBar));
-    $(cmdBar).append('&nbsp;&nbsp;');
-    $(backCmd).appendTo($(cmdBar));
-    $(backCmd).on('click', (evt)=>{$('#AcceptedCaseCmd').click()});
-    $(saveCmd).on('click', (evt)=>{
-      let webmessageSwitchControl = $(pageHandle).find('#WebmessageSwitchControl').find('input[type=checkbox]').prop('checked');
-      let lineSwitchControl = $(pageHandle).find('#LineSwitchControl').find('input[type=checkbox]').prop('checked');
-      let autocallSwitchControl = $(pageHandle).find('#AutocallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let mancallSwitchControl = $(pageHandle).find('#MancallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let caseAcccallSwitchControl = $(pageHandle).find('#CaseAcccallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let minuteValue = $(pageHandle).find('#MinuteValue').val();
-      let unlockOptionControl = $(pageHandle).find('#UnlockOptionControl').find('input[type=checkbox]').prop('checked');
-			let readyState = $('#ReadyState').find('input[type=checkbox]').prop('checked');
-      if ((minuteValue > 0) && (minuteValue < 61)) {
-        $(pageHandle).find('#MinuteValue').css('border', '');
-        let profileValue = {
-					readyState: readyState? 1:0,
-          screen: {
-            lock: minuteValue,
-            unlock: unlockOptionControl? 1:0
-          },
-          auotacc: caseAcccallSwitchControl? 1:0,
-          casenotify: {
-            webmessage: webmessageSwitchControl? 1:0,
-            line: lineSwitchControl? 1:0,
-            autocall: autocallSwitchControl? 1:0,
-            mancall: mancallSwitchControl? 1:0
-          }
-        }
-        saveCallBack(profileValue);
-      } else {
-        $(pageHandle).find('#MinuteValue').css('border', '1px solid red');
-        $.notify("ต่าจำนวนนาทีต้องมีค่าระหว่าง 1-60", "error");
-      }
-    });
-    return $(cmdBar);
-  }
-
-  const doCallSaveMyProfile = function(profileData){
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
-			let radioId = userdata.id;
-			let rqParams = undefined;
-			let apiUrl = undefined;
-      let readyState = 1;
-      let myProfileRes = await doCallMyProfile(radioId);
-      if (myProfileRes.Record.length > 0) {
-        readyState = myProfileRes.Record[0].readyState;
-        apiUrl = '/api/userprofile/update';
-        rqParams = {data: profileData, userId: radioId};
-      } else {
-        readyState = common.defaultProfile.readyState;
-        apiUrl = '/api/userprofile/add';
-        rqParams = {data: profileData, userId: radioId};
-      }
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        if (response.status.code == 200) {
-          userdata.userprofiles.splice(0,userdata.userprofiles.length);
-          profileData.readyState = readyState;
-          userdata.userprofiles.push({Profile: profileData});
-          localStorage.setItem('userdata', JSON.stringify(userdata));
-          $.notify("บันทึกการคั้งค่าสำเร็จ", "success");
-        } else {
-          $.notify("บันทึกการคั้งค่าไม่สำเร็จ", "error");
-        }
-        $('body').loading('stop');
-        resolve(response);
-			} catch(e) {
-        $.notify("มีความผิดพลาดขณะบันทึกการคั้งค่า", "error");
-        $('body').loading('stop');
-	      reject(e);
-    	}
-    });
-  }
-
-  const doCallMyProfile = function(radioId){
-    return new Promise(async function(resolve, reject) {
-			let rqParams = {};
-			let apiUrl = '/api/userprofile/select/' + radioId;
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        resolve(response);
-			} catch(e) {
-	      reject(e);
-    	}
-    });
-  }
-
-  const doCreateProfilePage = function(){
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-			const main = require('../main.js');
-			const userdata = JSON.parse(main.doGetUserData());
-      let myProfilePage = $('<div style="width: 100%;"></div>');
-      let myProfileView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      let myLockOptionBox = $('<div style="width: 100%;"></div>');
-      $(myProfileView).appendTo($(myProfilePage));
-      $(myLockOptionBox).appendTo($(myProfilePage));
-      let headerRow = doCreateHeader();
-      $(headerRow).appendTo($(myProfileView));
-      let statusNameColumnWidth = $(headerRow).find('#StatusNameColumn').css('width');
-      let myProfileRes = await doCallMyProfile(userdata.id);
-      let myProfile = undefined;
-      if (myProfileRes.Record.length > 0) {
-        myProfile = myProfileRes.Record[0];
-      } else {
-        //myProfile = common.defaultProfile;
-        myProfile = userdata.userprofiles[0];
-      }
-      let activeRow = doCreateActiveRow(myProfile);
-      let lockRow = doCreateLockRow(myProfile);
-      let offlineRow = doCreateOfflinekRow(myProfile);
-      let lockOptionRow = doCreateLockOptionRow(myProfile, statusNameColumnWidth);
-      let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
-      $(activeRow).appendTo($(myProfileView));
-      $(lockRow).appendTo($(myProfileView));
-      $(offlineRow).appendTo($(myProfileView));
-      $(lockOptionRow).appendTo($(myLockOptionBox));
-      $(cmdBar).appendTo($(myProfilePage));
-      resolve($(myProfilePage));
-      $('body').loading('stop');
-    });
-  }
-
-  return {
-    doCreateProfileTitlePage,
-    doCallMyProfile,
-    doCreateProfilePage
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],15:[function(require,module,exports){
-/* searchcaselib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-  function doCreateCaseItemCommand(ownerRow, caseItem) {
-		const userdata = JSON.parse(localStorage.getItem('userdata'));
-		let cmdColumn = $('<div style="text-align: center;"></div>');
-		let operationCmdButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/arrow-down-icon.png" title="คลิกเพื่อเปิดรายการคำสั่งใช้งานของคุณ"/>');
-		$(operationCmdButton).click(async function() {
-			let casestatusId = caseItem.case.casestatusId;
-			let cando = await common.doGetApi('/api/cases/cando/' + casestatusId, {});
-			if (cando.status.code == 200) {
-				let cmdRow = $('<div class="cmd-row" style="display: tbable-row; width: 100%;"></div>');
-				$(cmdRow).append($('<div style="display: table-cell; border-color: transparent;"></div>'));
-				let mainBoxWidth = parseInt($(".mainfull").css('width'), 10);
-				//console.log(mainBoxWidth);
-				// left: 0px; width: 100%;
-				let cmdCell = $('<div style="display: table-cell; position: absolute; width: ' + (mainBoxWidth-8) + 'px; border: 1px solid black; background-color: #ccc; text-align: right;"></div>');
-				$(cmdRow).append($(cmdCell));
-				await cando.next.actions.forEach((item, i) => {
-					let cmd = item.substr(0, (item.length-1));
-					let frag = item.substr((item.length-1), item.length);
-					if ((frag==='H') &&(userdata.usertypeId==2)) {
-						let iconCmd = common.doCreateCaseCmd(cmd, caseItem.case.id, (data)=>{
-							console.log(data);
-							//hospital Action todo
-						});
-						$(iconCmd).appendTo($(cmdCell));
-					} else if ((frag==='R') &&(userdata.usertypeId==4)) {
-						console.log(cmd);
-						console.log(caseItem);
-						let iconCmd = common.doCreateCaseCmd(cmd, caseItem.case.id, (data)=>{
-							console.log(data);
-							//readio Action todo
-							if (cmd === 'edit') {
-								let eventData = {caseId: caseItem.case.id};
-					      $(iconCmd).trigger('opencase', [eventData]);
-							}
-						});
-						$(iconCmd).appendTo($(cmdCell));
-					}
-				});
-				$('.cmd-row').remove();
-				$(cmdRow).insertAfter(ownerRow);
-			}
-		});
-		$(operationCmdButton).appendTo($(cmdColumn));
-
-		return $(cmdColumn);
-	}
-
-  const doCreateSearchTitlePage = function(){
-		let searchResultTitleBox = $('<div id="ResultTitleBox" class="title-content"></div>');
-		let logoPage = $('<img src="/images/search-case-icon-2.png" width="40px" height="auto" style="float: left;"/>');
-		$(logoPage).appendTo($(searchResultTitleBox));
-		let titleResult = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>ผลการค้นหาเคสของคุณ</h3></div>');
-		$(titleResult).appendTo($(searchResultTitleBox));
-		return $(searchResultTitleBox);
-	}
-
-  const doCreateHeaderFieldCaseList = function() {
-		let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
-		let headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>วันที่ส่งอ่าน</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>ชื่อผู้ป่วย</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>เพศ/อายุ</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>HN</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Mod.</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>Scan Part</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    /*
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>ประเภทความด่วน</span>');
-		$(headColumn).appendTo($(headerRow));
-    */
-
-		/*
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>แพทย์ผู้ส่ง</span>');
-		$(headColumn).appendTo($(headerRow));
-		*/
-
-		headColumn = $('<div style="display: table-cell; text-align: center" class="header-cell"></div>');
-		$(headColumn).append('<span>โรงพยาบาล</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>สถานะเคส</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>คำสั่ง</span>');
-		$(headColumn).appendTo($(headerRow));
-
-		return $(headerRow);
-	}
-
-  const doCreateSearchCaseFormRow = function(key, searchResultCallback){
-    let searchFormRow = $('<div style="display: table-row; width: 100%;"></div>');
-    let formField = $('<div style="display: table-cell; text-align: center; vertical-align: middle;" class="header-cell"></div>');
-
-    let fromDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ตั้งแต่</span>
-    $(fromDateKeyBox).appendTo($(formField));
-    let fromDateKey = $('<input type="text" id="FromDateKey" size="6" style="margin-left: 5px;"/>');
-    if (key.fromDateKeyValue) {
-      let arrTmps = key.fromDateKeyValue.split('-');
-      let fromDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-      $(fromDateKey).val(fromDateTextValue);
-    }
-    $(fromDateKey).css({'font-size': '20px'});
-    $(fromDateKey).appendTo($(fromDateKeyBox));
-    $(fromDateKey).datepicker({ dateFormat: 'dd-mm-yy' });
-
-    $(formField).append($('<span style="margin-left: 5px; margin-right: 2px; display: inline-block;">-</span>'));
-
-    let toDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ถึง</span>
-    $(toDateKeyBox).appendTo($(formField));
-    let toDateKey = $('<input type="text" id="ToDateKey" size="6" style="margin-left: 5px;"/>');
-    if (key.toDateKeyValue) {
-      let arrTmps = key.toDateKeyValue.split('-');
-      let toDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-      $(toDateKey).val(toDateTextValue);
-    }
-    $(toDateKey).appendTo($(toDateKeyBox));
-    $(toDateKey).datepicker({ dateFormat: 'dd-mm-yy' });
-    $(formField).append($(toDateKeyBox));
-
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    let patientNameENKey = $('<input type="text" id="PatientNameENKey" size="15"/>');
-    $(patientNameENKey).val(key.patientNameENKeyValue);
-    $(formField).append($(patientNameENKey));
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    $(formField).append('<span></span>');
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    let patientHNKey = $('<input type="text" id="PatientHNKey" size="10"/>');
-    $(patientHNKey).val(key.patientHNKeyValue);
-    $(formField).append($(patientHNKey));
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    $(formField).append('<span></span>');
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    let bodypartKey = $('<input type="text" id="BodyPartKey" size="10"/>');
-    $(bodypartKey).val(key.bodypartKeyValue);
-    $(formField).append($(bodypartKey));
-    $(formField).appendTo($(searchFormRow));
-    /*
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    $(formField).append('<span></span>');
-    $(formField).appendTo($(searchFormRow));
-    */
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    $(formField).append('<span></span>');
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-    let caseStatusKey = $('<select id="CaseStatusKey"></select>');
-    $(caseStatusKey).append($('<option value="0">ทั้งหมด</option>'));
-    common.allCaseStatus.forEach((item, i) => {
-      $(caseStatusKey).append($('<option value="' + item.value + '">' + item.DisplayText + '</option>'));
-    });
-    $(caseStatusKey).val(key.caseStatusKeyValue);
-    $(formField).append($(caseStatusKey));
-    $(formField).appendTo($(searchFormRow));
-
-    formField = $('<div style="display: table-cell; text-align: center; vertical-align: middle;" class="header-cell"></div>');
-    let startSearchCmd = $('<img src="/images/search-icon-3.png" width="30px" height="auto"/>');
-    $(formField).append($(startSearchCmd));
-    $(formField).appendTo($(searchFormRow));
-
-    $(searchFormRow).find('input[type=text],select').css({'font-size': '20px'});
-
-    $(startSearchCmd).css({'cursor': 'pointer'});
-    $(startSearchCmd).on('click', async (evt) => {
-      let fromDateKeyValue = $('#FromDateKey').val();
-      let toDateKeyValue = $(toDateKey).val();
-      let patientNameENKeyValue = $(patientNameENKey).val();
-      let patientHNKeyValue = $(patientHNKey).val();
-      let bodypartKeyValue = $(bodypartKey).val();
-      let caseStatusKeyValue = $(caseStatusKey).val();
-      let searchKey = undefined;
-      if ((fromDateKeyValue) && (toDateKeyValue)) {
-        let arrTmps = fromDateKeyValue.split('-');
-        fromDateKeyValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-        let fromDateKeyTime = new Date(fromDateKeyValue);
-        arrTmps = toDateKeyValue.split('-');
-        toDateKeyValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-        let toDateKeyTime = new Date(toDateKeyValue);
-        if (toDateKeyTime >= fromDateKeyTime) {
-          let fromDateFormat = util.formatDateStr(fromDateKeyTime);
-          let toDateFormat = util.formatDateStr(toDateKeyTime);
-          searchKey = {fromDateKeyValue: fromDateFormat, toDateKeyValue: toDateFormat, patientNameENKeyValue, patientHNKeyValue, bodypartKeyValue, caseStatusKeyValue};
-        } else {
-          alert('ถึงวันที่ ต้องมากกว่า ตั้งแต่วันที่ หรือ เลือกวันที่เพียงช่องใดช่องหนึ่ง ส่วนอีกช่องให้เว้นว่างไว้\nโปรดเปลี่ยนค่าวันที่แล้วลองใหม่');
-        }
-      } else {
-        if (fromDateKeyValue) {
-          let arrTmps = fromDateKeyValue.split('-');
-          fromDateKeyValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-          let fromDateKeyTime = new Date(fromDateKeyValue);
-          let fromDateFormat = util.formatDateStr(fromDateKeyTime);
-          searchKey = {fromDateKeyValue: fromDateFormat, patientNameENKeyValue, patientHNKeyValue, bodypartKeyValue, caseStatusKeyValue};
-        } else if (toDateKeyValue) {
-          let arrTmps = toDateKeyValue.split('-');
-          toDateKeyValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
-          let toDateKeyTime = new Date(toDateKeyValue);
-          let toDateFormat = util.formatDateStr(toDateKeyTime);
-          searchKey = {toDateKeyValue: toDateFormat, patientNameENKeyValue, patientHNKeyValue, bodypartKeyValue, caseStatusKeyValue};
-        } else {
-          searchKey = {patientNameENKeyValue, patientHNKeyValue, bodypartKeyValue, caseStatusKeyValue};
-        }
-      }
-      if (searchKey) {
-        $('body').loading('start');
-				const userdata = JSON.parse(localStorage.getItem('userdata'));
-        let hospitalId = userdata.hospitalId;
-        let userId = userdata.id;
-        let usertypeId = userdata.usertypeId;
-
-        let searchParam = {key: searchKey, hospitalId: hospitalId, userId: userId, usertypeId: usertypeId};
-
-        let response = await common.doCallApi('/api/cases/search/key', searchParam);
-
-        $(".mainfull").find('#SearchResultView').empty();
-        $(".mainfull").find('#NavigBar').empty();
-
-        await searchResultCallback(response);
-
-        $('body').loading('stop');
-
-      }
-    });
-    return $(searchFormRow);
-  }
-
-  function doCreateCaseItemRow(caseItem) {
-    return new Promise(async function(resolve, reject) {
-      let caseDate = util.formatDateTimeStr(caseItem.case.createdAt);
-			let casedatetime = caseDate.split('T');
-      let casedateSegment = casedatetime[0].split('-');
-      casedateSegment = casedateSegment.join('');
-      let casedate = util.formatStudyDate(casedateSegment);
-      let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
-      let patientName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
-      let patientSA = caseItem.case.patient.Patient_Sex + '/' + caseItem.case.patient.Patient_Age;
-      let patientHN = caseItem.case.patient.Patient_HN;
-      let caseMODA = caseItem.case.Case_Modality;
-      let caseScanparts = caseItem.case.Case_ScanPart;
-      let yourSelectScanpartContent = $('<div></div>');
-      if ((caseScanparts) && (caseScanparts.length > 0)) {
-        yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
-      }
-      let caseUG = caseItem.case.urgenttype.UGType_Name;
-      //let caseREFF = caseItem.Refferal.User_NameTH + ' ' + caseItem.Refferal.User_LastNameTH;
-      //console.log(caseItem);
-      let caseHosName = caseItem.case.hospital.Hos_Name;
-      let caseSTAT = caseItem.case.casestatus.CS_Name_EN;
-
-
-      let itemRow = $('<div class="case-row" style="display: table-row; width: 100%;"></div>');
-      let itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append('<span>'+ casedate + ' : ' + casetime +'</span>');
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(patientName);
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(patientSA);
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(patientHN);
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(caseMODA);
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append($(yourSelectScanpartContent));
-      $(itemColumn).appendTo($(itemRow));
-
-      /*
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(caseUG);
-      $(itemColumn).appendTo($(itemRow));
-      */
-      /*
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(caseREFF);
-      $(itemColumn).appendTo($(itemRow));
-      */
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(caseHosName);
-      $(itemColumn).appendTo($(itemRow));
-
-      itemColumn = $('<div style="display: table-cell; text-align: left;"></div>');
-      $(itemColumn).append(caseSTAT);
-      $(itemColumn).appendTo($(itemRow));
-
-      let caseCMD = doCreateCaseItemCommand(itemRow, caseItem);
-
-      itemColumn = $('<div style="display: table-cell; text-align: center;"></div>');
-      $(itemColumn).append($(caseCMD));
-      $(itemColumn).appendTo($(itemRow));
-
-      resolve($(itemRow));
-    });
-  }
-
-  const doShowCaseView = function(incidents, key, callback) {
-		return new Promise(function(resolve, reject) {
-			let rowStyleClass = {"font-family": "THSarabunNew", "font-size": "22px"};
-			let caseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-
-			let headView = doCreateHeaderFieldCaseList(key.fromDateKeyValue);
-			$(headView).appendTo($(caseView));
-			let formView = doCreateSearchCaseFormRow(key, callback);
-			$(formView).appendTo($(caseView));
-
-			let	promiseList = new Promise(async function(resolve2, reject2){
-				for (let i=0; i < incidents.length; i++) {
-					let itemView = await doCreateCaseItemRow(incidents[i]);
-					$(itemView).appendTo($(caseView));
-				}
-				setTimeout(()=>{
-					resolve2($(caseView));
-				}, 100);
-			});
-			Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
-		});
-	}
-
-  const doShowSearchResultCallback = function(response){
-    return new Promise(async function(resolve, reject) {
-      /*  Concept */
-      /*
-      1. ส่งรายการ case ตามจำนวนรายการ ในเงื่อนของ Navigator ไปสร้าง View
-      2. รับ view ที่จกข้อ 1 มา append ต่อจาก titlepage
-      3. ตรวจสอบจำนวน case ในข้อ 1 ว่ามีกี่รายการ
-        - มากกว่า 0 ให้แสดง Navigator
-        - เท่ากับ 0 ให้แสดงข้อความ ไม่พบรายการที่ค้นหา
-      */
-      $('body').loading('start');
-
-			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
-
-      let userItemPerPage = userDefualtSetting.itemperpage;
-      let showCases = [];
-
-      let allCaseRecords = response.Records;
-      if (userItemPerPage == 0) {
-        showCases = allCaseRecords;
-      } else {
-        showCases = await common.doExtractList(allCaseRecords, 1, userItemPerPage);
-      }
-      let caseView = await doShowCaseView(showCases, response.key, doShowSearchResultCallback);
-      $(".mainfull").find('#SearchResultView').empty().append($(caseView));
-
-      if (allCaseRecords.length == 0) {
-        $(".mainfull").find('#SearchResultView').append($('<h4>ไม่พบรายการเคสตามเงื่อนไขที่คุณค้นหา</h4>'));
-      } else {
-        let navigBarBox = $('<div id="NavigBar"></div>');
-        $(".mainfull").append($(navigBarBox));
-        let navigBarOption = {
-          currentPage: 1,
-          itemperPage: userItemPerPage,
-          totalItem: allCaseRecords.length,
-          styleClass : {'padding': '4px', "font-family": "THSarabunNew", "font-size": "20px"},
-          changeToPageCallback: async function(page){
-            $('body').loading('start');
-            let toItemShow = 0;
-            if (page.toItem == 0) {
-              toItemShow = allCaseRecords.length;
-            } else {
-              toItemShow = page.toItem;
-            }
-            showCases = await common.doExtractList(allCaseRecords, page.fromItem, toItemShow);
-            caseView = await doShowCaseView(showCases, response.key, doShowSearchResultCallback);
-            $(".mainfull").find('#SearchResultView').empty().append($(caseView));
-            $('body').loading('stop');
-          }
-        };
-        let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
-        navigatoePage.toPage(1);
-      }
-      $('body').loading('stop');
-      resolve();
-    });
-  }
-
-  return {
-    doCreateSearchTitlePage,
-    doCreateHeaderFieldCaseList,
-    doCreateSearchCaseFormRow,
-    doShowCaseView,
-    doShowSearchResultCallback
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],16:[function(require,module,exports){
-/* templatelib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-  const util = require('../../case/mod/utilmod.js')($);
-  const common = require('../../case/mod/commonlib.js')($);
-
-  const onAddNewTemplateClick = async function(evt){
-    const addCmd = $(evt.currentTarget);
-    let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
-    $('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
-    $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
-    let jqtePluginScriptUrl = '../../lib/jqte/jquery-te-1.4.0.min.js';
-    $('head').append('<script src="' + jqtePluginScriptUrl + '"></script>');
-
-    let templateNameBox = $('<div style="width: 100%; text-align: left;"><span>ขื่อ Template:  </span></div>');
-    let templateNameInput = $('<input type="text" id="TemplateName"/>');
-    $(templateNameInput).appendTo($(templateNameBox));
-    let templateViewBox = $('<div style="width: 100%; border: 2px solid grey; background-color: #ccc;"></div>');
-    let simpleEditor = $('<input type="text" id="SimpleEditor"/>');
-    $(simpleEditor).appendTo($(templateViewBox));
-    $(simpleEditor).jqte();
-    $(templateViewBox).find('.jqte_editor').css({ height: '350px' });
-    let templateCmdBar = $('<div style="width: 100%; text-align: center; margin-top: 5px;"></div>');
-
-    let saveCmd = $('<input type="button" value=" Save"/>');
-    $(saveCmd).appendTo($(templateCmdBar));
-    $(saveCmd).data('templateData', templateData);
-    $(templateCmdBar).append($('<span>  </span>'));
-    $(saveCmd).on('click', onSaveNewCmdClick);
-    let cancelCmd = $('<input type="button" value=" Cancel "/>');
-    $(cancelCmd).appendTo($(templateCmdBar));
-    $(cancelCmd).on('click',(evt)=>{$(cancelCmd).trigger('opentemplatedesign')});
-
-    $(".mainfull").empty().append($(templateNameBox)).append($(templateViewBox)).append($(templateCmdBar));
-  }
-
-  const onViewCmdClick = async function(evt) {
-    const viewCmd = $(evt.currentTarget);
-		const templateData = $(viewCmd).data('templateData');
-    let rqParams = {};
-    let apiUrl = '/api/template/select/' + templateData.templateId;
-    let response = await common.doCallApi(apiUrl, rqParams);
-    let templateNameBox = $('<div style="width: 100%; text-align: center;"></div>');
-    let templateViewBox = $('<div style="width: 100%; border: 2px solid grey; background-color: #ccc;"></div>');
-    let templateCmdBar = $('<div style="width: 100%; text-align: center; margin-top: 5px;"></div>');
-    if (response.Record.length > 0) {
-      $(templateNameBox).append($('<h4>' + response.Record[0].Name + '</h4>'));
-      let thisTemplate = response.Record[0].Content;
-      $(templateViewBox).html(thisTemplate);
-      let editCmd = $('<input type="button" value=" Edit"/>');
-      $(editCmd).appendTo($(templateCmdBar));
-      $(editCmd).data('templateData', templateData);
-      $(templateCmdBar).append($('<span>  </span>'));
-      $(editCmd).on('click', onEditCmdClick);
-      let backCmd = $('<input type="button" value=" Back "/>');
-      $(backCmd).appendTo($(templateCmdBar));
-      $(backCmd).on('click',(evt)=>{$(backCmd).trigger('opentemplatedesign')});
-    } else {
-      $(templateViewBox).append($('<span>ไม่พบรายการ Template รายการนี้</span>'));
-    }
-    $(".mainfull").empty().append($(templateNameBox)).append($(templateViewBox)).append($(templateCmdBar));
-  }
-
-  const onEditCmdClick = async function(evt) {
-    const editCmd = $(evt.currentTarget);
-		const templateData = $(editCmd).data('templateData');
-
-    let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
-    $('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
-    $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
-    let jqtePluginScriptUrl = '../../lib/jqte/jquery-te-1.4.0.min.js';
-    $('head').append('<script src="' + jqtePluginScriptUrl + '"></script>');
-
-    let rqParams = {};
-    let apiUrl = '/api/template/select/' + templateData.templateId;
-    let response = await common.doCallApi(apiUrl, rqParams);
-    let templateNameBox = $('<div style="width: 100%; text-align: left;"><span>ขื่อ Template:  </span></div>');
-    let templateNameInput = $('<input type="text" id="TemplateName"/>');
-    $(templateNameInput).appendTo($(templateNameBox));
-    let templateViewBox = $('<div style="width: 100%; border: 2px solid grey; background-color: #ccc;"></div>');
-    let simpleEditor = $('<input type="text" id="SimpleEditor"/>');
-    $(simpleEditor).appendTo($(templateViewBox));
-    $(simpleEditor).jqte();
-    $(templateViewBox).find('.jqte_editor').css({ height: '350px' });
-    let templateCmdBar = $('<div style="width: 100%; text-align: center; margin-top: 5px;"></div>');
-    if (response.Record.length > 0) {
-      $(templateNameInput).val(response.Record[0].Name);
-      $(templateViewBox).find('#SimpleEditor').jqteVal(response.Record[0].Content);
-      let saveCmd = $('<input type="button" value=" Save"/>');
-      $(saveCmd).appendTo($(templateCmdBar));
-      $(saveCmd).data('templateData', templateData);
-      $(templateCmdBar).append($('<span>  </span>'));
-      $(saveCmd).on('click', onSaveEditCmdClick);
-      let cancelCmd = $('<input type="button" value=" Cancel "/>');
-      $(cancelCmd).appendTo($(templateCmdBar));
-      $(cancelCmd).on('click',(evt)=>{$(cancelCmd).trigger('opentemplatedesign')});
-    } else {
-      $(templateViewBox).append($('<span>ไม่พบรายการ Template รายการนี้</span>'));
-    }
-    $(".mainfull").empty().append($(templateNameBox)).append($(templateViewBox)).append($(templateCmdBar));
-  }
-
-  const onDeleteCmdClick = async function(evt) {
-    const deleteCmd = $(evt.currentTarget);
-		const templateData = $(deleteCmd).data('templateData');
-    let yourAnswer = confirm('โปรดยืนยันการลบ Template โดยคลิก ตกลง หรือ OK');
-    if (yourAnswer === true) {
-      let callDeleteTemplateUrl = '/api/template/delete';
-      let templateId = templateData.templateId;
-      let rqParams = {id: templateId}
-      let response = await common.doCallApi(callDeleteTemplateUrl, rqParams);
-      if (response.status.code == 200) {
-        $.notify("ลบรายการ Template สำเร็จ", "success");
-        $(deleteCmd).trigger('opentemplatedesign')
-      } else {
-        $.notify("ลบรายการ Template ขัดข้อง", "`error`");
-      }
-    }
-  }
-
-  const onSaveNewCmdClick = async function(evt){
-    const saveEditCmd = $(evt.currentTarget);
-		const templateData = $(saveEditCmd).data('templateData');
-    let templaeName = $('#TemplateName').val();
-    let templateContent = $('#SimpleEditor').val();
-    let templateId = templateData.templateId;
-    if (templaeName === '') {
-      $.notify("ชื่อ Template ต้องไม่ว่าง", "warn");
-      $('#TemplateName').css('border', '1px solid red');
-    } else if (templateContent === ''){
-      $('#TemplateName').css('border', '');
-      $.notify("ข้อมูล Template ต้องไม่ว่าง", "warn");
-      $('#SimpleEditor').css('border', '1px solid red;');
-    } else {
-      $('#SimpleEditor').css('border', '');
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
-			let radioId = userdata.id;
-
-      let callAddTemplateUrl = '/api/template/add';
-      let rqParams = {data: {Name: templaeName, Content: templateContent}, userId: radioId};
-      let response = await common.doCallApi(callAddTemplateUrl, rqParams);
-      if (response.status.code == 200) {
-        $.notify("บันทึก Template สำเร็จ", "success");
-        $(saveEditCmd).trigger('opentemplatedesign')
-      } else {
-        $.notify("บันทึก Template ขัดข้อง", "`error`");
-      }
-    }
-  }
-
-  const onSaveEditCmdClick = async function(evt){
-    const saveEditCmd = $(evt.currentTarget);
-		const templateData = $(saveEditCmd).data('templateData');
-    let templaeName = $('#TemplateName').val();
-    let templateContent = $('#SimpleEditor').val();
-    let templateId = templateData.templateId;
-    if (templaeName === '') {
-      $.notify("ชื่อ Template ต้องไม่ว่าง", "warn");
-      $('#TemplateName').css('border', '1px solid red');
-    } else if (templateContent === ''){
-      $('#TemplateName').css('border', '');
-      $.notify("ข้อมูล Template ต้องไม่ว่าง", "warn");
-      $('#SimpleEditor').css('border', '1px solid red;');
-    } else {
-      $('#SimpleEditor').css('border', '');
-      let callUpdateTemplateUrl = '/api/template/update';
-      let rqParams = {data: {Name: templaeName, Content: templateContent}, id: templateId};
-      let response = await common.doCallApi(callUpdateTemplateUrl, rqParams);
-      if (response.status.code == 200) {
-        $.notify("บันทึก Template สำเร็จ", "success");
-        $(saveEditCmd).trigger('opentemplatedesign')
-      } else {
-        $.notify("บันทึก Template ขัดข้อง", "`error`");
-      }
-    }
-  }
-
-  const doCreateTemplateTitlePage = function() {
-    const templateTitle = 'Template';
-    let templateTitleBox = $('<div class="title-content"></div>');
-    let logoPage = $('<img src="/images/format-design-icon.png" width="40px" height="auto" style="float: left;"/>');
-    $(logoPage).appendTo($(templateTitleBox));
-    let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + templateTitle + '</h3></div>');
-    $(titleText).appendTo($(templateTitleBox));
-    return $(templateTitleBox);
-  }
-
-  const doCallMyTemplate = function() {
-    return new Promise(async function(resolve, reject) {
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
-			let radioId = userdata.id;
-			let rqParams = {};
-			let apiUrl = '/api/template/options/' + radioId;
-			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
-        resolve(response);
-			} catch(e) {
-	      reject(e);
-    	}
-    });
-  }
-
-  const doCreateHeaderRow = function(){
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-		let headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>#</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>ขื่อ Template</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>คำสั่ง</span>');
-		$(headColumn).appendTo($(headerRow));
-
-    return $(headerRow);
-  }
-
-  const doCreateTemplateItemRow = function(i, tmItem){
-    return new Promise(function(resolve, reject) {
-      const templateData = {templateId: tmItem.Value};
-      let tmRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-      let tmCell = $('<div style="display: table-cell; text-align: center;"></div>');
-  		$(tmCell).append('<span>' + (i+1) + '</span>');
-  		$(tmCell).appendTo($(tmRow));
-
-      tmCell = $('<div style="display: table-cell; text-align: left;"></div>');
-  		$(tmCell).append('<span>' + tmItem.DisplayText + '</span>');
-  		$(tmCell).appendTo($(tmRow));
-
-      tmCell = $('<div style="display: table-cell; text-align: center;"></div>');
-  		$(tmCell).appendTo($(tmRow));
-
-      let viewCmd = $('<input type="button" value=" View "/>');
-      $(viewCmd).appendTo($(tmCell));
-      $(viewCmd).data('templateData', templateData);
-      $(viewCmd).on('click', onViewCmdClick);
-      $(tmCell).append($('<span>  </span>'));
-
-      let editCmd = $('<input type="button" value=" Edit "/>');
-      $(editCmd).appendTo($(tmCell));
-      $(editCmd).data('templateData', templateData);
-      $(editCmd).on('click', onEditCmdClick);
-      $(tmCell).append($('<span>  </span>'));
-
-      let deleteCmd = $('<input type="button" value=" Delete "/>');
-      $(deleteCmd).appendTo($(tmCell));
-      $(deleteCmd).data('templateData', templateData);
-      $(deleteCmd).on('click', onDeleteCmdClick);
-
-      resolve($(tmRow));
-    });
-  }
-
-  const doCreateTemplatePage = function(){
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-      let myTemplatePage = $('<div style="width: 100%;"></div>');
-      let myTemplate = await doCallMyTemplate();
-      let addNewTemplateBox = $('<div style="width: 100%; text-align: right; padding: 4px;"></div>');
-      let addNewTemplateCmd = $('<input type="button" value=" New Template "/>');
-      $(addNewTemplateCmd).appendTo($(addNewTemplateBox));
-      $(addNewTemplateCmd).on('click', onAddNewTemplateClick);
-      let myTemplateView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      let tempalateHearder = doCreateHeaderRow();
-      $(myTemplateView).append($(tempalateHearder));
-      let templateLists = myTemplate.Options;
-      if (templateLists.length > 0) {
-        for (let i=0; i < templateLists.length; i++) {
-          let tmItem = templateLists[i];
-          let tmRow = await doCreateTemplateItemRow(i, tmItem);
-          $(myTemplateView).append($(tmRow));
-        }
-      } else {
-        let notFoundMessage = $('<h3>ไม่พบรายการ Template ของคุณในขณะนี้</h3>')
-        $(myTemplateView).append($(notFoundMessage));
-      }
-
-      $(myTemplatePage).append($(addNewTemplateBox));
-      $(myTemplatePage).append($(myTemplateView));
-      resolve($(myTemplatePage));
-      $('body').loading('stop');
-    });
-  }
-
-  return {
-    doCreateTemplateTitlePage,
-    doCreateHeaderRow,
-    doCallMyTemplate,
-    doCreateTemplatePage
-	}
-}
-
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],17:[function(require,module,exports){
-/* websocketmessage.js */
-module.exports = function ( jq ) {
-	const $ = jq;
-
-  const onMessageRadio = function (msgEvt) {
-		let userdata = JSON.parse(localStorage.getItem('userdata'));
-    let data = JSON.parse(msgEvt.data);
-    console.log(data);
-    if (data.type !== 'test') {
-      let masterNotify = localStorage.getItem('masternotify');
-      let MasterNotify = JSON.parse(masterNotify);
-      if (MasterNotify) {
-        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
-      } else {
-        MasterNotify = [];
-        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
-      }
-      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
-    }
-    if (data.type == 'test') {
-      $.notify(data.message, "success");
-		} else if (data.type == 'refresh') {
-			let eventName = 'triggercounter'
-			let triggerData = {caseId : data.caseId, statusId: data.statusId};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
-			document.dispatchEvent(event);
-    } else if (data.type == 'notify') {
-			$.notify(data.message, "info");
-    } else if (data.type == 'callzoom') {
-      let eventName = 'callzoominterrupt';
-      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
-      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
-      document.dispatchEvent(event);
-    } else if (data.type == 'callzoomback') {
-      let eventName = 'stopzoominterrupt';
-      let evtData = {result: data.result};
-      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-      document.dispatchEvent(event);
-		} else if (data.type == 'ping') {
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-		} else if (data.type == 'unlockscreen') {
-			let eventName = 'unlockscreen';
-			let evtData = {};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-			document.dispatchEvent(event);
-		} else if (data.type == 'message') {
-			$.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
-			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
-			/* จุดระวัง */
-			/* จุด Swap หรือ จุดไขว้ค่า myId กับ audienceId ระหว่าง sendto กับ from */
-			let newConversationData = {topicId: data.context.topicId, topicName: data.context.topicName, topicStatusId: data.context.topicStatusId, audienceId: data.context.myId, audienceName: data.context.myName, myId: data.context.audienceId, myName: data.context.audienceName };
-			newConversationData.message = {msg: data.msg, from: data.from, context: data.context};
-			$('#ContactContainer').trigger('newconversation', [newConversationData]);
-    }
+const doCreateManualImport = function(caseId){
+  let manualBox = $('<div></div>');
+  $(manualBox).append($('<div class="accorhead"><b>นำเข้าภาพทางการแพทย์จาก CD/File</b></div>'));
+  let manualForm = $('<div class="accorcont" style="padding: 10px; background-color: white;"></div>');
+  $(manualBox).append($(manualForm));
+
+  let manualApproachGuideBox = $('<div></div>');
+  $(manualApproachGuideBox).appendTo($(manualForm));
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">กระบวนการนำเข้าช่องทางนี้ อนุญาตให้ใช้ภาพ DICOM ที่ผ่านการเข้าซิปมาเรียบร้อยแล้วเพียงชนิดเดียว (.zip)</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">การนำเข้าผ่านข่องทางนี้มีระยะเวลาในการดำเนินการ ขึ้นอยู่กับขนาดของไฟล์ภาพที่เป็น zip ไฟล์</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ขนาด zip ไฟลที่จะนำเข้าต้องไม่เกิน ' + maxSizeDef + ' Bytes.</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">โปรดเตรียมไฟล์ภาพสำหรับนำเข้าให้พร้อม</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ในกณีต้องการนำภาพเข้าเก็บที่ PACS ของโรงพยาบาล โปรดเลือกอ็อปชั่นนี้ด้วยการเปิดสวิชด้านบนปุ่ม Upload</p>')
+
+  let importOptionBox = $('<div style="position: relative; width: 100%; margin-top: 10px; text-align: right;"></div>');
+  $(importOptionBox).appendTo($(manualForm));
+
+  let pacsImportSwitchBox = $('<div id="ReadyState" style="float: right; margin-right: 4px;"></div>');
+  let pacsImportOption = {
+    onActionCallback : function() {console.log('option on');},
+    offActionCallback : function() {console.log('option off');}
   };
+  let pacsImportSwitch = $(pacsImportSwitchBox).readystate(pacsImportOption);
+  $(pacsImportSwitchBox).appendTo($(importOptionBox));
+  $(importOptionBox).append($('<span style="margin-right: 5px;">ให้นำภาพมาเก็บที่ PACS ของโรงพยาบาลด้วย</span>'));
 
-	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		//console.log(localMessage);
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
-		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
-		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
-	}
+  let openFileCmd = $('<button style="width: 100%">Upload</button>');
+  $(openFileCmd).appendTo($(manualForm));
 
-  return {
-    onMessageRadio
-	}
+  $(openFileCmd).on('click', (evt)=>{
+    let pacsImport = pacsImportSwitch.getState();
+    doOpenSelectFile(evt, pacsImport);
+  });
+
+  return $(manualBox);
 }
 
-},{}],18:[function(require,module,exports){
-/* welcomelib.js */
-module.exports = function ( jq ) {
-	const $ = jq;
+const doCreateCloudImport = function(){
+  return new Promise(async function(resolve, reject){
+    let cloudBox = $('<div></div>');
+    $(cloudBox).append($('<div class="accorhead"><b>นำเข้าภาพทางการแพทย์จาก Cloud</b></div>'));
+    let cloudInputForm = $('<div class="accorcont" style="padding: 10px; background-color: white;"></div>');
+    $(cloudBox).append($(cloudInputForm));
 
-	const apiconnector = require('../../case/mod/apiconnect.js')($);
-	const common = require('../../case/mod/commonlib.js')($);
-	const caseCounter = require('./onrefreshtrigger.js')($);
+    let cloudApproachGuideBox = $('<div></div>');
+    $(cloudApproachGuideBox).appendTo($(cloudInputForm));
+    $(cloudApproachGuideBox).append('<p></p>')
 
-	let newstatusCases = [];
-  let accstatusCases = [];
+    let cloudApproachFormBox = $('<div style="position: relative; display: table; width: 50%; margin-left: calc(30% - 0px);"></div>');
+    $(cloudApproachFormBox).appendTo($(cloudInputForm));
 
-  const doCreateHomeTitlePage = function() {
-    const welcomeTitle = 'ยินดีต้อนรับเข้าสู่ระบบ Rad Connext';
-    let homeTitle = $('<div class="title-content"></div>');
-    let logoPage = $('<img src="/images/home-icon.png" width="40px" height="auto" style="float: left;"/>');
-    $(logoPage).appendTo($(homeTitle));
-    let titleText = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>' + welcomeTitle + '</h3></div>');
-    $(titleText).appendTo($(homeTitle));
-    return $(homeTitle);
-  }
+    let citizenIDBox = $('<div style="display: table-row; width: 100%;"></div>');
+    $(citizenIDBox).append('<div style="display: table-cell; padding: 5px;"><span>เลขประจำตัวประชาชน</span></div>');
+    let citizenIDCell = $('<div style="display: table-cell; padding: 5px;"></div.');
+    let citizenID = $('<input type="number"/>');
+    $(citizenID).appendTo($(citizenIDCell));
+    $(citizenIDCell).appendTo($(citizenIDBox));
+    $(citizenIDBox).appendTo($(cloudApproachFormBox));
 
-	const doShowCaseCounter = function(){
-    $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').text('(' + newstatusCases.length + ')');
-    if (newstatusCases.length > 0) {
-      $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'red'});
-    } else {
-      $('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'white'});
-    }
-    $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').text('(' + accstatusCases.length + ')');
-    if (accstatusCases.length > 0) {
-      $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'red'});
-    } else {
-      $('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').css({'color': 'white'});
-    }
-  }
+    let caseIDBox = $('<div style="display: table-row; width: 100%;"></div>');
+    $(caseIDBox).append('<div style="display: table-cell; padding: 5px;"><span>รหัสเคส</span></div>');
+    let caseIDCell = $('<div style="display: table-cell; padding: 5px;"></div>');
+    let caseID = $('<input type="number"/>');
+    $(caseID).appendTo($(caseIDCell));
+    $(caseIDCell).appendTo($(caseIDBox));
+    $(caseIDBox).appendTo($(cloudApproachFormBox));
 
-	/** Case Event Counter **/
-  const onCaseChangeStatusTrigger = function(evt) {
-		let trigerData = evt.detail.data;
-		let caseId = trigerData.caseId;
-		let statusId = trigerData.statusId;
-    let indexAt = undefined;
-    switch (Number(statusId)) {
-      case 1:
-        if (newstatusCases.indexOf(Number(caseId)) < 0) {
-          newstatusCases.push(caseId);
-        }
-      break;
-      case 2:
-			case 8:
-      case 9:
-      case 13:
-			case 14:
-        if (accstatusCases.indexOf(Number(caseId)) < 0) {
-          accstatusCases.push(caseId);
-        }
-        indexAt = newstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          newstatusCases.splice(indexAt, 1);
-        }
-      break;
-      case 3:
-      case 4:
-      case 5:
-      case 6:
-      case 7:
-      case 10:
-      case 11:
-      case 12:
-        indexAt = newstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          newstatusCases.splice(indexAt, 1);
-        }
-        indexAt = accstatusCases.indexOf(caseId);
-        if (indexAt > -1) {
-          accstatusCases.splice(indexAt, 1);
-        }
-      break;
-    }
-    doShowCaseCounter();
-  }
+    let otpBox = $('<div style="display: table-row; width: 100%;"></div>');
+    $(otpBox).append('<div style="display: table-cell; padding: 5px;"><span>OTP</span></div>');
+    let otpCell = $('<div style="display: table-cell; padding: 5px;"></div>');
+    let otp = $('<input type="number"/>');
+    $(otp).appendTo($(otpCell));
+    $(otpCell).appendTo($(otpBox));
+    $(otpBox).appendTo($(cloudApproachFormBox));
 
-	const doLoadCaseForSetupCounter = function(userId){
-		return new Promise(async function(resolve, reject) {
-			let loadUrl = '/api/cases/load/list/by/status/radio';
-			let rqParams = {userId: userId};
-			rqParams.casestatusIds = [1];
-			let newList = await common.doCallApi(loadUrl, rqParams);
-			rqParams.casestatusIds = [2, 8, 9, 13, 14];
-			let accList = await common.doCallApi(loadUrl, rqParams);
-			resolve({newList, accList});
-		});
-	}
+    let submitCmd = $('<button style="width: 100%">Submit</button>');
+    $(submitCmd).appendTo($(cloudInputForm));
 
-	const doSetupCounter = function() {
-		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let userId = userdata.id;
-			let myList = await doLoadCaseForSetupCounter(userId);
+    $(submitCmd).on('click', (evt)=>{
 
-			newstatusCases = [];
-		  accstatusCases = [];
+    });
 
-			await myList.newList.Records.forEach((item, i) => {
-				newstatusCases.push(Number(item.id));
-			});
-			await myList.accList.Records.forEach((item, i) => {
-				accstatusCases.push(Number(item.id));
-			});
+    let cloudApproachHistoryBox = $('<div style="padding: 4px; width: 100%; margin-top: 8px;"></div>');
+    $(cloudApproachHistoryBox).appendTo($(cloudInputForm));
 
-			caseCounter.doShowCaseCounter(newstatusCases, accstatusCases);
-			$('body').loading('stop');
-			resolve();
-		});
-	}
-	/** Case event Counter **/
+    let historyView = await doCreateHistoryView([]);
+    $(historyView).appendTo($(cloudApproachHistoryBox));
 
-	/** Zoom Calle Event **/
-	const doInterruptZoomCallEvt = function(evt) {
-		$('body').loading('start');
-		const main = require('../main.js');
-		let userConfirm = confirm('คุณมีสายเรียกเข้าเพื่อ Conference ทาง Zoom\nคลิก ตกลง หรือ OK เพื่อรับสายและเปิด Zoom Conference หรือ คลิก ยกเลิก หรือ Cancel เพื่อปฏิเสธการรับสาย');
-		let myWsm = main.doGetWsm();
-		if (userConfirm) {
-			let callData = evt.detail.data;
-			alert('Password ในการเข้าร่วม Conference ของคุณคิอ ' + callData.password + '\n');
-			window.open(callData.openurl, '_blank');
-			//Say yes back to caller
-			let callZoomMsg = {type: 'callzoomback', sendTo: callData.sender, result: 1};
-			myWsm.send(JSON.stringify(callZoomMsg));
-			$('body').loading('stop');
-		} else {
-			//Say no back to caller
-			let callZoomMsg = {type: 'callzoomback', sendTo: callData.sender, result: 0};
-			myWsm.send(JSON.stringify(callZoomMsg));
-			$('body').loading('stop');
-		}
-	}
+    let approachControlBar = $('<div style="padding: 4px; width: 100%; margin-top: 8px; text-align: center;"></div>');
+    $(approachControlBar).appendTo($(cloudInputForm));
 
-  return {
-		/*
-		newstatusCases,
-	  accstatusCases,
-		*/
+    let openWebViewDicomCmd = $('<input type="button" value=" เปิดภาพ/ผลอ่าน "/>');
+    $(openWebViewDicomCmd).appendTo($(approachControlBar));
+    $(openWebViewDicomCmd).on('click', (evt)=>{
 
-		doCreateHomeTitlePage,
-		onCaseChangeStatusTrigger,
-		doSetupCounter
-	}
+    });
+    $(approachControlBar).append('<span>  </span>');
+
+    let contactImageOwnerCmd = $('<input type="button" value=" ติดต่อผู้ป่วย/โรงพยาบาล เจ้าของภาพ "/>');
+    $(contactImageOwnerCmd).appendTo($(approachControlBar));
+    $(contactImageOwnerCmd).on('click', (evt)=>{
+
+    });
+    $(approachControlBar).append('<span>  </span>');
+
+    let editOTPCmd = $('<input type="button" value=" แก้ไข OTP "/>');
+    $(editOTPCmd).appendTo($(approachControlBar));
+    $(editOTPCmd).on('click', (evt)=>{
+
+    });
+    $(approachControlBar).append('<span>  </span>');
+
+    let importFromCloudCmd = $('<input type="button" value=" Import From Cloud "/>');
+    $(importFromCloudCmd).appendTo($(approachControlBar));
+    $(importFromCloudCmd).on('click', (evt)=>{
+
+    });
+
+    resolve($(cloudBox));
+  });
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":12}],19:[function(require,module,exports){
+const doOpenSelectFile = function(evt, pacsImportOpt){
+  let openFileCmd = evt.currentTarget;
+  let fileBrowser = $('<input type="file" name="archiveupload" style="display: none;"/>');
+  let simpleProgressBar = $('<div style="position: relative; border: 2px solid black; width: 100%; min-height: 20px; background-color: white;"></div>');
+  let indicator = $('<div style="position: relative; width: 0px; padding: 0px; background-color: blue; min-height: 18px; text-align: center; color: white;"></div>');
+  $(indicator).appendTo($(simpleProgressBar))
+  $(fileBrowser).on('change', (evt) =>{
+    var fileSize = evt.currentTarget.files[0].size;
+    var fileType = evt.currentTarget.files[0].type;
+    if (fileSize <= maxSizeDef) {
+      if (fileType === 'application/zip') {
+        let uploadUrl = '/api/portal/archiveupload';
+        $(fileBrowser).simpleUpload(uploadUrl, {
+          start: function(file){
+            $(indicator).css({'width': '0px', 'background-color': 'blue'});
+          },
+          progress: function(progress){
+            let percentageValue = Math.round(progress);
+            $(indicator).css({'width': percentageValue + '%'});
+            $(indicator).text(percentageValue + '%');
+          },
+          success: function(data){
+            $(fileBrowser).remove();
+            $(simpleProgressBar).remove();
+            doStartImport(data, pacsImportOpt);
+          },
+          error: function(error){
+            $(indicator).css({'width': '100%', 'background-color': 'red'});
+            $(indicator).text('Upload Fail => ' + JSON.stringify(error));
+          }
+        });
+      } else {
+        $(indicator).css({'width': '100%', 'background-color': 'red'});
+        $(indicator).text('Upload File type not support, Please remind that use zip file only.');
+      }
+    } else {
+      $(indicator).css({'width': '100%', 'background-color': 'red'});
+      $(indicator).text('Upload File size Exceed => ' + maxSizeDef + ' bytes.');
+    }
+  });
+  $(openFileCmd).parent().append($(fileBrowser));
+  $(openFileCmd).parent().append($(simpleProgressBar));
+  $(fileBrowser).click();
+}
+
+const doStartImport = function(data, pacsImportOpt){
+  return new Promise(async function(resolve, reject) {
+    $('body').loading('start');
+    let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let hospitalId = userdata.hospitalId;
+    let userId = userdata.id;
+    let username = userdata.username;
+    let fileFrags = data.file.split('.');
+    let fileCode = fileFrags[0];
+    let importApiUrl = '/api/orthancproxy/importarchive';
+    let params = {archivecode: fileCode, username: username, hospitalId: hospitalId, pacsImportOption: pacsImportOpt};
+    let importRes = await doCallApi(importApiUrl, params);
+    console.log(importRes);
+    $('body').loading('stop');
+  });
+}
+
+const doCreateHistoryView = function(caseItems) {
+  return new Promise(async function(resolve, reject){
+    let historyView = $('<div style="display: table; width: 99%; border-collapse: collapse;"></div>');
+    let historyHeader = $('<div style="display: table-row; width: 100%;"></div>');
+    $(historyHeader).appendTo($(historyView));
+    $(historyHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">#</span>'));
+    $(historyHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">วันที่</span>'));
+    $(historyHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ส่วนที่สแกน</span>'));
+    $(historyHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">โรงพยาบาล</span>'));
+    const promiseList = new Promise(async function(resolve2, reject2){
+      for (let i=0; i < caseItems.length; i++) {
+
+      }
+      setTimeout(()=> {
+        resolve2($(historyView));
+      }, 500);
+    });
+    Promise.all([promiseList]).then((ob)=>{
+      resolve(ob[0]);
+    });
+  });
+}
+
+},{"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/utilmod.js":4,"jquery":7}],7:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -16347,7 +12874,94 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],20:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const onMessageRadio = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type !== 'test') {
+      let masterNotify = localStorage.getItem('masternotify');
+      let MasterNotify = JSON.parse(masterNotify);
+      if (MasterNotify) {
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      } else {
+        MasterNotify = [];
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      }
+      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+    }
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'refresh') {
+			let eventName = 'triggercounter'
+			let triggerData = {caseId : data.caseId, statusId: data.statusId};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+    } else if (data.type == 'notify') {
+			$.notify(data.message, "info");
+    } else if (data.type == 'callzoom') {
+      let eventName = 'callzoominterrupt';
+      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoomback') {
+      let eventName = 'stopzoominterrupt';
+      let evtData = {result: data.result};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+      document.dispatchEvent(event);
+		} else if (data.type == 'ping') {
+			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+			if (data.counterping == minuteLockScreen) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			} else if (tryLockModTime == 0) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			}
+		} else if (data.type == 'unlockscreen') {
+			let eventName = 'unlockscreen';
+			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'message') {
+			$.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+			/* จุดระวัง */
+			/* จุด Swap หรือ จุดไขว้ค่า myId กับ audienceId ระหว่าง sendto กับ from */
+			let newConversationData = {topicId: data.context.topicId, topicName: data.context.topicName, topicStatusId: data.context.topicStatusId, audienceId: data.context.myId, audienceName: data.context.myName, myId: data.context.audienceId, myName: data.context.audienceName };
+			newConversationData.message = {msg: data.msg, from: data.from, context: data.context};
+			$('#ContactContainer').trigger('newconversation', [newConversationData]);
+    }
+  };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
+		//console.log(localMessage);
+		let localMessageJson = localMessage;
+		if (localMessageJson) {
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		} else {
+			localMessageJson = [];
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		}
+		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+	}
+
+  return {
+    onMessageRadio
+	}
+}
+
+},{}],9:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -16436,4 +13050,4 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}]},{},[7]);
+},{}]},{},[6]);

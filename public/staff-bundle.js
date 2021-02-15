@@ -14,7 +14,7 @@ const home = require('./mod/home.js')($);
 
 var upwd, wsm, wsl;
 
-$( document ).ready(function() {
+$(document).ready(function() {
 	console.log('page on ready ...');
 	const initPage = function() {
     let jqueryUiCssUrl = "/lib/jquery-ui.min.css";
@@ -27,16 +27,21 @@ $( document ).ready(function() {
 			doLoadMainPage()
 		} else {
 			doLoadLogin()
+      /*
       $('#RegisterDialogBox').dialog({
         modal: true, autoOpen: false, width: 350, resizable: false, title: 'ลงทะเบียนเข้าใช้งาน'
       });
+      */
 		}
 	};
+  const doLoadLogin = function(){
+    window.location.replace('/index.html');
+  }
 
 	initPage();
 
 });
-
+/*
 function doCallLoginApi(user) {
 	return new Promise(function(resolve, reject) {
     var loginApiUri = '/api/login/';
@@ -84,7 +89,8 @@ function doLogin(){
 		});
 	}
 }
-
+*/
+/*
 function doLoadLogin() {
 	$('#app').load('form/login.html', function(){
 		$(".container").css({"min-height": "100%"});
@@ -102,11 +108,11 @@ function doLoadLogin() {
 		});
 	});
 }
-
+*/
 function doUserLogout() {
   localStorage.removeItem('token');
   $('#LogoutCommand').hide();
-  let url = '/staff.html';
+  let url = '/index.html';
   window.location.replace(url);
 }
 

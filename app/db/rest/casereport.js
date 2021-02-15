@@ -81,7 +81,7 @@ const doLoadVariable = function(caseId, userId){
   });
 }
 
-const reportCreator = function(elements, variable, pdfFileName){
+const reportCreator = function(elements, variable, pdfFileName, caseId){
 	return new Promise(async function(resolve, reject) {
 		const path = require('path');
 		const publicDir = path.normalize(__dirname + '/../../../public');
@@ -90,7 +90,7 @@ const reportCreator = function(elements, variable, pdfFileName){
 		const { JSDOM } = jsdom;
 
 		const qrgenerator = require('../../lib/qrcodegenerator.js');
-		const qrcontent = 'https://radconnext.info/img/usr/qrcode/' + pdfFileName;
+		const qrcontent = 'https://radconnext.info/portal?caseId=/' + caseId;
 		const qrcode = await qrgenerator(qrcontent, pdfFileName);
 		const qrlink = qrcode.qrlink;
 
@@ -452,7 +452,7 @@ app.post('/create', (req, res) => {
 
 				const reportVar = await doLoadVariable(caseId, userId);
 
-				let report = await reportCreator(reportElements, reportVar, pdfFileName);
+				let report = await reportCreator(reportElements, reportVar, pdfFileName, caseId);
 
 				res.json({status: {code: 200}, reportLink: report.reportPdfLinkPath, htmlLink: report.reportHtmlLinkPath});
       } else {
@@ -484,7 +484,7 @@ app.post('/convert', (req, res) => {
 				const reports = await db.hospitalreports.findAll({ attributes: ['Content'], where: {hospitalId: hospitalId}});
 			  const reportElements = reports[0].Content;
 				const reportVar = await doLoadVariable(caseId, userId);
-				let report = await reportCreator(reportElements, reportVar, pdfFileName);
+				let report = await reportCreator(reportElements, reportVar, pdfFileName, caseId);
 				*/
 
 				const caserep = await Report.findAll({attributes: excludeColumn, where: {caseId: caseId}});
@@ -496,7 +496,8 @@ app.post('/convert', (req, res) => {
 				let pdfFileName = pdfFiles[0];
 				let dicom = await dicomConvertor(studyID, modality, pdfFileName, hospitalId);
 
-				log.info('If you are => ' + ur[0].username + ', you will be recieve notity for trigger on local ORTHANC.')
+				log.info('If you are => ' + ur[0].username + ', you will be recieve notity for trigger on local ORTHANC.');
+				/*
 				let cwss = websocket.socket.clients;
 				cwss.forEach((wc) => {
 					log.info('wc.id=> ' + wc.id);
@@ -506,7 +507,9 @@ app.post('/convert', (req, res) => {
 						wc.send(JSON.stringify(socketTrigger));
 					}
 				});
-
+				*/
+				let socketTrigger = {type: 'trigger', message: 'Please tell your orthanc update', studyid: studyID, dcmname: dicom.dcmname, studyInstanceUID: studyInstanceUID, owner: ur[0].username, hostname: req.hostname};
+				await websocket.sendMessage(socketTrigger, ur[0].username);
 				res.json({status: {code: 200}, dicomLink: dicom.dicomLink});
       } else {
         log.info('Can not found user from token.');

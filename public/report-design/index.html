@@ -250,11 +250,10 @@
         }
         oProp.elementselect = textElementSelect;
         oProp.elementdrop = textElementDrop;
-        oProp.elementresizestop = textResizeStop;
-        var textbox = $( "<div></div>" )
-        .appendTo($(wrapper))
-        .textelement( oProp )
-        .data( "custom-textelement" );
+        //oProp.elementresizestop = textResizeStop;
+        var textbox = $( "<div></div>" ).textelement( oProp );
+        $(textbox).data( "custom-textelement" );
+        $(textbox).appendTo($(wrapper));
       break;
       case "hr":
         var hrTypeLength = $(".hrElement").length;
@@ -741,7 +740,7 @@
         var fileSize = e.currentTarget.files[0].size;
         var fileType = e.currentTarget.files[0].type;
         if (fileSize <= defSize) {
-          var uploadUrl = "/uploadpatienthistory";
+          var uploadUrl = "/api/uploadpatienthistory";
           $('#fileupload').simpleUpload(uploadUrl, {
             progress: function(progress){
   						console.log("ดำเนินการได้ : " + Math.round(progress) + "%");
@@ -795,6 +794,7 @@
     resetPropForm(event.target, data);
   }
   const textResizeStop = function(event, data){
+    console.log(data);
     resetPropForm(event.target, data);
   }
   const hrElementSelect = function(event, data){
