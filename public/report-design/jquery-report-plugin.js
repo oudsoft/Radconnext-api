@@ -28,38 +28,10 @@ $.widget( "custom.textelement", {
         $this._trigger("elementdrop", null, $this.options);
       }
     });
-    /*this.element.resizable({
-      containment: "parent",
-      start: function(e, ui) {
-        e.preventDefault();
-        console.log('start resize text element on create');
-      },
-      resize: function(e, ui) {
-        e.preventDefault();
-        console.log('process resize text element on create');
-      },
-      stop: function(e, ui) {
-        e.preventDefault();
-        console.log('stop resize text element on create');
-      }
-    });*/
-    /*
-    this.element.on('resize', function(e, ui) {
-      console.log(e);
-      console.log(ui);
-    });
-    */
     this.element.on('click', function(e, ui) {
       $this.element.resizable({
         containment: "parent",
-        stop: function(evt, ui) {
-          console.log('stop resize text element on click');
-          $this._setOption("width", evt.target.clientWidth);
-          $this._setOption("height", evt.target.clientHeight);
-          //$this.refresh();
-          $this._trigger("elementresizestop", null, $this.options);
-          evt.preventDefault();
-        }
+        stop: $this.elementResizeStopEvt
       });
       $this._trigger("elementselect", null, $this.options);
     });
@@ -84,21 +56,17 @@ $.widget( "custom.textelement", {
     this.element.css({"text-align": this.options.fontalign});
     this.element.resizable({
       containment: "parent",
-      /*
-      start: function(e, ui) {
-        console.log('start resize text element  on refresh');
-        e.preventDefault();
-      },
-      */
-      stop: function(evt, ui) {
-        console.log('stop resize text element on refresh');
-        $this._setOption("width", evt.target.clientWidth);
-        $this._setOption("height", evt.target.clientHeight);
-        $this.refresh();
-        $this._trigger("elementresizestop", null, $this.options);
-        evt.preventDefault();
-      }
+      stop: $this.elementResizeStopEvt
     });
+  },
+  elementResizeStopEvt: function(evt, ui){
+    let $this = this;
+    console.log('stop resize text element on refresh');
+    ui.element.css({"width": evt.target.clientWidth});
+    ui.element.css({"height": evt.target.clientHeight});
+    //$this.refresh();
+    //ui.element._trigger("elementresizestop", null, this.options);
+    evt.preventDefault();
   }
 });
 

@@ -390,14 +390,16 @@ app.post('/importarchive', function(req, res) {
               let downloadlink = req.protocol + '://' + req.hostname  + ( port == 80 || port == 443 ? '' : ':'+port )  + internalUrl;
               //let downloadlink = 'https://' + req.host + internalUrl;
               let socketTrigger = {type: 'import', message: 'Please sync new dicom to Pacs', download: {link: downloadlink} };
-              await socket.sendMessage(socketTrigger, username);
-
+              //await socket.sendMessage(socketTrigger, username);
+              await socket.sendLocalGateway(socketTrigger, hospitalId);
+              /*
               const workerFarm = require('worker-farm');
               const importService = workerFarm(require.resolve('./mod/import-worker.js'));
               let importData = {download: {link: downloadlink}};
               await importService(importData, function (err, output) {
                 log.info('output=>' + JSON.stringify(output));
               });
+              */
             }
 						execResults.push(importRes);
 						i++;
