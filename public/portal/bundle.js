@@ -1661,6 +1661,9 @@ module.exports = function ( jq, wsLocal ) {
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
 		} else if (data.type == 'importresult') {
 			$.notify('Your upload dicom on portal have success, next please create new dicomtransferlog.', "success");
+			let eventName = 'createnewdicomtranserlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
     }
   };
 
@@ -1750,6 +1753,8 @@ const doLoadMainPage = function(){
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
   $('body').loading({overlay: $("#overlay"), stoppable: true});
+
+  document.addEventListener("createnewdicomtranserlog", onCreateNewDicomTransferLogTrigger);
 
   const mainForm = 'form/main.html';
   let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -1979,6 +1984,19 @@ const doStartImport = function(data, pacsImportOpt){
     $.notify('การนำเข้าไฟล์ภาพได้เริ่มต้นขึ้นแล้ว เมื่อนำเข้าสำเร็จจะแจ้งให้ทราบต่อไป', "info");
     $('body').loading('stop');
   });
+}
+
+const onCreateNewDicomTransferLogTrigger = function(evt){
+  return new Promise(async function(resolve, reject) {
+    $('body').loading('start');
+    let trigerData = evt.detail.data;
+    console.log(trigerData);
+    let callApiUrl = '/api/dicomtransferlog/callstudytag';
+    let params = { username: username, hospitalId: hospitalId, studyId: trigerData.ParentStudy};
+    let calltRes = await doCallApi(callApiUrl, params);
+    console.log(calltRes);
+    $('body').loading('stop');
+  });    
 }
 
 const doCreateHistoryView = function(caseItems) {

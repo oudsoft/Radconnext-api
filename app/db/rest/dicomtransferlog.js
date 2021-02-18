@@ -107,7 +107,8 @@ app.post('/callstudytag', (req, res) => {
         try {
 					let hostname = req.hostname;
 				  let hospitalId = req.body.hospitalId;
-				  let studyId = req.body.studyId;
+				  let username = req.body.username;
+					let studyId = req.body.studyId;
 					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
 				  let yourOrthancId = orthancs[0].id;
 				  let studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, studyId);
