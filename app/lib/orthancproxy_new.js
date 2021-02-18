@@ -370,7 +370,8 @@ app.post('/importarchive', function(req, res) {
 						let stdout = await runcommand(command);
 						setTimeout(()=>{
 							log.info('order => ' + pos);
-							resolve(stdout);
+              log.info('result => ' + stdout);
+							resolve(JSON.parse(stdout));
 						}, 415);
 					});
 				}
@@ -388,18 +389,8 @@ app.post('/importarchive', function(req, res) {
               let internalUrl = item.substring(startUrlAt);
               var port = req.app.settings.port || process.env.SERVER_PORT;
               let downloadlink = req.protocol + '://' + req.hostname  + ( port == 80 || port == 443 ? '' : ':'+port )  + internalUrl;
-              //let downloadlink = 'https://' + req.host + internalUrl;
               let socketTrigger = {type: 'import', message: 'Please sync new dicom to Pacs', download: {link: downloadlink} };
-              //await socket.sendMessage(socketTrigger, username);
               await socket.sendLocalGateway(socketTrigger, hospitalId);
-              /*
-              const workerFarm = require('worker-farm');
-              const importService = workerFarm(require.resolve('./mod/import-worker.js'));
-              let importData = {download: {link: downloadlink}};
-              await importService(importData, function (err, output) {
-                log.info('output=>' + JSON.stringify(output));
-              });
-              */
             }
 						execResults.push(importRes);
 						i++;
@@ -409,14 +400,11 @@ app.post('/importarchive', function(req, res) {
 					}, delay);
 				});
 				log.info('countt all Files => ' + files.length);
-				if (files.length > 200) {
-					log.info('test => ' + files.length);
-					res.status(200).send({result: files});
-				} else {
-					Promise.all([promiseList]).then((ob)=>{
-						res.status(200).send({result: ob[0]});
-					});
-				}
+				res.status(200).send({result: files});
+				Promise.all([promiseList]).then(async (ob)=>{
+          let importResult = {type: 'importresult', results: ob[0]};
+          await socket.sendMessage(importResult, username);
+				});
 			}).catch((error) => {
 				log.error('Error=>'+ JSON.stringify(error));
 				res.status(500).send({error: error});

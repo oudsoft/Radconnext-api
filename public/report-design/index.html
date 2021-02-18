@@ -16,34 +16,38 @@
   <body>
     <div class="topnav">
       <!-- <a href="#" id="Home-Cmd">หน้าแรก</a> -->
-      <!--
+
       <a class="cmd-link" id="New-Cmd"><img src="/images/new-design-icon.png" class="icon-cmd"/><span class="text-cmd">New</span></a>
       <a class="cmd-link" id="Clear-Cmd"><img src="/images/clear-icon.png" class="icon-cmd"/><span class="text-cmd">Clear</span></a>
     	<a class="cmd-link" id="Preview-Cmd"><img src="/images/preview-icon.png" class="icon-cmd"/><span class="text-cmd">Preview</span></a>
       <a class="cmd-link" id="Export-Cmd"><img src="/images/export-icon.png" class="icon-cmd"/><span class="text-cmd">Export</span></a>
       <a class="cmd-link" id="Save-Cmd"><img src="/images/save-icon.png" class="icon-cmd"/><span class="text-cmd">Save</span></a>
       <a class="cmd-link" id="Back-Cmd"><img src="/images/back-icon.png" class="icon-cmd"/><span class="text-cmd">Back</span></a>
-    -->
+
+      <!--
       <a class="cmd-link" id="New-Cmd">New</a>
       <a class="cmd-link" id="Clear-Cmd">Clear</a>
       <a class="cmd-link" id="Preview-Cmd">Preview</a>
       <a class="cmd-link" id="Export-Cmd">Export</a>
       <a class="cmd-link" id="Save-Cmd">Save</a>
       <a class="cmd-link" id="Back-Cmd">Back</a>
+    -->
     </div>
 
     <div class="row">
       <div class="column side">
       	<div id="report-item">
           <ol id="selectable">
-            <!--
+
             <li class="ui-widget-content" id="text-element"><img src="/images/text-icon.png" class="icon-element"/><span class="text-element">กล่องข้อความ</span></li>
             <li class="ui-widget-content" id="hr-element"><img src="/images/hr-line-icon.png" class="icon-element"/><span class="text-element">เส้นแนวนอน</span></li>
             <li class="ui-widget-content" id="image-element"><img src="/images/image-icon.png" class="icon-element"/><span class="text-element">กล่องรูปภาพ</span></li>
-          -->
+
+            <!--
             <li class="ui-widget-content" id="text-element">กล่องข้อความ</li>
             <li class="ui-widget-content" id="hr-element">เส้นแนวนอน</li>
             <li class="ui-widget-content" id="image-element">กล่องรูปภาพ</li>
+          -->
           </ol>
           <div id="report-item-cmd" style="padding:5px; text-align: center; margin-top: 20px;">
             <input type="button" id="add-item-cmd" value=" เพิ่ม "/>
@@ -250,10 +254,11 @@
         }
         oProp.elementselect = textElementSelect;
         oProp.elementdrop = textElementDrop;
-        //oProp.elementresizestop = textResizeStop;
-        var textbox = $( "<div></div>" ).textelement( oProp );
-        $(textbox).data( "custom-textelement" );
-        $(textbox).appendTo($(wrapper));
+        oProp.elementresizestop = textResizeStop;
+        var textbox = $( "<div></div>" )
+        .appendTo($(wrapper))
+        .textelement( oProp )
+        .data( "custom-textelement" );
       break;
       case "hr":
         var hrTypeLength = $(".hrElement").length;

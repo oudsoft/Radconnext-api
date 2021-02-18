@@ -276,6 +276,7 @@ function doLoadMainPage(){
 			newcase.doLoadDicomFromOrthanc();
       casecounter.doSetupCounter();
 
+      /*
 			util.doConnectWebsocketLocal(userdata.username).then((localWsl) => {
 				if ((localWsl.readyState == 0) || (localWsl.readyState == 1)) {
 		    	wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'local');
@@ -287,6 +288,8 @@ function doLoadMainPage(){
 				console.log(err);
 				$('body').loading('stop');
 			});
+      */
+      wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
 			$('body').loading('stop');
 		});
 	});
@@ -4345,6 +4348,12 @@ module.exports = function ( jq ) {
 		return formatDateStr(d);
 	}
 
+	const getYesterdayDevFormat = function(){
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
+		return formatDateStr(d);
+	}
+
 	const getToday = function(){
 		var d = new Date();
 		var td = formatDateStr(d);
@@ -4723,6 +4732,7 @@ module.exports = function ( jq ) {
 	return {
 		formatDateStr,
 		getTodayDevFormat,
+		getYesterdayDevFormat,
 		getToday,
 		getYesterday,
 		getDateLastThreeDay,
@@ -4832,6 +4842,8 @@ module.exports = function ( jq, wsLocal ) {
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			$.notify('Your upload dicom on portal have success, next please create new dicomtransferlog.', "success");
     }
   };
 

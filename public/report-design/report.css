@@ -109,4 +109,4 @@ input[type="button"] {
   font-weight: normal;
 }
 .icon-element {cursor: pointer; width: 30px; height: auto; position: absolute; display: inline-block; left: 35px;}
-.text-element {cursor: pointer; position: relative ; display: inline-block; left: 5px;}
+.text-element {cursor: pointer; position: relative ; display: inline-block; left: 10px;}

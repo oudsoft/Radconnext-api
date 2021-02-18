@@ -243,8 +243,12 @@ function RadconWebSocketServer (arg, db, log) {
 			let gatewaySocket = await $this.clients.find((ws) =>{
 				if ((ws.hospitalId == hospitalId)  && (ws.id == 'orthanc') && (ws.connectType === 'local') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
 			});
-			gatewaySocket.send(JSON.stringify(message));
-			resolve(yourSocket);
+			if (gatewaySocket) {
+				gatewaySocket.send(JSON.stringify(message));
+				resolve(gatewaySocket);
+			} else {
+				resolve();
+			}
 		});
 	}
 

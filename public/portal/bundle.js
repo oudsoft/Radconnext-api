@@ -1659,6 +1659,8 @@ module.exports = function ( jq, wsLocal ) {
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			$.notify('Your upload dicom on portal have success, next please create new dicomtransferlog.', "success");
     }
   };
 
@@ -1705,7 +1707,7 @@ const util = require('../case/mod/utilmod.js')($);
 const userinfo = require('../case/mod/userinfolib.js')($);
 const {doCallApi} = require('../case/mod/commonlib.js')($);
 
-const maxSizeDef = 1000000000;
+const maxSizeDef = 100000000;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -1776,7 +1778,7 @@ const doLoadMainPage = function(){
       let execResult = eval(code);
       $('.footer').empty().append($(execResult.handle));
     });
-
+    /*
     util.doConnectWebsocketLocal(userdata.username).then((localWsl) => {
       if ((localWsl.readyState == 0) || (localWsl.readyState == 1)) {
         wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'local');
@@ -1788,8 +1790,9 @@ const doLoadMainPage = function(){
       console.log(err);
       $('body').loading('stop');
     });
-
-    //$('body').loading('stop');
+    */
+    wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+    $('body').loading('stop');
   });
 }
 
@@ -1805,7 +1808,7 @@ const doCreateManualImport = function(caseId){
   $(manualApproachGuideBox).append('<p style="line-height: 16px;">การนำเข้าผ่านข่องทางนี้มีระยะเวลาในการดำเนินการ ขึ้นอยู่กับขนาดของไฟล์ภาพที่เป็น zip ไฟล์</p>')
   $(manualApproachGuideBox).append('<p style="line-height: 16px;">ขนาด zip ไฟลที่จะนำเข้าต้องไม่เกิน ' + maxSizeDef + ' Bytes.</p>')
   $(manualApproachGuideBox).append('<p style="line-height: 16px;">โปรดเตรียมไฟล์ภาพสำหรับนำเข้าให้พร้อม</p>')
-  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ในกณีต้องการนำภาพเข้าเก็บที่ PACS ของโรงพยาบาล โปรดเลือกอ็อปชั่นนี้ด้วยการเปิดสวิชด้านบนปุ่ม Upload</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ในกรณีต้องการนำภาพเข้าเก็บที่ PACS ของโรงพยาบาล โปรดเลือกอ็อปชั่นนี้ด้วยการเปิดสวิชด้านบนปุ่ม Upload</p>')
 
   let importOptionBox = $('<div style="position: relative; width: 100%; margin-top: 10px; text-align: right;"></div>');
   $(importOptionBox).appendTo($(manualForm));
@@ -1925,7 +1928,7 @@ const doOpenSelectFile = function(evt, pacsImportOpt){
     var fileSize = evt.currentTarget.files[0].size;
     var fileType = evt.currentTarget.files[0].type;
     if (fileSize <= maxSizeDef) {
-      if (fileType === 'application/zip') {
+      if ((fileType === 'application/zip') || (fileType === 'application/x-zip-compressed')){
         let uploadUrl = '/api/portal/archiveupload';
         $(fileBrowser).simpleUpload(uploadUrl, {
           start: function(file){
@@ -1973,6 +1976,7 @@ const doStartImport = function(data, pacsImportOpt){
     let params = {archivecode: fileCode, username: username, hospitalId: hospitalId, pacsImportOption: pacsImportOpt};
     let importRes = await doCallApi(importApiUrl, params);
     console.log(importRes);
+    $.notify('การนำเข้าไฟล์ภาพได้เริ่มต้นขึ้นแล้ว เมื่อนำเข้าสำเร็จจะแจ้งให้ทราบต่อไป', "info");
     $('body').loading('stop');
   });
 }
