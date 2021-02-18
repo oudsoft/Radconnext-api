@@ -402,7 +402,8 @@ app.post('/importarchive', function(req, res) {
 				log.info('countt all Files => ' + files.length);
 				res.status(200).send({result: files});
 				Promise.all([promiseList]).then(async (ob)=>{
-          let importResult = {type: 'importresult', results: ob[0]};
+          let instanceTag = ob[0][0];
+          let importResult = {type: 'importresult', result: instanceTag};
           await socket.sendMessage(importResult, username);
 				});
 			}).catch((error) => {

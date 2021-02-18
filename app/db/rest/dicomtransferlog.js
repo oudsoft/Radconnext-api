@@ -65,9 +65,6 @@ const doLoadOrthancStudies = function(orthancId, hostname, studyId) {
         }).catch((err)=>{
           reject(err);
         });
-
-
-
       });
     });
   });
@@ -88,6 +85,34 @@ app.post('/list', (req, res) => {
           //log.info('Result=> ' + JSON.stringify(types));
           res.json({Result: "OK", Records: types, TotalRecordCount: count});
         } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+//List API
+app.post('/callstudytag', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+					let hostname = req.hostname;
+				  let hospitalId = req.body.hospitalId;
+				  let studyId = req.body.studyId;
+					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
+				  let yourOrthancId = orthancs[0].id;
+				  let studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, studyId);
+					res.json({status: {code: 200}, studyTags: studyTags});
+				} catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
         }
