@@ -22,6 +22,10 @@
       }
 
       $( document ).ready(function() {
+        let testDATE = new Date();
+        console.log(testDATE);
+        let testTIME = testDATE.toLocaleTimeString('en-GB');
+        console.log(testTIME);
 
         $.ajaxSetup({
           beforeSend: function(xhr) {

@@ -235,6 +235,7 @@ function doTransformDateFRM(dateEN){
   let year = dateIN.getFullYear();
   let month = dateIN.toLocaleString('default', { month: 'long' });
   let d = dateIN.getDate();
+  /*
   let hh = dateIN.getHours();
   if (hh < 10) {
     hh = '0' + hh;
@@ -247,7 +248,10 @@ function doTransformDateFRM(dateEN){
   } else {
     mn = '' + mn;
   }
-  return d + ' ' + month + ' ' + year + ' ' + hh + ':' + mn;
+  */
+  let timeOUT = dateIN.toLocaleTimeString('en-GB');
+  timeUNIT = timeOUT.split(':');
+  return d + ' ' + month + ' ' + year + ' ' + timeUNIT[0] + ':' + timeUNIT[1];
 }
 
 $( document ).ready(function() {

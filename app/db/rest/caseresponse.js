@@ -101,7 +101,7 @@ app.post('/add', (req, res) => {
           } else {
             res.json({ status: {code: 203}, result: {responseId: adResponse.id}});
           }
-        } else if ((nowStatusId == 9 ) || (nowStatusId == 12 ) || (nowStatusId == 13 ) || (nowStatusId == 14 )){
+        } else if ((nowStatusId == 5) || (nowStatusId == 6) || (nowStatusId == 9) || (nowStatusId == 10) || (nowStatusId == 11) || (nowStatusId == 12) || (nowStatusId == 13) || (nowStatusId == 14)){
           let responseId = req.body.responseId;
           let updateResponse = req.body.data;
           let upResponse = await Response.update(updateResponse, { where: { id: responseId } });

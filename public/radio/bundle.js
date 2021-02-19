@@ -879,7 +879,6 @@ module.exports = function ( jq ) {
 			break;
 
 			case 'edit':
-			console.log('test');
 			$(cmdIcon).attr('src','/images/status-icon.png');
 			$(cmdIcon).attr('title', 'Edit Result.');
 			break;
@@ -1148,7 +1147,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsl, wsm;
+	let wsm;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -1482,7 +1481,7 @@ module.exports = function ( jq ) {
 		console.log(usertype);
 
 		if (usertype == 2) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsl);
+			const wsmMessageHospital = require('./websocketmessage.js')($);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
@@ -1634,17 +1633,14 @@ module.exports = function ( jq ) {
 		isMobileDeviceCheck,
 		contains,
 		/*  Web Socket Interface */
-		wsm,
-		wsl
+		wsm
 	}
 }
 
 },{"../../radio/mod/websocketmessage.js":17,"../../refer/mod/websocketmessage.js":20,"./websocketmessage.js":6}],6:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsLocal ) {
+module.exports = function ( jq ) {
 	const $ = jq;
-  const wsl = wsLocal;
-
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
@@ -1662,11 +1658,12 @@ module.exports = function ( jq, wsLocal ) {
     if (data.type == 'test') {
       $.notify(data.message, "success");
     } else if (data.type == 'trigger') {
-      if (wsl) {
-        let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
-        wsl.send(JSON.stringify(message));
-        $.notify('The system will be start store dicom to your local.', "success");
-      }
+			/*************************/
+			/*
+      let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
+      wsl.send(JSON.stringify(message));
+      $.notify('The system will be start store dicom to your local.', "success");
+			*/
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
@@ -1675,25 +1672,28 @@ module.exports = function ( jq, wsLocal ) {
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
-      if (wsl) {
+			/*************************/
+			/*
         wsl.send(JSON.stringify(data));
-      }
+			*/
     } else if (data.type == 'cfindresult') {
       let evtData = { result: data.result, owner: data.owner, hospitalId: data.hospitalId, queryPath: data.queryPath};
       $("#RemoteDicom").trigger('cfindresult', [evtData]);
     } else if (data.type == 'move') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'cmoveresult') {
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId, patientID: data.patientID};
       setTimeout(()=>{
         $("#RemoteDicom").trigger('cmoveresult', [evtData]);
       }, 5000);
     } else if (data.type == 'run') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
@@ -1716,6 +1716,10 @@ module.exports = function ( jq, wsLocal ) {
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			let eventName = 'createnewdicomtranserlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
     }
   };
 
@@ -3212,7 +3216,7 @@ module.exports = function ( jq ) {
 				var patientFullNameEN = fullNameENRes.fullNameEN;
 	      patientFullNameEN.split(' ').join('_');
 				patientFullNameEN = patientFullNameEN.trim();
-				console.log(patientFullNameEN + '*');
+				//console.log(patientFullNameEN + '*');
 	      var dicomFilename = patientFullNameEN + '-' + casedate + '.zip';
 				var pom = document.createElement('a');
 				pom.setAttribute('href', response.link);
@@ -3279,7 +3283,7 @@ module.exports = function ( jq ) {
 			if ((result.Record) && (result.Record.length > 0)) {
 				let yourNewResponse = yourResponse + '<br/>' + result.Record[0].Content;
 				$('#SimpleEditor').jqteVal(yourNewResponse);
-				doBackupDraft(yourNewResponse);
+				doBackupDraft(caseId, yourNewResponse);
 				keytypecounter = 0;
 			}
 		}
@@ -3298,12 +3302,12 @@ module.exports = function ( jq ) {
 			let caseId = saveNewResponseData.caseId
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
-			doBackupDraft(responseHTML);
+			doBackupDraft(caseId, responseHTML);
 			let saveData = {Response_Text: responseHTML, Response_Type: type};
 			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId};
 			let saveResponseRes = await doCallSaveResponse(params);
 			//console.log(saveResponseRes);
-			if (saveResponseRes.status.code == 200){
+			if ((saveResponseRes.status.code == 200) && (saveResponseRes.result.responseId)){
 				caseResponseId = saveResponseRes.result.responseId;
 				if (!caseResponseId) {
 					$.notify("เกิดความผิดพลาด Case Response API", "error");
@@ -3443,7 +3447,7 @@ module.exports = function ( jq ) {
 			let caseId = saveResponseData.caseId
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
-			doBackupDraft(responseHTML);
+			doBackupDraft(caseId, responseHTML);
 			let saveData = {Response_Text: responseHTML, Response_Type: responseType};
 			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId, reporttype: reportType, PDF_Filename: saveResponseData.reportLink};
 			let saveResponseRes = await doCallSaveResponse(params);
@@ -3722,7 +3726,7 @@ module.exports = function ( jq ) {
 			let yourResponse = $('#SimpleEditor').val();
 			let yourNewResponse = yourResponse + '<br/>' + responseText;
 			$('#SimpleEditor').jqteVal(yourNewResponse);
-			doBackupDraft(yourNewResponse);
+			doBackupDraft(backwardCaseId, yourNewResponse);
 			keytypecounter = 0;
 		});
 		return $(responseBackwarBox);
@@ -3944,9 +3948,9 @@ module.exports = function ( jq ) {
 				//auto backup on local storage
 				if (keytypecounter == 10) {
 					let currentContent = $(summary).find('#SimpleEditor').val();
-					doBackupDraft(currentContent);
+					doBackupDraft(caseId, currentContent);
 					keytypecounter = 0;
-					//let draftRestore = doRestoreDraft();
+					//let draftRestore = doRestoreDraft(caseId);
 					// doViewBackupDraft(draftRestore.content);
 				} else {
 					keytypecounter += 1;
@@ -3979,14 +3983,18 @@ module.exports = function ( jq ) {
 			$(summaryFifthLine).append($(backToOpenCaseCmd));
 			$(summaryFifthLine).appendTo($(summary));
 
-			if ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)) {
+
+			const youCan = [5, 6, 9, 10, 11, 12, 13, 14];
+			let checkState = util.contains.call(youCan, caseOpen.case.casestatusId);
+			if (checkState) {
+			//if ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)) {
 				let draftResponseRes = await doCallDraftRespons(caseId);
 				if (draftResponseRes.Record.length > 0) {
 					caseResponseId = draftResponseRes.Record[0].id;
 					let resType = draftResponseRes.Record[0].Response_Type;
-					if ((resType === 'draft') || ((resType === 'normal') && ((caseOpen.case.casestatusId == 9) || (caseOpen.case.casestatusId == 13) || (caseOpen.case.casestatusId == 14)))) {
+					if ((resType === 'draft') || ((resType === 'normal') && (checkState))) {
 						let cloudUpdatedAt = new Date(draftResponseRes.Record[0].updatedAt);
-						let draftBackup = doRestoreDraft();
+						let draftBackup = doRestoreDraft(caseId);
 						if (draftBackup) {
 							let localUpdateAt = new Date(draftBackup.backupAt);
 							if (localUpdateAt.getTime() > cloudUpdatedAt.getTime()) {
@@ -4118,7 +4126,7 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doBackupDraft = function(content){
+	const doBackupDraft = function(caseId, content){
 		return new Promise(async function(resolve, reject) {
 			let draftbackup = {caseId: caseId, content: content, backupAt: new Date()};
 			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
@@ -4137,9 +4145,13 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doRestoreDraft = function(){
+	const doRestoreDraft = function(caseId){
 		let draftbackup = JSON.parse(localStorage.getItem('draftbackup'));
-		return draftbackup;
+		if(draftbackup.caseId == caseId){
+			return draftbackup;
+		} else {
+			return;
+		}
 	}
 
 	const doViewBackupDraft = function(draftHTML){
@@ -4522,6 +4534,7 @@ module.exports = function ( jq ) {
 				// left: 0px; width: 100%;
 				let cmdCell = $('<div style="display: table-cell; position: absolute; width: ' + (mainBoxWidth-8) + 'px; border: 1px solid black; background-color: #ccc; text-align: right;"></div>');
 				$(cmdRow).append($(cmdCell));
+				console.log(cando);
 				await cando.next.actions.forEach((item, i) => {
 					let cmd = item.substr(0, (item.length-1));
 					let frag = item.substr((item.length-1), item.length);
