@@ -90,7 +90,7 @@ const reportCreator = function(elements, variable, pdfFileName, caseId){
 		const { JSDOM } = jsdom;
 
 		const qrgenerator = require('../../lib/qrcodegenerator.js');
-		const qrcontent = 'https://radconnext.info/portal?caseId=/' + caseId;
+		const qrcontent = 'https://radconnext.info/portal?caseId=' + caseId;
 		const qrcode = await qrgenerator(qrcontent, pdfFileName);
 		const qrlink = qrcode.qrlink;
 

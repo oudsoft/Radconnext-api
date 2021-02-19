@@ -17,7 +17,13 @@ $.widget( "custom.textelement", {
     this.element.addClass("ui-widget-content");
     this.element.addClass("reportElement");
     this.element.addClass("textElement");
-    this.element.css({"left": this.options.x + "px", "top": this.options.y + "px", "width": this.options.width + "px", "height": this.options.height + "px"});
+    this.element.css({
+      "left": this.options.x + "px", "top": this.options.y + "px", "width": this.options.width + "px", "height": this.options.height + "px",
+      "font-size": this.options.fontsize + 'px',
+      "font-weight": this.options.fontweight,
+      "font-style": this.options.fontstyle,
+      "text-align": this.options.fontalign
+    });
     this.element.text(this.options.title);
     this.element.draggable({
       containment: "parent",

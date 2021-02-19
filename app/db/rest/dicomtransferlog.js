@@ -17,7 +17,7 @@ const doLoadOrthancStudies = function(orthancId, hostname, studyId) {
 	return new Promise(function(resolve, reject) {
     const method = 'get';
     uti.doMyLoadOrthanc(orthancId, hostname).then((orthanc) => {
-			log.info('myorthanc=>' + JSON.stringify(orthanc));
+			//log.info('myorthanc=>' + JSON.stringify(orthanc));
       let cloud = JSON.parse(orthanc.Orthanc_Cloud);
       //let cloud = orthanc;
 			let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
@@ -30,7 +30,7 @@ const doLoadOrthancStudies = function(orthancId, hostname, studyId) {
       };
 
       uti.proxyRequest(rqParams).then(async (proxyRes)=>{
-        log.info('study=>' + JSON.stringify(proxyRes.res.body));
+        //log.info('study=>' + JSON.stringify(proxyRes.res.body));
         let study = JSON.parse(proxyRes.res.body);
 
         const promiseList = new Promise(async function(resolve2, reject2) {
@@ -39,7 +39,7 @@ const doLoadOrthancStudies = function(orthancId, hostname, studyId) {
             let srsId = study.Series[i];
             rqParams.uri = orthancUrl + '/series/' + srsId;
             let proxySeriesRes = await uti.proxyRequest(rqParams);
-            log.info('proxySeriesRes=>' + JSON.stringify(proxySeriesRes));
+            //log.info('proxySeriesRes=>' + JSON.stringify(proxySeriesRes));
             let proxySeries = JSON.parse(proxySeriesRes.res.body);
             if ((proxySeries.MainDicomTags.SeriesDate) || (proxySeries.MainDicomTags.SeriesDescription)) {
               samplingSrs = proxySeries;
@@ -52,7 +52,7 @@ const doLoadOrthancStudies = function(orthancId, hostname, studyId) {
         });
         Promise.all([promiseList]).then(async(ob)=> {
           let samplingSrs = ob[0];
-          log.info('samplingSrs=>' + JSON.stringify(samplingSrs));
+          //log.info('samplingSrs=>' + JSON.stringify(samplingSrs));
           if (samplingSrs) {
             study.SamplingSeries = samplingSrs;
           } else {
@@ -98,7 +98,38 @@ app.post('/list', (req, res) => {
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
 });
-//List API
+
+//Select API
+app.post('/select/(:resourceId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+					let hostname = req.hostname;
+				  let hospitalId = req.body.hospitalId;
+				  let username = req.body.username;
+					let resourceId = req.params.resourceId;
+					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
+				  let yourOrthancId = orthancs[0].id;
+					const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
+					res.json({status: {code: 200}, orthancRes: orthancRes});
+				} catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//callstudytag API
 app.post('/callstudytag', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
@@ -136,23 +167,28 @@ app.post('/add', async (req, res) => {
   let resourceId = req.body.resourceId;
   const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
   let yourOrthancId = orthancs[0].id;
-  let studyTags = {};
-  if (resourceType === 'study') {
-    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
-  }
-  let newDicomTransferLog = {DicomTags: JSON.stringify(req.body.dicom), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
-  let adDicomTransferLog = await DicomTransferLog.create(newDicomTransferLog);
-  log.info('New dicom ' + resourceType + ' Type transfer => ' + JSON.stringify(adDicomTransferLog));
-  let cwss = websocket.socket.clients;
-  if (resourceType === 'patient'){
-    cwss.forEach((wc) => {
-      if (wc.hospitalId == hospitalId) {
-        let socketTrigger = {type: 'refresh', section: 'PACSDiv'};
-        wc.send(JSON.stringify(socketTrigger));
-      }
-    });
-  }
-  res.json({Result: "OK", Record: adDicomTransferLog});
+	const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
+	if (orthancRes.length == 0){
+	  let studyTags = {};
+	  if (resourceType === 'study') {
+	    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
+	  }
+	  let newDicomTransferLog = {DicomTags: JSON.stringify(req.body.dicom), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
+	  let adDicomTransferLog = await DicomTransferLog.create(newDicomTransferLog);
+	  //log.info('New dicom ' + resourceType + ' Type transfer => ' + JSON.stringify(adDicomTransferLog));
+	  let cwss = websocket.socket.clients;
+	  if (resourceType === 'patient'){
+	    cwss.forEach((wc) => {
+	      if (wc.hospitalId == hospitalId) {
+	        let socketTrigger = {type: 'refresh', section: 'PACSDiv'};
+	        wc.send(JSON.stringify(socketTrigger));
+	      }
+	    });
+	  }
+	  res.json({Result: "OK", Record: adDicomTransferLog});
+	} else {
+		res.json({Result: "OK", Record: orthancRes[0]});
+	}
 });
 /*
   StudyID => ResourceID

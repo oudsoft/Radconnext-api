@@ -9,8 +9,8 @@ const apiApp = express();
 
 var log;
 
-apiApp.use(express.json({limit: '100mb', extended: true, parameterLimit: 50000}));
-apiApp.use(bodyParser.urlencoded({ limit: '100mb', extended: true, parameterLimit: 50000 }));
+apiApp.use(express.json({limit: '900mb', extended: true, parameterLimit: 50000}));
+apiApp.use(bodyParser.urlencoded({ limit: '900mb', extended: true, parameterLimit: 50000 }));
 //apiApp.use(bodyParser.json({ limit: "50MB", type:'application/json'}));
 //apiApp.use(express.urlencoded({limit: '50mb'}));
 

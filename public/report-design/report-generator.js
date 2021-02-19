@@ -42,7 +42,7 @@ function doMergeContent(elements, variable, qrcodeLink, cb){
         const field = item.title.substring(1);
         switch (field) {
           case 'hospital_name':
-            item.title = variable.hospital_name;
+            item.title = 'โรงพยาบาล' + variable.hospital_name;
           break;
           case 'patient_name':
             item.title = variable.patient_name;
@@ -78,10 +78,10 @@ function doMergeContent(elements, variable, qrcodeLink, cb){
             item.title = variable.report_by;
           break;
           case 'report_datetime':
-            item.title = variable.report_datetime;
+            item.title = doTransformDateFRM(variable.report_datetime);
           break;
           case 'scan_date':
-            item.title = variable.scan_date;
+            item.title = doTransformDateFRM(variable.scan_date);
           break;
           case 'scan_protocol':
             item.title = variable.scan_protocol;
@@ -123,7 +123,7 @@ function doLoadReportFormat(hosId){
                 const field = item.title.substring(1);
                 switch (field) {
                   case 'hospital_name':
-                    item.title = variable.hospital_name;
+                    item.title = 'โรงพยาบาล' + variable.hospital_name;
                   break;
                   case 'patient_name':
                     item.title = variable.patient_name;
@@ -159,10 +159,10 @@ function doLoadReportFormat(hosId){
                     item.title = variable.report_by;
                   break;
                   case 'report_datetime':
-                    item.title = variable.report_datetime;
+                    item.title = doTransformDateFRM(variable.report_datetime);
                   break;
                   case 'scan_date':
-                    item.title = variable.scan_date;
+                    item.title = doTransformDateFRM(variable.scan_date);
                   break;
                   case 'scan_protocol':
                     item.title = variable.scan_protocol;
@@ -228,6 +228,26 @@ function doCreateElement(wrapper, elemType, elem){
     break;
   }
   $(element).appendTo($(wrapper));
+}
+
+function doTransformDateFRM(dateEN){
+  let dateIN = new Date(dateEN);
+  let year = dateIN.getFullYear();
+  let month = dateIN.toLocaleString('default', { month: 'long' });
+  let d = dateIN.getDate();
+  let hh = dateIN.getHours();
+  if (hh < 10) {
+    hh = '0' + hh;
+  } else {
+    hh = '' + hh;
+  }
+  let mn = dateIN.getMinutes();
+  if (mn < 10) {
+    mn = '0' + mn;
+  } else {
+    mn = '' + mn;
+  }
+  return d + ' ' + month + ' ' + year + ' ' + hh + ':' + mn;
 }
 
 $( document ).ready(function() {

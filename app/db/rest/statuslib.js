@@ -542,7 +542,7 @@ const onEditResultCaseEvent = function(caseId) {
     const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
     let updateStatus = 'edit';
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
-    let newReportLog = reportLogs[0];
+    let newReportLog = reportLogs[0].Log;
     if (reportLogs.length > 0){
       newReportLog = reportLogs[0];
       newReportLog.push(appendLog);

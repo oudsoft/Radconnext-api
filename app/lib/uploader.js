@@ -13,7 +13,7 @@ const currentDir = __dirname;
 const parentDir = path.normalize(currentDir + '/..');
 const usrUploadDir = path.join(__dirname, '../../', USRUPLOAD_DIR);
 
-const maxUploadSize = 500000000;
+const maxUploadSize = 900000000;
 
 const upload = multer({
   dest: usrUploadDir,
@@ -34,7 +34,8 @@ const importer = multer({
   limits: {fileSize: maxUploadSize}
 }).single('bestand');
 */
-const importer = multer({dest: usrUploadDir, limits: {fileSize: maxUploadSize}});
+const tempDicomDir = usrUploadDir + '/temp';
+const importer = multer({dest: tempDicomDir, limits: {fileSize: maxUploadSize}});
 
 
 const parseStr = function (str) {
@@ -132,35 +133,54 @@ module.exports = function (app) {
 		});
 	});
 
-  //app.post('/portal/archiveupload', upload.array('archiveupload'), function(req, res) {
-  app.post('/portal/archiveupload', importer.array('archiveupload'), function(req, res) {
-    /*
-    importer(req,res,function(err) {
-      if(err) {
-        return res.end("Error uploading file.");
-      }
-    */
-  		var filename = req.files[0].originalname;
-  		var fullnames = filename.split('.');
-  		var newFileName = genUniqueID() + '.zip';
-  		var archivePath = req.files[0].destination + '/' + req.files[0].filename;
-  		var newPath = req.files[0].destination + '/'  + newFileName;
-  		var readStream = fs.createReadStream(archivePath);
-  		var writeStream = fs.createWriteStream(newPath);
-  		readStream.pipe(writeStream);
+  app.post('/portal/archiveupload', importer.single('archiveupload'), function(req, res) {
+		var filename = req.file.originalname;
+		var fullnames = filename.split('.');
+		var newFileName = genUniqueID() + '.zip';
+		var archivePath = req.file.destination + '/' + req.file.filename;
+		var newPath = req.file.destination + '/'  + newFileName;
+		var readStream = fs.createReadStream(archivePath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
 
-  		var command = parseStr('rm %s', archivePath);
-  		runcommand(command).then((stdout) => {
-  			var link =  DWLD + '/' + newFileName;
+		var command = parseStr('rm %s', archivePath);
+		runcommand(command).then((stdout) => {
+			var link =  DWLD + '/' + newFileName;
 
-        res.status(200).send({status: {code: 200}, text: 'ok archive upload.', link: link, file: newFileName});
+      res.status(200).send({status: {code: 200}, text: 'ok archive upload.', link: link, file: newFileName});
 
-  		}).catch((err) => {
-  			console.log('err: 500 >>', err);
-  			res.status(500).send({status: {code: 500}, error: err});
-  		});
-    // });
+		}).catch((err) => {
+			console.log('err: 500 >>', err);
+			res.status(500).send({status: {code: 500}, error: err});
+		});
 	});
+
+  //app.post('/portal/dicomfileupload', importer.array('archiveupload'), function(req, res) {
+  app.post('/portal/dicomfileupload', importer.array('files[]'), function(req, res) {
+    var uploadFiles = req.files;
+    var fileLinks = [];
+    var	promiseList = new Promise(async function(resolve2, reject2){
+      await uploadFiles.forEach(async (file, i) => {
+        var filename = file.originalname;
+    		var fullnames = filename.split('.');
+    		var newFileName = genUniqueID() + '.dcm';
+    		var archivePath = file.destination + '/' + file.filename;
+    		var newPath = file.destination + '/'  + newFileName;
+    		var readStream = fs.createReadStream(archivePath);
+    		var writeStream = fs.createWriteStream(newPath);
+    		await readStream.pipe(writeStream);
+        await runcommand('rm ' + file.destination + '/' + file.filename);
+        var link =  DWLD + '/temp/' + newFileName;
+        fileLinks.push(link);
+      });
+      setTimeout(()=>{
+        resolve2(fileLinks);
+      }, 550);
+    });
+    Promise.all([promiseList]).then((ob)=>{
+      res.status(200).send({status: {code: 200}, links: ob[0]});
+    });
+  });
 
 	return {
 		genUniqueID,

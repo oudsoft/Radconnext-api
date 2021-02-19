@@ -422,17 +422,17 @@
           ตั้งค่าจดจำ Scan Part
         </div>
       </div>
-      <!--
-      <div class="NavSub" id="MessageConfigSubCmd">
+
+      <div class="NavSub" id="GoToPortalSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
-          <img src="/images/notify-icon.png" width="30px" height="auto"/>
+          <img src="/images/portal-icon.png" width="30px" height="auto"/>
         </div>
         <div class="NavSubTextCell">
-          ตั้งค่าการแจ้งเตือน
+          Portal
         </div>
       </div>
-      -->
+
     </div>
 
     <!-- User Info Menu -->
@@ -548,6 +548,11 @@
   $('#ScanpartAuxConfigSubCmd').click((evt)=>{
     let eventData = {userId: yourUserdata.id};
     $('#SearchCaseSubCmd').trigger('openscanpartprofile', [eventData]);
+  });
+
+  $('#GoToPortalSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#GoToPortalSubCmd').trigger('gotoportal', [eventData]);
   });
 
   let systemNameBox = $('<div style="padding: 3px; height: 44px; line-height:0.2; color: white;"></div>');

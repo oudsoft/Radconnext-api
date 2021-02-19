@@ -1091,7 +1091,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsl, wsm;
+	let wsm;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -1425,7 +1425,7 @@ module.exports = function ( jq ) {
 		console.log(usertype);
 
 		if (usertype == 2) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsl);
+			const wsmMessageHospital = require('./websocketmessage.js')($);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
@@ -1577,17 +1577,14 @@ module.exports = function ( jq ) {
 		isMobileDeviceCheck,
 		contains,
 		/*  Web Socket Interface */
-		wsm,
-		wsl
+		wsm
 	}
 }
 
 },{"../../radio/mod/websocketmessage.js":8,"../../refer/mod/websocketmessage.js":9,"./websocketmessage.js":5}],5:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsLocal ) {
+module.exports = function ( jq ) {
 	const $ = jq;
-  const wsl = wsLocal;
-
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
@@ -1605,11 +1602,12 @@ module.exports = function ( jq, wsLocal ) {
     if (data.type == 'test') {
       $.notify(data.message, "success");
     } else if (data.type == 'trigger') {
-      if (wsl) {
-        let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
-        wsl.send(JSON.stringify(message));
-        $.notify('The system will be start store dicom to your local.', "success");
-      }
+			/*************************/
+			/*
+      let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
+      wsl.send(JSON.stringify(message));
+      $.notify('The system will be start store dicom to your local.', "success");
+			*/
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
@@ -1618,25 +1616,28 @@ module.exports = function ( jq, wsLocal ) {
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
-      if (wsl) {
+			/*************************/
+			/*
         wsl.send(JSON.stringify(data));
-      }
+			*/
     } else if (data.type == 'cfindresult') {
       let evtData = { result: data.result, owner: data.owner, hospitalId: data.hospitalId, queryPath: data.queryPath};
       $("#RemoteDicom").trigger('cfindresult', [evtData]);
     } else if (data.type == 'move') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'cmoveresult') {
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId, patientID: data.patientID};
       setTimeout(()=>{
         $("#RemoteDicom").trigger('cmoveresult', [evtData]);
       }, 5000);
     } else if (data.type == 'run') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
@@ -1660,7 +1661,6 @@ module.exports = function ( jq, wsLocal ) {
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
 		} else if (data.type == 'importresult') {
-			$.notify('Your upload dicom on portal have success, next please create new dicomtransferlog.', "success");
 			let eventName = 'createnewdicomtranserlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
 			document.dispatchEvent(event);
@@ -1708,7 +1708,7 @@ const urlQueryToObject = function(url) {
 
 const util = require('../case/mod/utilmod.js')($);
 const userinfo = require('../case/mod/userinfolib.js')($);
-const {doCallApi} = require('../case/mod/commonlib.js')($);
+const {doCallApi, doGetApi} = require('../case/mod/commonlib.js')($);
 
 const maxSizeDef = 100000000;
 
@@ -1769,6 +1769,26 @@ const doLoadMainPage = function(){
     $('.mainfull').append($(importManualBox));
     $('.mainfull').append($(importCloudBox));
 
+    /*********** Tempolary ************/
+    if ((userdata.usertypeId==2) || (userdata.usertypeId==4)) {
+      let backCmdBox = $('<div style="position: relation; padding:4px; text-align: center;"></div>');
+      let backCmd = $('<input type="button" value=" Back "/>');
+      $(backCmd).appendTo($(backCmdBox));
+      $(backCmd).on('click', (evt)=>{
+        switch (userdata.usertypeId) {
+          case 2:
+            window.location.replace('/case/index.html');
+          break;
+          case 5:
+            window.location.replace('/refer/index.html');
+          break;
+        }
+      })
+      /*********** Tempolary ************/
+      
+      $('.mainfull').append($(backCmdBox));
+    }
+
     $('.accorhead').click(function (e){
       let accorCont = $(this).next('.accorcont');
       if($(accorCont).css('display') != 'block'){
@@ -1809,9 +1829,9 @@ const doCreateManualImport = function(caseId){
 
   let manualApproachGuideBox = $('<div></div>');
   $(manualApproachGuideBox).appendTo($(manualForm));
-  $(manualApproachGuideBox).append('<p style="line-height: 16px;">กระบวนการนำเข้าช่องทางนี้ อนุญาตให้ใช้ภาพ DICOM ที่ผ่านการเข้าซิปมาเรียบร้อยแล้วเพียงชนิดเดียว (.zip)</p>')
-  $(manualApproachGuideBox).append('<p style="line-height: 16px;">การนำเข้าผ่านข่องทางนี้มีระยะเวลาในการดำเนินการ ขึ้นอยู่กับขนาดของไฟล์ภาพที่เป็น zip ไฟล์</p>')
-  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ขนาด zip ไฟลที่จะนำเข้าต้องไม่เกิน ' + maxSizeDef + ' Bytes.</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">กระบวนการนำเข้าช่องทางนี้ อนุญาตให้ใช้ไฟล์ DICOM (.dcm) ได้ครั้งล่ะหลายๆ ไฟล์</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">การนำเข้าผ่านข่องทางนี้มีระยะเวลาในการดำเนินการ ขึ้นอยู่กับขนาดและจำนวนไฟล์ภาพ</p>')
+  $(manualApproachGuideBox).append('<p style="line-height: 16px;">ขนาดไฟล์รวมทั้งหมดต่อครั้งที่อัพโหลดต้องไม่เกิน ' + maxSizeDef + ' Bytes.</p>')
   $(manualApproachGuideBox).append('<p style="line-height: 16px;">โปรดเตรียมไฟล์ภาพสำหรับนำเข้าให้พร้อม</p>')
   $(manualApproachGuideBox).append('<p style="line-height: 16px;">ในกรณีต้องการนำภาพเข้าเก็บที่ PACS ของโรงพยาบาล โปรดเลือกอ็อปชั่นนี้ด้วยการเปิดสวิชด้านบนปุ่ม Upload</p>')
 
@@ -1832,7 +1852,8 @@ const doCreateManualImport = function(caseId){
 
   $(openFileCmd).on('click', (evt)=>{
     let pacsImport = pacsImportSwitch.getState();
-    doOpenSelectFile(evt, pacsImport);
+    //doOpenSelectFile(evt, pacsImport);
+    doOpenSelectMultipleFile(evt, pacsImport);
   });
 
   return $(manualBox);
@@ -1925,16 +1946,18 @@ const doCreateCloudImport = function(){
 
 const doOpenSelectFile = function(evt, pacsImportOpt){
   let openFileCmd = evt.currentTarget;
-  let fileBrowser = $('<input type="file" name="archiveupload" style="display: none;"/>');
+  let fileBrowser = $('<input type="file" name="archiveupload" multiple style="display: none;"/>');
   let simpleProgressBar = $('<div style="position: relative; border: 2px solid black; width: 100%; min-height: 20px; background-color: white;"></div>');
   let indicator = $('<div style="position: relative; width: 0px; padding: 0px; background-color: blue; min-height: 18px; text-align: center; color: white;"></div>');
   $(indicator).appendTo($(simpleProgressBar))
   $(fileBrowser).on('change', (evt) =>{
+    console.log(evt.currentTarget.files);
     var fileSize = evt.currentTarget.files[0].size;
     var fileType = evt.currentTarget.files[0].type;
+    console.log(fileSize);
     if (fileSize <= maxSizeDef) {
-      if ((fileType === 'application/zip') || (fileType === 'application/x-zip-compressed')){
-        let uploadUrl = '/api/portal/archiveupload';
+      if ((fileType === 'application/dicom')){
+        let uploadUrl = '/api/portal/dicomfileupload';
         $(fileBrowser).simpleUpload(uploadUrl, {
           start: function(file){
             $(indicator).css({'width': '0px', 'background-color': 'blue'});
@@ -1968,35 +1991,76 @@ const doOpenSelectFile = function(evt, pacsImportOpt){
   $(fileBrowser).click();
 }
 
+const doOpenSelectMultipleFile = function(evt, pacsImport){
+  let openFileCmd = evt.currentTarget;
+  let fileBrowser = $('<input type="file" id="files" name="files[]" multiple style="display: none;"/>');
+  let simpleProgressBar = $('<div id="SimpleProgressBar" style="position: relative; border: 2px solid black; width: 100%; min-height: 20px; background-color: white;"></div>');
+  let indicator = $('<div style="position: relative; width: 0px; padding: 0px; background-color: blue; min-height: 18px; text-align: center; color: white;"></div>');
+  $(indicator).appendTo($(simpleProgressBar))
+  $(fileBrowser).on('change', (evt) =>{
+    var form_data = new FormData();
+    var totalfiles = document.getElementById('files').files.length;
+    for (var index = 0; index < totalfiles; index++) {
+      form_data.append("files[]", document.getElementById('files').files[index]);
+    }
+
+    $.ajax({
+      url: '/api/portal/dicomfileupload',
+      type: 'post',
+      data: form_data,
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      success: function (response) {
+        $(fileBrowser).remove();
+        $(simpleProgressBar).remove();
+        console.log($(fileBrowser));
+        doStartImport(response.links, pacsImport);
+      }
+    });
+  });
+  $(openFileCmd).parent().append($(fileBrowser));
+  $(openFileCmd).parent().append($(simpleProgressBar));
+  $(fileBrowser).click();
+}
+
 const doStartImport = function(data, pacsImportOpt){
   return new Promise(async function(resolve, reject) {
-    $('body').loading('start');
     let userdata = JSON.parse(localStorage.getItem('userdata'));
 		let hospitalId = userdata.hospitalId;
     let userId = userdata.id;
     let username = userdata.username;
-    let fileFrags = data.file.split('.');
-    let fileCode = fileFrags[0];
-    let importApiUrl = '/api/orthancproxy/importarchive';
-    let params = {archivecode: fileCode, username: username, hospitalId: hospitalId, pacsImportOption: pacsImportOpt};
+    let importApiUrl = '/api/orthancproxy/importdicom';
+    let params = {dicomList: data, username: username, hospitalId: hospitalId, pacsImportOption: pacsImportOpt};
     let importRes = await doCallApi(importApiUrl, params);
     console.log(importRes);
-    $.notify('การนำเข้าไฟล์ภาพได้เริ่มต้นขึ้นแล้ว เมื่อนำเข้าสำเร็จจะแจ้งให้ทราบต่อไป', "info");
-    $('body').loading('stop');
+    $.notify('เริ่มกระบวนการเข้าไฟล์ภาพ โปรดรอจนเสร็จสิ้นกระบวนการ', "info");
+    $('body').loading('start');
   });
 }
 
 const onCreateNewDicomTransferLogTrigger = function(evt){
   return new Promise(async function(resolve, reject) {
-    $('body').loading('start');
+    //$('body').loading('start');
+    let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let hospitalId = userdata.hospitalId;
+    let userId = userdata.id;
+    let username = userdata.username;
     let trigerData = evt.detail.data;
-    console.log(trigerData);
-    let callApiUrl = '/api/dicomtransferlog/callstudytag';
-    let params = { username: username, hospitalId: hospitalId, studyId: trigerData.ParentStudy};
-    let calltRes = await doCallApi(callApiUrl, params);
-    console.log(calltRes);
+
+    let getOrthancUrl = '/api/orthancproxy/find';
+    let orthancUri = '/studies/' + trigerData.ParentStudy;
+    let params = {uri: orthancUri, hospitalId: hospitalId, username: username};
+    let getRes = await doGetApi(getOrthancUrl, params);
+
+    let dicomParams = {hospitalId: hospitalId, resourceType: 'study', resourceId: trigerData.ParentStudy, dicom: getRes, username: username};
+    let callApiUrl = '/api/dicomtransferlog/add';
+
+    let callRes = await doCallApi(callApiUrl, dicomParams);
+    console.log(callRes);
+    $.notify('การนำเข้าไฟล์ภาพของคุณดำเนินการเสร็จสมบูรณ์', "success");
     $('body').loading('stop');
-  });    
+  });
 }
 
 const doCreateHistoryView = function(caseItems) {

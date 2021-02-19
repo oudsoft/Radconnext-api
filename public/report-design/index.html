@@ -112,9 +112,9 @@
         let wrapper = $('#report-container');
         $(wrapper).empty();
         reportElements.forEach(async (item, i) => {
-          /*
           let reportElem = {};
           await Object.getOwnPropertyNames(item).forEach((tag) => {
+            /*
             if (tag === 'x') {
               reportElem[tag] = Number(item[tag]) / newRatio;
             } else if (tag === 'y') {
@@ -126,8 +126,9 @@
             } else {
               reportElem[tag] = item[tag];
             }
+            */
+            reportElem[tag] = item[tag];
           });
-          */
           doCreateElement(wrapper, item.elementType, item);
         });
       }
@@ -189,6 +190,7 @@
 
           let reportElem = {};
           await Object.getOwnPropertyNames(data).forEach((tag) => {
+            /*
             if (tag === 'x') {
               reportElem[tag] = Number(data[tag]) * newRatio;
             } else if (tag === 'y') {
@@ -200,6 +202,8 @@
             } else {
               reportElem[tag] = data[tag];
             }
+            */
+            reportElem[tag] = data[tag];
           });
           reportElements.push(reportElem);
 
@@ -243,7 +247,13 @@
         var textTypeLength = $(".textElement").length;
         var oProp;
         if (prop) {
-          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, type: prop.type, title: prop.title };
+          oProp = {
+            x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, type: prop.type, title: prop.title,
+            fontsize: prop.fontsize,
+            fontweight: prop.fontweight,
+            fontstyle: prop.fontstyle,
+            fontalign: prop.fontalign
+          };
         } else {
           defHeight = 50;
           oProp = {x:0, y: (defHeight * textTypeLength),
@@ -461,7 +471,7 @@
   function doLoadReportFormat(hosId){
     let apiUrl = '/api/hospitalreport/select/' + hosId;
     let params = {};
-    doGetApi(apiUrl, params).then((result) => {
+    doGetApi(apiUrl, params).then(async(result) => {
       console.log(result);
       if (result.Records.length == 0){
         mode = {name: 'new'};
@@ -473,10 +483,12 @@
 
         let newRatio = doCalRatio();
         let wrapper = $("#report-container");
-
-        content.forEach(async (item, i) => {
+        console.log(content);
+        await content.forEach(async (item, i) => {
           let reportElem = {};
+          console.log(item);
           await Object.getOwnPropertyNames(item).forEach((tag) => {
+            /*
             if (tag === 'x') {
               reportElem[tag] = Number(item[tag]) * newRatio;
             } else if (tag === 'y') {
@@ -488,7 +500,10 @@
             } else {
               reportElem[tag] = item[tag];
             }
+            */
+            reportElem[tag] = item[tag];
           });
+          console.log(reportElem);
           doCreateElement(wrapper, item.elementType, reportElem);
         });
 

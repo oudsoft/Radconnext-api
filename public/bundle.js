@@ -944,7 +944,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsl, wsm;
+	let wsm;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -1015,6 +1015,12 @@ module.exports = function ( jq ) {
 	/* export function */
 	const getTodayDevFormat = function(){
 		var d = new Date();
+		return formatDateStr(d);
+	}
+
+	const getYesterdayDevFormat = function(){
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
 		return formatDateStr(d);
 	}
 
@@ -1272,7 +1278,7 @@ module.exports = function ( jq ) {
 		console.log(usertype);
 
 		if (usertype == 2) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsl);
+			const wsmMessageHospital = require('./websocketmessage.js')($);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
@@ -1396,6 +1402,7 @@ module.exports = function ( jq ) {
 	return {
 		formatDateStr,
 		getTodayDevFormat,
+		getYesterdayDevFormat,
 		getToday,
 		getYesterday,
 		getDateLastThreeDay,
@@ -1423,17 +1430,14 @@ module.exports = function ( jq ) {
 		isMobileDeviceCheck,
 		contains,
 		/*  Web Socket Interface */
-		wsm,
-		wsl
+		wsm
 	}
 }
 
 },{"../../radio/mod/websocketmessage.js":10,"../../refer/mod/websocketmessage.js":11,"./websocketmessage.js":4}],4:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsLocal ) {
+module.exports = function ( jq ) {
 	const $ = jq;
-  const wsl = wsLocal;
-
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
@@ -1451,11 +1455,12 @@ module.exports = function ( jq, wsLocal ) {
     if (data.type == 'test') {
       $.notify(data.message, "success");
     } else if (data.type == 'trigger') {
-      if (wsl) {
-        let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
-        wsl.send(JSON.stringify(message));
-        $.notify('The system will be start store dicom to your local.', "success");
-      }
+			/*************************/
+			/*
+      let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
+      wsl.send(JSON.stringify(message));
+      $.notify('The system will be start store dicom to your local.', "success");
+			*/
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
@@ -1464,25 +1469,28 @@ module.exports = function ( jq, wsLocal ) {
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
-      if (wsl) {
+			/*************************/
+			/*
         wsl.send(JSON.stringify(data));
-      }
+			*/
     } else if (data.type == 'cfindresult') {
       let evtData = { result: data.result, owner: data.owner, hospitalId: data.hospitalId, queryPath: data.queryPath};
       $("#RemoteDicom").trigger('cfindresult', [evtData]);
     } else if (data.type == 'move') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'cmoveresult') {
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId, patientID: data.patientID};
       setTimeout(()=>{
         $("#RemoteDicom").trigger('cmoveresult', [evtData]);
       }, 5000);
     } else if (data.type == 'run') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
@@ -1505,6 +1513,10 @@ module.exports = function ( jq, wsLocal ) {
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			let eventName = 'createnewdicomtranserlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
     }
   };
 
@@ -1659,12 +1671,12 @@ module.exports = function ( jq ) {
           $("#password").css("border","");
           console.log(response);
           localStorage.setItem('token', response.token);
+					localStorage.setItem('userdata', JSON.stringify(response.data));
+  				const defualtSettings = {"itemperpage" : "20"};
+  				localStorage.setItem('defualsettings', JSON.stringify(defualtSettings));
           if (response.data.userprofiles.length == 0){
             response.data.userprofiles.push({Profile: common.defaultProfile});
           }
-          localStorage.setItem('userdata', JSON.stringify(response.data));
-  				const defualtSettings = {"itemperpage" : "20"};
-  				localStorage.setItem('defualsettings', JSON.stringify(defualtSettings));
           let usertype = response.data.usertype.id;
           gotoYourPage(usertype);
   			}
@@ -1705,6 +1717,7 @@ module.exports = function ( jq ) {
   }
 
   const gotoYourPage = function(usertype){
+		let dicomfilter = undefined;
     console.log(usertype);
     switch (usertype) {
       case 1:
@@ -1712,6 +1725,11 @@ module.exports = function ( jq ) {
         /* รอแก้ bundle ของ admin */
       break;
       case 2:
+				dicomfilter = localStorage.getItem('dicomfilter');
+				if (!dicomfilter) {
+					const defualtDicomFilter = {"Level": "Study", "Expand": true, "Query": {"Modality": "*"}, "Limit": 30};
+					localStorage.setItem('dicomfilter', JSON.stringify(defualtDicomFilter));
+				}
         window.location.replace('/case/index.html');
       break;
       case 3:
@@ -1721,6 +1739,11 @@ module.exports = function ( jq ) {
         window.location.replace('/radio/index.html');
       break;
       case 5:
+				dicomfilter = localStorage.getItem('dicomfilter');
+				if (!dicomfilter) {
+					const defualtDicomFilter = {"Level": "Study", "Expand": true, "Query": {"Modality": "*"}, "Limit": 30};
+					localStorage.setItem('dicomfilter', JSON.stringify(defualtDicomFilter));
+				}
         window.location.replace('/refer/index.html');
       break;
     }

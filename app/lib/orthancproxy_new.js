@@ -103,15 +103,9 @@ const zipDirectory = function(source, out) {
 var db, Orthanc, log, auth, uti, socket;
 
 app.post('/find', function(req, res) {
-	/*
-	some bug never fixed
-	hospitalId is undefinded
-	*/
 	let hospitalId = req.body.hospitalId;
-	log.info('hospitalId =>' + hospitalId);
 	if (hospitalId) {
 		let rqBody = req.body.body;
-		log.info('rqBody=>' + rqBody)
 		uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 			let username = req.body.username;
 			let method = req.body.method;
@@ -157,13 +151,12 @@ app.post('/find', function(req, res) {
 });
 
 app.get('/find', function(req, res) {
-	let hospitalId = req.body.hospitalId;
+	let hospitalId = req.query.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
-		let rqBody = req.body.body;
-		let username = req.body.username;
+		let username = req.query.username;
 		let cloud = JSON.parse(orthanc.Orthanc_Cloud)
 		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
-		var command = 'curl -X GET --user ' + cloud.user + ':' + cloud.pass + ' -H "user: ' + cloud.user + ' ' + orthancUrl + req.body.uri;
+		var command = 'curl -X GET --user ' + cloud.user + ':' + cloud.pass + ' -H "user:' + cloud.user + '" ' + orthancUrl + req.query.uri;
 		log.info('Find Dicom with command >>', command);
 		runcommand(command).then((stdout) => {
 			let studyObj = JSON.parse(stdout);
@@ -412,6 +405,51 @@ app.post('/importarchive', function(req, res) {
 			});
 		});
 	});
+});
+
+app.post('/importdicom', function(req, res) {
+	let hospitalId = req.body.hospitalId;
+	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async (orthanc) => {
+		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
+		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
+		let archiveCode = req.body.archivecode;
+		let username = req.body.username;
+    let pacsImportOption = req.body.pacsImportOption;
+    let dicomList = req.body.dicomList;
+
+    let execResults = [];
+    let	promiseList = new Promise(async function(resolve2, reject2){
+      let i = 0;
+      while (i < dicomList.length) {
+        let dicomFilePath = publicDir + '/public' + dicomList[i];
+        let command = formatStr('curl -X POST --user %s:%s %s/instances --data-binary @%s', cloud.user, cloud.pass, orthancUrl, dicomFilePath);
+        let stdout = await runcommand(command);
+        let resultTag = JSON.parse(stdout);
+
+        //socket
+        if (pacsImportOption) {
+          let internalUrl = dicomList[i];
+          var port = req.app.settings.port || process.env.SERVER_PORT;
+          let downloadlink = req.protocol + '://' + req.hostname  + ( port == 80 || port == 443 ? '' : ':'+port )  + internalUrl;
+          let socketTrigger = {type: 'import', message: 'Please sync new dicom to Pacs', download: {link: downloadlink} };
+          await socket.sendLocalGateway(socketTrigger, hospitalId);
+        }
+
+        execResults.push(resultTag);
+        i++;
+      }
+      setTimeout(()=>{
+        resolve2(execResults);
+      }, 5000);
+    });
+    log.info('countt all Files => ' + dicomList.length);
+    res.status(200).send({result: dicomList});
+    Promise.all([promiseList]).then(async (ob)=>{
+      let instanceTag = ob[0][0];
+      let importResult = {type: 'importresult', result: instanceTag};
+      await socket.sendMessage(importResult, username);
+    });
+  });
 });
 
 app.post('/loadarchive/(:studyID)', function(req, res) {
