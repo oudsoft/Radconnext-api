@@ -879,7 +879,6 @@ module.exports = function ( jq ) {
 			break;
 
 			case 'edit':
-			console.log('test');
 			$(cmdIcon).attr('src','/images/status-icon.png');
 			$(cmdIcon).attr('title', 'Edit Result.');
 			break;
@@ -1612,13 +1611,33 @@ module.exports = function ( jq ) {
 
 	const doShowHome = function(){
 		$('body').css({'background-image': 'url("/images/logo-radconnext.png")', 'background-color': '#cccccc'});
-
+		let openCmdLink = doCreateOpenLoginForm();
+		$('body').append($(openCmdLink));
 		//doLoadLoginForm();
 		login.doCheckUserData();
 	}
 
 	const doLoadLoginForm = function(){
 		login.doLoadLoginForm();
+	}
+
+	const doCreateOpenLoginForm = function(){
+		let openCmdLinkBox = $('<ul></ul>');
+		let openLoginCmd = $('<li><a href="#">เข้าสู่ระบบ</a></li>');
+		$(openLoginCmd).on('click', (evt)=>{
+			login.doLoadLoginForm();
+		});
+		$(openCmdLinkBox).append($(openLoginCmd));
+
+		let openRegisterCmd = $('<li><a href="#">ลงทะเบียนใช้งาน</a></li>');
+		$(openRegisterCmd).on('click', (evt)=>{
+			login.doOpenRegisterForm();
+		});
+		$(openCmdLinkBox).append($(openRegisterCmd));
+
+		$(openCmdLinkBox).css({'font-family': 'EkkamaiStandard', 'font-size': '24px', 'font-weight': 'normal'});
+		$(openCmdLinkBox).center();
+		return $(openCmdLinkBox);
 	}
 
 	return {
@@ -1633,6 +1652,8 @@ module.exports = function ( jq ) {
 	const $ = jq;
 
   const common = require('../../case/mod/commonlib.js')($);
+
+	const emailRegEx = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
   function doCallLoginApi(user) {
     return new Promise(function(resolve, reject) {
@@ -1663,9 +1684,27 @@ module.exports = function ( jq ) {
       console.log(user);
   		doCallLoginApi(user).then(async (response) => {
   			if (response.success == false) {
-          $.notify('Username หรือ Password ไม่ถูกต้อง', 'error');
-          $("#username").css("border","2px solid red");
-          $("#password").css("border","2px solid red");
+					doGetCheckUsername(username).then((existRes)=>{
+						console.log(existRes);
+						if (existRes.result.length > 0) {
+							$.notify('Password ไม่ถูกต้อง', 'error');
+							$("#password").css("border","2px solid red");
+							$('#OpenRegisterFormCmd').hide();
+							$('#ResetPwdCmd').show();
+							$('#ResetPwdCmd').on('click', (evt)=>{
+								doOpenResetPwdForm(username)
+							});
+						} else {
+		          $.notify('Username และ Password ไม่ถูกต้อง', 'error');
+		          $("#username").css("border","2px solid red");
+		          $("#password").css("border","2px solid red");
+							$('#ResetPwdCmd').hide();
+							$('#OpenRegisterFormCmd').show();
+							$('#OpenRegisterFormCmd').on('click', (evt)=>{
+								doOpenRegisterForm()
+							});
+						}
+					});
   			} else {
           $("#username").css("border","");
           $("#password").css("border","");
@@ -1763,9 +1802,236 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const doOpenResetPwdForm = function(username){
+		$('#id01').show();
+		$('#LoginForm').hide();
+		$('#ResetPwdForm').show();
+		$('#ResetCmd').on('click', (evt)=>{
+			let yourEmail = $('#email').val();
+			if (yourEmail !== '') {
+				$('#email').css('border', '');
+				let emailValid = emailRegEx.test(yourEmail);
+				if (emailValid) {
+					$('#email').css('border', '');
+					doCallCheckEmailAddress(yourEmail, username).then((checkRes)=>{
+						if (checkRes.data.userId) {
+							doCallSendResetPwdEmail(yourEmail, username, checkRes.data.userId).then((sendRes)=>{
+								let sendEmailResBox = $('<div></div>');
+								let resText = 'ระบบฯ ได้ส่งลิงค์สำหรับรีเซ็ตรหัสผ่านไปทางอีเมล์ '+ yourEmail + ' เรียบร้อยแล้ว';
+								resText += '\nโปรดตรวจสอบ ที่กล่องอีเมล์ของคุณ';
+								resText += '\nคุณมีเวลาสำหรับรีเซ็ตรหัสผ่าน 1 ชม. นับจากนี้';
+								$(sendEmailResBox).text(resText);
+								$('#ResetPwdForm').append($(sendEmailResBox));
+								$('#ResetCmd').hide();
+								$('#email').hide();
+							});
+						} else {
+							$('#email').css('border', '1px solid red');
+							$.notify('ไม่พบการลงทะเบียนด้วย Email Address นี้', 'error');
+						}
+					});
+				} else {
+					$('#email').css('border', '1px solid red');
+					$.notify('Email Address ไม่ถูกตามฟอร์แมต', 'error');
+				}
+			} else {
+				$('#email').css('border', '1px solid red');
+				$.notify('Email Address ต้องไม่ว่าง', 'error');
+			}
+		});
+	}
+
+	const doGetCheckUsername = function(username){
+		return new Promise(function(resolve, reject) {
+			var existUsernameApiUri = '/api/users/searchusername/' + username;
+			var params = {username: username};
+			$.get(existUsernameApiUri, params, function(response){
+				resolve(response);
+			}).catch((err) => {
+				console.log(JSON.stringify(err));
+				reject(err);
+			})
+		});
+	}
+	const doCallEmailExist = function(yourEmail){
+		return new Promise(function(resolve, reject) {
+      var existEmailApiUri = '/api/users/email/exist';
+      var params = {email: yourEmail};
+      $.post(existEmailApiUri, params, function(response){
+  			resolve(response);
+  		}).catch((err) => {
+  			console.log(JSON.stringify(err));
+        reject(err);
+  		})
+  	});
+	}
+
+	const doCallCheckEmailAddress = function(yourEmail, username){
+		return new Promise(function(resolve, reject) {
+      var checkEmailApiUri = '/api/users/email';
+      var params = {email: yourEmail, username: username};
+      $.post(checkEmailApiUri, params, function(response){
+  			resolve(response);
+  		}).catch((err) => {
+  			console.log(JSON.stringify(err));
+        reject(err);
+  		})
+  	});
+	}
+
+	const doCallSendResetPwdEmail = function(yourEmail, username, userId) {
+		return new Promise(function(resolve, reject) {
+      var existEmailApiUri = '/api/resettask/new';
+      var params = {email: yourEmail, username: username, userId: userId};
+      $.post(existEmailApiUri, params, function(response){
+  			resolve(response);
+  		}).catch((err) => {
+  			console.log(JSON.stringify(err));
+        reject(err);
+  		})
+  	});
+	}
+
+	const doCallRegister = function(params){
+		return new Promise(function(resolve, reject) {
+      var createNewActivateApiUri = '/api/activatetask/new';
+      $.post(createNewActivateApiUri, params, function(response){
+  			resolve(response);
+  		}).catch((err) => {
+  			console.log(JSON.stringify(err));
+        reject(err);
+  		})
+  	});
+	}
+
+	const doOpenRegisterForm = function(){
+		$('#id01').show();
+		$('#LoginForm').hide();
+		$('#RegisterForm-Username').show();
+		$('#CheckUsernameCmd').on('click', (evt)=>{
+			let username = $('username').val();
+			let password1 = $('password1').val();
+			let password2 = $('password2').val();
+			if (username !== '') {
+				$('#username').css('border', '');
+				if (password1 !== ''){
+					$('#password1').css('border', '');
+					if (password2 !== '') {
+						$('#password2').css('border', '');
+						if (password1 == password2) {
+							$('#password1').css('border', '');
+							$('#password2').css('border', '');
+							doGetCheckUsername(username).then((existRes)=>{
+								console.log(existRes);
+								if (existRes.result.length == 0) {
+									$('#username').css('border', '');
+									doOpenUserInfoForm(username, password1);
+								} else {
+									$('#username').css('border', '1px solid red');
+									$.notify('Username นี้มีผู้อื่นใช้แล้ว', 'error');
+								}
+							});
+						} else {
+							$('#password1').css('border', '1px solid red');
+							$('#password2').css('border', '1px solid red');
+							$.notify('Password และ Retry Password ต้องเหมือนกัน', 'error');
+						}
+					} else {
+						$('#password2').css('border', '1px solid red');
+						$.notify('Retry Password ต้องไม่ว่าง', 'error');
+					}
+				} else {
+					$('#password1').css('border', '1px solid red');
+					$.notify('Password ต้องไม่ว่าง', 'error');
+				}
+			} else {
+				$('#username').css('border', '1px solid red');
+				$.notify('Username ต้องไม่ว่าง', 'error');
+			}
+		});
+	}
+
+	const doOpenUserInfoForm = function(username, password){
+		$('#RegisterForm-Username').hide();
+		$('#RegisterForm-Info').show();
+		$('#RegisterCmd').on('click', (evt)=>{
+			let nameTH = $('#NameTH').val();
+			let lastNameTH = $('#LastNameTH').val();
+			let nameEN = $('#NameEN').val();
+			let lastNameEN = $('#LastNameEN').val();
+			let email = $('#Email').val();
+			let phone = $('#Phone').val();
+			let lineID = $('#LineID').val();
+			if (nameTH !== '') {
+				$('#NameTH').css('border', '');
+				if (lastNameTH !== '') {
+					$('#LastNameTH').css('border', '');
+					if (nameEN !== '') {
+						$('#NameEN').css('border', '');
+						if (lastNameEN !== '') {
+							$('#LastNameEN').css('border', '');
+							if (email !== ''){
+								let emailValid = emailRegEx.test(email);
+								if (emailValid) {
+									$('#Email').css('border', '');
+									if (phone !== ''){
+										doCallEmailExist(email).then((callRes)=>{
+											if (callRes.data.length == 0) {
+												let params = {User_NameEN: nameEN, User_LastNameEN: lastNameEN, User_NameTH: nameTH, User_LastNameTH: lastNameTH, User_Email: email, User_Phone: phone, User_LineID: lineID, User_PathRadiant: '/path/to/khow', username: username, password: password};
+												doCallRegister(params).then((regRes)=>{
+													console.log(regRes);
+													if (regRes.Task.email){
+														let sendEmailResBox = $('<div></div>');
+														let resText = 'ระบบฯ ได้ส่งลิงค์สำหรับ Activate บัญชีใช้งานของคุณไปทางอีเมล์ '+ email + ' เรียบร้อยแล้ว';
+														resText += '\nโปรดตรวจสอบ ที่กล่องอีเมล์ของคุณ';
+														resText += '\nคุณมีเวลาสำหรับ Activate บัญชีใช้งาน 1 ชม.';
+														$(sendEmailResBox).text(resText);
+														$('#RegisterForm-Info').empty();
+														$('#RegisterForm-Info').append($(sendEmailResBox));
+													} else {
+														$.notify('เกิดข้อผิดพลาด ไม่สามารถลงทะบียนบัญชีใช้งานได้', 'error');
+													}
+												});
+											} else {
+												$('#Email').css('border', '1px solid red');
+												$('#Email').notify('อีเมล์นี้มีผู้อื่นใช้ไปแล้ว', 'error');
+											}
+										});
+									} else {
+										$('#Phone').css('border', '1px solid red');
+										$('#Phone').notify('เบอร์โทรศัพทต้องไม่ว่าง', 'error');
+									}
+								} else {
+									$('#Email').css('border', '1px solid red');
+									$('#Email').notify('อีเมล์ไม่ถูกต้อง', 'error');
+								}
+							} else {
+								$('#Email').css('border', '1px solid red');
+								$('#Email').notify('อีเมล์ต้องไม่ว่าง', 'error');
+							}
+						} else {
+							$('#LastNameEN').css('border', '1px solid red');
+							$('#LastNameEN').notify('นามสกุลภาษาอังกฤษต้องไม่ว่าง', 'error');
+						}
+					} else {
+						$('#NameEN').css('border', '1px solid red');
+						$('#NameEN').notify('ชื่อภาษาอังกฤษต้องไม่ว่าง', 'error');
+					}
+				} else {
+					$('#LastNameTH').css('border', '1px solid red');
+					$('#LastNameTH').notify('นามสกุลภาษาไทยต้องไม่ว่าง', 'error');
+				}
+			} else {
+				$('#NameTH').css('border', '1px solid red');
+				$('#NameTH').notify('ชื่อภาษาไทยต้องไม่ว่าง', 'error');
+			}
+		});
+	}
+
 	return {
     doLoadLoginForm,
-		doCheckUserData
+		doCheckUserData,
+		doOpenRegisterForm
 	}
 }
 

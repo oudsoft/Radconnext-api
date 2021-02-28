@@ -100,12 +100,14 @@ const reportCreator = function(elements, variable, pdfFileName, caseId){
 		const reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
 
 		if (fs.existsSync(usrPdfPath + '/' + htmlFileName)) {
-	    await runcommand('rm ' + usrPdfPath + '/' + htmlFileName);
+	    //await runcommand('rm ' + usrPdfPath + '/' + htmlFileName);
+			await fs.unlinkSync(usrPdfPath + '/' + htmlFileName);
 	  }
 		if (fs.existsSync(usrPdfPath + '/' + pdfFileName)) {
-			await runcommand('rm ' + usrPdfPath + '/' + pdfFileName);
+			//await runcommand('rm ' + usrPdfPath + '/' + pdfFileName);
+			await fs.unlinkSync(usrPdfPath + '/' + pdfFileName);
 		}
-		
+
 		var html = '<!DOCTYPE html><head></head><body><div id="report-wrapper"></div></body>';
 		var _window = new JSDOM(html, { runScripts: "dangerously", resources: "usable" }).window;
 		/* ************************************************************************* */
@@ -139,7 +141,7 @@ const reportCreator = function(elements, variable, pdfFileName, caseId){
 			//_window.doSetReportParams(hospitalId, caseId, userId);
 			//_window.doLoadReportFormat(hospitalId, (reportHTML) =>{
 			log.info("Start Create Html Report.");
-			_window.doMergeContent(elements, variable, qrlink, async (reportHTML) =>{
+			_window.doMergeContent(elements, variable, qrlink, caseId, async (reportHTML) =>{
 				/******/
 				var writerStream = fs.createWriteStream(usrPdfPath + '/' + htmlFileName);
 				var reportContent = '<!DOCTYPE html><html><head><link href="/report-design/report.css" rel="stylesheet"></head><body><div id="report-wrapper">' + reportHTML + '</div></body></html>';

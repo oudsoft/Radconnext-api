@@ -283,6 +283,24 @@ app.get('/randomusername', async function(req, res) {
   newUsername = await verifyUsername(newUsername);
   res.json({status: {code: 200}, random: {username: newUsername.username}});
 });
+//email exist api
+app.post('/email', async (req, res) => {
+  let userEmail = req.body.email;
+  let username = req.body.username;
+  const users = await db.users.findAll({	attributes: ['id', 'username', 'userinfoId'], where: {	username: username}});
+  const profiles = await db.userinfoes.findAll({attributes: excludeColumn, where: { User_Email: userEmail } });
+  if (users[0].userinfoId == profiles[0].id) {
+    res.json({status: {code: 200}, data: {userId: users[0].id, username: users[0].username, email: profiles[0].User_Email}});
+  } else {
+    res.json({status: {code: 200}, data: {}});
+  }
+});
+//Exist Email
+app.post('/email/exist', async (req, res) => {
+  let userEmail = req.body.email;
+  const profiles = await db.userinfoes.findAll({attributes: ['User_Email'], where: { User_Email: userEmail } });
+  res.json({status: {code: 200}, data: profiles});
+});
 
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;

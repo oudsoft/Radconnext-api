@@ -56,6 +56,10 @@ module.exports = ( httpsServer, monitor ) => {
 	//const pdfconvertorV2 = require('./lib/v2/pdfconvertor.js')(apiApp);
 	const taskCase = require('./lib/casetask.js')(webSocketServer, db, log);
 	const taskApp = require('./lib/taskapp.js')(taskCase, db, log);
+	const resetPwdTask = require('./lib/resetpwdtask.js')( db, log);
+	const resetPwdApp = require('./lib/resetpwdapp.js')( resetPwdTask, db, log);
+	const activateAccountTask = require('./lib/activateaccounttask.js')( db, log);
+	const activateAccountApp = require('./lib/activateaccountapp.js')( activateAccountTask, db, log);
 	const zoomApp = require('./lib/zoom.js')(db, log);
 	const botApp = require('./lib/botapp.js')(taskCase, db, log);
 
@@ -111,6 +115,8 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/tasks', taskApp);
 	apiApp.use('/zoom', zoomApp);
 	apiApp.use('/bot', botApp);
+	apiApp.use('/resettask', resetPwdApp);
+	apiApp.use('/activatetask', activateAccountApp);
 	apiApp.use('/ris', risinterface);
 	apiApp.use('/scanpartref', scanpartref);
 	apiApp.use('/scanpartaux', scanpartaux);

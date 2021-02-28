@@ -13,9 +13,9 @@
       audienceName: '',
       wantBackup: false,
       externalClassStyle: {},
-      sendMessageCallback: (evt)=>{ /* ... */},
-      gotMessageCallback: (evt)=>{ /* ... */},
-      resetUnReadMessageCallback: (evt)=>{ /* ... */}
+      sendMessageCallback: function(evt){ /* ... */},
+      gotMessageCallback: function(evt){ /* ... */},
+      resetUnReadMessageCallback: function(evt){ /* ... */}
     }, options );
 
     var $this = this;
@@ -69,7 +69,7 @@
       $this.messageInputHandle = messageInput;
       let sendCmd = $('<input type="button" value="Send" style="display: inline-block; margin-left: 10px;"/>');
       $(sendCmd).appendTo($(sendBox));
-      $(sendCmd).on('click', async (evt)=>{
+      $(sendCmd).on('click', async function(evt){
         let userMessage = $(messageInput).val();
         if (userMessage) {
           $(messageInput).css({'border': '2px solid black'});
@@ -173,7 +173,7 @@
       let localMessage = localMessageJson;
       //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
       //$('.footer').simplelog({test: JSON.stringify(localMessage)})
-      doFindMessageOfTopic(localMessageJson, settings.topicId).then((localMessage)=>{
+      doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
   			if (localMessage) {
           for (let i=0; i < localMessage.length; i++) {
             let msgJson = localMessage[i];
@@ -197,14 +197,14 @@
       });
     }
     const doFindMessageOfTopic = function(orgMessage, topicId){
-      return new Promise(async function(resolve, reject){
-        let history = await orgMessage.filter((item)=>{
-					if (item.topicId == topicId) {
-						return item;
-					}
-				});
-				resolve(history);
-      });
+      var dfd = $.Deferred();
+      let history = orgMessage.filter(function(item){
+				if (item.topicId == topicId) {
+					return item;
+				}
+			});
+      dfd.resolve(history);
+      return dfd.promise();
     }
     const doIncreaseReddotEvent = function(){
       settings.resetUnReadMessageCallback(settings.audienceId, 1);
@@ -251,7 +251,7 @@
     const chatBox = init();
     this.append($(chatBox));
 
-    this.on('messagedrive', (evt, data)=>{
+    this.on('messagedrive', function(evt, data){
       let msg = data.msg;
       let from = data.from;
       let topicId = data.context.topicId;
@@ -260,7 +260,7 @@
         doIncreaseReddotEvent();
       }
     });
-    this.on('updatetopicstatus', (evt, data)=>{
+    this.on('updatetopicstatus', function(evt, data){
       let newTopicStatusId = data.topicStatusId;
       settings.topicStatusId = newTopicStatusId;
     });
@@ -275,9 +275,9 @@
       audienceId: '',
       audienceName: '',
       externalClassStyle: {},
-      sendMessageCallback: (evt)=>{},
-      gotMessageCallback: (evt)=>{},
-      resetUnReadMessageCallback: (evt)=>{}
+      sendMessageCallback: function(evt){},
+      gotMessageCallback: function(evt){},
+      resetUnReadMessageCallback: function(evt){}
     }
     */
 

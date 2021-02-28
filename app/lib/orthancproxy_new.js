@@ -348,7 +348,7 @@ app.post('/importarchive', function(req, res) {
 		let username = req.body.username;
     let pacsImportOption = req.body.pacsImportOption;
     log.info('option=>' + pacsImportOption);
-		let archiveFileName = archiveCode + '.zip';
+		let archiveFilcdeName = archiveCode + '.zip';
 		let archiveParh = usrUploadDir + '/' + archiveFileName;
 		let archiveDir = formatStr('%s/%s', usrUploadDir, archiveCode);
 		let command = formatStr('mkdir %s', archiveDir);

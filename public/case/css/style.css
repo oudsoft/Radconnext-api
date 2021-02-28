@@ -1,6 +1,7 @@
 /* */
 @font-face { font-family: THSarabunNew; src: url("../../font/THSarabunNew.ttf");}
 @font-face { font-family: THSarabunNewBold; src: url("../../font/THSarabunNew Bold.ttf");}
+@font-face { font-family: EkkamaiStandard; src: url("../../font/EkkamaiStandard-Light.ttf");}
 
 input, select, textarea, button{
 	font-family:inherit;

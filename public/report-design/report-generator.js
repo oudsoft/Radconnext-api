@@ -32,7 +32,7 @@ function doLoadReportVarialble(caseId, userId){
   });
 }
 
-function doMergeContent(elements, variable, qrcodeLink, cb){
+function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
   let wrapper = $("#report-wrapper").empty();
   //let variable = reportVar.variable;
   //let elements = content.Records[0].Content;
@@ -92,7 +92,7 @@ function doMergeContent(elements, variable, qrcodeLink, cb){
     }
   });
 
-  setTimeout(()=> {
+  setTimeout(async()=> {
     let formatedContents = elements;
     formatedContents.forEach((item, i) => {
       doCreateElement(wrapper, item.elementType, item);
@@ -100,6 +100,26 @@ function doMergeContent(elements, variable, qrcodeLink, cb){
     if (qrcodeLink) {
       let qrcodeElem = {url: qrcodeLink, x: 10, y: 1310, width: 100};
       doCreateElement(wrapper, 'image', qrcodeElem);
+    }
+    if (caseId) {
+      const linkDisplayText = 'ติดต่อรังสีแพทย์';
+      //const linkUrl = 'https://radconnext.info/refer/callradio.html?caseId=' + caseId;
+      const linkUrl = 'ChromeHTML:// radconnext.info/refer/callradio.html?caseId=' + caseId;
+      let radioContactElement = undefined;
+      let caseIdElement = undefined;
+      let reportByElement = await elements.find((item)=>{
+        if (item === 'report_by') return item;
+      })
+      if (reportByElement) {
+        radioContactElement = {text: linkDisplayText, href: linkUrl, x: reportByElement.x, y: (reportByElement.y + 20)};
+        caseIdElement = {test: 'รหัสเคส ' + caseId, x: reportByElement.x, y: (reportByElement.y + 40)};
+      } else {
+        radioContactElement = {text: linkDisplayText, href: linkUrl, x: 120, y: 1380};
+        caseIdElement = {test: 'รหัสเคส ' + caseId, x: 120, y: 1400};
+      }
+
+      doCreateElement(wrapper, 'a', radioContactElec);
+      doCreateElement(wrapper, 'text', caseIdElement);
     }
     setTimeout(()=> {
       cb($(wrapper).html());
@@ -225,6 +245,13 @@ function doCreateElement(wrapper, elemType, elem){
       newImage.setAttribute("width", elem.width);
       $(element).append(newImage);
       $(element).css({"left": elem.x + "px", "top": elem.y + "px", "width": elem.width, "height": "auto"});
+    break;
+    case "a":
+      element = $("<div></div>");
+      $(element).addClass("reportElement");
+      let linkElem = $('<a target="_blank" href="' + elem.href + '">' + elem.text + '</a>');
+      $(element).append(linkElem);
+      $(element).css({"left": elem.x + "px", "top": elem.y + "px"});
     break;
   }
   $(element).appendTo($(wrapper));
