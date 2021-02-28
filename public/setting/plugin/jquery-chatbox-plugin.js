@@ -52,7 +52,7 @@
     }
 
     const doCreateTitleBox = function(title){
-      let titleBox = $('<div style="position: relative; width: 100%; padding: 2px; text-align: left; border: 1px solid grey; background-color: white;"></div>');
+      let titleBox = $('<div style="position: relative; width: 100%; padding: 2px; text-align: left; border: 1px solid grey; background-color: #020760; color: white;"></div>');
       let titleText = $('<span><b>' + title + '</b></span>');
       $(titleBox).append($(titleText));
       return $(titleBox);
@@ -62,7 +62,7 @@
       return $(messageBox);
     }
     const doCreateSendBox = function(sendMessageCallback){
-      let sendBox = $('<div id="ChatSendBox" style="position: relative; width: 100%; padding: 2px; text-align: right; border: 1px solid grey; background-color: white;"></div>');
+      let sendBox = $('<div id="ChatSendBox" style="position: relative; width: 100%; padding: 2px; text-align: right; border: 1px solid grey; background-color: #020760; color: white;"></div>');
       let messageInput = $('<input type="text" style="border: 2px solid black; display: inline-block;"/>');
       $(messageInput).width('380');
       $(messageInput).appendTo($(sendBox));

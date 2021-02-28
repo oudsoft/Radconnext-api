@@ -68,7 +68,6 @@ const initPage = function() {
       let yourToken = localStorage.getItem('token');
       if (yourToken) {
         //chat room
-        console.log('Are yor raedy?');
         $.ajaxSetup({
           beforeSend: function(xhr) {
             xhr.setRequestHeader('Authorization', yourToken);
