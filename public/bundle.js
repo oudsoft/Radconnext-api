@@ -1655,6 +1655,17 @@ module.exports = function ( jq ) {
 
 	const emailRegEx = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
+	function urlQueryToObject(url) {
+  	let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+  				return paramPair.split(/=(.+)?/).slice(0, 2);
+  		}).reduce(function (obj, pairArray) {
+  				obj[pairArray[0]] = pairArray[1];
+  				return obj;
+          let password2 = $('#psw2').val();
+  		}, {});
+  	return result;
+  }
+
   function doCallLoginApi(user) {
     return new Promise(function(resolve, reject) {
       var loginApiUri = '/api/login/';
@@ -1717,7 +1728,15 @@ module.exports = function ( jq ) {
             response.data.userprofiles.push({Profile: common.defaultProfile});
           }
           let usertype = response.data.usertype.id;
-          gotoYourPage(usertype);
+					let queryObj = urlQueryToObject(window.location.href);
+					if (queryObj.action) {
+						if (queryObj.action === 'callchat'){
+							let caseId = queryObj.caseId;
+							window.location.replace('/refer/callradio.html?caseId=' + caseId);
+						}
+					} else {
+          	gotoYourPage(usertype);
+					}
   			}
   		});
   	}
@@ -1978,6 +1997,7 @@ module.exports = function ( jq ) {
 										doCallEmailExist(email).then((callRes)=>{
 											if (callRes.data.length == 0) {
 												let params = {User_NameEN: nameEN, User_LastNameEN: lastNameEN, User_NameTH: nameTH, User_LastNameTH: lastNameTH, User_Email: email, User_Phone: phone, User_LineID: lineID, User_PathRadiant: '/path/to/khow', username: username, password: password};
+												console.log(params);
 												doCallRegister(params).then((regRes)=>{
 													console.log(regRes);
 													if (regRes.Task.email){

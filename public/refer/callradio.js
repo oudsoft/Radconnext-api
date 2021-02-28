@@ -10,6 +10,8 @@ const urlQueryToObject = function(url) {
 
 const inputStyleClass = {"font-family": "THSarabunNew", "font-size": "24px"};
 
+var wsm;
+
 const doCallApi = function (apiurl, params) {
  var dfd = $.Deferred();
   $.post(apiurl, params, function(data){
@@ -68,8 +70,17 @@ const initPage = function() {
       let yourToken = localStorage.getItem('token');
       if (yourToken) {
         //chat room
+        console.log('Are yor raedy?');
+        $.ajaxSetup({
+          beforeSend: function(xhr) {
+            xhr.setRequestHeader('Authorization', yourToken);
+          }
+        });
+
+        doOpenChatRoom(queryObj.caseId);
       } else {
         //login
+        window.location.replace('/index.html?action=callchat&caseId='+queryObj.caseId);
       }
     } else {
       alert('เว็บบราวส์เซอร์ของคุณไม่รองรับการติดต่อรังสีแพทย์ผ่านทางการส่งข้อความ\nโปรดใชเว็บบราวส์เซอร์ที่สนับสนุน ดังนี้\nGoogle Chrome, MS Edge, Firefox หรือ IE เวอร์ชั่น 11 ขึ้นไป');
@@ -97,3 +108,170 @@ const initPage = function() {
 $(document).ready(function() {
 	initPage();
 });
+
+const doOpenChatRoom = async function(caseId){
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  //console.log(userdata);
+  let username = userdata.username;
+  let usertypeId = userdata.usertypeId;
+  let hospitalId = userdata.hospitalId;
+
+  wsm = doConnectWebsocketMaster(username, usertypeId, hospitalId, 'none');
+  //console.log(wsm);
+
+  let simpleChatBox = await doCreateChatBox(caseId);
+  $('#app').append($(simpleChatBox));
+}
+
+const doConnectWebsocketMaster = function(username, usertypeId, hospitalId, connecttype){
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const paths = window.location.pathname.split('/');
+  const rootname = paths[1];
+
+  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
+  const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+  wsm = new WebSocket(wsUrl);
+  wsm.onopen = function () {
+    //console.log('Master Websocket is connected to the signaling server')
+  };
+
+  console.log(usertypeId);
+
+  wsm.onmessage = onMessageEvt;
+
+  wsm.onclose = function(event) {
+    //console.log("Master WebSocket is closed now. with  event:=> ", event);
+  };
+
+  wsm.onerror = function (err) {
+     console.log("Master WS Got error", err);
+  };
+
+  return wsm;
+}
+
+const onMessageEvt = function(msgEvt){
+  let data = JSON.parse(msgEvt.data);
+  console.log(data);
+  if (data.type !== 'test') {
+    let masterNotify = localStorage.getItem('masternotify');
+    let MasterNotify = JSON.parse(masterNotify);
+    if (MasterNotify) {
+      MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+    } else {
+      MasterNotify = [];
+      MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+    }
+    localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+  }
+  if (data.type == 'test') {
+    $.notify(data.message, "success");
+  } else if (data.type == 'notify') {
+    $.notify(data.message, "info");
+  } else if (data.type == 'callzoom') {
+    let eventName = 'callzoominterrupt';
+    let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+    let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+    document.dispatchEvent(event);
+  } else if (data.type == 'callzoomback') {
+    let eventName = 'stopzoominterrupt';
+    let evtData = {result: data.result};
+    let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+    document.dispatchEvent(event);
+  } else if (data.type == 'message') {
+    $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+    doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+    let eventData = {msg: data.msg, from: data.from, context: data.context};
+    $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+  }
+};
+
+const doSaveMessageToLocal = function(msg ,from, topicId, status){
+  let localMessage = JSON.parse(localStorage.getItem('localmessage'));
+  let localMessageJson = localMessage;
+  if (localMessageJson) {
+    localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+  } else {
+    localMessageJson = [];
+    localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+  }
+  localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+}
+
+const doCreateChatBox = function(caseId){
+  return new Promise(async function(resolve, reject){
+    let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let caseRes = await $.post('/api/cases/select/'+ caseId, {});
+    console.log(caseRes);
+    if (caseRes){
+      caseItem = caseRes.Records[0];
+      patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
+      patientHN = caseItem.case.patient.Patient_HN;
+      patientSA = caseItem.case.patient.Patient_Age + '/' + caseItem.case.patient.Patient_Sex;
+      caseBodypart = caseItem.case.Case_BodyPart;
+
+      let simpleChatBoxOption = {
+        topicId: caseId,
+        topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
+        topicStatusId: caseItem.case.casestatusId,
+        myId: userdata.username,
+        myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
+        myDisplayName: 'ฉัน',
+        audienceId: caseItem.Radiologist.username,
+        audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
+        wantBackup: true,
+        externalClassStyle: {},
+        sendMessageCallback: doSendMessageCallback,
+        resetUnReadMessageCallback: doResetUnReadMessageCallback
+      };
+
+      let simpleChatBox = $('<div id="SimpleChatBox"></div>');
+      let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
+      simpleChatBoxHandle.restoreLocal();
+
+      resolve($(simpleChatBox));
+    } else {
+      resolve();
+    }
+  });
+}
+
+const doSendMessageCallback = function(msg, sendto, from, context){
+  return new Promise(async function(resolve, reject){
+    const userdata = JSON.parse(localStorage.getItem('userdata'));
+    let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
+    wsm.send(JSON.stringify(msgSend));
+    if (context.topicStatusId != 14) {
+      let newStatus = 14;
+      let newDescription = 'Case have Issue Message to Radio.';
+
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.userId;
+			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: context.topicId, casestatusId: newStatus, caseDescription: newDescription};
+
+      let updateStatusRes = await $.post('/api/cases/status/' + context.topicId, rqParams);
+      if (updateStatusRes.status.code == 200){
+        let selector = '#'+sendto + ' .chatbox';
+        let targetChatBox = $(selector);
+        let eventData = {topicStatusId: 14};
+        $(targetChatBox).trigger('updatetopicstatus', [eventData]);
+      } else {
+        $.notify('Now. can not update case status.', 'warn');
+      }
+    }
+    resolve();
+  });
+}
+
+const doResetUnReadMessageCallback = function(audienceId, value){
+  let selector = '#'+audienceId + ' .reddot';
+  let lastValue = $(selector).text();
+  let newValue = Number(lastValue) + value;
+  if (newValue > 0) {
+    $(selector).text(newValue);
+    $(selector).show()
+  } else {
+    $(selector).hide()
+  }
+}

@@ -9,17 +9,17 @@
     </div>
 
     <div class="container">
-      <label for="uname"><b>Username</b></label>
-      <input type="text" placeholder="Enter Username" name="uname" id="username" required>
+      <label for="username"><b>Username</b></label>
+      <input type="text" placeholder="Enter Username" id="username" required>
 
-      <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" id="password" required>
+      <label for="password"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="password" required>
 
       <button type="button" id="LoginCmd">Login</button>
     </div>
 
     <div class="container" style="background-color:#f1f1f1; text-align: center;">
-      <button type="button" id="CancelCmd" class="cancelbtn">Cancel</button>
+      <button type="button" id="CloseCmd" class="cancelbtn">Cancel</button>
       <!--
       <span class="psw">Forgot <a href="#">password?</a></span>
       -->
@@ -109,6 +109,7 @@
     }
   }
 
+  var loginForm = document.getElementById('LoginForm');
   var resetPwdForm = document.getElementById('ResetPwdForm');
   var registerUsernameForm = document.getElementById('RegisterForm-Username');
   var registerInfoForm = document.getElementById('RegisterForm-Info');
@@ -116,10 +117,19 @@
   registerInfoForm.style.display='none';
   registerUsernameForm.style.display='none';
   var resetPwdCmd = document.getElementById('ResetPwdCmd');
-  var cancelCmd = document.getElementById('CancelCmd');
-  cancelCmd.addEventListener("click", function() {
+  var closeCmd = document.getElementById('CloseCmd');
+  closeCmd.addEventListener("click", function() {
     resetPwdCmd.style.display='none';
     document.getElementById('id01').style.display='none';
+  });
+
+  var cancelCmd = document.getElementById('CancelCmd');
+  cancelCmd.addEventListener("click", function() {
+    document.getElementById('id01').style.display='block';
+    loginForm.style.display='block';
+    resetPwdForm.style.display='none';
+    registerUsernameForm.style.display='none';
+    registerInfoForm.style.display='none';
   });
 </script>
 <style>

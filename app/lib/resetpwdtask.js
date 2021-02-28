@@ -57,10 +57,19 @@ function RadconResetTask (db, log) {
   this.sendResetPwdEmail = function(email, username, userId){
     return new Promise(async function(resolve, reject) {
       var transporter = nodemailer.createTransport({
+        /*
         service: 'gmail',
         auth: {
           user: 'oudsoft@gmail.com',
           pass: 'oud@2515'
+        }
+        */
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: 'oudsoft@gmail.com',
+            pass: 'oud@2515'
         }
       });
 

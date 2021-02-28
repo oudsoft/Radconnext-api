@@ -34,18 +34,19 @@ app.post('/activate', (req, res) => {
   const promiseList = new Promise(async function(resolve, reject) {
     let aTask = await Task.findTaskByEmail(email);
     if (aTask) {
+      log.info('aTask Data =>' + JSON.stringify(aTask));
       let newUserinfo = {
-        User_NameEN: aTask.User_NameEN,
-        User_LastNameEN: aTask.User_LastNameEN,
-        User_NameTH: aTask.User_NameTH,
-        User_LastNameTH: aTask.User_LastNameTH,
-        User_Email: aTask.User_Email,
-        User_Phone: aTask.User_Phone,
-        User_LineID: aTask.User_LineID,
-        User_PathRadiant: aTask.User_PathRadiant
+        User_NameEN: aTask.data.User_NameEN,
+        User_LastNameEN: aTask.data.User_LastNameEN,
+        User_NameTH: aTask.data.User_NameTH,
+        User_LastNameTH: aTask.data.User_LastNameTH,
+        User_Email: aTask.data.User_Email,
+        User_Phone: aTask.data.User_Phone,
+        User_LineID: aTask.data.User_LineID,
+        User_PathRadiant: aTask.data.User_PathRadiant
       };
       let adUserinfo = await db.userinfoes.create(newUserinfo);
-      let newUser = {username: aTask.username, password: aTask.password, usertypeId: usertypeId, hospitalId: hospitalId, userinfoId: adUserinfo.id};
+      let newUser = {username: aTask.data.username, password: aTask.data.password, usertypeId: usertypeId, hospitalId: hospitalId, userinfoId: adUserinfo.id};
       let adUser = await db.users.create(newUser);
       let userstatuses = await auth.doGetUserstatusActive();
       adUser.setUserstatus(userstatuses[0]);

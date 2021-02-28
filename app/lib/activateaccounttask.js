@@ -23,7 +23,7 @@ function RadconActivateTask (db, log) {
   		let task = cron.schedule(scheduleTrigger, function(){
         callback(email, sendRes, endDate);
       });
-      let newTask = {email: accountData.User_Email, username: accountData.username, endDate: endDate};
+      let newTask = {email: accountData.User_Email, username: accountData.username, endDate: endDate, data: accountData};
       $this.activateTasks.push(newTask);
       resolve(newTask);
     });
@@ -56,7 +56,16 @@ function RadconActivateTask (db, log) {
   this.sendActivateAccountEmail = function(email, username){
     return new Promise(async function(resolve, reject) {
       var transporter = nodemailer.createTransport({
+        /*
         service: 'gmail',
+        auth: {
+          user: 'oudsoft@gmail.com',
+          pass: 'oud@2515'
+        }
+        */
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: {
           user: 'oudsoft@gmail.com',
           pass: 'oud@2515'
