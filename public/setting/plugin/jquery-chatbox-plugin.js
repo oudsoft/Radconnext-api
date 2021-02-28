@@ -58,7 +58,7 @@
       return $(titleBox);
     }
     const doCreateMessageBox = function(){
-      let messageBox = $('<div id="MessageBoard" style="position: relative; width: 100%; padding: 2px; text-align: left; border: 1px solid grey; background-color: white; min-height:150px; max-height:150px; overflow: auto;"></div>');
+      let messageBox = $('<div id="MessageBoard" style="position: relative; width: 100%; padding: 2px; text-align: left; border: 1px solid grey; background-color: white; min-height:350px; max-height:350px; overflow: auto;"></div>');
       return $(messageBox);
     }
     const doCreateSendBox = function(sendMessageCallback){
@@ -169,6 +169,7 @@
   		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
   	}
     const doRestoreFromLocal = function(){
+      let dfd = $.Deferred();
       let localMessageJson = JSON.parse(localStorage.getItem('localmessage'));
       let localMessage = localMessageJson;
       //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
@@ -193,17 +194,27 @@
             }
           }
           localStorage.setItem('localmessage', JSON.stringify(localMessage));
+          setTimeout(function(){
+            dfd.resolve();
+          }, 2300)
+        } else {
+          dfd.resolve();
         }
       });
+      return dfd.promise();
     }
     const doFindMessageOfTopic = function(orgMessage, topicId){
       var dfd = $.Deferred();
-      let history = orgMessage.filter(function(item){
-				if (item.topicId == topicId) {
-					return item;
-				}
-			});
-      dfd.resolve(history);
+      if (orgMessage && (orgMessage.length > 0)) {
+        let history = orgMessage.filter(function(item){
+  				if (item.topicId == topicId) {
+  					return item;
+  				}
+  			});
+        dfd.resolve(history);
+      } else {
+        dfd.resolve([]);
+      }
       return dfd.promise();
     }
     const doIncreaseReddotEvent = function(){

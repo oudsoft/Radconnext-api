@@ -62,8 +62,6 @@ const initPage = function() {
 
   let queryObj = urlQueryToObject(window.location.href);
   if (queryObj.caseId) {
-    $('body').loading('start');
-
     let ua = browser();
     let canSupport = browserSupport(ua);
     if (canSupport) {
@@ -85,22 +83,13 @@ const initPage = function() {
     } else {
       alert('เว็บบราวส์เซอร์ของคุณไม่รองรับการติดต่อรังสีแพทย์ผ่านทางการส่งข้อความ\nโปรดใชเว็บบราวส์เซอร์ที่สนับสนุน ดังนี้\nGoogle Chrome, MS Edge, Firefox หรือ IE เวอร์ชั่น 11 ขึ้นไป');
     }
-
-    /*
-    1. check caseId
-    2. check UA
-    3. check Token
-    */
-    $('body').loading('stop');
   } else {
     let yourCaseId = prompt('โปรดระบุรหัสเคส\nรหัสเคสจะปรากฎอยู่ด้านล่างรายงานผลอ่าน', '');
 		if (yourCaseId){
 
-
-      $('body').loading('stop');
     } else {
       alert('Sorry.');
-      $('body').loading('stop');
+
     }
   }
 }
@@ -110,6 +99,7 @@ $(document).ready(function() {
 });
 
 const doOpenChatRoom = async function(caseId){
+  $('body').loading('start');
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   //console.log(userdata);
   let username = userdata.username;
@@ -121,6 +111,10 @@ const doOpenChatRoom = async function(caseId){
 
   let simpleChatBox = await doCreateChatBox(caseId);
   $('#app').append($(simpleChatBox));
+
+  let gotomainpageCmd = doCreateGoToMainPageCmd();
+  $('#app').append($(gotomainpageCmd));
+  $('body').loading('stop');
 }
 
 const doConnectWebsocketMaster = function(username, usertypeId, hospitalId, connecttype){
@@ -199,69 +193,86 @@ const doSaveMessageToLocal = function(msg ,from, topicId, status){
   localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 }
 
-const doCreateChatBox = function(caseId){
-  return new Promise(async function(resolve, reject){
-    let userdata = JSON.parse(localStorage.getItem('userdata'));
-    let caseRes = await $.post('/api/cases/select/'+ caseId, {});
-    console.log(caseRes);
-    if (caseRes){
-      caseItem = caseRes.Records[0];
-      patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
-      patientHN = caseItem.case.patient.Patient_HN;
-      patientSA = caseItem.case.patient.Patient_Age + '/' + caseItem.case.patient.Patient_Sex;
-      caseBodypart = caseItem.case.Case_BodyPart;
+const doCreateChatBox = async function(caseId){
+  let dfd = $.Deferred();
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  let caseRes = await $.post('/api/cases/select/'+ caseId, {});
+  console.log(caseRes);
+  if (caseRes){
+    caseItem = caseRes.Records[0];
+    let patentFullName, patientHN, patientSA, caseBodypart;
+    patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
+    patientHN = caseItem.case.patient.Patient_HN;
+    patientSA = caseItem.case.patient.Patient_Age + '/' + caseItem.case.patient.Patient_Sex;
+    caseBodypart = caseItem.case.Case_BodyPart;
 
-      let simpleChatBoxOption = {
-        topicId: caseId,
-        topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
-        topicStatusId: caseItem.case.casestatusId,
-        myId: userdata.username,
-        myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
-        myDisplayName: 'ฉัน',
-        audienceId: caseItem.Radiologist.username,
-        audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
-        wantBackup: true,
-        externalClassStyle: {},
-        sendMessageCallback: doSendMessageCallback,
-        resetUnReadMessageCallback: doResetUnReadMessageCallback
-      };
+    let simpleChatBoxOption = {
+      topicId: caseId,
+      topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
+      topicStatusId: caseItem.case.casestatusId,
+      myId: userdata.username,
+      myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
+      myDisplayName: 'ฉัน',
+      audienceId: caseItem.Radiologist.username,
+      audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
+      wantBackup: true,
+      externalClassStyle: {},
+      sendMessageCallback: doSendMessageCallback,
+      resetUnReadMessageCallback: doResetUnReadMessageCallback
+    };
+    let callRadioView = $('<div style="width: 99%; padding: 2px;"></div>');
+    let caseView = $('<div style="padding: 5px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+    let caseTitleBox = doCreateCaseTitle();
+    $(caseTitleBox).appendTo($(caseView));
+    $(caseTitleBox).find('#PatientHN').text(patientHN);
+		$(caseTitleBox).find('#PatentFullName').text(patentFullName);
+		$(caseTitleBox).find('#PatientSA').text(patientSA);
+		$(caseTitleBox).find('#CaseBodypart').text(caseBodypart);
 
-      let simpleChatBox = $('<div id="SimpleChatBox"></div>');
-      let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
-      simpleChatBoxHandle.restoreLocal();
+    let caseResultInfoBox = await doCreateResulteSection(caseId);
+		$(caseResultInfoBox).appendTo($(caseView));
 
-      resolve($(simpleChatBox));
-    } else {
-      resolve();
-    }
-  });
+    $(callRadioView).append($(caseView));
+
+    let simpleChatBox = $('<div id="SimpleChatBox"></div>');
+    let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
+    $(simpleChatBox).css({width: '100%'})
+    await simpleChatBoxHandle.restoreLocal();
+    $(callRadioView).append($(simpleChatBox));
+    simpleChatBoxHandle.scrollDown();
+    dfd.resolve($(callRadioView));
+  } else {
+    dfd.resolve();
+  }
+  return dfd.promise();
 }
 
-const doSendMessageCallback = function(msg, sendto, from, context){
-  return new Promise(async function(resolve, reject){
-    const userdata = JSON.parse(localStorage.getItem('userdata'));
-    let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
-    wsm.send(JSON.stringify(msgSend));
-    if (context.topicStatusId != 14) {
-      let newStatus = 14;
-      let newDescription = 'Case have Issue Message to Radio.';
+const doSendMessageCallback = async function(msg, sendto, from, context){
+  let dfd = $.Deferred();
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
+  wsm.send(JSON.stringify(msgSend));
+  if (context.topicStatusId != 14) {
+    let newStatus = 14;
+    let newDescription = 'Case have Issue Message to Radio.';
 
-			let hospitalId = userdata.hospitalId;
-			let userId = userdata.userId;
-			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: context.topicId, casestatusId: newStatus, caseDescription: newDescription};
+		let hospitalId = userdata.hospitalId;
+		let userId = userdata.userId;
+		let rqParams = { hospitalId: hospitalId, userId: userId, caseId: context.topicId, casestatusId: newStatus, caseDescription: newDescription};
 
-      let updateStatusRes = await $.post('/api/cases/status/' + context.topicId, rqParams);
-      if (updateStatusRes.status.code == 200){
-        let selector = '#'+sendto + ' .chatbox';
-        let targetChatBox = $(selector);
-        let eventData = {topicStatusId: 14};
-        $(targetChatBox).trigger('updatetopicstatus', [eventData]);
-      } else {
-        $.notify('Now. can not update case status.', 'warn');
-      }
+    let updateStatusRes = await $.post('/api/cases/status/' + context.topicId, rqParams);
+    console.log(updateStatusRes);
+    if (updateStatusRes.status.code == 200){
+      let selector = '#'+sendto + ' .chatbox';
+      let targetChatBox = $(selector);
+      let eventData = {topicStatusId: 14};
+      $(targetChatBox).trigger('updatetopicstatus', [eventData]);
+    } else {
+      $.notify('Now. can not update case status.', 'warn');
     }
-    resolve();
-  });
+  }
+  dfd.resolve();
+  return dfd.promise();
 }
 
 const doResetUnReadMessageCallback = function(audienceId, value){
@@ -274,4 +285,82 @@ const doResetUnReadMessageCallback = function(audienceId, value){
   } else {
     $(selector).hide()
   }
+}
+
+const pageLineStyle = {'border': '2px solid blue', 'background-color': '#02069B', 'margin-top': '4px', 'padding': '2px'};
+
+const doCreateCaseTitle = function(){
+  let caseTitle = $('<div id="CaseTitle"></div>');
+  let summaryLine = $('<div></div>');
+  $(summaryLine).appendTo($(caseTitle));
+  $(summaryLine).append($('<span><b>HN:</b> </span>'));
+  $(summaryLine).append($('<span id="PatientHN" style="margin-left: 4px; color: white;"></span>'));
+  $(summaryLine).append($('<span style="margin-left: 4px;"><b>Name:</b> </span>'));
+  $(summaryLine).append($('<span id="PatentFullName" style="margin-left: 4px; color: white;"></span>'));
+  $(summaryLine).append($('<span style="margin-left: 4px;"><b>Age/sex:</b> </span>'));
+  $(summaryLine).append($('<span id="PatientSA" style="margin-left: 4px; color: white;"></span>'));
+  $(summaryLine).append($('<span style="margin-left: 4px;"><b>Body Part:</b> </span>'));
+  $(summaryLine).append($('<span id="CaseBodypart" style="margin-left: 4px; color: white;"></span>'));
+  $(summaryLine).css(pageLineStyle);
+  return $(caseTitle);
+}
+
+const doCreateResulteSection = async function(caseId) {
+  let dfd = $.Deferred();
+  let resultBox = $('<div></div>');
+  let resultTitle = $('<div><span><b>ผลอ่าน</b></span></div>');
+  $(resultTitle).appendTo($(resultBox));
+  let resultContentBox = await doCreateCaseResult(caseId);
+  let resultView = $('<div style="width: 99%; padding: 4px; border: 2px solid grey; background-color: white; min-height: 100px"></div>')
+  $(resultView).append($(resultContentBox));
+  $(resultView).appendTo($(resultBox));
+
+  let hideShowToggleCmd = $('<span style="float: right; cursor: pointer;">ซ่อนผลอ่าน</span>');
+  $(hideShowToggleCmd).on('click', function(evt){
+    let state = $(resultView).css('display');
+    if (state === 'block') {
+      $(resultView).slideUp();
+      $(hideShowToggleCmd).text('แสดงผลอ่าน');
+    } else {
+      $(resultView).slideDown();
+      $(hideShowToggleCmd).text('ซ่อนผลอ่าน');
+    }
+  });
+  $(hideShowToggleCmd).appendTo($(resultTitle));
+  dfd.resolve($(resultBox));
+  return dfd.promise();
+}
+
+const doCreateCaseResult = async function(caseId){
+  let dfd = $.Deferred();
+  let resultRes = await $.post('/api/cases/result/'+ caseId, {});
+  let resultReport = resultRes.Records[0];
+  let pdfStream = await doCreateDownloadPDF(resultReport.PDF_Filename);
+  let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+  let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
+  $(embetObject).appendTo($(resultBox));
+  dfd.resolve($(resultBox));
+  return dfd.promise();
+}
+
+const doCreateGoToMainPageCmd = function(){
+  let cmdBox = $('<div style="position: relative; width: 100%; margin-top: 50px; text-align: center;"></div>');
+  let gomainCmd = $('<span style="cursor: pointer; background-color: #02069B; color: white; min-width: 80px; min-height: 50px; border: 2px solid grey;">หน้าหลัก</span>');
+  $(gomainCmd).appendTo($(cmdBox));
+  $(gomainCmd).on('click', function(evt){
+    window.location.replace('/refer/index.html');
+  });
+  return $(cmdBox);
+}
+
+const doCreateDownloadPDF = function(pdfLink){
+  let dfd = $.Deferred();
+  $.ajax({
+    url: pdfLink,
+    success: function(response){
+			let stremLink = URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+      dfd.resolve(stremLink);
+		}
+	});
+  return dfd.promise();
 }

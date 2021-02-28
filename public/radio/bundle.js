@@ -1602,6 +1602,18 @@ module.exports = function ( jq ) {
     return indexOf.call(this, needle) > -1;
 	};
 
+	const doCreateDownloadPDF = function(pdfLink){
+	  return new Promise(async function(resolve, reject){
+	    $.ajax({
+		    url: pdfLink,
+		    success: function(response){
+					let stremLink = URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+	        resolve(stremLink);
+				}
+			});
+	  });
+	}
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -1632,6 +1644,7 @@ module.exports = function ( jq ) {
 		doConnectWebsocketLocal,
 		isMobileDeviceCheck,
 		contains,
+		doCreateDownloadPDF,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -3319,6 +3332,7 @@ module.exports = function ( jq ) {
 				let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		    params = {caseId: saveNewResponseData.caseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
 				let reportPdf = await $.post(reportCreateCallerEndPoint, params);
+				let pdfStream = await util.doCreateDownloadPDF(reportPdf.reportLink);
 				let embetObject = $('<object data="' + reportPdf.reportLink + '" type="application/pdf" width="100%" height="480"></object>');
 				$("#dialog").load('form/response-dialog.html', function() {
 					saveNewResponseData.reportLink = reportPdf.reportLink;
@@ -4147,7 +4161,7 @@ module.exports = function ( jq ) {
 
 	const doRestoreDraft = function(caseId){
 		let draftbackup = JSON.parse(localStorage.getItem('draftbackup'));
-		if(draftbackup.caseId == caseId){
+		if((draftbackup) && (draftbackup.caseId == caseId)){
 			return draftbackup;
 		} else {
 			return;

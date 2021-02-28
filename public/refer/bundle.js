@@ -879,7 +879,6 @@ module.exports = function ( jq ) {
 			break;
 
 			case 'edit':
-			console.log('test');
 			$(cmdIcon).attr('src','/images/status-icon.png');
 			$(cmdIcon).attr('title', 'Edit Result.');
 			break;
@@ -955,6 +954,7 @@ module.exports = function ( jq ) {
 		let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
     let userItemPerPage = userDefualtSetting.itemperpage;
 		let queryString = localStorage.getItem('dicomfilter');
+		console.log(queryString);
 		doCallSearhOrthanc(queryString).then(async (studies) => {
 			$(".mainfull").empty();
 			let resultTitle = $('<div class="title-content"></div>');
@@ -1401,7 +1401,7 @@ module.exports = function ( jq ) {
 			tableRow = $('<div style="display: table-row;"></div>');
 			tableCell = $('<div style="display: table-cell;">Study Desc. / Protocol Name</div>');
 			$(tableCell).appendTo($(tableRow));
-			tableCell = $('<div style="display: table-cell; padding: 5px;"><input type="text" id="Bodypart" readOnly/></div>');
+			tableCell = $('<div style="display: table-cell; padding: 5px;"><input type="text" id="Bodypart"/></div>');
 			$(tableCell).find('#Bodypart').val(defualtValue.bodypart);
 			$(tableCell).appendTo($(tableRow));
 			$(tableRow).appendTo($(table));
@@ -2456,7 +2456,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsl, wsm;
+	let wsm;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -2790,7 +2790,7 @@ module.exports = function ( jq ) {
 		console.log(usertype);
 
 		if (usertype == 2) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsl);
+			const wsmMessageHospital = require('./websocketmessage.js')($);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
@@ -2911,6 +2911,18 @@ module.exports = function ( jq ) {
     return indexOf.call(this, needle) > -1;
 	};
 
+	const doCreateDownloadPDF = function(pdfLink){
+	  return new Promise(async function(resolve, reject){
+	    $.ajax({
+		    url: pdfLink,
+		    success: function(response){
+					let stremLink = URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+	        resolve(stremLink);
+				}
+			});
+	  });
+	}
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -2941,18 +2953,16 @@ module.exports = function ( jq ) {
 		doConnectWebsocketLocal,
 		isMobileDeviceCheck,
 		contains,
+		doCreateDownloadPDF,
 		/*  Web Socket Interface */
-		wsm,
-		wsl
+		wsm
 	}
 }
 
 },{"../../radio/mod/websocketmessage.js":9,"../../refer/mod/websocketmessage.js":13,"./websocketmessage.js":7}],7:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsLocal ) {
+module.exports = function ( jq ) {
 	const $ = jq;
-  const wsl = wsLocal;
-
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
@@ -2970,11 +2980,12 @@ module.exports = function ( jq, wsLocal ) {
     if (data.type == 'test') {
       $.notify(data.message, "success");
     } else if (data.type == 'trigger') {
-      if (wsl) {
-        let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
-        wsl.send(JSON.stringify(message));
-        $.notify('The system will be start store dicom to your local.', "success");
-      }
+			/*************************/
+			/*
+      let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
+      wsl.send(JSON.stringify(message));
+      $.notify('The system will be start store dicom to your local.', "success");
+			*/
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
@@ -2983,25 +2994,28 @@ module.exports = function ( jq, wsLocal ) {
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
-      if (wsl) {
+			/*************************/
+			/*
         wsl.send(JSON.stringify(data));
-      }
+			*/
     } else if (data.type == 'cfindresult') {
       let evtData = { result: data.result, owner: data.owner, hospitalId: data.hospitalId, queryPath: data.queryPath};
       $("#RemoteDicom").trigger('cfindresult', [evtData]);
     } else if (data.type == 'move') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'cmoveresult') {
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId, patientID: data.patientID};
       setTimeout(()=>{
         $("#RemoteDicom").trigger('cmoveresult', [evtData]);
       }, 5000);
     } else if (data.type == 'run') {
-      if (wsl) {
-        wsl.send(JSON.stringify(data));
-      }
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
@@ -3024,6 +3038,10 @@ module.exports = function ( jq, wsLocal ) {
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			let eventName = 'createnewdicomtranserlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
     }
   };
 
@@ -3931,6 +3949,7 @@ module.exports = function ( jq ) {
     return new Promise(async function(resolve, reject){
       let resultRes = await apiconnector.doCallApi('/api/cases/result/'+ caseId, {});
       let resultReport = resultRes.Records[0];
+			let pdfStream = await util.doCreateDownloadPDF(resultReport.PDF_Filename);
       let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
       let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
       $(embetObject).appendTo($(resultBox));

@@ -1719,7 +1719,6 @@ module.exports = function ( jq ) {
   			} else {
           $("#username").css("border","");
           $("#password").css("border","");
-          console.log(response);
           localStorage.setItem('token', response.token);
 					localStorage.setItem('userdata', JSON.stringify(response.data));
   				const defualtSettings = {"itemperpage" : "20"};
@@ -1729,6 +1728,7 @@ module.exports = function ( jq ) {
           }
           let usertype = response.data.usertype.id;
 					let queryObj = urlQueryToObject(window.location.href);
+					console.log(queryObj);
 					if (queryObj.action) {
 						if (queryObj.action === 'callchat'){
 							let caseId = queryObj.caseId;
