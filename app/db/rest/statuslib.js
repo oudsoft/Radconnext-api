@@ -124,7 +124,7 @@ const onNewCaseEvent = function(caseId){
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
-
+    log.info('radioProfile=> ' + JSON.stringify(radioProfile));
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
     let userProfile = await common.doLoadUserProfile(userId);
 

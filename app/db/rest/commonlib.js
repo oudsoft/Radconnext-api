@@ -158,7 +158,7 @@ const doLoadRadioProfile = function(radioId){
     });
     */
     let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
-    let radioConfig = radioUserProfiles[0].Profile.caseAcc;
+    let radioConfig = radioUserProfiles[0].Profile.casenotify.line;
     let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, config: radioConfig};
     if ((radioUserLines) && (radioUserLines.length > 0)) {
       radioProfile.lineUserId = radioUserLines[0].UserId;
@@ -231,15 +231,37 @@ const doCreatetaskAction = function(caseId, userProfile, radioProfile, triggerPa
       let endDate = new Date(endTime);
       let endYY = endDate.getFullYear();
       let endMM = endDate.getMonth() + 1;
+      if (endMM < 10){
+         endMM = '0' + endMM;
+      } else {
+        endMM = '' + endMM;
+      }
       let endDD = endDate.getDate();
+      if (endDD < 10){
+         endDD = '0' + endDD;
+      } else {
+        endDD = '' + endDD;
+      }
       let endHH = endDate.getHours();
+      if (endHH < 10){
+         endHH = '0' + endHH;
+      } else {
+        endHH = '' + endHH;
+      }
       let endMN = endDate.getMinutes();
+      if (endMN < 10){
+         endMN = '0' + endMN;
+      } else {
+        endMN = '' + endMN;
+      }
       let endDateText = uti.parseStr('วันที่ %s-%s-%s เวลา %s:%s น. ', endYY, endMM, endDD, endHH, endMN);
       if (baseCaseStatusId == 1 ) {
         let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
-        let actionQuickReply = acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
-        let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, actionQuickReply);
-        await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+        let acceptActionMenu =  [{id: 'x401', displayText: 'รับ', data: caseId}, {id: 'x402', displayText: 'ไม่รับ', data: caseId}];
+        let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
+        //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, actionQuickReply);
+        //await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+        await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
         let lineCaseMsg = lineCaseDetaileMsg  + 'ระบบฯ ได้ทำการตอบรับเคสให้คุณโดยอัตโนมัติตามที่คุณตั้งค่าโปรไฟล์ไว้เรียบร้อยแล้ว\nเคสนี้จะหมดอายุภายใน ' + endDateText + '\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ';
         let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.mainMenu);

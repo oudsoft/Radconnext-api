@@ -1829,7 +1829,6 @@ $( document ).ready(function() {
 
 });
 
-/*
 function doCallLoginApi(user) {
   return new Promise(function(resolve, reject) {
     var loginApiUri = '/api/login/';
@@ -1842,7 +1841,6 @@ function doCallLoginApi(user) {
 		})
 	});
 }
-*/
 
 function doLoadRadioConfigApi(userId) {
   return new Promise(function(resolve, reject) {
@@ -4314,7 +4312,7 @@ module.exports = function ( jq ) {
     let caseAccSwitchControl = $('<div id="CaseAcccallSwitchControl"></div>');
     let caseAccSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
 		let caseAccSwitch = $(caseAccSwitchControl).readystate(caseAccSwitchOption);
-    if (profile.Profile.casenotify.auotacc == 1) {
+    if (profile.Profile.casenotify.autoacc == 1) {
       caseAccSwitch.onAction();
     } else {
       caseAccSwitch.offAction();
@@ -4411,7 +4409,7 @@ module.exports = function ( jq ) {
             lock: minuteValue,
             unlock: unlockOptionControl? 1:0
           },
-          auotacc: caseAcccallSwitchControl? 1:0,
+          autoacc: caseAcccallSwitchControl? 1:0,
           casenotify: {
             webmessage: webmessageSwitchControl? 1:0,
             line: lineSwitchControl? 1:0,
@@ -4431,8 +4429,7 @@ module.exports = function ( jq ) {
   const doCallSaveMyProfile = function(profileData){
     return new Promise(async function(resolve, reject) {
       $('body').loading('start');
-      const main = require('../main.js');
-			let userdata = JSON.parse(main.doGetUserData());
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let radioId = userdata.id;
 			let rqParams = undefined;
 			let apiUrl = undefined;
@@ -4484,8 +4481,7 @@ module.exports = function ( jq ) {
   const doCreateProfilePage = function(){
     return new Promise(async function(resolve, reject) {
       $('body').loading('start');
-			const main = require('../main.js');
-			const userdata = JSON.parse(main.doGetUserData());
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
       let myProfilePage = $('<div style="width: 100%;"></div>');
       let myProfileView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
       let myLockOptionBox = $('<div style="width: 100%;"></div>');
@@ -4524,7 +4520,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],15:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;

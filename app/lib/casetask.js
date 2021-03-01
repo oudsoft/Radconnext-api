@@ -43,7 +43,7 @@ function RadconCaseTask (socket, db, log) {
       }
       notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
       await socket.sendMessage(notify, username);
-      resolve(task);
+      resolve(endDate);
     });
   }
 

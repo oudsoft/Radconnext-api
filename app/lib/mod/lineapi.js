@@ -95,6 +95,31 @@ const createBotMenu = (question, action, items)=> {
 	}
 }
 
+const doCreateCaseAccBubbleReply = function(items) {
+	var bubbleItems = [];
+	items.forEach(function(item){
+		var ob = {type: "button", style: "primary", action: {}};
+		ob.action.type = "postback";
+		ob.action.label = item.displayText;
+		ob.action.data = "action=sel&itemid=" + item.id + "&data=" + item.data;
+		ob.action.displayText = item.displayText;
+		bubbleItems.push(ob);
+	});
+	return {
+		type: "flex",
+		altText: "This is a case Radiologist Reply",
+		contents: {
+		  type: "bubble",
+		  body: {
+  			type: "box",
+  			layout: "vertical",
+  			spacing: "md",
+  			contents: bubbleItems
+			}
+		}
+	};
+}
+
 module.exports = (dbconn, monitor) => {
   db = dbconn;
   log = monitor;
@@ -106,6 +131,7 @@ module.exports = (dbconn, monitor) => {
     acceptActionMenu,
     confirmMenu,
     backMenu,
+    doCreateCaseAccBubbleReply,
 
     getUserProfile,
     replyConnect,
