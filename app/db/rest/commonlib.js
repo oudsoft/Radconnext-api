@@ -258,6 +258,8 @@ const doCreatetaskAction = function(caseId, userProfile, radioProfile, triggerPa
       let endDateText = uti.parseStr('วันที่ %s-%s-%s เวลา %s:%s น. ', endYY, endMM, endDD, endHH, endMN);
       if (baseCaseStatusId == 1 ) {
         let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
+        let radioTitleCaseMsg = { type: "text",	text: lineCaseMsg };
+        await lineApi.pushConnect(radioProfile.lineUserId, radioTitleCaseMsg);
         let acceptActionMenu =  [{id: 'x401', displayText: 'รับ', data: caseId}, {id: 'x402', displayText: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
         //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, actionQuickReply);

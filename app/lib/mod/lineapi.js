@@ -101,7 +101,7 @@ const doCreateCaseAccBubbleReply = function(items) {
 		var ob = {type: "button", style: "primary", action: {}};
 		ob.action.type = "postback";
 		ob.action.label = item.displayText;
-		ob.action.data = "action=sel&itemid=" + item.id + "&data=" + item.data;
+		ob.action.data = "action=quick&itemid=" + item.id + "&data=" + item.data;
 		ob.action.displayText = item.displayText;
 		bubbleItems.push(ob);
 	});
