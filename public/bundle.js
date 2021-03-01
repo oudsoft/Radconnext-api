@@ -1941,11 +1941,11 @@ module.exports = function ( jq ) {
 		$('#LoginForm').hide();
 		$('#RegisterForm-Username').show();
 		$('#CheckUsernameCmd').on('click', (evt)=>{
-			let username = $('#username').val();
+			let username = $('#username1').val();
 			let password1 = $('#password1').val();
 			let password2 = $('#password2').val();
 			if (username !== '') {
-				$('#username').css('border', '');
+				$('#username1').css('border', '');
 				if (password1 !== ''){
 					$('#password1').css('border', '');
 					if (password2 !== '') {
@@ -1977,15 +1977,13 @@ module.exports = function ( jq ) {
 					$.notify('Password ต้องไม่ว่าง', 'error');
 				}
 			} else {
-				$('#username').css('border', '1px solid red');
+				$('#username1').css('border', '1px solid red');
 				$.notify('Username ต้องไม่ว่าง', 'error');
 			}
 		});
 	}
 
 	const doOpenUserInfoForm = function(username, password){
-		console.log(username);
-		console.log(password);
 		$('#RegisterForm-Username').hide();
 		$('#RegisterForm-Info').show();
 		$('#RegisterCmd').on('click', (evt)=>{

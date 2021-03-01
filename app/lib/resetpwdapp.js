@@ -12,6 +12,11 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 var db, Task, log;
 
+app.get('/list', (req, res) => {
+  let tasks = Task.getTasks();
+  res.json({status: {code: 200}, Task: tasks});
+});
+
 app.post('/new', (req, res) => {
   let email = req.body.email;
   let username = req.body.username;

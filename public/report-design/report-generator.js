@@ -108,17 +108,48 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
       let radioContactElement = undefined;
       let caseIdElement = undefined;
       let reportByElement = await elements.find((item)=>{
-        if (item === 'report_by') return item;
-      })
+        if (item.field === 'report_by') {
+          return item;
+        }
+      });
+      console.log('---' + JSON.stringify(reportByElement) + '-------');
+      //---{"classes":{},"disabled":false,"create":null,"elementType":"text","type":"dynamic","x":"710","y":"1070","width":"300","height":"30","fontsize":"24","fontweight":"normal","fontstyle":"normal","fontalign":"left","id":"text-element-25","title":"ทดสอบ สมัครใจดี","field":"report_by"}-------
       if (reportByElement) {
-        radioContactElement = {text: linkDisplayText, href: linkUrl, x: reportByElement.x, y: (reportByElement.y + 20)};
-        caseIdElement = {test: 'รหัสเคส ' + caseId, x: reportByElement.x, y: (reportByElement.y + 40)};
+        let atY = Number(reportByElement.y) + 30;
+        radioContactElement = {title: linkDisplayText, href: linkUrl, x: reportByElement.x, y: atY};
+        radioContactElement.width = reportByElement.width;
+        radioContactElement.height = reportByElement.height;
+        radioContactElement.fontsize = reportByElement.fontsize;
+        radioContactElement.fontweight = reportByElement.fontweight;
+        radioContactElement.fontstyle = reportByElement.fontstyle;
+        radioContactElement.fontalign = reportByElement.fontalign;
+
+        caseIdElement = {title: 'รหัสเคส ' + caseId, x: reportByElement.x, y: atY + 30};
+        caseIdElement.width = reportByElement.width;
+        caseIdElement.height = reportByElement.height;
+        caseIdElement.fontsize = reportByElement.fontsize;
+        caseIdElement.fontweight = reportByElement.fontweight;
+        caseIdElement.fontstyle = reportByElement.fontstyle;
+        caseIdElement.fontalign = reportByElement.fontalign;
       } else {
         radioContactElement = {text: linkDisplayText, href: linkUrl, x: 120, y: 1380};
-        caseIdElement = {test: 'รหัสเคส ' + caseId, x: 120, y: 1400};
+        radioContactElement.width = "300";
+        radioContactElement.height = "30";
+        radioContactElement.fontsize = "24";
+        radioContactElement.fontweight = "normal";
+        radioContactElement.fontstyle = "normal";
+        radioContactElement.fontalign = "left";
+
+        caseIdElement = {text: 'รหัสเคส ' + caseId, x: 220, y: 1380};
+        caseIdElement.width = "300";
+        caseIdElement.height = "30";
+        caseIdElement.fontsize = "24";
+        caseIdElement.fontweight = "normal";
+        caseIdElement.fontstyle = "normal";
+        caseIdElement.fontalign = "left";
       }
 
-      doCreateElement(wrapper, 'a', radioContactElec);
+      doCreateElement(wrapper, 'a', radioContactElement);
       doCreateElement(wrapper, 'text', caseIdElement);
     }
     setTimeout(()=> {
@@ -249,7 +280,7 @@ function doCreateElement(wrapper, elemType, elem){
     case "a":
       element = $("<div></div>");
       $(element).addClass("reportElement");
-      let linkElem = $('<a target="_blank" href="' + elem.href + '">' + elem.text + '</a>');
+      let linkElem = $('<a target="_blank" href="' + elem.href + '">' + elem.title + '</a>');
       $(element).append(linkElem);
       $(element).css({"left": elem.x + "px", "top": elem.y + "px"});
     break;
