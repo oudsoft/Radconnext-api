@@ -143,14 +143,13 @@ const onNewCaseEvent = function(caseId){
 
     //Load Urgent Profile
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.urgenttypeId}});
-
-    if (radioProfile.config == 0) {
+    if (radioProfile.autoacc == 0) {
       //Create Task Schedule
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
 
       let theTask = await common.doCreatetaskAction(caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg);
 
-    } else if (radioProfile.config == 1) {
+    } else if (radioProfile.autoacc == 1) {
       let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
       let acceptedCaseStatusId = acceptedCaseStatus[0].id;
       await newCase.setCasestatus(acceptedCaseStatus[0]);

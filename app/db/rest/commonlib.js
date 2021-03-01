@@ -158,8 +158,9 @@ const doLoadRadioProfile = function(radioId){
     });
     */
     let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
-    let radioConfig = radioUserProfiles[0].Profile.casenotify.line;
-    let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, config: radioConfig};
+    let radioLineNotify = radioUserProfiles[0].Profile.casenotify.line;
+    let radioAutoAcc = radioUserProfiles[0].Profile.autoacc;
+    let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, autoacc: radioAutoAcc, linenotify: radioLineNotify};
     if ((radioUserLines) && (radioUserLines.length > 0)) {
       radioProfile.lineUserId = radioUserLines[0].UserId;
     }
@@ -227,7 +228,7 @@ const doCreatetaskAction = function(caseId, userProfile, radioProfile, triggerPa
       }
     });
     // Chatbot message to Radio
-    if ((radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+    if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       let endDate = new Date(endTime);
       let endYY = endDate.getFullYear();
       let endMM = endDate.getMonth() + 1;
