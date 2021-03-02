@@ -95,9 +95,9 @@ const createBotMenu = (question, action, items)=> {
 	}
 }
 
-const doCreateCaseAccBubbleReply = function(items) {
+const doCreateCaseAccBubbleReply = function(data, cmdItems) {
 	var bubbleItems = [];
-	items.forEach(function(item){
+	cmdItems.forEach(function(item){
 		var ob = {type: "button", style: "primary", action: {}};
 		ob.action.type = "postback";
 		ob.action.label = item.displayText;
@@ -110,12 +110,108 @@ const doCreateCaseAccBubbleReply = function(items) {
 		altText: "This is a case Radiologist Reply",
 		contents: {
 		  type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: data.headerTitle,
+            size: "lg",
+            align: "start",
+            weight: "bold",
+            color: "#009813"
+          }
+        ]
+      },
 		  body: {
-  			type: "box",
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "box",
+            layout: "baseline",
+            margin: "lg",
+            contents: [
+              {
+                type: "text",
+                text: "วันเวลา",
+                align: "start",
+                color: "#C3C3C3"
+              },
+              {
+                type: "text",
+                text: data.caseDatetime,
+                align: "start",
+                color: "#000000"
+              }
+            ]
+          },
+          {
+            type: "box",
+            layout: "baseline",
+            margin: "lg",
+            contents: [
+              {
+                type: "text",
+                text: "รพ.",
+                align: "start",
+                color: "#C3C3C3"
+              },
+              {
+                type: "text",
+                text: data.hospitalName,
+                align: "start",
+                color: "#000000"
+              }
+            ]
+          },
+          {
+            type: "box",
+            layout: "baseline",
+            margin: "lg",
+            contents: [
+              {
+                type: "text",
+                text: data.urgentName,
+                align: "start",
+                color: "#C3C3C3"
+              },
+              {
+                type: "text",
+                text: data.expireDatetime,
+                align: "start",
+                color: "#000000"
+              }
+            ]
+          },
+          {
+            type: "box",
+            layout: "baseline",
+            margin: "lg",
+            contents: [
+              {
+                type: "text",
+                text: "ชื่อ",
+                align: "start",
+                color: "#C3C3C3"
+              },
+              {
+                type: "text",
+                text: data.patientName,
+                align: "start",
+                color: "#000000"
+              }
+            ]
+          }
+        ]
+			},
+      footer: {
+        type: "box",
   			layout: "vertical",
   			spacing: "md",
   			contents: bubbleItems
-			}
+      }
 		}
 	};
 }

@@ -114,13 +114,16 @@ const doActionAfterChange = function(fromStatus, onStatus, caseId) {
 
 const onNewCaseEvent = function(caseId){
   return new Promise(async function(resolve, reject) {
-    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const newCase = targetCases[0];
     const userId = newCase.userId;
     const hospitalId = newCase.hospitalId;
     const radioId = newCase.Case_RadiologistId;
-    const patientNameEN = newCase.patient.Patient_NameEN + ' ' + newCase.patient.Patient_LastNameEN;
+    const hospitalName = targetCase.Hos_Name;
+    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+    const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
+    const caseMsgData = {hospitalName, patientNameEN, patientNameTH};
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
@@ -147,7 +150,7 @@ const onNewCaseEvent = function(caseId){
       //Create Task Schedule
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
 
-      let theTask = await common.doCreatetaskAction(caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg);
+      let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
 
     } else if (radioProfile.autoacc == 1) {
       let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
@@ -155,7 +158,7 @@ const onNewCaseEvent = function(caseId){
       await newCase.setCasestatus(acceptedCaseStatus[0]);
       let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
 
-      let theTask = await common.doCreatetaskAction(caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg);
+      let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
 
     }
     let actions = await doGetControlStatusAt(newCase.casestatusId);
@@ -165,14 +168,16 @@ const onNewCaseEvent = function(caseId){
 
 const onAcceptCaseEvent = function(caseId) {
   return new Promise(async function(resolve, reject) {
-    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
     const userId = targetCase.userId;
     const hospitalId = targetCase.hospitalId;
     const radioId = targetCase.Case_RadiologistId;
+    const hospitalName = targetCase.Hos_Name;
     const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-
+    const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
+    const caseMsgData = {hospitalName, patientNameEN, patientNameTH};
     tasks.removeTaskByCaseId(targetCase.id);
 
     //Load Radio radioProfile
@@ -195,7 +200,7 @@ const onAcceptCaseEvent = function(caseId) {
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
     let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
 
-    let theTask = await common.doCreatetaskAction(caseId, userProfile, radioProfile, triggerParam, targetCase.asestatusId, lineCaseDetaileMsg);
+    let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, targetCase.asestatusId, lineCaseDetaileMsg, caseMsgData);
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);

@@ -215,7 +215,7 @@ const doCaseExpireAction = function(caseId, socket, newcaseStatusId, radioProfil
   });
 }
 
-const doCreatetaskAction = function(caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg){
+const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg, caseMsgData){
   return new Promise(async function(resolve, reject) {
     const action = 'quick';
     let endTime = await tasks.doCreateNewTask(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
@@ -229,39 +229,23 @@ const doCreatetaskAction = function(caseId, userProfile, radioProfile, triggerPa
     });
     // Chatbot message to Radio
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-      let endDate = new Date(endTime);
-      let endYY = endDate.getFullYear();
-      let endMM = endDate.getMonth() + 1;
-      if (endMM < 10){
-         endMM = '0' + endMM;
-      } else {
-        endMM = '' + endMM;
-      }
-      let endDD = endDate.getDate();
-      if (endDD < 10){
-         endDD = '0' + endDD;
-      } else {
-        endDD = '' + endDD;
-      }
-      let endHH = endDate.getHours();
-      if (endHH < 10){
-         endHH = '0' + endHH;
-      } else {
-        endHH = '' + endHH;
-      }
-      let endMN = endDate.getMinutes();
-      if (endMN < 10){
-         endMN = '0' + endMN;
-      } else {
-        endMN = '' + endMN;
-      }
-      let endDateText = uti.parseStr('วันที่ %s-%s-%s เวลา %s:%s น. ', endYY, endMM, endDD, endHH, endMN);
+      let fmtNowDate = uti.doFormateDateTime();
+      let fmtEndDate = uti.doFormateDateTime(endTime);
       if (baseCaseStatusId == 1 ) {
-        let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
-        let radioTitleCaseMsg = { type: "text",	text: lineCaseMsg };
-        await lineApi.pushConnect(radioProfile.lineUserId, radioTitleCaseMsg);
+        //let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
+        //let radioTitleCaseMsg = { type: "text",	text: lineCaseMsg };
+        //await lineApi.pushConnect(radioProfile.lineUserId, radioTitleCaseMsg);
+        let dataOnCaseBot = {
+          headerTitle: 'แจ้งเคสใหม่',
+          caseDatetime: uti.parseStr('%s-%s-%s %s:%s น. ', fmtNowDate.YY, fmtNowDate.MM, fmtNowDate.DD, fmtNowDate.HH, fmtNowDate.MN),
+          hospitalName: caseMsgData.hospitalName,
+          urgentName: 'กำหนดเวลาตอบรับ',
+          expireDatetime: uti.parseStr('%s-%s-%s %s:%s น. ', fmtEndDate.YY, fmtEndDate.MM, fmtEndDate.DD, fmtEndDate.HH, fmtEndDate.MN),
+          patientName: caseMsgData.patientNameEN
+        };
         let acceptActionMenu =  [{id: 'x401', displayText: 'รับ', data: caseId}, {id: 'x402', displayText: 'ไม่รับ', data: caseId}];
-        let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
+        let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
+        //let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
         //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, actionQuickReply);
         //await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
@@ -352,7 +336,7 @@ module.exports = (dbconn, monitor, casetask) => {
     doLoadUserProfile,
     doLoadRadioProfile,
     doCaseExpireAction,
-    doCreatetaskAction,
+    doCreateTaskAction,
     doSaveScanpartAux,
     doCaseChangeStatusKeepLog,
     doCollectRadioCurrentState

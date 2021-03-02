@@ -90,6 +90,42 @@ const doMyLoadOrthanc = function(myOrthancId, hostname){
 	});
 }
 
+const doFormateDateTime = function(dateIn){
+	let date = undefined;
+	if (dateIn) {
+		date = new Date(endTime);
+	} else {
+		date = new Date();
+	}
+	let YY = date.getFullYear();
+	let MM = date.getMonth() + 1;
+	if (MM < 10){
+		 MM = '0' + MM;
+	} else {
+		MM = '' + MM;
+	}
+	let DD = date.getDate();
+	if (DD < 10){
+		 DD = '0' + DD;
+	} else {
+		DD = '' + DD;
+	}
+	let HH = date.getHours();
+	if (HH < 10){
+		 HH = '0' + HH;
+	} else {
+		HH = '' + HH;
+	}
+	let MN = date.getMinutes();
+	if (MN < 10){
+		 MN = '0' + MN;
+	} else {
+		MN = '' + MN;
+	}
+
+	return ({YY, MM, DD, HH, MN});
+}
+
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
@@ -98,6 +134,7 @@ module.exports = (dbconn, monitor) => {
     runcommand,
     parseStr,
 		doLoadOrthancTarget,
-		doMyLoadOrthanc
+		doMyLoadOrthanc,
+		doFormateDateTime
   }
 }
