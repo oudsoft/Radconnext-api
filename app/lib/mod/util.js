@@ -93,7 +93,7 @@ const doMyLoadOrthanc = function(myOrthancId, hostname){
 const doFormateDateTime = function(dateIn){
 	let date = undefined;
 	if (dateIn) {
-		date = new Date(endTime);
+		date = new Date(dateIn);
 	} else {
 		date = new Date();
 	}

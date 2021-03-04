@@ -127,6 +127,7 @@ function doLoadMainPage(){
 	let customUrgentPlugin = "../setting/plugin/jquery-custom-urgent-plugin.js";
 	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js"
   let customSelectPlugin = "../setting/plugin/jquery-custom-select-plugin.js";
+  let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
 
 	$('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
 	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -143,6 +144,7 @@ function doLoadMainPage(){
 	$('head').append('<script src="' + customUrgentPlugin + '"></script>');
 	$('head').append('<script src="' + controlPagePlugin + '"></script>');
   $('head').append('<script src="' + customSelectPlugin + '"></script>');
+  $('head').append('<script src="' + utilityPlugin + '"></script>');
 
 	$('head').append('<link rel="stylesheet" href="../lib/tui-image-editor.min.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="../lib/tui-color-picker.css" type="text/css" />');
@@ -275,7 +277,7 @@ function doLoadMainPage(){
       $(document).on('gotoportal', (evt, data)=>{
         window.location.replace('/portal/index.html');
       });
-      
+
 			doUseFullPage();
 			newcase.doLoadDicomFromOrthanc();
       casecounter.doSetupCounter();
@@ -1053,7 +1055,7 @@ module.exports = function ( jq ) {
 									doPrintCaseReport(caseItem.case.id);
 								break;
 								case 'convert':
-									doConvertCaseReport(caseItem.case.id, caseItem.case.Case_StudyInstanceUID, caseItem.case.OrthancStudyID, caseItem.case.Case_Modality);
+									doConvertCaseReport(caseItem.case.id, caseItem.case.Case_StudyInstanceUID, caseItem.case.Case_OrthancStudyID, caseItem.case.Case_Modality);
 								break;
 								case 'calcel':
 									doCancelCase(caseItem.case.id);
@@ -1314,7 +1316,7 @@ module.exports = function ( jq ) {
 
 					let convertResultButton = $('<img class="pacs-command-dd" data-toggle="tooltip" src="/images/convert-icon.png" title="Convert Result to Dicom."/>');
 					$(convertResultButton).click(function() {
-						doConvertCaseReport(incidents[i].case.id, incidents[i].case.Case_StudyInstanceUID, incidents[i].case.OrthancStudyID, incidents[i].case.Case_Modality);
+						doConvertCaseReport(incidents[i].case.id, incidents[i].case.Case_StudyInstanceUID, incidents[i].case.Case_OrthancStudyID, incidents[i].case.Case_Modality);
 					});
 					$(convertResultButton).appendTo($(operationCmdBox));
 
@@ -2350,7 +2352,6 @@ module.exports = function ( jq ) {
 			break;
 
 			case 'edit':
-			console.log('test');
 			$(cmdIcon).attr('src','/images/status-icon.png');
 			$(cmdIcon).attr('title', 'Edit Result.');
 			break;
@@ -3011,10 +3012,51 @@ module.exports = function ( jq ) {
 					goToSecondStep();
 				} else {
 					if (defualtValue.caseId) {
+						//Update Case
 						openStoneWebViewerCounter += 1;
 						goToSecondStep();
 					} else {
-						let confirmImageInstance = confirm('โปรดยืนยันว่าคุณได้ตรวจสอบจำนวน Series มี ' + allSeries + ' ซีรีส์ และจำนวนภาพ มี ' + allImageInstances + ' ภาพ\nครบถูกต้องแล้ว');
+						//New Case
+						//let confirmImageInstance = confirm('โปรดยืนยันว่าคุณได้ตรวจสอบจำนวน Series มี ' + allSeries + ' ซีรีส์ และจำนวนภาพ มี ' + allImageInstances + ' ภาพ\nครบถูกต้องแล้ว');
+
+						let radAlertMsg = $('<div></div>');
+						$(radAlertMsg).append($('<p>คุณได้ตรวจสอบจำนวน Series และ จำนวนภาพ ทั้งหมดใน Study นี้ ครบถูกต้องแล้วดังนี้</p>'));
+						$(radAlertMsg).append($('<p>จำนวน Series เท่ากับ <b>' + allSeries + '</b> ซีรีส์</p>'));
+						$(radAlertMsg).append($('<p>จำนวน ภาพ เท่ากับ <b>' + allImageInstances + '</b> ภาพ</p>'));
+						$(radAlertMsg).append($('<p><b>ใช่ หรือไม่?</b></p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ใช่</b> คลิกปุ่ม <b>ตกลง</b> เพื่อไปขั้นตอนต่อไป</p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ไม่ใช่</b> คลิกปุ่ม <b>ยกเลิก</b> เพื่อตรวจสอบให้แน่ใจ</p>'));
+						const radconfirmoption = {
+				      title: 'โปรดยืนยัน',
+				      msg: $(radAlertMsg),
+				      width: '420px',
+				      onOk: function(evt) {
+								radConfirmBox.closeAlert();
+								openStoneWebViewerCounter += 1;
+								goToSecondStep();
+				      },
+				      onCancel: function(evt){
+								//alert('โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้\nและกลับมาดำเนินการต่อในขั้นตอนต่อไป');
+								radConfirmBox.closeAlert();
+								$(radAlertMsg).empty();
+								$(radAlertMsg).append($('<p>โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้</p>'));
+								$(radAlertMsg).append($('<p>และกลับมาดำเนินการต่อในขั้นตอนต่อไป</p>'));
+								const radalertoption = {
+									title: 'โปรตรวจสอบ',
+						      msg: $(radAlertMsg),
+						      width: '420px',
+						      onOk: function(evt) {
+										radAlertBox.closeAlert();
+									}
+								};
+								let radAlertBox = $('body').radalert(radalertoption);
+								$(radAlertBox.cancelCmd).hide();
+								$(previewCmd).click();
+								openStoneWebViewerCounter += 1;
+				      }
+				    }
+				    let radConfirmBox = $('body').radalert(radconfirmoption);
+						/*
 						if (confirmImageInstance) {
 							openStoneWebViewerCounter += 1;
 							goToSecondStep();
@@ -3023,6 +3065,7 @@ module.exports = function ( jq ) {
 							$(previewCmd).click();
 							openStoneWebViewerCounter += 1;
 						}
+						*/
 					}
 				}
 			});
@@ -4734,6 +4777,18 @@ module.exports = function ( jq ) {
     return indexOf.call(this, needle) > -1;
 	};
 
+	const doCreateDownloadPDF = function(pdfLink){
+	  return new Promise(async function(resolve, reject){
+	    $.ajax({
+		    url: pdfLink,
+		    success: function(response){
+					let stremLink = URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+	        resolve(stremLink);
+				}
+			});
+	  });
+	}
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -4764,6 +4819,7 @@ module.exports = function ( jq ) {
 		doConnectWebsocketLocal,
 		isMobileDeviceCheck,
 		contains,
+		doCreateDownloadPDF,
 		/*  Web Socket Interface */
 		wsm
 	}

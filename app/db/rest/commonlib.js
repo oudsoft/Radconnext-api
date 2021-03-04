@@ -200,14 +200,14 @@ const doCaseExpireAction = function(caseId, socket, newcaseStatusId, radioProfil
     // Chatbot message to Radio
     if ((radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       let lineCaseMsg = lineCaseDetaileMsg + 'หมดเวลาในช่วงรอตอบรับ หากคุณต้องการใช้บริการอื่นเชิญเลือกจากเมนูครับ';
-      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.mainMenu);
+      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
       await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
     }
 
     // Chatbot message to Owner Case
     if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
       let lineCaseMsg = lineCaseDetaileMsg + 'ได้หมดเวลาในช่วงรอการตอบรับจากรังสีแพทยแล้วครับ\nคุณสามารถใช้บริการอื่นจากเมนูครับ';
-      let lineMsg = lineApi.createBotMenu(lineCaseMsg, action, lineApi.mainMenu);
+      let lineMsg = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
       await lineApi.pushConnect(userProfile.lineUserId, lineMsg);
     }
 
@@ -227,11 +227,14 @@ const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerPa
         tasks.removeTaskByCaseId(caseId);
       }
     });
+    let fmtEndDate = uti.doFormateDateTime(endTime);
+    let endDateText = uti.parseStr('%s-%s-%s %s:%s น. ', fmtEndDate.YY, fmtEndDate.MM, fmtEndDate.DD, fmtEndDate.HH, fmtEndDate.MN);
+
     // Chatbot message to Radio
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       let fmtNowDate = uti.doFormateDateTime();
-      let fmtEndDate = uti.doFormateDateTime(endTime);
       if (baseCaseStatusId == 1 ) {
+
         //let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
         //let radioTitleCaseMsg = { type: "text",	text: lineCaseMsg };
         //await lineApi.pushConnect(radioProfile.lineUserId, radioTitleCaseMsg);
@@ -239,23 +242,27 @@ const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerPa
           headerTitle: 'แจ้งเคสใหม่',
           caseDatetime: uti.parseStr('%s-%s-%s %s:%s น. ', fmtNowDate.YY, fmtNowDate.MM, fmtNowDate.DD, fmtNowDate.HH, fmtNowDate.MN),
           hospitalName: caseMsgData.hospitalName,
-          urgentName: 'กำหนดเวลาตอบรับ',
-          expireDatetime: uti.parseStr('%s-%s-%s %s:%s น. ', fmtEndDate.YY, fmtEndDate.MM, fmtEndDate.DD, fmtEndDate.HH, fmtEndDate.MN),
+          urgentName: 'กำหนดตอบรับ',
+          expireDatetime: endDateText,
           patientName: caseMsgData.patientNameEN
         };
-        let acceptActionMenu =  [{id: 'x401', displayText: 'รับ', data: caseId}, {id: 'x402', displayText: 'ไม่รับ', data: caseId}];
+        let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
+        //log.info('bubbleMenu=>' + JSON.stringify(bubbleMenu));
         //let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
-        //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, actionQuickReply);
+        //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, 'quick', acceptActionMenu);
+        //log.info('menuQuickReply=>' + JSON.stringify(menuQuickReply));
         //await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
-        let lineCaseMsg = lineCaseDetaileMsg  + 'ระบบฯ ได้ทำการตอบรับเคสให้คุณโดยอัตโนมัติตามที่คุณตั้งค่าโปรไฟล์ไว้เรียบร้อยแล้ว\nเคสนี้จะหมดอายุภายใน ' + endDateText + '\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ';
-        let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.mainMenu);
+        let lineCaseMsgFmt = 'เคสใหม่\nชื่อ %s\nรพ.%s\nได้ถูกตอบรับโดยอัตโนมัติโดยระบบฯ ตามที่คุณได้ตั้งค่าไว้\nกำหนดส่งผลอ่าน %s\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
+        let lineCaseMsg = uti.parseStr(lineCaseMsgFmt, caseMsgData.patientNameEN, caseMsgData.hospitalName, endDateText);
+
+        let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
           lineCaseMsg = lineCaseDetaileMsg  + 'ได้ถูกตอบรับโดยรังสีแพทย์เรียบร้อยแล้ว\nเคสนี้จะหมดอายุสำหรับส่งผลอ่านภายใน ' + endDateText + '\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ';
-          let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.mainMenu);
+          menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
           await lineApi.pushConnect(userProfile.lineUserId, menuQuickReply);
         }
       }

@@ -120,9 +120,9 @@ const onNewCaseEvent = function(caseId){
     const userId = newCase.userId;
     const hospitalId = newCase.hospitalId;
     const radioId = newCase.Case_RadiologistId;
-    const hospitalName = targetCase.Hos_Name;
-    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-    const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
+    const hospitalName = newCase.hospital.Hos_Name;
+    const patientNameEN = newCase.patient.Patient_NameEN + ' ' + newCase.patient.Patient_LastNameEN;
+    const patientNameTH = newCase.patient.Patient_NameTH + ' ' + newCase.patient.Patient_LastNameTH;
     const caseMsgData = {hospitalName, patientNameEN, patientNameTH};
 
     //Load Radio radioProfile
@@ -174,7 +174,7 @@ const onAcceptCaseEvent = function(caseId) {
     const userId = targetCase.userId;
     const hospitalId = targetCase.hospitalId;
     const radioId = targetCase.Case_RadiologistId;
-    const hospitalName = targetCase.Hos_Name;
+    const hospitalName = targetCase.hospital.Hos_Name;
     const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
     const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
     const caseMsgData = {hospitalName, patientNameEN, patientNameTH};
@@ -295,7 +295,7 @@ const onSuccessCaseEvent = function(caseId){
 
     if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
       let lineCaseMsg = lineCaseDetaileMsg + 'ได้รับผลอ่านจากรังสีแพทยแล้วครับ\nคุณสามารถใช้บริการอื่นจากเมนูครับ';
-      let lineMsg = lineApi.createBotMenu(lineCaseMsg, 'quick', lineApi.mainMenu);
+      let lineMsg = lineApi.createBotMenu(lineCaseMsg, 'quick', lineApi.techMainMenu);
       await lineApi.pushConnect(userProfile.lineUserId, lineMsg);
     }
     let actions = await doGetControlStatusAt(targetCase.casestatusId);

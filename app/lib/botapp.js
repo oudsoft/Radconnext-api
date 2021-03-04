@@ -78,7 +78,7 @@ const doCreateRadconToken = (userId) => {
   });
 }
 
-const postbackMessageHandle = (userId, replyToken, cmds)=>{
+const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
   return new Promise(async function(resolve, reject) {
     /* ob.action.data = "action=" + action + "&itemid=" + item.id + "&data=" + item.id, */
     /* var cmds = userEvent.postback.data.split("&"); */
@@ -94,12 +94,22 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
         var rqParams;
         var rqBody;
         var caseRes;
-        var actionReturnText;
+        var caseInclude;
+        var actionReturnTextFmt, targetCases, targetCase, hospitalName, patientNameEN;
+        var actionReturnText, userHandle;
         switch (cmdCode) {
           case 'x001':
             var backToMainMunuMsg = 'เชิญเลือกคำสั่งจากเมนูด้านล่างครับ';
             action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            if (radUser.usertypeId==2){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.techMainMenu));
+            } else if (radUser.usertypeId==4){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.radioMainMenu));
+            } else if (radUser.usertypeId==6){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            }
             resolve();
           break;
           case 'x002':
@@ -110,13 +120,35 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
           case 'x003':
             var backToMainMunuMsg = 'เชิญเลือกคำสั่งจากเมนูด้านล่างครับ';
             action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            if (radUser.usertypeId==2){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.techMainMenu));
+            } else if (radUser.usertypeId==4){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.radioMainMenu));
+            } else if (radUser.usertypeId==6){
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu(backToMainMunuMsg, action, lineApi.mainMenu));
+            }
             resolve();
           break;
           case 'x101':
-            var regiterMunuMsg = 'เชิญเลือกลงทะเบียนตามประเภทผู้ใช้งานจากเมนูด้านล่างครับ';
             action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(regiterMunuMsg, action, lineApi.registerMenu));
+            let userRegs = await doCheckUserRegistered(userId);
+            if (userRegs.length == 0){
+              var regiterMunuMsg = 'เชิญเลือกลงทะเบียนตามประเภทผู้ใช้งานจากเมนูด้านล่างครับ';
+              await replyAction(replyToken, lineApi.createBotMenu(regiterMunuMsg, action, lineApi.registerMenu));
+            } else {
+              var regiteredMunuMsg = 'คุณได้ลงทะเบียนใช้งานไปแล้ว\nใช้งานอื่นจากเมนูด้านล่างครับ';
+              if (radUser.usertypeId==2){
+                await replyAction(replyToken, lineApi.createBotMenu(regiteredMunuMsg, action, lineApi.techMainMenu));
+              } else if (radUser.usertypeId==4){
+                await replyAction(replyToken, lineApi.createBotMenu(regiteredMunuMsg, action, lineApi.radioMainMenu));
+              } else if (radUser.usertypeId==6){
+                await replyAction(replyToken, lineApi.createBotMenu(regiteredMunuMsg, action, lineApi.mainMenu));
+              } else {
+                await replyAction(replyToken, lineApi.createBotMenu(regiteredMunuMsg, action, lineApi.mainMenu));
+              }
+            }
             resolve();
           break;
           case 'x102':
@@ -129,7 +161,7 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
             resolve();
           break;
           case 'x201':
-            var userHandle = {userId: userId, content: {mode: 'key', field: 'username', usertype: 4}};
+            userHandle = {userId: userId, content: {mode: 'key', field: 'username', usertype: 4}};
             sessionHandleStorages.push(userHandle);
             guideMsg = 'โปรดป้อน username ของรังสีแพทย์ที่ต้องการลงทะเบียนครับ';
             lineMessage = { type: "text",	text: guideMsg };
@@ -137,9 +169,17 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
             resolve();
           break;
           case 'x202':
-            var userHandle = {userId: userId, content: {mode: 'key', field: 'username', usertype: 2}};
+            userHandle = {userId: userId, content: {mode: 'key', field: 'username', usertype: 2}};
             sessionHandleStorages.push(userHandle);
             guideMsg = 'โปรดป้อน username ของเจ้าหน้าที่เทคนิคที่ต้องการลงทะเบียนครับ';
+            lineMessage = { type: "text",	text: guideMsg };
+            await replyAction(replyToken, lineMessage);
+            resolve();
+          break;
+          case 'x203':
+            userHandle = {userId: userId, content: {mode: 'key', field: 'username', usertype: 6}};
+            sessionHandleStorages.push(userHandle);
+            guideMsg = 'โปรดป้อน username ของผู้ดูแลระบบที่ต้องการลงทะเบียนครับ';
             lineMessage = { type: "text",	text: guideMsg };
             await replyAction(replyToken, lineMessage);
             resolve();
@@ -152,7 +192,15 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
     				userHelpText += helper[hid];
             userHelpText += '\n\nหากต้องการใช้บริการใดๆ ของผม โปรดเลือกจากเมนูครับ';
             action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.mainMenu));
+            if (users[0].usertypeId==2){
+              await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.techMainMenu));
+            } else if (users[0].usertypeId==4){
+              await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.radioMainMenu));
+            } else if (users[0].usertypeId==6){
+              await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.mainMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.mainMenu));
+            }
             resolve();
           break;
           case 'x302':
@@ -166,6 +214,16 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
           break;
           case 'x401':
             /* radio accept new cse*/
+            caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
+            targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+            targetCase = targetCases[0];
+            hospitalName = targetCase.hospital.Hos_Name;
+            patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+            actionReturnTextFmt = 'ดำเนินการตอบรับเคส\nชื่อ %s\nรพ. %s\nไปเรียบร้อยแล้ว\nอีกสักครู่ระบบฯ จะแจ้งกำหนดเวลาส่งผลอ่าน\nหากต้องการใช้บริการอื่นๆ โปรดเลือกจากเมนูครับ';
+            actionReturnText = uti.parseStr(actionReturnTextFmt, patientNameEN, hospitalName);
+            action = 'quick';
+            await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+
             yourToken = await doCreateRadconToken(userId);
             rqBody = { userId: yourToken.userId, caseId: data, casestatusId: 2, caseDescription: 'Accept by Line Bot'};
             rqParams = {
@@ -176,13 +234,20 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
             }
             caseRes = uti.proxyRequest(rqParams);
             log.info('your Accept caseRes => ' + JSON.stringify(caseRes));
-            actionReturnText = 'ดำเนินการตอบรับเคสใหม่ไปเรียบร้อยแล้ว\nหากต้องการใช้บริการอื่นๆ โปรดเลือกจากเมนูครับ';
-            action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.mainMenu));
             resolve();
           break;
           case 'x402':
             /* radio not accept new cse*/
+            caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
+            targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+            targetCase = targetCases[0];
+            hospitalName = targetCase.hospital.Hos_Name;
+            patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+            actionReturnTextFmt = 'ดำเนินการปฏิเสธเคส\nชื่อ %s\nรพ. %s\nไปเรียบร้อยแล้ว\nหากต้องการใช้บริการอื่นๆ โปรดเลือกจากเมนูครับ';
+            actionReturnText = uti.parseStr(actionReturnTextFmt, patientNameEN, hospitalName);
+            action = 'quick';
+            await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+
             yourToken = await doCreateRadconToken(userId);
             rqBody = { userId: yourToken.userId, caseId: data, casestatusId: 3, caseDescription: 'Not Accept by Line Bot'};
             rqParams = {
@@ -193,9 +258,6 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
             }
             caseRes = uti.proxyRequest(rqParams);
             log.info('your Not Accept caseRes => ' + JSON.stringify(caseRes));
-            actionReturnText = 'ดำเนินการปฏิเสธรับเคสใหม่ไปเรียบร้อยแล้ว\nหากต้องการใช้บริการอื่นๆ โปรดเลือกจากเมนูครับ';
-            action = 'quick';
-            await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.mainMenu));
             resolve();
           break;
         }
@@ -204,7 +266,7 @@ const postbackMessageHandle = (userId, replyToken, cmds)=>{
   });
 }
 
-const textMessageHandle = (userId, replyToken, userText)=>{
+const textMessageHandle = (userId, replyToken, userText, radUser)=>{
   return new Promise(async (resolve, reject)=>{
     let action;
     let replyMsg;
@@ -229,7 +291,15 @@ const textMessageHandle = (userId, replyToken, userText)=>{
               }
               action = 'quick';
               replyMsg = 'ระบบฯ ได้ทำการได้ทำการลงทะเบียน ' + userText + ' ใช้งานระบบฯ คู่กับ Line ของคุณเป็นที่เรียบร้อยแล้วครับ\nหากต้องการใช้บริการอย่างอื่นโปรดเลือกคำสั่งจากเมนูครับ'
-              await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+              if (users[0].usertypeId==2){
+                await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.techMainMenu));
+              } else if (users[0].usertypeId==4){
+                await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.radioMainMenu));
+              } else if (users[0].usertypeId==6){
+                await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+              } else {
+                await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+              }
               await removeSessionHandle(userId);
             } else {
               action = 'quick';
@@ -247,15 +317,51 @@ const textMessageHandle = (userId, replyToken, userText)=>{
             await pushAction(process.env.LINE_ADMIN_USERID, msgToAdmin);
             action = 'quick';
             replyMsg = 'ระบบฯ ได้ทำการบันทึกปัญหาการใช้งานของคุณและแจ้งไปยังผู้รับผิดชอบเป็นที่เรียบร้อยแล้วครับ\nหากต้องการใช้บริการอย่างอื่นโปรดเลือกคำสั่งจากเมนูครับ'
-            await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+            if (radUser.usertypeId==2){
+              await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.techMainMenu));
+            } else if (radUser.usertypeId==4){
+              await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.radioMainMenu));
+            } else if (radUser.usertypeId==6){
+              await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+            }
             await removeSessionHandle(userId);
           }
         break;
       }
     } else {
       action = 'quick';
-      replyMsg = 'ต้องขออภัยด้วยจริงๆ ครับ ผมไมอาจ่เข้าใจในสิ่งที่คุณส่งเข้ามา โปรดเลือกใช้บริการของผมจากเมนูครับ'
-      await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+      replyMsg = 'ต้องขออภัยด้วยจริงๆ ครับ ผมไมอาจ่เข้าใจในสิ่งที่คุณส่งเข้ามา โปรดเลือกใช้บริการของผมจากเมนูครับ';
+      if (radUser.usertypeId==2){
+        await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.techMainMenu));
+      } else if (radUser.usertypeId==4){
+        await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.radioMainMenu));
+      } else if (radUser.usertypeId==6){
+        await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+      } else {
+        await replyAction(replyToken, lineApi.createBotMenu(replyMsg, action, lineApi.mainMenu));
+      }
+    }
+  });
+}
+
+const doCheckUserRegistered = function(lineId) {
+  return new Promise(async (resolve, reject)=>{
+    const userLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {	UserId: lineId}});
+    resolve(userLines);
+  });
+}
+
+const doCallUserType = function(lineId){
+  return new Promise(async (resolve, reject)=>{
+    const userLines = await db.lineusers.findAll({ attributes: ['id', 'UserId', 'userId'], where: {	UserId: lineId}});
+    let userId = userLines[0].userId;
+    const users = await db.users.findAll({ attributes: ['id', 'username', 'usertypeId'], where: {	id: userId}});
+    if (users.length > 0){
+      resolve(users[0]);
+    } else {
+      resolve();
     }
   });
 }
@@ -270,30 +376,47 @@ app.post('/', async function(req, res) {
   var userdata;
   var userProfile;
   var displayName;
+  var username;
+  var usertypeId;
 
   let userEvent = req.body.events[0];
   let replyToken = userEvent.replyToken;
 	let userId = userEvent.source.userId;
 	let destination = req.body.destination;
+  let radUser = await doCallUserType(userId);
+  if (radUser) {
+    username = radUser.username;
+  } else {
+    usertypeId = radUser.usertypeId;
+  }
+
   switch (userEvent.type) {
     case 'message':
       let userMessageType = userEvent.message.type;
       switch (userMessageType) {
         case 'text':
           var userText = userEvent.message.text;
-          await textMessageHandle(userId, replyToken, userText);
+          await textMessageHandle(userId, replyToken, userText, radUser);
         break;
         case 'image':
           var imageId = userEvent.message.id;
           var unSupportMsg = 'ต้องขออภัยระบบยังรองรับฟังก์ชั่นนี้ในขณะนี้\nโปรดใช้เมนูจากด้านล่างครับ';
           var action = 'quick';
-          await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
+          if (usertypeId==2){
+            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.techMainMenu));
+          } else if (usertypeId==4){
+            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.radioMainMenu));
+          } else if (usertypeId==6){
+            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
+          } else {
+            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
+          }
         break;
       }
     break;
     case 'postback':
       var cmds = userEvent.postback.data.split("&");
-      await postbackMessageHandle(userId, replyToken, cmds);
+      await postbackMessageHandle(userId, replyToken, cmds, radUser);
     break;
     case 'follow':
       try {

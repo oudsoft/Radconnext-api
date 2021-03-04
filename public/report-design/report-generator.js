@@ -100,11 +100,22 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
     if (qrcodeLink) {
       let qrcodeElem = {url: qrcodeLink, x: 10, y: 1310, width: 100};
       doCreateElement(wrapper, 'image', qrcodeElem);
+      if (caseId) {
+        let qrlink = 'https://radconnext.info/portal?caseId=' + caseId;
+        let qrlinkElem = {title: qrlink, href: qrlink, x: 15, y: 1410};
+        qrlinkElem.width = "300";
+        qrlinkElem.height = "30";
+        qrlinkElem.fontsize = "20";
+        qrlinkElem.fontweight = "normal";
+        qrlinkElem.fontstyle = "normal";
+        qrlinkElem.fontalign = "left";
+        doCreateElement(wrapper, 'a', qrlinkElem);
+      }
     }
     if (caseId) {
       const linkDisplayText = 'ติดต่อรังสีแพทย์';
       //const linkUrl = 'https://radconnext.info/refer/callradio.html?caseId=' + caseId;
-      const linkUrl = 'ChromeHTML:// radconnext.info/refer/callradio.html?caseId=' + caseId;
+      const linkUrl = 'https://radconnext.info/refer/callrad.html?caseId=' + caseId;
       let radioContactElement = undefined;
       let caseIdElement = undefined;
       let reportByElement = await elements.find((item)=>{
@@ -112,8 +123,6 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
           return item;
         }
       });
-      console.log('---' + JSON.stringify(reportByElement) + '-------');
-      //---{"classes":{},"disabled":false,"create":null,"elementType":"text","type":"dynamic","x":"710","y":"1070","width":"300","height":"30","fontsize":"24","fontweight":"normal","fontstyle":"normal","fontalign":"left","id":"text-element-25","title":"ทดสอบ สมัครใจดี","field":"report_by"}-------
       if (reportByElement) {
         let atY = Number(reportByElement.y) + 30;
         radioContactElement = {title: linkDisplayText, href: linkUrl, x: reportByElement.x, y: atY};
@@ -124,7 +133,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
         radioContactElement.fontstyle = reportByElement.fontstyle;
         radioContactElement.fontalign = reportByElement.fontalign;
 
-        caseIdElement = {title: 'รหัสเคส ' + caseId, x: reportByElement.x, y: atY + 30};
+        caseIdElement = {title: 'รหัสเคส ' + caseId, x: reportByElement.x, y: atY + 20};
         caseIdElement.width = reportByElement.width;
         caseIdElement.height = reportByElement.height;
         caseIdElement.fontsize = reportByElement.fontsize;

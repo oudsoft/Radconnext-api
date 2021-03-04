@@ -12,84 +12,76 @@ const inputStyleClass = {"font-family": "THSarabunNew", "font-size": "24px"};
 
 var wsm;
 
-const doCallApi = function (apiurl, params) {
- var dfd = $.Deferred();
-  $.post(apiurl, params, function(data){
-    dfd.resolve(data);
-  }).fail(function(error) {
-    dfd.reject(error);
-  });
-  return dfd.promise();
-}
-
-function isIE () {
-  var myUA = navigator.userAgent.toLowerCase();
-  return (myUA.indexOf('msie') != -1) ? parseInt(myUA.split('msie')[1]) : false;
-}
-
-const browser = function() {
-  const test = function(regexp) {return regexp.test(window.navigator.userAgent)}
-  switch (true) {
-    case test(/edg/i): return "Microsoft Edge";
-    case test(/trident/i): return "Microsoft Internet Explorer";
-    case test(/firefox|fxios/i): return "Mozilla Firefox";
-    case test(/opr\//i): return "Opera";
-    case test(/ucbrowser/i): return "UC Browser";
-    case test(/samsungbrowser/i): return "Samsung Browser";
-    case test(/chrome|chromium|crios/i): return "Google Chrome";
-    case test(/safari/i): return "Apple Safari";
-    default: return "Other";
-  }
-}
-
-const browserSupport = function(ua){
-  if ((ua === 'Google Chrome') || (ua === 'Microsoft Edge') || (ua === 'Mozilla Firefox')) {
-    return true;
-  } else if (ua === 'Microsoft Internet Explorer') {
-    if (isIE() >= 11) {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
-
 const initPage = function() {
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
   $('body').loading({overlay: $("#overlay"), stoppable: true});
 
-  let queryObj = urlQueryToObject(window.location.href);
-  if (queryObj.caseId) {
-    let ua = browser();
-    let canSupport = browserSupport(ua);
-    if (canSupport) {
-      let yourToken = localStorage.getItem('token');
-      if (yourToken) {
-        //chat room
-        $.ajaxSetup({
-          beforeSend: function(xhr) {
-            xhr.setRequestHeader('Authorization', yourToken);
-          }
-        });
-
-        doOpenChatRoom(queryObj.caseId);
-      } else {
-        //login
-        window.location.replace('/index.html?action=callchat&caseId='+queryObj.caseId);
+  let yourToken = localStorage.getItem('token');
+  if (yourToken) {
+    //chat room
+    $.ajaxSetup({
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader('Authorization', yourToken);
       }
+    });
+
+    let queryObj = urlQueryToObject(window.location.href);
+    if (queryObj.caseId) {
+      doOpenChatRoom(queryObj.caseId);
     } else {
-      alert('เว็บบราวส์เซอร์ของคุณไม่รองรับการติดต่อรังสีแพทย์ผ่านทางการส่งข้อความ\nโปรดใชเว็บบราวส์เซอร์ที่สนับสนุน ดังนี้\nGoogle Chrome, MS Edge, Firefox หรือ IE เวอร์ชั่น 11 ขึ้นไป');
+      const promptMsg = $('<div></div>');
+      $(promptMsg).append($('<p>รหัสเคสจะปรากฎอยู่ด้านล่างของรายงานผลอ่าน</p>'));
+      $(promptMsg).append($('<p>นำค่ารหัสเคสมาป้อนลงในช่องรหัสเคสด้านล่าง แล้วคลิกปุ่ม <b>ตกลง</b></p>'));
+      let promptInputBox = $('<div style="position: relative; width: 100%; text-align: left; padding: 4px;"></div>');
+      $(promptInputBox).append($('<div style="display: inline-block;">รหัสเคส:</div>'));
+      let caseIdInput = $('<input id="CaseId" type="number"/>');
+      let caseIdInputBox = $('<div style="display: inline-block; margin-left: 5px;"></div>');
+      $(caseIdInputBox).append($(caseIdInput));
+      $(promptInputBox).append($(caseIdInputBox));
+      $(promptMsg).append($(promptInputBox));
+      const radpromptoption = {
+        title: 'โปรดระบุรหัสเคส',
+        msg: $(promptMsg),
+        width: '560px',
+        onOk: async function(evt) {
+          let yourCaseId = $(caseIdInput).val();
+          let caseRes = await $.post('/api/cases/select/'+ yourCaseId, {});
+          //console.log(caseRes);
+          if (caseRes.Records.length > 0){
+            let caseHospitalId = caseRes.Records[0].case.hospitalId;
+            let userdata = JSON.parse(localStorage.getItem('userdata'));
+            let hospitalId = userdata.hospitalId;
+            if (caseHospitalId == hospitalId) {
+              radPromptBox.closeAlert();
+              doOpenChatRoom(yourCaseId);
+            } else {
+              doShowCaseSecurity();
+            }
+          } else {
+            $.notify('ไม่พบข้อมูลเคสจากระบบฯ', "error");
+          }
+        },
+        onCancel: function(evt){
+          $(promptMsg).empty();
+          $(promptMsg).append($('<p>เราเสียดายเป็นอย่างยิ่งที่ไม่มีโอกาสได้รับใช้คุณ</p>'));
+          setTimeout(function(){
+            radPromptBox.closeAlert();
+          }, 4000);
+        }
+      }
+
+      let radPromptBox = $('body').radalert(radpromptoption);
+
+      $(caseIdInput).on('keypress',function(e) {
+        if(e.which == 13) {
+          radPromptBox.settings.onOk();
+        };
+      });
+
     }
   } else {
-    let yourCaseId = prompt('โปรดระบุรหัสเคส\nรหัสเคสจะปรากฎอยู่ด้านล่างรายงานผลอ่าน', '');
-		if (yourCaseId){
-
-    } else {
-      alert('Sorry.');
-
-    }
+    //login
+    window.location.replace('/index.html?action=callchat&caseId='+queryObj.caseId);
   }
 }
 
@@ -111,7 +103,7 @@ const doOpenChatRoom = async function(caseId){
   let simpleChatBox = await doCreateChatBox(caseId);
   $('#app').append($(simpleChatBox));
 
-  let gotomainpageCmd = doCreateGoToMainPageCmd();
+  let gotomainpageCmd = doCreatePageCmd();
   $('#app').append($(gotomainpageCmd));
   $('body').loading('stop');
 }
@@ -134,7 +126,7 @@ const doConnectWebsocketMaster = function(username, usertypeId, hospitalId, conn
   wsm.onmessage = onMessageEvt;
 
   wsm.onclose = function(event) {
-    //console.log("Master WebSocket is closed now. with  event:=> ", event);
+    //console.log("Master WebSocket is closed now. with  event: ", event);
   };
 
   wsm.onerror = function (err) {
@@ -196,8 +188,7 @@ const doCreateChatBox = async function(caseId){
   let dfd = $.Deferred();
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   let caseRes = await $.post('/api/cases/select/'+ caseId, {});
-  console.log(caseRes);
-  if (caseRes){
+  if (caseRes.Records.length > 0){
     caseItem = caseRes.Records[0];
     let patentFullName, patientHN, patientSA, caseBodypart;
     patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
@@ -342,14 +333,41 @@ const doCreateCaseResult = async function(caseId){
   return dfd.promise();
 }
 
-const doCreateGoToMainPageCmd = function(){
+const doCreatePageCmd = function(){
   let cmdBox = $('<div style="position: relative; width: 100%; margin-top: 50px; text-align: center;"></div>');
   let gomainCmd = $('<span style="cursor: pointer; background-color: #02069B; color: white; min-width: 80px; min-height: 50px; border: 2px solid grey;">หน้าหลัก</span>');
-  $(gomainCmd).appendTo($(cmdBox));
   $(gomainCmd).on('click', function(evt){
     window.location.replace('/refer/index.html');
   });
-  return $(cmdBox);
+
+  let logoutCmd = $('<span style="cursor: pointer; background-color: #02069B; color: white; min-width: 80px; min-height: 50px; border: 2px solid grey;">ออกจากระบบ</span>');
+  $(logoutCmd).on('click', function(evt){
+    localStorage.removeItem('token');
+  	localStorage.removeItem('userdata');
+    wsm.close();
+    window.location.replace('/index.html');
+  });
+
+  return $(cmdBox).append($(gomainCmd)).append($('<span>  </span>')).append($(logoutCmd));
+}
+
+const doShowCaseSecurity = function(){
+  const secureMsg = $('<div></div>');
+  $(secureMsg).append($('<p>ระบบฯ ไม่สามารถนำข้อมูลเคสของอีกโรงพยาบาลหนึ่งมาเปิดเผยได้</p>'));
+  const radalertoption = {
+    title: 'มีปัญหาเรื่องความลับของข้อมูล',
+    msg: $(secureMsg),
+    width: '560px',
+    onOk: function(evt) {
+      $(secureMsg).empty().append($('<p>โปรดป้อนรหัสเคสที่เป็นของโรงพยาบาลคุณ</p>'));
+      setTimeout(()=>{
+        radAlertBox.closeAlert();
+      }, 5000)
+    },
+  }
+
+  let radAlertBox = $('body').radalert(radalertoption);
+  $(radAlertBox.cancelCmd).hide();
 }
 
 const doCreateDownloadPDF = function(pdfLink){

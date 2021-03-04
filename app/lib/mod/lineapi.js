@@ -7,11 +7,14 @@ const request = require('request-promise');
 var db, log;
 
 const mainMenu = [{id: 'x101', name: 'ลงทะเบียนใช้งาน'}, /*{id: 'x102', name: 'เคสของฉัน'},*/ {id: 'x103', name: 'อื่นๆ'}];
-const registerMenu =[{id: 'x201', name: 'รังสีแพทย์'}, {id: 'x202', name: 'เจ้าหน้าที่เทคนิค'}, {id: 'x001', name: 'กลับ'}];
+const techMainMenu = [/*{id: 'x101', name: 'ลงทะเบียนใช้งาน'},*/ /*{id: 'x102', name: 'เคสของฉัน'},*/ {id: 'x103', name: 'อื่นๆ'}];
+const radioMainMenu = [/*{id: 'x101', name: 'ลงทะเบียนใช้งาน'},*/ {id: 'x102', name: 'ตั้งค่ารับเคส'}, {id: 'x103', name: 'อื่นๆ'}];
+const registerMenu =[{id: 'x201', name: 'รังสีแพทย์'}, {id: 'x202', name: 'เจ้าหน้าที่เทคนิค'}, {id: 'x203', name: 'ผู้ดูแลระบบ'}, {id: 'x001', name: 'กลับ'}];
 const otherMenu =[{id: 'x301', name: 'วิธีใช้งาน'}, {id: 'x302', name: 'แจ้งปัญหา'}, {id: 'x001', name: 'กลับ'}];
 const acceptActionMenu =  [{id: 'x401', name: 'รับ'}, {id: 'x402', name: 'ไม่รับ'}];
 const confirmMenu = [{id: 'x002', name: 'ตกลง'}, {id: 'x003', name: 'ยกเลิก'}];
 const backMenu = [{id: 'x001', name: 'กลับ'}];
+const toggleAccMenu = [{id: 'x501', name: 'เปิด'}, {id: 'x502', name: 'ปิด'}];
 
 const getUserProfile = (userId) => {
   return new Promise(function(resolve, reject) {
@@ -100,117 +103,118 @@ const doCreateCaseAccBubbleReply = function(data, cmdItems) {
 	cmdItems.forEach(function(item){
 		var ob = {type: "button", style: "primary", action: {}};
 		ob.action.type = "postback";
-		ob.action.label = item.displayText;
+		ob.action.label = item.name;
 		ob.action.data = "action=quick&itemid=" + item.id + "&data=" + item.data;
-		ob.action.displayText = item.displayText;
+		ob.action.displayText = item.name;
 		bubbleItems.push(ob);
 	});
 	return {
-		type: "flex",
-		altText: "This is a case Radiologist Reply",
-		contents: {
-		  type: "bubble",
-      header: {
-        type: "box",
-        layout: "vertical",
-        contents: [
+		"type": "flex",
+		"altText": "This is a case Radiologist Reply",
+		"contents": {
+		  "type": "bubble",
+      "direction": "ltr",
+      "header": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
           {
-            type: "text",
-            text: data.headerTitle,
-            size: "lg",
-            align: "start",
-            weight: "bold",
-            color: "#009813"
+            "type": "text",
+            "text": data.headerTitle,
+            "size": "lg",
+            "align": "start",
+            "weight": "bold",
+            "color": "#009813"
           }
         ]
       },
-		  body: {
-        type: "box",
-        layout: "vertical",
-        contents: [
+		  "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
           {
-            type: "box",
-            layout: "baseline",
-            margin: "lg",
-            contents: [
+            "type": "box",
+            "layout": "baseline",
+            "margin": "lg",
+            "contents": [
               {
-                type: "text",
-                text: "วันเวลา",
-                align: "start",
-                color: "#C3C3C3"
+                "type": "text",
+                "text": "วันเวลา",
+                "align": "start",
+                "color": "#C3C3C3"
               },
               {
-                type: "text",
-                text: data.caseDatetime,
-                align: "start",
-                color: "#000000"
+                "type": "text",
+                "text": data.caseDatetime,
+                "align": "start",
+                "color": "#000000"
               }
             ]
           },
           {
-            type: "box",
-            layout: "baseline",
-            margin: "lg",
-            contents: [
+            "type": "box",
+            "layout": "baseline",
+            "margin": "lg",
+            "contents": [
               {
-                type: "text",
-                text: "รพ.",
-                align: "start",
-                color: "#C3C3C3"
+                "type": "text",
+                "text": "รพ.",
+                "align": "start",
+                "color": "#C3C3C3"
               },
               {
-                type: "text",
-                text: data.hospitalName,
-                align: "start",
-                color: "#000000"
+                "type": "text",
+                "text": data.hospitalName,
+                "align": "start",
+                "color": "#000000"
               }
             ]
           },
           {
-            type: "box",
-            layout: "baseline",
-            margin: "lg",
-            contents: [
+            "type": "box",
+            "layout": "baseline",
+            "margin": "lg",
+            "contents": [
               {
-                type: "text",
-                text: data.urgentName,
-                align: "start",
-                color: "#C3C3C3"
+                "type": "text",
+                "text": data.urgentName,
+                "align": "start",
+                "color": "#C3C3C3"
               },
               {
-                type: "text",
-                text: data.expireDatetime,
-                align: "start",
-                color: "#000000"
+                "type": "text",
+                "text": data.expireDatetime,
+                "align": "start",
+                "color": "#000000"
               }
             ]
           },
           {
-            type: "box",
-            layout: "baseline",
-            margin: "lg",
-            contents: [
+            "type": "box",
+            "layout": "baseline",
+            "margin": "lg",
+            "contents": [
               {
-                type: "text",
-                text: "ชื่อ",
-                align: "start",
-                color: "#C3C3C3"
+                "type": "text",
+                "text": "ชื่อ",
+                "align": "start",
+                "color": "#C3C3C3"
               },
               {
-                type: "text",
-                text: data.patientName,
-                align: "start",
-                color: "#000000"
+                "type": "text",
+                "text": data.patientName,
+                "align": "start",
+                "color": "#000000"
               }
             ]
           }
         ]
 			},
-      footer: {
-        type: "box",
-  			layout: "vertical",
-  			spacing: "md",
-  			contents: bubbleItems
+      "footer": {
+        "type": "box",
+  			"layout": "vertical",
+  			"spacing": "md",
+  			"contents": bubbleItems
       }
 		}
 	};
