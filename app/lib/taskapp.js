@@ -70,6 +70,11 @@ app.post('/select/(:caseId)', (req, res) => {
   }
 });
 
+app.get('/socket/clients', async(req, res) => {
+  let allClients = await Task.getClients();
+  res.json({status: {code: 200}, Clients: allClients});
+});
+
 module.exports = ( taskCase, dbconn, monitor ) => {
   db = dbconn;
   log = monitor;

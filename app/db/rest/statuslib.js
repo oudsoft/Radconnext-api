@@ -200,7 +200,7 @@ const onAcceptCaseEvent = function(caseId) {
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
     let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
 
-    let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, targetCase.asestatusId, lineCaseDetaileMsg, caseMsgData);
+    let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
@@ -209,13 +209,15 @@ const onAcceptCaseEvent = function(caseId) {
 
 const onRejectCaseEvent = function(caseId) {
   return new Promise(async function(resolve, reject) {
-    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
     const userId = targetCase.userId;
     const hospitalId = targetCase.hospitalId;
     const radioId = targetCase.Case_RadiologistId;
+    const hospitalName = targetCase.hospital.Hos_Name;
     const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+    const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
 
     tasks.removeTaskByCaseId(targetCase.id);
 
@@ -234,6 +236,20 @@ const onRejectCaseEvent = function(caseId) {
     let hospitalNotify = {type: 'notify', message: lineCaseDetaileMsg};
     await socket.sendMessage(refreshRejCase , userProfile.username);
     await socket.sendMessage(hospitalNotify, userProfile.username);
+
+    if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+      let lineCaseMsgFmt = 'เคส\nชื่อ %s\nรพ.%s\n\nได้ถูกปฏิเสธแล้ว\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
+      let lineCaseMsg = uti.parseStr(lineCaseMsgFmt, patientNameEN, hospitalName);
+      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, 'quick', lineApi.radioMainMenu);
+      await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+    }
+
+    if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
+      let lineCaseMsgFmt = 'เคส\nชื่อ %s\n\nได้ถูกรังสีแพทย์(%s %s)ปฏิเสธแล้ว\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
+      let lineCaseMsg = uti.parseStr(lineCaseMsgFmt, patientNameEN, radioProfile.User_NameEN, radioProfile.User_LastNameEN);
+      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
+      await lineApi.pushConnect(userProfile.lineUserId, menuQuickReply);
+    }
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
@@ -544,12 +560,17 @@ const onEditResultCaseEvent = function(caseId) {
 
     /* Update Report Status */
     const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
+    log.info('reportLogs=>' + JSON.stringify(reportLogs))
     let updateStatus = 'edit';
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
-    let newReportLog = reportLogs[0].Log;
+    let newReportLog = [];
     if (reportLogs.length > 0){
-      newReportLog = reportLogs[0];
-      newReportLog.push(appendLog);
+      if (reportLogs[0].Log) {
+        newReportLog = reportLogs[0];
+        newReportLog.push(appendLog);
+      } else {
+        newReportLog = [appendLog];
+      }
     } else {
       newReportLog = [appendLog];
     }

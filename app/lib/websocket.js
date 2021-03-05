@@ -150,6 +150,13 @@ function RadconWebSocketServer (arg, db, log) {
 							$this.saveChatLog(data.context.topicId, msgSend);
 						}
 					break;
+					case "logout":
+						let socketUsername = data.username;
+						let anotherSockets = await $this.clients.filter((client) =>{
+							if (client.id !== socketUsername) return ws;
+						});
+						$this.clients = anotherSockets
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
@@ -166,11 +173,6 @@ function RadconWebSocketServer (arg, db, log) {
 
 		ws.on('close', async function(ws, req) {
 			log.info(`WS Conn Url : ${ws.id} Close.`);
-			let socketUsername = ws.id;
-			let anotherSockets = await $this.clients.filter((client) =>{
-				if (client.id !== socketUsername) return ws;
-			});
-			$this.clients = anotherSockets
 		});
 
 	});
@@ -311,6 +313,16 @@ function RadconWebSocketServer (arg, db, log) {
 					resolve(newLog);
 				}
 			});
+		});
+	}
+
+	this.listClient = function(){
+		return new Promise(async function(resolve, reject) {
+			let clientConns = [];
+			await $this.clients.forEach((item, i) => {
+				clientConns.push(item.id);
+			});
+			resolve(clientConns);
 		});
 	}
 

@@ -60,6 +60,13 @@ function RadconCaseTask (socket, db, log) {
     return $this.caseTasks;
   }
 
+  this.getClients = function(){
+    return new Promise(async function(resolve, reject) {
+      let clientconns = await socket.listClient();
+      resolve(clientconns);
+    });
+  }
+
   this.runCommand = function (command) {
 		return new Promise(function(resolve, reject) {
 			const exec = require('child_process').exec;

@@ -218,12 +218,14 @@ const doCaseExpireAction = function(caseId, socket, newcaseStatusId, radioProfil
 const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg, caseMsgData){
   return new Promise(async function(resolve, reject) {
     const action = 'quick';
+    log.info('The Task of caseId ' + caseId + ' will be replace by new task.');
+    tasks.removeTaskByCaseId(caseId);
+
     let endTime = await tasks.doCreateNewTask(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         await doCaseExpireAction(caseId, socket, baseCaseStatusId, radioProfile, userProfile, lineCaseDetaileMsg, userProfile.hospitalName);
       } else {
-        log.info('caseId ' + caseId + ' was released by schedule.');
         tasks.removeTaskByCaseId(caseId);
       }
     });
@@ -255,7 +257,7 @@ const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerPa
         //await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
-        let lineCaseMsgFmt = 'เคสใหม่\nชื่อ %s\nรพ.%s\nได้ถูกตอบรับโดยอัตโนมัติโดยระบบฯ ตามที่คุณได้ตั้งค่าไว้\nกำหนดส่งผลอ่าน %s\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
+        let lineCaseMsgFmt = 'แจ้งกำหนดเวลาส่งผลอ่านของเคส\nชื่อ %s\nรพ.%s\n\nกำหนดส่งผลอ่าน %s\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
         let lineCaseMsg = uti.parseStr(lineCaseMsgFmt, caseMsgData.patientNameEN, caseMsgData.hospitalName, endDateText);
 
         let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);

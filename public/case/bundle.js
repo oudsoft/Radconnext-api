@@ -102,6 +102,10 @@ function doLoadLogin() {
 */
 
 function doUserLogout() {
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  if (wsm) {
+    wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
+  }
   localStorage.removeItem('token');
 	localStorage.removeItem('userdata');
 	localStorage.removeItem('dicomfilter');
@@ -1324,6 +1328,7 @@ module.exports = function ( jq ) {
 					$(closeCaseButton).click(function() {
 						doCloaseCase(incidents[i].case.id);
 					});
+					$(closeCaseButton).appendTo($(operationCmdBox));
 
 					let zoomCallButton = $('<img class="pacs-command-dd" data-toggle="tooltip" src="/images/zoom-black-icon.png" title="Call Radiologist by zoom app."/>');
 					$(zoomCallButton).click(function() {
@@ -1866,7 +1871,7 @@ module.exports = function ( jq ) {
 	const caseResultWaitStatus = [2, 8, 9, 13, 14];
 	const casePositiveStatus = [2,8,9];
 	const caseNegativeStatus = [3,4,7];
-	const caseReadSuccessStatus = [5];
+	const caseReadSuccessStatus = [5, 10, 11, 12, 13, 14];
 	const caseAllStatus = [1,2,3,4,5,6,7];
 	const allCaseStatus = [
 		{value: 1, DisplayText: 'เคสใหม่'},
@@ -2427,8 +2432,9 @@ module.exports = function ( jq ) {
 		let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
     let userItemPerPage = userDefualtSetting.itemperpage;
 		let queryString = localStorage.getItem('dicomfilter');
-		console.log(queryString);
-		doCallSearhOrthanc(queryString).then(async (studies) => {
+		//console.log(queryString);
+		doCallSearhDicomLog(queryString).then(async (studies) => {
+		//doCallSearhOrthanc(queryString).then(async (studies) => {
 			$(".mainfull").empty();
 			let resultTitle = $('<div class="title-content"></div>');
 			let logoPage = $('<img src="/images/orthanc-icon-1.png" width="40px" height="auto" style="float: left;"/>');
@@ -2479,6 +2485,12 @@ module.exports = function ( jq ) {
 			}
 			$('body').loading('stop');
 		});
+
+		/*
+		doCallSearhDicomLog(queryString).then(async (studies) => {
+			console.log(studies);
+		});
+		*/
 	}
 
   const doCallSearhOrthanc = function(query) {
@@ -2519,6 +2531,37 @@ module.exports = function ( jq ) {
 			});
   	});
   }
+
+	const doCallSearhDicomLog = function(queryString) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			const dicomUrl = '/api/dicomtransferlog/studies/list';
+			let query = JSON.parse(queryString);
+			let modality = query.Query.Modality;
+			let studyDate = query.Query.StudyDate;
+			if (studyDate){
+				let n = studyDate.indexOf('-');
+				if (n > 0){
+					studyDate = studyDate.split('');
+					studyDate.splice(n, 1);
+					studyDate = studyDate.join('')
+				} else {
+					studyDate = studyDate;
+				}
+			}
+			let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyDate: studyDate};
+			console.log(rqParams);
+			let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
+			let studies = [];
+			if (dicomStudiesRes.orthancRes) {
+				let dicomSudies = dicomStudiesRes.orthancRes;
+				await dicomSudies.forEach((item, i) => {
+					studies.push(item.StudyTags);
+				});
+			}
+			resolve(studies);
+		});
+	}
 
   const doCreateDicomHeaderRow = function() {
 		const headerLabels = ['No.', 'Study Date', 'HN', 'Name', 'Sex/Age', 'Modality', 'Study Desc. / Protocol Name', 'Operation'];
@@ -3638,6 +3681,7 @@ module.exports = function ( jq ) {
   return {
     doLoadDicomFromOrthanc,
 		doCallSearhOrthanc,
+		doCallSearhDicomLog,
     doCreateDicomHeaderRow,
     doCreateDicomItemRow,
     doShowDicomResult,
@@ -15858,6 +15902,11 @@ module.exports = function ( jq ) {
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
 			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updateuserprofile') {
+			let eventName = 'updateuserprofile';
+			let evtData = data.profile;
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'message') {

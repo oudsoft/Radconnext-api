@@ -393,7 +393,7 @@ module.exports = function ( jq ) {
 	const caseResultWaitStatus = [2, 8, 9, 13, 14];
 	const casePositiveStatus = [2,8,9];
 	const caseNegativeStatus = [3,4,7];
-	const caseReadSuccessStatus = [5];
+	const caseReadSuccessStatus = [5, 10, 11, 12, 13, 14];
 	const caseAllStatus = [1,2,3,4,5,6,7];
 	const allCaseStatus = [
 		{value: 1, DisplayText: 'เคสใหม่'},
@@ -1909,6 +1909,10 @@ function doLoadLogin() {
 */
 
 function doUserLogout() {
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  if (wsm) {
+    wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
+  }
   localStorage.removeItem('token');
 	localStorage.removeItem('userdata');
   localStorage.removeItem('userconfigs');
@@ -1961,6 +1965,7 @@ function doLoadMainPage(){
   document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
   document.addEventListener("lockscreen", onLockScreenTrigger);
   document.addEventListener("unlockscreen", onUnLockScreenTrigger);
+  document.addEventListener("updateuserprofile", onUpdateUserProfileTrigger);
 
   let userdata = JSON.parse(doGetUserData());
   console.log(userdata);
@@ -2166,9 +2171,27 @@ function onLockScreenTrigger() {
   });
 }
 
-function onUnLockScreenTrigger(){
+function onUnLockScreenTrigger(evt){
   resetScreen();
   util.doSetScreenState(0);
+}
+
+function onUpdateUserProfileTrigger(evt){
+  let newProfile = evt.detail.data.Profile;
+  let newReadyState = newProfile.readyState;
+
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  userdata.userprofiles[0].Profile.readyState = newReadyState;
+  userdata.userprofiles[0].Profile.readyBy = 'bot';
+  localStorage.setItem('userdata', JSON.stringify(userdata));
+
+  let readyLogic = undefined;
+  if (newReadyState == 1) {
+    readyLogic = true;
+  } else {
+    readyLogic = false;
+  }
+  $('#app').find('#ReadyState').find('input[type="checkbox"]').prop('checked', readyLogic);
 }
 
 function doGetToken(){
@@ -2669,28 +2692,35 @@ module.exports = function ( jq ) {
 					let lastHis = history.find((item)=>{
 						if (item.from !== userdata.username) return item;
 					});
-					let audienceId = lastHis.from;
-					let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
-					let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
-					let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
-					let contact = await doCreateNewAudience(audienceId, audienceName, caseId, topicName);
-					if (contact) {
-						$(contact).appendTo($(contactIconBar));
-						let simpleChat = doCreateSimpleChatBox(caseId, topicName, audienceId, audienceName, openCase.case.casestatusId);
-						$(chatBoxContainer).css('display', 'block');
-						$(simpleChat.chatBox).css('display', 'block');
-						$(simpleChat.chatBox).appendTo($(chatBoxContainer));
-						simpleChat.handle.restoreLocal();
-						simpleChat.handle.scrollDown();
-						let chatBoxTarget = contactLists.find((item)=>{
-							if (item.Id == audienceId) { return item}
-						});
-						if (chatBoxTarget){
-							chatBoxTarget.chatBox = simpleChat.chatBox;
-							chatBoxTarget.handle = simpleChat.handle;
-							chatBoxTarget.contact = contact;
+					if (lastHis) {
+						let audienceId = lastHis.from;
+						let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
+						let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
+						let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
+						let contact = await doCreateNewAudience(audienceId, audienceName, caseId, topicName);
+						if (contact) {
+							$(contact).appendTo($(contactIconBar));
+							let simpleChat = doCreateSimpleChatBox(caseId, topicName, audienceId, audienceName, openCase.case.casestatusId);
+							$(chatBoxContainer).css('display', 'block');
+							$(simpleChat.chatBox).css('display', 'block');
+							$(simpleChat.chatBox).appendTo($(chatBoxContainer));
+							simpleChat.handle.restoreLocal();
+							simpleChat.handle.scrollDown();
+							let chatBoxTarget = contactLists.find((item)=>{
+								if (item.Id == audienceId) { return item}
+							});
+							if (chatBoxTarget){
+								chatBoxTarget.chatBox = simpleChat.chatBox;
+								chatBoxTarget.handle = simpleChat.handle;
+								chatBoxTarget.contact = contact;
+							}
 						}
+					} else {
+						console.log('Not found any message of audienceId ', lastHis);
+						console.log('this is your history', history);
 					}
+				} else {
+					console.log(history);
 				}
 			});
 		}
@@ -5312,6 +5342,11 @@ module.exports = function ( jq ) {
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
 			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updateuserprofile') {
+			let eventName = 'updateuserprofile';
+			let evtData = data.profile;
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'message') {

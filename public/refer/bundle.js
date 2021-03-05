@@ -1539,10 +1539,51 @@ module.exports = function ( jq ) {
 					goToSecondStep();
 				} else {
 					if (defualtValue.caseId) {
+						//Update Case
 						openStoneWebViewerCounter += 1;
 						goToSecondStep();
 					} else {
-						let confirmImageInstance = confirm('โปรดยืนยันว่าคุณได้ตรวจสอบจำนวน Series มี ' + allSeries + ' ซีรีส์ และจำนวนภาพ มี ' + allImageInstances + ' ภาพ\nครบถูกต้องแล้ว');
+						//New Case
+						//let confirmImageInstance = confirm('โปรดยืนยันว่าคุณได้ตรวจสอบจำนวน Series มี ' + allSeries + ' ซีรีส์ และจำนวนภาพ มี ' + allImageInstances + ' ภาพ\nครบถูกต้องแล้ว');
+
+						let radAlertMsg = $('<div></div>');
+						$(radAlertMsg).append($('<p>คุณได้ตรวจสอบจำนวน Series และ จำนวนภาพ ทั้งหมดใน Study นี้ ครบถูกต้องแล้วดังนี้</p>'));
+						$(radAlertMsg).append($('<p>จำนวน Series เท่ากับ <b>' + allSeries + '</b> ซีรีส์</p>'));
+						$(radAlertMsg).append($('<p>จำนวน ภาพ เท่ากับ <b>' + allImageInstances + '</b> ภาพ</p>'));
+						$(radAlertMsg).append($('<p><b>ใช่ หรือไม่?</b></p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ใช่</b> คลิกปุ่ม <b>ตกลง</b> เพื่อไปขั้นตอนต่อไป</p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ไม่ใช่</b> คลิกปุ่ม <b>ยกเลิก</b> เพื่อตรวจสอบให้แน่ใจ</p>'));
+						const radconfirmoption = {
+				      title: 'โปรดยืนยัน',
+				      msg: $(radAlertMsg),
+				      width: '420px',
+				      onOk: function(evt) {
+								radConfirmBox.closeAlert();
+								openStoneWebViewerCounter += 1;
+								goToSecondStep();
+				      },
+				      onCancel: function(evt){
+								//alert('โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้\nและกลับมาดำเนินการต่อในขั้นตอนต่อไป');
+								radConfirmBox.closeAlert();
+								$(radAlertMsg).empty();
+								$(radAlertMsg).append($('<p>โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้</p>'));
+								$(radAlertMsg).append($('<p>และกลับมาดำเนินการต่อในขั้นตอนต่อไป</p>'));
+								const radalertoption = {
+									title: 'โปรตรวจสอบ',
+						      msg: $(radAlertMsg),
+						      width: '420px',
+						      onOk: function(evt) {
+										radAlertBox.closeAlert();
+									}
+								};
+								let radAlertBox = $('body').radalert(radalertoption);
+								$(radAlertBox.cancelCmd).hide();
+								$(previewCmd).click();
+								openStoneWebViewerCounter += 1;
+				      }
+				    }
+				    let radConfirmBox = $('body').radalert(radconfirmoption);
+						/*
 						if (confirmImageInstance) {
 							openStoneWebViewerCounter += 1;
 							goToSecondStep();
@@ -1551,6 +1592,7 @@ module.exports = function ( jq ) {
 							$(previewCmd).click();
 							openStoneWebViewerCounter += 1;
 						}
+						*/
 					}
 				}
 			});
@@ -3301,6 +3343,11 @@ module.exports = function ( jq ) {
 			let evtData = {};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'updateuserprofile') {
+			let eventName = 'updateuserprofile';
+			let evtData = data.profile;
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
 		} else if (data.type == 'message') {
 			$.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
@@ -3465,6 +3512,10 @@ function doLoadLogin() {
 */
 
 function doUserLogout() {
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  if (wsm) {
+    wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
+  }  
   localStorage.removeItem('token');
 	localStorage.removeItem('userdata');
 	localStorage.removeItem('dicomfilter');

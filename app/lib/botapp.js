@@ -19,7 +19,7 @@ let sessionHandleStorages = [];
   x401 + x402 ต้องมี Action ไปที่ Case ด้วย เพื่อ trigger webapp ทาง web socket
 */
 
-var db, Task, log, auth, lineApi, uti;
+var db, Task, log, auth, lineApi, uti, socket, statusControl;
 
 const doFindSessionHandle = (userId)=>{
   return new Promise(async function(resolve, reject) {
@@ -97,6 +97,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
         var caseInclude;
         var actionReturnTextFmt, targetCases, targetCase, hospitalName, patientNameEN;
         var actionReturnText, userHandle;
+        var targetProfile, userProfile;
         switch (cmdCode) {
           case 'x001':
             var backToMainMunuMsg = 'เชิญเลือกคำสั่งจากเมนูด้านล่างครับ';
@@ -152,6 +153,21 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
             resolve();
           break;
           case 'x102':
+            action = 'quick';
+            targetProfile = await db.userprofiles.findAll({attributes: ['Profile'], where: { userId: radUser.id } });
+            if (targetProfile.length > 0){
+              userProfile = targetProfile[0];
+              let readyState = userProfile.Profile.readyState;
+              let toggleSettingMenu = [];
+              if (readyState == 0) {
+                toggleSettingMenu.push({id: 'x501', name: 'เปิดรับเคส'});
+              } else {
+                toggleSettingMenu.push({id: 'x502', name: 'ปิดรับเคส'});
+              }
+              await replyAction(replyToken, lineApi.createBotMenu('ตั้งค่ารับเคสใหม่โดยกดที่เมนูครับ', action, toggleSettingMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu('ระบบฯ ไม่พบข้อมูลการตั้งค่าของคุณ\nโปรดใช้งานอื่นจากเมนูด้านล่างก่อนครับ', action, lineApi.radioMainMenu));
+            }
             resolve();
           break;
           case 'x103':
@@ -215,31 +231,21 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           case 'x401':
             /* radio accept new cse*/
             caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
-            targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+            targetCases = await db.cases.findAll({include: caseInclude, where: {id: data}});
             targetCase = targetCases[0];
             hospitalName = targetCase.hospital.Hos_Name;
             patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-            actionReturnTextFmt = 'ดำเนินการตอบรับเคส\nชื่อ %s\nรพ. %s\nไปเรียบร้อยแล้ว\nอีกสักครู่ระบบฯ จะแจ้งกำหนดเวลาส่งผลอ่าน\nหากต้องการใช้บริการอื่นๆ โปรดเลือกจากเมนูครับ';
+            actionReturnTextFmt = 'ดำเนินการตอบรับเคส\nชื่อ %s\nรพ. %s\nไปเรียบร้อยแล้ว\nอีกสักครู่ระบบฯ จะแจ้งกำหนดเวลาส่งผลอ่าน';
             actionReturnText = uti.parseStr(actionReturnTextFmt, patientNameEN, hospitalName);
             action = 'quick';
             await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
-
-            yourToken = await doCreateRadconToken(userId);
-            rqBody = { userId: yourToken.userId, caseId: data, casestatusId: 2, caseDescription: 'Accept by Line Bot'};
-            rqParams = {
-              method: 'post',
-              uri: 'https://' + process.env.DOMAIN_NAME + '/api/cases/status/' + data,
-              Authorization: yourToken.token,
-              body: rqBody
-            }
-            caseRes = uti.proxyRequest(rqParams);
-            log.info('your Accept caseRes => ' + JSON.stringify(caseRes));
-            resolve();
+            let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'Accept by Line Bot');
+            resolve(changeRes);
           break;
           case 'x402':
             /* radio not accept new cse*/
             caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
-            targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+            targetCases = await db.cases.findAll({include: caseInclude, where: {id: data}});
             targetCase = targetCases[0];
             hospitalName = targetCase.hospital.Hos_Name;
             patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
@@ -247,17 +253,39 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
             actionReturnText = uti.parseStr(actionReturnTextFmt, patientNameEN, hospitalName);
             action = 'quick';
             await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
-
-            yourToken = await doCreateRadconToken(userId);
-            rqBody = { userId: yourToken.userId, caseId: data, casestatusId: 3, caseDescription: 'Not Accept by Line Bot'};
-            rqParams = {
-              method: 'post',
-              uri: 'https://' + process.env.DOMAIN_NAME + '/api/cases/status/' + data,
-              Authorization: yourToken.token,
-              body: rqBody
+            let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'Not Accept by Line Bot');
+            resolve(changeResNotAcc);
+          break;
+          case 'x501':
+            action = 'quick';
+            targetProfile = await db.userprofiles.findAll({attributes: ['Profile'], where: { userId: radUser.id } });
+            if (targetProfile.length > 0){
+              userProfile = targetProfile[0];
+              userProfile.Profile.readyState = 1;
+              userProfile.Profile.readyBy = 'bot';
+              await db.userprofiles.update({Profile: userProfile.Profile}, { where: { userId: radUser.id } });
+              await replyAction(replyToken, lineApi.createBotMenu('ระบบฯ ดำเนินการตั้งค่ารับเคสใหม่ของคุณแล้ว\nใช้งานอื่นๆ จากเมนูด้านล่างครับ', action, lineApi.radioMainMenu));
+              let updateProfileTrigger = {type: 'updateuserprofile', profile: userProfile};
+              await socket.sendMessage(updateProfileTrigger, radUser.username);
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu('ระบบฯ ไม่พบข้อมูลการตั้งค่าของคุณ\nโปรดใช้งานอื่นจากเมนูด้านล่างก่อนครับ', action, lineApi.radioMainMenu));
             }
-            caseRes = uti.proxyRequest(rqParams);
-            log.info('your Not Accept caseRes => ' + JSON.stringify(caseRes));
+            resolve();
+          break;
+          case 'x502':
+            action = 'quick';
+            targetProfile = await db.userprofiles.findAll({attributes: ['Profile'], where: { userId: radUser.id } });
+            if (targetProfile.length > 0){
+              userProfile = targetProfile[0];
+              userProfile.Profile.readyState = 0;
+              userProfile.Profile.readyBy = 'bot';
+              let result = await db.userprofiles.update({Profile: userProfile.Profile}, { where: { userId: radUser.id } });
+              await replyAction(replyToken, lineApi.createBotMenu('ระบบฯ ดำเนินการตั้งค่ารับเคสใหม่ของคุณแล้ว\nใช้งานอื่นๆ จากเมนูด้านล่างครับ', action, lineApi.radioMainMenu));
+              let updateProfileTrigger = {type: 'updateuserprofile', profile: userProfile};
+              await socket.sendMessage(updateProfileTrigger, radUser.username);
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu('ระบบฯ ไม่พบข้อมูลการตั้งค่าของคุณ\nโปรดใช้งานอื่นจากเมนูด้านล่างก่อนครับ', action, lineApi.radioMainMenu));
+            }
             resolve();
           break;
         }
@@ -447,12 +475,15 @@ app.post('/', async function(req, res) {
   }
 });
 
-module.exports = ( taskCase, dbconn, monitor ) => {
+module.exports = ( taskCase, dbconn, monitor, webSocket ) => {
   db = dbconn;
   log = monitor;
+  socket = webSocket;
+  Task = taskCase;
   auth = require('../db/rest/auth.js')(db, log);
   lineApi = require('./mod/lineapi.js')(db, log);
   uti = require('./mod/util.js')(db, log);
-  Task = taskCase;
+  statusControl = require('../db/rest/statuslib.js')(db, log, Task, socket);
+
   return app;
 }

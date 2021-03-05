@@ -324,12 +324,19 @@ const doCreateResulteSection = async function(caseId) {
 const doCreateCaseResult = async function(caseId){
   let dfd = $.Deferred();
   let resultRes = await $.post('/api/cases/result/'+ caseId, {});
-  let resultReport = resultRes.Records[0];
-  let pdfStream = await doCreateDownloadPDF(resultReport.PDF_Filename);
-  let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-  let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
-  $(embetObject).appendTo($(resultBox));
-  dfd.resolve($(resultBox));
+  if ((resultRes) && (resultRes.Records.length > 0)) {
+    let resultReport = resultRes.Records[0];
+    let pdfStream = await doCreateDownloadPDF(resultReport.PDF_Filename);
+    let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+    let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
+    $(embetObject).appendTo($(resultBox));
+    dfd.resolve($(resultBox));
+  } else {
+    let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+    let errorNotFoundPDF = $('<div style="color: red;"><h2>Not Found PDF report file.</h2><p>caseId=' + caseId + '</p></div>');
+    $(resultBox).append($(errorNotFoundPDF));
+    dfd.resolve($(resultBox));
+  }
   return dfd.promise();
 }
 

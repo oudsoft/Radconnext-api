@@ -215,6 +215,84 @@ app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
   res.json({Result: "OK", Record: fullStudy});
 });
 
+//Study List API
+app.post('/studies/list', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+					let hostname = req.hostname;
+				  let hospitalId = req.body.hospitalId;
+				  let modality = req.body.modality;
+					let fromDate = req.body.studyDate;
+					let limit = req.body.limit;
+					let offset = req.body.offset;
+					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
+				  let yourOrthancId = orthancs[0].id;
+					let whereClous = {orthancId: yourOrthancId, ResourceType: 'study'};
+					if ((modality) && (modality !== '*')) {
+						if ((fromDate) && (fromDate !== '*')) {
+							whereClous = {
+								orthancId: yourOrthancId,
+								ResourceType: 'study',
+								StudyTags: {
+									SamplingSeries: {
+										MainDicomTags: {
+											Modality: {
+												[db.Op.eq]: modality
+											}
+										}
+									},
+									MainDicomTags: {
+										StudyDate: {
+											[db.Op.gte]: fromDate
+										}
+									}
+								}
+							}
+						} else {
+							whereClous = {
+								orthancId: yourOrthancId,
+								ResourceType: 'study',
+								StudyTags: {
+									SamplingSeries: {
+										MainDicomTags: {
+											Modality: {
+												[db.Op.eq]: modality
+											}
+										}
+									}
+								}
+							}
+						}
+
+					}
+					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['id', 'DESC']] };
+					if ((limit) && (limit > 0)) {
+						studiesModelList.limit = limit;
+					}
+					if (offset) {
+						//offset: startAt
+						studiesModelList.offset = offset;
+					}
+					const studiesRes = await DicomTransferLog.findAll(studiesModelList);
+					res.json({status: {code: 200}, orthancRes: studiesRes});
+				} catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 module.exports = ( wsssocket, dbconn, monitor ) => {
   db = dbconn;
   log = monitor;

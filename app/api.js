@@ -61,7 +61,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const activateAccountTask = require('./lib/activateaccounttask.js')( db, log);
 	const activateAccountApp = require('./lib/activateaccountapp.js')( activateAccountTask, db, log);
 	const zoomApp = require('./lib/zoom.js')(db, log);
-	const botApp = require('./lib/botapp.js')(taskCase, db, log);
+	const botApp = require('./lib/botapp.js')(taskCase, db, log, webSocketServer);
 
 	const users = require('./db/rest/users.js')(db, log);
 	const user = require('./db/rest/user.js')(db, log);

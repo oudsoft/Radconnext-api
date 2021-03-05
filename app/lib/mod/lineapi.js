@@ -226,6 +226,8 @@ module.exports = (dbconn, monitor) => {
 
   return {
     mainMenu,
+    techMainMenu,
+    radioMainMenu,
     registerMenu,
     otherMenu,
     acceptActionMenu,
