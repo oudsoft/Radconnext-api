@@ -21,13 +21,21 @@ const doCallApi = function (apiurl, params) {
   return dfd.promise();
 }
 
-function isIE () {
+function isIE11 () {
+  /*
   var myUA = navigator.userAgent.toLowerCase();
+  console.log(myUA);
+  mozilla/5.0 (windows nt 10.0; wow64; trident/7.0; .net4.0c; .net4.0e; .net clr 2.0.50727; .net clr 3.0.30729; .net clr 3.5.30729; rv:11.0) like gecko
   return (myUA.indexOf('msie') != -1) ? parseInt(myUA.split('msie')[1]) : false;
+  */
+
+  var myUA = navigator.userAgent.toLowerCase();
+  var test = function(regexp) {return regexp.test(myUA)};
+  return test(/rv:11/i);
 }
 
 const browser = function() {
-  const test = function(regexp) {return regexp.test(window.navigator.userAgent)}
+  var test = function(regexp) {return regexp.test(window.navigator.userAgent)}
   switch (true) {
     case test(/edg/i): return "Microsoft Edge";
     case test(/trident/i): return "Microsoft Internet Explorer";
@@ -45,7 +53,7 @@ const browserSupport = function(ua){
   if ((ua === 'Google Chrome') || (ua === 'Microsoft Edge') || (ua === 'Mozilla Firefox')) {
     return true;
   } else if (ua === 'Microsoft Internet Explorer') {
-    if (isIE() >= 11) {
+    if (isIE11()) {
       return true;
     } else {
       return false;
@@ -87,7 +95,7 @@ const initPage = function() {
       width: '560px',
       onOk: function(evt) {
         $(sorryMsg).empty().append($('<p>เราหวังเป็นอย่างยิ่งว่าเราจะได้มีโอกาสรับใช้คุณ เมื่อคุณได้ทำตามที่แนะนำ</p>'));
-        setTimeout(()=>{
+        setTimeout(function(){
           radAlertBox.closeAlert();
         }, 5000)
       },

@@ -10,7 +10,6 @@ function RadconWebSocketServer (arg, db, log) {
 	this.db = db;
 
 	wss.on('connection', async function (ws, req) {
-		$this.clients.push(ws);
 		log.info(ws._socket.remoteAddress);
 		log.info(ws._socket._peername);
 		log.info(req.connection.remoteAddress);
@@ -22,7 +21,13 @@ function RadconWebSocketServer (arg, db, log) {
 		//wssPath = wssPath.substring(1);
 		wssPath = wssPath.split('/');
 		log.info(wssPath);
-		ws.id = wssPath[(wssPath.length -2)];
+		let clientId = wssPath[(wssPath.length -2)];
+		let anotherSockets = await $this.clients.filter((client) =>{
+			if (client.id !== clientId) return ws;
+		});
+		anotherSockets.push(ws);
+		$this.clients = anotherSockets;
+		ws.id = clientId;
 		ws.hospitalId = wssPath[(wssPath.length -1)];
 		ws.counterping = 0;
 		ws.screenstate = 0;
@@ -323,6 +328,15 @@ function RadconWebSocketServer (arg, db, log) {
 				clientConns.push(item.id);
 			});
 			resolve(clientConns);
+		});
+	}
+
+	this.findOrthancLocalSocket = function(hospitalId) {
+		return new Promise(async function(resolve, reject) {
+			let orthancSocket = await $this.clients.find((ws) =>{
+				if ((ws.hospitalId == hospitalId)  && (ws.id !== 'orthanc')) return ws;
+			});
+			resolve(orthancSocket);
 		});
 	}
 

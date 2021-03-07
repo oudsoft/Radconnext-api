@@ -8,8 +8,6 @@ const exec = require('child_process').exec;
 var log, db;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
-const myCloud = {os: "docker-linux", ip: "202.28.68.28", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042", ipex: "202.28.68.28"};
-const localOrthanc = [{id: 0, Orthanc_Local: {}, Orthanc_Cloud: JSON.stringify(myCloud)}];
 
 const proxyRequest = function(rqParam) {
 	return new Promise(function(resolve, reject) {
@@ -63,6 +61,15 @@ const doLoadOrthancTarget = function(hospitalId, hostname){
 	return new Promise(async function(resolve, reject) {
 		//log.info('hostname => ' + hostname);
 		if ((hostname === 'localhost') || (hostname.indexOf('192.168') >= 0)){
+			const myCloud = {os: "docker-linux", ip: "202.28.68.28", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042", ipex: "202.28.68.28"};
+			if (hospitalId == 2) {
+				myCloud.httpport = "8043";
+				myCloud.portex = "8043";
+			} else if (hospitalId == 3) {
+				myCloud.httpport = "8044";
+				myCloud.portex = "8044"
+			}
+			const localOrthanc = [{id: 0, Orthanc_Local: {}, Orthanc_Cloud: JSON.stringify(myCloud)}];
 			resolve(localOrthanc[0]);
 		} else {
 			const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
@@ -78,6 +85,13 @@ const doLoadOrthancTarget = function(hospitalId, hostname){
 const doMyLoadOrthanc = function(myOrthancId, hostname){
 	return new Promise(async function(resolve, reject) {
 		if ((hostname === 'localhost') || (hostname.indexOf('192.168') >= 0)){
+			const myCloud = {os: "docker-linux", ip: "202.28.68.28", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042", ipex: "202.28.68.28"};
+			if (myOrthancId == 2) {
+				myCloud.portex = "8043"
+			} else if (myOrthancId == 3) {
+				myCloud.portex = "8044"
+			}
+			const localOrthanc = [{id: 0, Orthanc_Local: {}, Orthanc_Cloud: JSON.stringify(myCloud)}];
 			resolve(localOrthanc[0]);
 		} else {
 			const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {id: myOrthancId}});

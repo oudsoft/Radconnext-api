@@ -15,7 +15,7 @@ var wsm;
 const initPage = function() {
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
   $('body').loading({overlay: $("#overlay"), stoppable: true});
-
+  let queryObj = urlQueryToObject(window.location.href);
   let yourToken = localStorage.getItem('token');
   if (yourToken) {
     //chat room
@@ -25,63 +25,83 @@ const initPage = function() {
       }
     });
 
-    let queryObj = urlQueryToObject(window.location.href);
     if (queryObj.caseId) {
       doOpenChatRoom(queryObj.caseId);
     } else {
-      const promptMsg = $('<div></div>');
-      $(promptMsg).append($('<p>รหัสเคสจะปรากฎอยู่ด้านล่างของรายงานผลอ่าน</p>'));
-      $(promptMsg).append($('<p>นำค่ารหัสเคสมาป้อนลงในช่องรหัสเคสด้านล่าง แล้วคลิกปุ่ม <b>ตกลง</b></p>'));
-      let promptInputBox = $('<div style="position: relative; width: 100%; text-align: left; padding: 4px;"></div>');
-      $(promptInputBox).append($('<div style="display: inline-block;">รหัสเคส:</div>'));
-      let caseIdInput = $('<input id="CaseId" type="number"/>');
-      let caseIdInputBox = $('<div style="display: inline-block; margin-left: 5px;"></div>');
-      $(caseIdInputBox).append($(caseIdInput));
-      $(promptInputBox).append($(caseIdInputBox));
-      $(promptMsg).append($(promptInputBox));
-      const radpromptoption = {
-        title: 'โปรดระบุรหัสเคส',
-        msg: $(promptMsg),
-        width: '560px',
-        onOk: async function(evt) {
-          let yourCaseId = $(caseIdInput).val();
-          let caseRes = await $.post('/api/cases/select/'+ yourCaseId, {});
-          //console.log(caseRes);
-          if (caseRes.Records.length > 0){
-            let caseHospitalId = caseRes.Records[0].case.hospitalId;
-            let userdata = JSON.parse(localStorage.getItem('userdata'));
-            let hospitalId = userdata.hospitalId;
-            if (caseHospitalId == hospitalId) {
-              radPromptBox.closeAlert();
-              doOpenChatRoom(yourCaseId);
-            } else {
-              doShowCaseSecurity();
-            }
-          } else {
-            $.notify('ไม่พบข้อมูลเคสจากระบบฯ', "error");
-          }
-        },
-        onCancel: function(evt){
-          $(promptMsg).empty();
-          $(promptMsg).append($('<p>เราเสียดายเป็นอย่างยิ่งที่ไม่มีโอกาสได้รับใช้คุณ</p>'));
-          setTimeout(function(){
-            radPromptBox.closeAlert();
-          }, 4000);
-        }
-      }
-
-      let radPromptBox = $('body').radalert(radpromptoption);
-
-      $(caseIdInput).on('keypress',function(e) {
-        if(e.which == 13) {
-          radPromptBox.settings.onOk();
-        };
-      });
-
+      doPromptCaseId();
     }
   } else {
     //login
-    window.location.replace('/index.html?action=callchat&caseId='+queryObj.caseId);
+    //window.location.replace('/index.html?action=callchat&caseId='+queryObj.caseId);
+    $('head').append('<script src="../setting/plugin/jquery-radutil-plugin.js"></script>');
+    let radLoginBox = $('<div></div>');
+    $(radLoginBox).append($('<p>ป้อน Username และ Pฟssword ของคุณเพื่อเข้าสู่ระบบ แล้วคลิกปุ่ม <b>ตกลง</b></p>'));
+    $(radLoginBox).append($('<p>หากยังไม่ได้ลงทะเบียนเข้าใช้งาน คลิกปุ่ม <b>ลงทะเบียน</b></p>'));
+    let usernameInput = $('<input type="text"/>');
+    $(usernameInput).css({'margin-left': '10px'});
+    let passwordInput = $('<input type="password"/>');
+    $(passwordInput).css({'margin-left': '10px'});
+    let usernameLine = $('<div style="position: realtive; width: 100%; padding: 10px;"><span style="display: inline-block">Username:</span></div>');
+    let passwordLine = $('<div style="position: realtive; width: 100%; padding: 10px;"><span style="display: inline-block">Password:</span></div>');
+    $(usernameLine).append($(usernameInput));
+    $(passwordLine).append($(passwordInput));
+    let loginMsgbox = $('<div style="position: realtive; width: 100%; color: red;"></div>');
+    $(radLoginBox).append($(usernameLine));
+    $(radLoginBox).append($(passwordLine));
+    $(radLoginBox).append($(loginMsgbox));
+    const radloginoption = {
+			title: 'โปรดเข้าสู่ระบบเพื่อเริ่มติดต่อรังสีแพทย์',
+			msg: $(radLoginBox),
+			width: '520px',
+			onOk: function(evt){
+        let username = $(usernameInput).val();
+        let password = $(passwordInput).val();
+        if (username != '') {
+          $(usernameInput).css({'border': ''});
+          if (password != ''){
+            $(passwordInput).css({'border': ''});
+            $.post('/api/login', {username: username, password: password}).then(function(loginRes){
+              if (loginRes.success == false) {
+                $(usernameInput).css({'border': '1px solid red'});
+                $(passwordInput).css({'border': '1px solid red'});
+                $(loginMsgbox).html('<b>Username หรือ Password</b> ไม่ถูกต้อง');
+              } else {
+                $(usernameInput).css({'border': ''});
+                $(passwordInput).css({'border': ''});
+                userLoginBox.closeAlert();
+                localStorage.setItem('token', loginRes.token);
+                localStorage.setItem('userdata', JSON.stringify(loginRes.data));
+
+                $.ajaxSetup({
+                  beforeSend: function(xhr) {
+                    xhr.setRequestHeader('Authorization', loginRes.token);
+                  }
+                });
+
+                if (queryObj.caseId) {
+                  doOpenChatRoom(queryObj.caseId);
+                } else {
+                  doPromptCaseId();
+                }
+
+              }
+            });
+          } else {
+            $(passwordInput).css({'border': '1px solid red'});
+            $(loginMsgbox).html('<b>Password</b> ต้องไม่ว่าง');
+          }
+        } else {
+          $(usernameInput).css({'border': '1px solid red'});
+          $(loginMsgbox).html('<b>Username</b> ต้องไม่ว่าง');
+        }
+      },
+      onCancel: function(evt){
+        userLoginBox.closeAlert();
+        doShowRegisterGuideBox();
+      }
+    };
+    let userLoginBox = $('body').radalert(radloginoption);
+    $(userLoginBox.cancelCmd).val('ลงทะเบียน')
   }
 }
 
@@ -89,7 +109,7 @@ $(document).ready(function() {
 	initPage();
 });
 
-const doOpenChatRoom = async function(caseId){
+const doOpenChatRoom = function(caseId){
   $('body').loading('start');
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   //console.log(userdata);
@@ -100,12 +120,13 @@ const doOpenChatRoom = async function(caseId){
   wsm = doConnectWebsocketMaster(username, usertypeId, hospitalId, 'none');
   //console.log(wsm);
 
-  let simpleChatBox = await doCreateChatBox(caseId);
-  $('#app').append($(simpleChatBox));
+  doCreateChatBox(caseId).then(function(simpleChatBox){
+    $('#app').append($(simpleChatBox));
 
-  let gotomainpageCmd = doCreatePageCmd();
-  $('#app').append($(gotomainpageCmd));
-  $('body').loading('stop');
+    let gotomainpageCmd = doCreatePageCmd();
+    $('#app').append($(gotomainpageCmd));
+    $('body').loading('stop');
+  });
 }
 
 const doConnectWebsocketMaster = function(username, usertypeId, hospitalId, connecttype){
@@ -115,7 +136,8 @@ const doConnectWebsocketMaster = function(username, usertypeId, hospitalId, conn
   const rootname = paths[1];
 
   //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-  const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+  const wsUrl = 'wss://' + hostname + '/' + username + '/' + hospitalId;
+  console.log(wsUrl);
   wsm = new WebSocket(wsUrl);
   wsm.onopen = function () {
     //console.log('Master Websocket is connected to the signaling server')
@@ -184,60 +206,63 @@ const doSaveMessageToLocal = function(msg ,from, topicId, status){
   localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 }
 
-const doCreateChatBox = async function(caseId){
+const doCreateChatBox = function(caseId){
   let dfd = $.Deferred();
   let userdata = JSON.parse(localStorage.getItem('userdata'));
-  let caseRes = await $.post('/api/cases/select/'+ caseId, {});
-  if (caseRes.Records.length > 0){
-    caseItem = caseRes.Records[0];
-    let patentFullName, patientHN, patientSA, caseBodypart;
-    patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
-    patientHN = caseItem.case.patient.Patient_HN;
-    patientSA = caseItem.case.patient.Patient_Age + '/' + caseItem.case.patient.Patient_Sex;
-    caseBodypart = caseItem.case.Case_BodyPart;
+  $.post('/api/cases/select/'+ caseId, {}).then(function(caseRes){
+    if (caseRes.Records.length > 0){
+      caseItem = caseRes.Records[0];
+      let patentFullName, patientHN, patientSA, caseBodypart;
+      patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
+      patientHN = caseItem.case.patient.Patient_HN;
+      patientSA = caseItem.case.patient.Patient_Age + '/' + caseItem.case.patient.Patient_Sex;
+      caseBodypart = caseItem.case.Case_BodyPart;
 
-    let simpleChatBoxOption = {
-      topicId: caseId,
-      topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
-      topicStatusId: caseItem.case.casestatusId,
-      myId: userdata.username,
-      myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
-      myDisplayName: 'ฉัน',
-      audienceId: caseItem.Radiologist.username,
-      audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
-      wantBackup: true,
-      externalClassStyle: {},
-      sendMessageCallback: doSendMessageCallback,
-      resetUnReadMessageCallback: doResetUnReadMessageCallback
-    };
-    let callRadioView = $('<div style="width: 99%; padding: 2px;"></div>');
-    let caseView = $('<div style="padding: 5px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-    let caseTitleBox = doCreateCaseTitle();
-    $(caseTitleBox).appendTo($(caseView));
-    $(caseTitleBox).find('#PatientHN').text(patientHN);
-		$(caseTitleBox).find('#PatentFullName').text(patentFullName);
-		$(caseTitleBox).find('#PatientSA').text(patientSA);
-		$(caseTitleBox).find('#CaseBodypart').text(caseBodypart);
+      let simpleChatBoxOption = {
+        topicId: caseId,
+        topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
+        topicStatusId: caseItem.case.casestatusId,
+        myId: userdata.username,
+        myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
+        myDisplayName: 'ฉัน',
+        audienceId: caseItem.Radiologist.username,
+        audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
+        wantBackup: true,
+        externalClassStyle: {},
+        sendMessageCallback: doSendMessageCallback,
+        resetUnReadMessageCallback: doResetUnReadMessageCallback
+      };
+      let callRadioView = $('<div style="width: 99%; padding: 2px;"></div>');
+      let caseView = $('<div style="padding: 5px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+      let caseTitleBox = doCreateCaseTitle();
+      $(caseTitleBox).appendTo($(caseView));
+      $(caseTitleBox).find('#PatientHN').text(patientHN);
+  		$(caseTitleBox).find('#PatentFullName').text(patentFullName);
+  		$(caseTitleBox).find('#PatientSA').text(patientSA);
+  		$(caseTitleBox).find('#CaseBodypart').text(caseBodypart);
 
-    let caseResultInfoBox = await doCreateResulteSection(caseId);
-		$(caseResultInfoBox).appendTo($(caseView));
+      doCreateResulteSection(caseId).then(function(caseResultInfoBox){
+    		$(caseResultInfoBox).appendTo($(caseView));
 
-    $(callRadioView).append($(caseView));
+        $(callRadioView).append($(caseView));
 
-    let simpleChatBox = $('<div id="SimpleChatBox"></div>');
-    let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
-    $(simpleChatBox).css({width: '100%'})
-    await simpleChatBoxHandle.restoreLocal();
-    $(callRadioView).append($(simpleChatBox));
-    simpleChatBoxHandle.scrollDown();
-    dfd.resolve($(callRadioView));
-  } else {
-    dfd.resolve();
-  }
+        let simpleChatBox = $('<div id="SimpleChatBox"></div>');
+        let simpleChatBoxHandle = $(simpleChatBox).chatbox(simpleChatBoxOption);
+        $(simpleChatBox).css({width: '100%'})
+        simpleChatBoxHandle.restoreLocal().then(function(){
+          $(callRadioView).append($(simpleChatBox));
+          simpleChatBoxHandle.scrollDown();
+          dfd.resolve($(callRadioView));
+        });
+      });
+    } else {
+      dfd.resolve();
+    }
+  });
   return dfd.promise();
 }
 
-const doSendMessageCallback = async function(msg, sendto, from, context){
+const doSendMessageCallback = function(msg, sendto, from, context){
   let dfd = $.Deferred();
   const userdata = JSON.parse(localStorage.getItem('userdata'));
   let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
@@ -250,18 +275,21 @@ const doSendMessageCallback = async function(msg, sendto, from, context){
 		let userId = userdata.userId;
 		let rqParams = { hospitalId: hospitalId, userId: userId, caseId: context.topicId, casestatusId: newStatus, caseDescription: newDescription};
 
-    let updateStatusRes = await $.post('/api/cases/status/' + context.topicId, rqParams);
-    console.log(updateStatusRes);
-    if (updateStatusRes.status.code == 200){
-      let selector = '#'+sendto + ' .chatbox';
-      let targetChatBox = $(selector);
-      let eventData = {topicStatusId: 14};
-      $(targetChatBox).trigger('updatetopicstatus', [eventData]);
-    } else {
-      $.notify('Now. can not update case status.', 'warn');
-    }
+    $.post('/api/cases/status/' + context.topicId, rqParams).then(function(updateStatusRes){
+      console.log(updateStatusRes);
+      if (updateStatusRes.status.code == 200){
+        let selector = '#'+sendto + ' .chatbox';
+        let targetChatBox = $(selector);
+        let eventData = {topicStatusId: 14};
+        $(targetChatBox).trigger('updatetopicstatus', [eventData]);
+      } else {
+        $.notify('Now. can not update case status.', 'warn');
+      }
+      dfd.resolve();
+    })
+  } else {
+    dfd.resolve();
   }
-  dfd.resolve();
   return dfd.promise();
 }
 
@@ -295,48 +323,51 @@ const doCreateCaseTitle = function(){
   return $(caseTitle);
 }
 
-const doCreateResulteSection = async function(caseId) {
+const doCreateResulteSection = function(caseId) {
   let dfd = $.Deferred();
   let resultBox = $('<div></div>');
   let resultTitle = $('<div><span><b>ผลอ่าน</b></span></div>');
   $(resultTitle).appendTo($(resultBox));
-  let resultContentBox = await doCreateCaseResult(caseId);
-  let resultView = $('<div style="width: 99%; padding: 4px; border: 2px solid grey; background-color: white; min-height: 100px"></div>')
-  $(resultView).append($(resultContentBox));
-  $(resultView).appendTo($(resultBox));
+  doCreateCaseResult(caseId).then(function(resultContentBox){
+    let resultView = $('<div style="width: 99%; padding: 4px; border: 2px solid grey; background-color: white; min-height: 100px"></div>')
+    $(resultView).append($(resultContentBox));
+    $(resultView).appendTo($(resultBox));
 
-  let hideShowToggleCmd = $('<span style="float: right; cursor: pointer;">ซ่อนผลอ่าน</span>');
-  $(hideShowToggleCmd).on('click', function(evt){
-    let state = $(resultView).css('display');
-    if (state === 'block') {
-      $(resultView).slideUp();
-      $(hideShowToggleCmd).text('แสดงผลอ่าน');
-    } else {
-      $(resultView).slideDown();
-      $(hideShowToggleCmd).text('ซ่อนผลอ่าน');
-    }
+    let hideShowToggleCmd = $('<span style="float: right; cursor: pointer;">ซ่อนผลอ่าน</span>');
+    $(hideShowToggleCmd).on('click', function(evt){
+      let state = $(resultView).css('display');
+      if (state === 'block') {
+        $(resultView).slideUp();
+        $(hideShowToggleCmd).text('แสดงผลอ่าน');
+      } else {
+        $(resultView).slideDown();
+        $(hideShowToggleCmd).text('ซ่อนผลอ่าน');
+      }
+    });
+    $(hideShowToggleCmd).appendTo($(resultTitle));
+    dfd.resolve($(resultBox));
   });
-  $(hideShowToggleCmd).appendTo($(resultTitle));
-  dfd.resolve($(resultBox));
   return dfd.promise();
 }
 
-const doCreateCaseResult = async function(caseId){
+const doCreateCaseResult = function(caseId){
   let dfd = $.Deferred();
-  let resultRes = await $.post('/api/cases/result/'+ caseId, {});
-  if ((resultRes) && (resultRes.Records.length > 0)) {
-    let resultReport = resultRes.Records[0];
-    let pdfStream = await doCreateDownloadPDF(resultReport.PDF_Filename);
-    let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-    let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
-    $(embetObject).appendTo($(resultBox));
-    dfd.resolve($(resultBox));
-  } else {
-    let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-    let errorNotFoundPDF = $('<div style="color: red;"><h2>Not Found PDF report file.</h2><p>caseId=' + caseId + '</p></div>');
-    $(resultBox).append($(errorNotFoundPDF));
-    dfd.resolve($(resultBox));
-  }
+  $.post('/api/cases/result/'+ caseId, {}).then(function(resultRes){
+    if ((resultRes) && (resultRes.Records.length > 0)) {
+      let resultReport = resultRes.Records[0];
+      //doCreateDownloadPDF(resultReport.PDF_Filename).then(function(pdfStream){
+        let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+        let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
+        $(embetObject).appendTo($(resultBox));
+        dfd.resolve($(resultBox));
+      //});
+    } else {
+      let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+      let errorNotFoundPDF = $('<div style="color: red;"><h2>Not Found PDF report file.</h2><p>caseId=' + caseId + '</p></div>');
+      $(resultBox).append($(errorNotFoundPDF));
+      dfd.resolve($(resultBox));
+    }
+  });
   return dfd.promise();
 }
 
@@ -367,9 +398,9 @@ const doShowCaseSecurity = function(){
     width: '560px',
     onOk: function(evt) {
       $(secureMsg).empty().append($('<p>โปรดป้อนรหัสเคสที่เป็นของโรงพยาบาลคุณ</p>'));
-      setTimeout(()=>{
+      setTimeout(function(){
         radAlertBox.closeAlert();
-      }, 5000)
+      }, 5000);
     },
   }
 
@@ -387,4 +418,77 @@ const doCreateDownloadPDF = function(pdfLink){
 		}
 	});
   return dfd.promise();
+}
+
+const doPromptCaseId = function() {
+  const promptMsg = $('<div></div>');
+  $(promptMsg).append($('<p>รหัสเคสจะปรากฎอยู่ด้านล่างของรายงานผลอ่าน</p>'));
+  $(promptMsg).append($('<p>นำค่ารหัสเคสมาป้อนลงในช่องรหัสเคสด้านล่าง แล้วคลิกปุ่ม <b>ตกลง</b></p>'));
+  let promptInputBox = $('<div style="position: relative; width: 100%; text-align: left; padding: 4px;"></div>');
+  $(promptInputBox).append($('<div style="display: inline-block;">รหัสเคส:</div>'));
+  let caseIdInput = $('<input id="CaseId" type="number"/>');
+  let caseIdInputBox = $('<div style="display: inline-block; margin-left: 5px;"></div>');
+  $(caseIdInputBox).append($(caseIdInput));
+  $(promptInputBox).append($(caseIdInputBox));
+  $(promptMsg).append($(promptInputBox));
+  const radpromptoption = {
+    title: 'โปรดระบุรหัสเคส',
+    msg: $(promptMsg),
+    width: '560px',
+    onOk: function(evt) {
+      let yourCaseId = $(caseIdInput).val();
+      $.post('/api/cases/select/'+ yourCaseId, {}).then(function(caseRes){
+      //console.log(caseRes);
+        if (caseRes.Records.length > 0){
+          let caseHospitalId = caseRes.Records[0].case.hospitalId;
+          let userdata = JSON.parse(localStorage.getItem('userdata'));
+          let hospitalId = userdata.hospitalId;
+          if (caseHospitalId == hospitalId) {
+            radPromptBox.closeAlert();
+            doOpenChatRoom(yourCaseId);
+          } else {
+            doShowCaseSecurity();
+          }
+        } else {
+          $.notify('ไม่พบข้อมูลเคสจากระบบฯ', "error");
+        }
+      });
+    },
+    onCancel: function(evt){
+      $(promptMsg).empty();
+      $(promptMsg).append($('<p>เราเสียดายเป็นอย่างยิ่งที่ไม่มีโอกาสได้รับใช้คุณ</p>'));
+      setTimeout(function(){
+        radPromptBox.closeAlert();
+      }, 4000);
+    }
+  }
+
+  let radPromptBox = $('body').radalert(radpromptoption);
+
+  $(caseIdInput).on('keypress',function(e) {
+    if(e.which == 13) {
+      radPromptBox.settings.onOk();
+    };
+  });
+}
+
+const doShowRegisterGuideBox = function(){
+  const registerGuideBox = $('<div></div>');
+  $(registerGuideBox).append($('<p>การลงทะเบียนผู้ใช้งาน จำเป็นต้องมี <b>อีเมล์</b> หนึ่งบัญชี</p>'));
+  $(registerGuideBox).append($('<p>และระบบไม่รองรับการลงทะเบียนบน Microsoft Internet Exploere</p>'));
+  $(registerGuideBox).append($('<p>หากพร้อมแล้วคลิกปุ่ม <b>ตกลง</b> เพื่อเปิดการลงทะเบียนบน Google Chrome</p>'));
+  let chromeBrowser = $('<div style="padding: 5px; text-align: center;"><img src="/images/chrome-icon.png" width="100px" height="auto"/></div>');
+  $(registerGuideBox).append($(chromeBrowser));
+  const radregisteroption = {
+    title: 'ตำชี้แจงเพื่อดำเนินการลงทะเบียน',
+    msg: $(registerGuideBox),
+    width: '460px',
+    onOk: function(evt) {
+      let chromeLink = "ChromeHTML:// radconnext.info/index.html?action=register";
+      window.location.replace(chromeLink);
+      registerGuide.closeAlert();
+    }
+  }
+  let registerGuide = $('body').radalert(radregisteroption);
+  $(registerGuide.cancelCmd).hide();
 }

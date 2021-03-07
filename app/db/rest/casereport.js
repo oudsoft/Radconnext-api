@@ -220,7 +220,7 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId) {
 			log.info('Start Convert Dicom with command => ' + command);
 			runcommand(command).then((cmdout) => {
 				log.info('result => ' + cmdout);
-				removeTempFile(fileCode);
+				//removeTempFile(fileCode);
 				resolve({dicomLink: USRPDF_PATH + '/' + dcmFile, dcmname: dcmFile});
 			}).catch((cmderr) => {
 				log.error('cmderr: 500 >>', cmderr);
@@ -323,11 +323,14 @@ app.post('/appendlog/(:caseId)', (req, res) => {
           const caseId = req.params.caseId;
 					const appendLog = req.body.log;
           const caserep = await Report.findAll({attributes: ['Log'], where: {caseId: caseId}});
-					const currentLog = caserep[0].Log;
-					const newLog = [];
-					newLog.push(currentLog);
-					newLog.push(appendLog);
-					await Report.update({Log: newLog}, { where: { caseId: caseId }});
+					let currentLog = undefined;
+					if (caserep.length > 0) {
+						currentLog = caserep[0].Log;
+						currentLog.push(appendLog);
+					} else {
+						currentLog = [appendLog];
+					}
+					await Report.update({Log: currentLog}, { where: { caseId: caseId }});
           res.json({ status: {code: 200}});
         } catch(error) {
           log.error(error);
@@ -517,7 +520,9 @@ app.post('/convert', (req, res) => {
 				});
 				*/
 				let socketTrigger = {type: 'trigger', message: 'Please tell your orthanc update', studyid: studyID, dcmname: dicom.dcmname, studyInstanceUID: studyInstanceUID, owner: ur[0].username, hostname: req.hostname};
-				await websocket.sendMessage(socketTrigger, ur[0].username);
+				//await websocket.sendMessage(socketTrigger, 'orthanc');
+				let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
+				yourLocalSocket.send(JSON.stringify(socketTrigger));
 				res.json({status: {code: 200}, dicomLink: dicom.dicomLink});
       } else {
         log.info('Can not found user from token.');

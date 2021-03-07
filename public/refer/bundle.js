@@ -219,6 +219,7 @@ module.exports = function ( jq ) {
 			$.post(convertorEndPoint, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
+        console.log('convert error', error);
 				reject(error);
 			});
     });
@@ -393,7 +394,7 @@ module.exports = function ( jq ) {
 	const caseResultWaitStatus = [2, 8, 9, 13, 14];
 	const casePositiveStatus = [2,8,9];
 	const caseNegativeStatus = [3,4,7];
-	const caseReadSuccessStatus = [5];
+	const caseReadSuccessStatus = [5, 10, 11, 12, 13, 14];
 	const caseAllStatus = [1,2,3,4,5,6,7];
 	const allCaseStatus = [
 		{value: 1, DisplayText: 'เคสใหม่'},
@@ -547,6 +548,22 @@ module.exports = function ( jq ) {
 		rqParams.Case_DESC = newCaseData.detail;
 		rqParams.Case_StudyInstanceUID = newCaseData.studyInstanceUID
 		return rqParams;
+	}
+
+	const doGetSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
+			let rqParams = {hospitalId: hospitalId, username: username};
+			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
+			if (dicomStudiesRes.orthancRes.length > 0) {
+				resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+			} else {
+				resolve()
+			}
+		});
 	}
 
 	const doGetOrthancStudyDicom = function(studyId) {
@@ -914,6 +931,7 @@ module.exports = function ( jq ) {
     doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
+		doGetSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
@@ -954,8 +972,9 @@ module.exports = function ( jq ) {
 		let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
     let userItemPerPage = userDefualtSetting.itemperpage;
 		let queryString = localStorage.getItem('dicomfilter');
-		console.log(queryString);
-		doCallSearhOrthanc(queryString).then(async (studies) => {
+		//console.log(queryString);
+		doCallSearhDicomLog(queryString).then(async (studies) => {
+		//doCallSearhOrthanc(queryString).then(async (studies) => {
 			$(".mainfull").empty();
 			let resultTitle = $('<div class="title-content"></div>');
 			let logoPage = $('<img src="/images/orthanc-icon-1.png" width="40px" height="auto" style="float: left;"/>');
@@ -1006,6 +1025,12 @@ module.exports = function ( jq ) {
 			}
 			$('body').loading('stop');
 		});
+
+		/*
+		doCallSearhDicomLog(queryString).then(async (studies) => {
+			console.log(studies);
+		});
+		*/
 	}
 
   const doCallSearhOrthanc = function(query) {
@@ -1046,6 +1071,37 @@ module.exports = function ( jq ) {
 			});
   	});
   }
+
+	const doCallSearhDicomLog = function(queryString) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			const dicomUrl = '/api/dicomtransferlog/studies/list';
+			let query = JSON.parse(queryString);
+			let modality = query.Query.Modality;
+			let studyDate = query.Query.StudyDate;
+			if (studyDate){
+				let n = studyDate.indexOf('-');
+				if (n > 0){
+					studyDate = studyDate.split('');
+					studyDate.splice(n, 1);
+					studyDate = studyDate.join('')
+				} else {
+					studyDate = studyDate;
+				}
+			}
+			let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyDate: studyDate};
+			console.log(rqParams);
+			let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
+			let studies = [];
+			if (dicomStudiesRes.orthancRes) {
+				let dicomSudies = dicomStudiesRes.orthancRes;
+				await dicomSudies.forEach((item, i) => {
+					studies.push(item.StudyTags);
+				});
+			}
+			resolve(studies);
+		});
+	}
 
   const doCreateDicomHeaderRow = function() {
 		const headerLabels = ['No.', 'Study Date', 'HN', 'Name', 'Sex/Age', 'Modality', 'Study Desc. / Protocol Name', 'Operation'];
@@ -2165,6 +2221,7 @@ module.exports = function ( jq ) {
   return {
     doLoadDicomFromOrthanc,
 		doCallSearhOrthanc,
+		doCallSearhDicomLog,
     doCreateDicomHeaderRow,
     doCreateDicomItemRow,
     doShowDicomResult,
@@ -3118,21 +3175,31 @@ module.exports = function ( jq ) {
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
-      let seriesList = await common.doGetOrthancStudyDicom(studyID);
-      let seriesDescList = [];
-      let	promiseList = new Promise(async function(resolve2, reject2){
-        seriesList.Series.forEach(async(item, i) => {
-          let seriesTags = await common.doGetOrthancSeriesDicom(item);
-          let seriesView = {id: item, desc: seriesTags.MainDicomTags.SeriesDescription};
-          seriesDescList.push(seriesView);
-        });
-        setTimeout(()=>{
-					resolve2(seriesDescList);
-				}, 500);
-			});
-      Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
+      let seriesList = await common.doGetSeriesList(studyID);
+			if (seriesList){
+	      let seriesDescList = [];
+	      let	promiseList = new Promise(async function(resolve2, reject2){
+	        seriesList.Series.forEach(async(item, i) => {
+	          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+						let seriesName = undefined;
+						if (seriesTags.MainDicomTags.SeriesDescription){
+							seriesName = seriesTags.MainDicomTags.SeriesDescription
+						} else {
+							seriesName = '[ ' + seriesTags.MainDicomTags.BodyPartExamined + ' ]'
+						}
+	          let seriesView = {id: item, desc: seriesName};
+	          seriesDescList.push(seriesView);
+	        });
+	        setTimeout(()=>{
+						resolve2(seriesDescList);
+					}, 500);
+				});
+	      Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			} else {
+				resolve();
+			}
     });
   }
 
@@ -3205,7 +3272,9 @@ module.exports = function ( jq ) {
       let previewPath = '/img/usr/preview/' + seriesId
       await instanceList.forEach((item, i) => {
         let thumbImg = $('<img width="60" height="auto"/>');
-        $(thumbImg).attr('src', previewPath + '/' + item + '.png');
+				let thumbFileSrc = previewPath + '/' + item + '.png';
+				//console.log(thumbFileSrc);
+        $(thumbImg).attr('src', thumbFileSrc);
         $(thumbImg).css({'cursor': 'pointer'});
         $(thumbImg).data('thumbImgData', {instanceId: item});
         $(thumbImg).on('click', async (evt)=>{
@@ -3237,6 +3306,9 @@ module.exports = function ( jq ) {
 					console.log(convertRes);
 					/********/
 					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+					/*
+						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+					*/
 					$(okCmd).text(' ปืด ');
 					$(cancelCmd).hide();
 					$('#quickreply').loading('stop');
@@ -3807,7 +3879,9 @@ module.exports = function ( jq ) {
 	const createnewcase = require('../../case/mod/createnewcase.js')($);
 	const ai = require('../../radio/mod/ai-lib.js')($);
 
+	const backwardCaseStatus = [5, 6, 10, 11, 12, 13, 14];
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
+	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 
 	const doOpenCaseView = function(dicomData, defualtValue, dicomSeries){
     return new Promise(async function(resolve, reject){
@@ -3838,6 +3912,22 @@ module.exports = function ( jq ) {
 			$(caseTitle).find('#PatentFullName').text(patentFullName);
 			$(caseTitle).find('#PatientSA').text(patientSA);
 			$(caseTitle).find('#CaseBodypart').text(caseBodypart);
+
+			if (dicomData.studyInstanceUID) {
+				let openStoneWebViewerCmd = $('<input type="button" value=" เปิดภาพ "/>');
+	      let openData = {studyInstanceUID: dicomData.studyInstanceUID};
+	      $(openStoneWebViewerCmd).data('openData', openData);
+	      $(openStoneWebViewerCmd).on('click', onOpenStoneWebViewerCmdClick);
+				$(openStoneWebViewerCmd).css({'float': 'right'});
+				$(caseTitle).find('#TitleData').append($(openStoneWebViewerCmd));
+			}
+
+			if (caseItem) {
+				let patientId = caseItem.case.patientId;
+				let patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
+				let backwardView = await doCallCreatePatientBackward(patientId, patentFullName);
+				$(backwardView).appendTo($(caseView));
+			}
 
 			let caseResultInfoBox = await doCreateResulteSection(dicomData, caseItem);
 			//$(caseResultInfoBox).css({'min-height': '100px'});
@@ -3895,8 +3985,8 @@ module.exports = function ( jq ) {
 
   const doCreateCaseTitle = function(dicomData){
     return new Promise(async function(resolve, reject){
-      let caseTitle = $('<div id="CaseTitle"></div>');
-      let summaryLine = $('<div></div>');
+      let caseTitle = $('<div id="CaseTitle"><div><span><b>ผู้ป่วย</b></span></div></div>');
+      let summaryLine = $('<div id="TitleData" style="min-height: 40px;"></div>');
       $(summaryLine).appendTo($(caseTitle));
       $(summaryLine).append($('<span><b>HN:</b> </span>'));
       $(summaryLine).append($('<span id="PatientHN" style="margin-left: 4px; color: white;"></span>'));
@@ -3913,13 +4003,25 @@ module.exports = function ( jq ) {
 
   const doCreateResulteSection = function(dicomData, caseData) {
     return new Promise(async function(resolve, reject){
-      let resultBox = $('<div></div>');
-      let resultTitle = $('<div><span><b>ผลอ่าน</b></span></div>');
+      let resultBox = $('<div style="margin-top: 10px;"></div>');
+      let resultTitle = $('<div style="min-height: 40px;"><span><b>ผลอ่าน</b></span></div>');
       $(resultTitle).appendTo($(resultBox));
 			let resultContentBox = await doCreateResultWithCaseStatus(dicomData, caseData);
       let resultView = $('<div style="width: 98%; padding: 4px; border: 2px solid grey; background-color: white; min-height: 100px"></div>')
 			$(resultView).append($(resultContentBox));
       $(resultView).appendTo($(resultBox));
+			let toggleContentCmd = $('<span style="float: right; cursor: pointer;">ซ่อนผลอ่าน</span>');
+			$(toggleContentCmd).on('click', function(evt){
+	      let state = $(resultView).css('display');
+	      if (state === 'block') {
+	        $(resultView).slideUp();
+	        $(toggleContentCmd).text('แสดงผลอ่าน');
+	      } else {
+	        $(resultView).slideDown();
+	        $(toggleContentCmd).text('ซ่อนผลอ่าน');
+	      }
+	    });
+	    $(toggleContentCmd).appendTo($(resultTitle));
       resolve($(resultBox));
     });
   }
@@ -4044,11 +4146,26 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			$('body').loading('start');
 			let seriesList = await ai.doCallCheckSeries(dicomData.dicomID);
-			let seriesSelect = await ai.doCreateSeriesSelect(caseData, seriesList);
-			$(seriesSelect).css(ai.quickReplyContentStyle);
-			$(seriesSelect).css({'height': 'auto'});
-			$('#quickreply').css(ai.quickReplyDialogStyle);
-			$('#quickreply').append($(seriesSelect));
+			if (seriesList) {
+				let seriesSelect = await ai.doCreateSeriesSelect(caseData, seriesList);
+				$(seriesSelect).css(ai.quickReplyContentStyle);
+				$(seriesSelect).css({'height': 'auto'});
+				$('#quickreply').css(ai.quickReplyDialogStyle);
+				$('#quickreply').append($(seriesSelect));
+			} else {
+				const sorryMsg = $('<div></div>');
+		    $(sorryMsg).append($('<p>ระบบค้นหาภาพจากระบบไม่เจอโปรดแจ้งผูดูแลระบบฯ ของคุณ</p>'));
+				const radalertoption = {
+		      title: 'ขออภัยที่เกิดจ้อผิดพลาด',
+		      msg: $(sorryMsg),
+		      width: '560px',
+		      onOk: function(evt) {
+	          radAlertBox.closeAlert();
+		      }
+		    }
+				let radAlertBox = $('body').radalert(radalertoption);
+		    $(radAlertBox.cancelCmd).hide();
+			}
 			$('body').loading('stop');
 			resolve();
 		});
@@ -4208,6 +4325,201 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const onOpenStoneWebViewerCmdClick = function(evt) {
+    const openCmd = $(evt.currentTarget);
+    const openData = $(openCmd).data('openData');
+    common.doOpenStoneWebViewer(openData.studyInstanceUID);
+  }
+
+	const doCallCreatePatientBackward = function(patientId, patientFullName){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let limit = 2;
+			let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, limit);
+			let patientBackwardView = undefined;
+			if (patientBackward.Records.length > 0) {
+				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName);
+			} else {
+				patientBackwardView = $('<div style="100%"><div><span><b>ประวัติการตรวจ</b></span></div><span>ไม่พบประวัติการตรวจ</span></div>');
+			}
+			resolve($(patientBackwardView));
+		});
+	}
+
+	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, limit) {
+		return new Promise(function(resolve, reject) {
+			var apiUri = '/api/cases/filter/patient';
+			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId};
+			if ((limit) && (limit > 0)) {
+				params.limit = limit;
+			}
+			$.post(apiUri, params, function(response){
+				resolve(response);
+			}).catch((err) => {
+				console.log(JSON.stringify(err));
+				reject(err);
+			})
+		});
+	}
+
+	const doCreatePatientBackward = function(backwards, patientFullName) {
+		return new Promise(async function(resolve, reject) {
+			let backwardBox = $('<div style="100%"></div>');
+			let titleBox = $('<div style="100%"></div>');
+			$(titleBox).appendTo($(backwardBox));
+			let titleText = $('<span><b>ประวัติการตรวจ</b></span>');
+			$(titleText).appendTo($(titleBox));
+
+			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			$(backwardView).appendTo($(backwardBox));
+
+			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView);
+			$(limitToggle).appendTo($(titleBox));
+			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
+
+			let backwardContentView = await doCreateBackwardItem(patientFullName, backwards, backwardView);
+			$(backwardBox).append($(backwardContentView));
+			resolve($(backwardBox));
+		});
+	}
+
+	const doCreateToggleSwitch = function(patientFullName, backwardView) {
+		let switchBox = $('<div></div>');
+		let toggleSwitch = $('<label class="switch"></label>');
+		let input = $('<input type="checkbox">');
+		let slider = $('<span class="slider"></span>');
+		$(toggleSwitch).append($(input));
+		$(toggleSwitch).append($(slider));
+		$(input).on('click', async (evt)=>{
+			$(backwardView).loading('start');
+			let patientBackwards = undefined;
+			let isOn = $(input).prop('checked');
+			if (isOn) {
+				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus);
+			} else {
+				let limit = 2;
+				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
+			}
+			let backwardContent = await doCreateBackwardItem(patientFullName, patientBackwards.Records, backwardView);
+			$(backwardView).loading('stop');
+		});
+		$(switchBox).append($(toggleSwitch));
+		return $(switchBox);
+	}
+
+	const doCreateBackwardItem = function(patientFullName, backwards, backwardView) {
+		return new Promise(function(resolve, reject) {
+			$(backwardView).empty();
+			let backwardHeader = $('<div style="display: table-row; width: 100%;"></div>');
+			$(backwardHeader).appendTo($(backwardView));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">#</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">วันที่</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">รายการ</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ภาพ</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ไฟล์ประวัติ</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ผลอ่าน</span>'));
+			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">หมายเหตุ/อื่นๆ</span>'));
+			const promiseList = new Promise(async function(resolve2, reject2){
+				for (let i=0; i < backwards.length; i++) {
+					let backwardRow = $('<div style="display: table-row; width: 100%;"></div>');
+					let backward = backwards[i];
+					let caseCreateAt = util.formatDateTimeStr(backward.createdAt);
+					let casedatetime = caseCreateAt.split('T');
+					let casedateSegment = casedatetime[0].split('-');
+					casedateSegment = casedateSegment.join('');
+					let casedate = casedateSegment;
+					let dicomCmdBox = doCreateDicomCmdBox(backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, casedate, backward.hospitalId);
+					//let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
+					let responseBackwardBox = undefined;
+					if ((backward.caseresponses) && (backward.caseresponses.length > 0)) {
+						responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_Text, patientFullName, casedate);
+					} else {
+						responseBackwardBox = $('<span>-</span>');
+					}
+
+					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));
+					$(backwardRow).append($('<span style="display: table-cell; text-align: left; padding: 4px; vertical-align: middle;">' + casedate + '</span>'));
+					$(backwardRow).append($('<span style="display: table-cell; text-align: left; vertical-align: middle;">' + backward.Case_BodyPart + '</span>'));
+					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					$(dicomCmdCell).append($(dicomCmdBox));
+					$(backwardRow).append($(dicomCmdCell));
+					/*
+					let hrBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					$(hrBackwardCell).append($(patientHRBackwardBox));
+					$(backwardRow).append($(hrBackwardCell));
+					*/
+					let responseBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					$(responseBackwardCell).append($(responseBackwardBox));
+					$(backwardRow).append($(responseBackwardCell));
+					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">-</span>'));
+					$(backwardRow).appendTo($(backwardView));
+				}
+				setTimeout(()=> {
+					resolve2($(backwardView));
+				}, 500);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, hospitalId){
+		let dicomCmdBox = $('<div></div>');
+		/*
+		let downloadCmd = $('<span>Download</span>');
+		$(downloadCmd).css(commandButtonStyle);
+		$(downloadCmd).appendTo($(dicomCmdBox));
+		$(downloadCmd).on('click', async (evt)=>{
+			$('body').loading('start');
+			let downloadRes = await doDownloadDicom(orthancStudyID, hospitalId, casedate);
+			$('body').loading('stop');
+		});
+		*/
+		let openViewerCmd = $('<span>เปิดภาพ</span>');
+		$(openViewerCmd).appendTo($(dicomCmdBox));
+		$(openViewerCmd).css(commandButtonStyle);
+		$(openViewerCmd).on('click', async (evt)=>{
+			common.doOpenStoneWebViewer(studyInstanceUID);
+		});
+		return $(dicomCmdBox);
+	}
+
+	const doCreateResponseBackwardBox = function(backwardCaseId, responseText, patientFullName, casedate){
+		let responseBackwarBox = $('<div></div>');
+		let downloadCmd = $('<span>Download</span>');
+		$(downloadCmd).css(commandButtonStyle);
+		$(downloadCmd).appendTo($(responseBackwarBox));
+		$(downloadCmd).on('click', async (evt)=>{
+			$('body').loading('start');
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      let reportCreateCallerEndPoint = "/api/casereport/create";
+			let fileExt = 'pdf';
+			let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
+      let params = {caseId: backwardCaseId, hospitalId: caseHospitalId, userId: userdata.id, pdfFileName: fileName};
+			let reportPdf = await $.post(reportCreateCallerEndPoint, params);
+			var pom = document.createElement('a');
+			pom.setAttribute('href', reportPdf.reportLink);
+			pom.setAttribute('download', fileName);
+			pom.click();
+			$('body').loading('stop');
+		});
+		/*
+		let pasteCmd = $('<span>Paste</span>');
+		$(pasteCmd).css(commandButtonStyle);
+		$(pasteCmd).appendTo($(responseBackwarBox));
+		$(pasteCmd).on('click', async (evt)=>{
+			let yourResponse = $('#SimpleEditor').val();
+			let yourNewResponse = yourResponse + '<br/>' + responseText;
+			$('#SimpleEditor').jqteVal(yourNewResponse);
+			doBackupDraft(backwardCaseId, yourNewResponse);
+			keytypecounter = 0;
+		});
+		*/
+		return $(responseBackwarBox);
+	}
+
   return {
     doOpenCaseView
 	}
@@ -4233,7 +4545,8 @@ module.exports = function ( jq ) {
     let userItemPerPage = userDefualtSetting.itemperpage;
 		let queryString = localStorage.getItem('dicomfilter');
     //let queryString = '{"Level":"Study","Expand":true,"Query":{"Modality":"*","StudyDate":"-20210128"}, "Limit":20}';
-		doCallSearhOrthanc(queryString).then(async (studies) => {
+		doCallSearhDicomLog(queryString).then(async (studies) => {
+		//doCallSearhOrthanc(queryString).then(async (studies) => {
 			$(".mainfull").empty();
 			let resultTitle = $('<div class="title-content"></div>');
 			let logoPage = $('<img src="/images/orthanc-icon-1.png" width="40px" height="auto" style="float: left;"/>');
@@ -4326,6 +4639,37 @@ module.exports = function ( jq ) {
 			});
   	});
   }
+
+	const doCallSearhDicomLog = function(queryString) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			const dicomUrl = '/api/dicomtransferlog/studies/list';
+			let query = JSON.parse(queryString);
+			let modality = query.Query.Modality;
+			let studyDate = query.Query.StudyDate;
+			if (studyDate){
+				let n = studyDate.indexOf('-');
+				if (n > 0){
+					studyDate = studyDate.split('');
+					studyDate.splice(n, 1);
+					studyDate = studyDate.join('')
+				} else {
+					studyDate = studyDate;
+				}
+			}
+			let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyDate: studyDate};
+			console.log(rqParams);
+			let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
+			let studies = [];
+			if (dicomStudiesRes.orthancRes) {
+				let dicomSudies = dicomStudiesRes.orthancRes;
+				await dicomSudies.forEach((item, i) => {
+					studies.push(item.StudyTags);
+				});
+			}
+			resolve(studies);
+		});
+	}
 
   const doCreateDicomHeaderRow = function() {
 		const headerLabels = ['No.', 'Study Date', 'HN', 'Name', 'Sex/Age', 'Modality', 'Study Desc. / Protocol Name', 'Status'];

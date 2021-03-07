@@ -335,7 +335,21 @@ app.post('/convert/ai/report', function(req, res) {
 
 		stdout = await runcommand(command);
 
-		res.status(200).send({result: {code: 200}});
+    /*
+    /*** ค้าง  ****/
+    /*
+    ตำแหน่ง download file pdf/dcm
+    studyInstanceUID
+    */
+    
+    let triggerMsg = 'Please tell your orthanc update';
+    let studyInstanceUID = studyObj.MainDicomTags.StudyInstanceUID;
+    let socketTrigger = {type: 'trigger', message: triggerMsg, studyid: studyID, dcmname: dcmFile, studyInstanceUID: studyInstanceUID, owner: username, hostname: req.hostname};
+    //await websocket.sendMessage(socketTrigger, 'orthanc');
+    let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
+    yourLocalSocket.send(JSON.stringify(socketTrigger));
+
+		res.status(200).send({result: {code: 200}, result: stdout});
 	});
 });
 

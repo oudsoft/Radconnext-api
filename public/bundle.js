@@ -219,6 +219,7 @@ module.exports = function ( jq ) {
 			$.post(convertorEndPoint, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
+        console.log('convert error', error);
 				reject(error);
 			});
     });
@@ -393,7 +394,7 @@ module.exports = function ( jq ) {
 	const caseResultWaitStatus = [2, 8, 9, 13, 14];
 	const casePositiveStatus = [2,8,9];
 	const caseNegativeStatus = [3,4,7];
-	const caseReadSuccessStatus = [5];
+	const caseReadSuccessStatus = [5, 10, 11, 12, 13, 14];
 	const caseAllStatus = [1,2,3,4,5,6,7];
 	const allCaseStatus = [
 		{value: 1, DisplayText: 'เคสใหม่'},
@@ -547,6 +548,19 @@ module.exports = function ( jq ) {
 		rqParams.Case_DESC = newCaseData.detail;
 		rqParams.Case_StudyInstanceUID = newCaseData.studyInstanceUID
 		return rqParams;
+	}
+
+	const doGetSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
+			let rqParams = {hospitalId: hospitalId, username: username};
+			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
+			console.log(dicomStudiesRes);
+			resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+		});
 	}
 
 	const doGetOrthancStudyDicom = function(studyId) {
@@ -914,6 +928,7 @@ module.exports = function ( jq ) {
     doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
+		doGetSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
@@ -1622,12 +1637,29 @@ module.exports = function ( jq ) {
 	const welcome = require('./welcome.js')($);
 	const login = require('./login.js')($);
 
+	const urlQueryToObject = function(url) {
+	  let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+	    return paramPair.split(/=(.+)?/).slice(0, 2);
+	  }).reduce(function (obj, pairArray) {
+	    obj[pairArray[0]] = pairArray[1];
+	    return obj;
+	  }, {});
+	  return result;
+	}
+
 	const doShowHome = function(){
+
 		$('body').css({'background-image': 'url("/images/logo-radconnext.png")', 'background-color': '#cccccc'});
 		let openCmdLink = doCreateOpenLoginForm();
 		$('body').append($(openCmdLink));
-		//doLoadLoginForm();
-		login.doCheckUserData();
+
+		let queryUrl = urlQueryToObject(window.location.href);
+		if (queryUrl.action === 'register'){
+			login.doOpenRegisterForm();
+		} else {
+			//doLoadLoginForm();
+			login.doCheckUserData();
+		}
 	}
 
 	const doLoadLoginForm = function(){
@@ -13008,6 +13040,11 @@ module.exports = function ( jq ) {
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
 			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updateuserprofile') {
+			let eventName = 'updateuserprofile';
+			let evtData = data.profile;
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'message') {

@@ -15,16 +15,16 @@ const casestatusFlowTable = [
     {now: 2, next: [8], actions: ['openR', 'updH']},
     {now: 3, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
     {now: 4, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
-    {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR']},
+    {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR']},
     {now: 6, next: [12], actions: ['editR']},
     {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH']},
     {now: 8, next: [9, 5, 13], actions: ['draftR', 'replyR']},
     {now: 9, next: [5, 13], actions: ['replyR']},
     {now: 10, next: [11], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR']},
     {now: 11, next: [6, 12], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH']},
-    {now: 12, next: [13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'editR']},
-    {now: 13, next: [12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'editR']},
-    {now: 14, next: [12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'editR']}
+    {now: 12, next: [6, 13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR']},
+    {now: 13, next: [6, 12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR']},
+    {now: 14, next: [6, 12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'closeH', 'editR']}
 ];
 
 const msgNewCaseRadioDetailFormat = 'เคสใหม่\nจากโรงพยาบาล %s\nผู้ป่วยชื่อ %s\nStudyDescription %s\nProtocolName %s\nBodyPart %s\nModality %s\n';

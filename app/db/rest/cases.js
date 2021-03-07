@@ -438,6 +438,7 @@ app.post('/delete', (req, res) => {
         const deleteCases = await Case.findAll({attributes: ['casestatusId'], include: {model: db.urgenttypes, attributes: ['id', 'UGType']}, where: {id: targetCaseId}});
         log.info('deleteCases=>' + JSON.stringify(deleteCases));
         if ((deleteCases[0].casestatusId == 7)) {
+          await db.radkeeplogs.destroy({ where: { id:  targetCaseId} });
           await Case.destroy({ where: { id:  targetCaseId} });
           if (deleteCases[0].urgenttype.UGType === 'custom') {
             db.urgenttypes.destroy({ where: { id:  deleteCases[0].urgenttype.id} });

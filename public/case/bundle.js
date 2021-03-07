@@ -611,6 +611,7 @@ module.exports = function ( jq ) {
 			$.post(convertorEndPoint, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
+        console.log('convert error', error);
 				reject(error);
 			});
     });
@@ -782,6 +783,7 @@ module.exports = function ( jq ) {
 	const util = require('./utilmod.js')($);
 	const common = require('./commonlib.js')($);
 	const newcase = require('./createnewcase.js')($);
+	const casecounter = require('./casecounter.js')($);
 
 	const defualtPacsLimit = '30';
 	const defualtPacsStudyDate = 'ALL';
@@ -1065,7 +1067,7 @@ module.exports = function ( jq ) {
 									doCancelCase(caseItem.case.id);
 								break;
 								case 'close':
-									doCloaseCase(caseItem.case.id);
+									doCloseCase(caseItem.case.id);
 								break;
 								case 'delete':
 									doCallDeleteCase(caseItem.case.id);
@@ -1289,6 +1291,20 @@ module.exports = function ( jq ) {
 				});
 				$(downlodDicomButton).appendTo($(operationCmdBox));
 
+				let aiInterfaceButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/ai-icon.png" title="Send Dicom to AI analysis."/>');
+				$(aiInterfaceButton).click(async function() {
+					$('body').loading('start');
+					const ai = require('../../radio/mod/ai-lib.js')($);
+					let seriesList = await ai.doCallCheckSeries(incidents[i].case.Case_OrthancStudyID);
+					let seriesSelect = await ai.doCreateSeriesSelect(incidents[i], seriesList);
+					$(seriesSelect).css(ai.quickReplyContentStyle);
+					$(seriesSelect).css({'height': 'auto'});
+					$('#quickreply').css(ai.quickReplyDialogStyle);
+					$('#quickreply').append($(seriesSelect));
+					$('body').loading('stop');
+				});
+				$(aiInterfaceButton).appendTo($(operationCmdBox));
+
 				if ((incidents[i].case.casestatus.id == 1) || (incidents[i].case.casestatus.id == 2) || (incidents[i].case.casestatus.id == 3) || (incidents[i].case.casestatus.id == 4) || (incidents[i].case.casestatus.id == 7)) {
 					let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/update-icon-2.png" title="Edit Case Detail."/>');
 					$(editCaseButton).click(function() {
@@ -1306,7 +1322,7 @@ module.exports = function ( jq ) {
 				}
 
 				if ((incidents[i].case.casestatus.id == 5) || (incidents[i].case.casestatus.id == 6) || (incidents[i].case.casestatus.id == 10) || (incidents[i].case.casestatus.id == 11) || (incidents[i].case.casestatus.id == 12) || (incidents[i].case.casestatus.id == 13) || (incidents[i].case.casestatus.id == 14)) {
-					let viewResultButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/pdf-icon.png" title="View Result."/>');
+					let viewResultButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/pdf-icon-2.png" title="View Result."/>');
 					$(viewResultButton).click(function() {
 						doViewCaseReport(incidents[i].case.id);
 					});
@@ -1326,7 +1342,7 @@ module.exports = function ( jq ) {
 
 					let closeCaseButton = $('<img class="pacs-command-dd" data-toggle="tooltip" src="/images/close-icon-3.png" title="Close Case to archive job."/>');
 					$(closeCaseButton).click(function() {
-						doCloaseCase(incidents[i].case.id);
+						doCloseCase(incidents[i].case.id);
 					});
 					$(closeCaseButton).appendTo($(operationCmdBox));
 
@@ -1420,31 +1436,46 @@ module.exports = function ( jq ) {
 				$('body').loading('stop');
 			}
 		}).catch((err) => {
-			alert('ERROR: \n' +JSON.stringify(err));
+			console.log('doConvertResultToDicom ERROR:', err);
 			$('body').loading('stop');
 		});
 	}
 
 	function doCallDeleteCase(caseID) {
-  	let userConfirm = confirm('โปรดยืนยันเพื่อลบรายการนี้ โดยคลิกปุ่ม ตกลง หรือ OK');
-  	if (userConfirm == true){
-  		$('body').loading('start');
-			doDeleteCase(caseID).then((response) => {
-				if (response.status.code == 200) {
-					$('#NegativeStatusSubCmd').click();
-					$.notify("ลบรายการเคสสำเร็จ", "success");
-				} else if (response.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการเคสได้ เนื่องจากเคสไม่อยู่ในสถานะที่จะลบได้", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเคสได้", "error");
-				}
-				$('body').loading('stop');
-			}).catch((err) => {
-				console.log(err);
-				$.notify("ต้องขออภัยอย่างแรง มีข้อผิดพลาดเกิดขึ้น", "error");
-				$('body').loading('stop');
-			});
-  	}
+		let radConfirmMsg = $('<div></div>');
+		$(radConfirmMsg).append($('<p>คุณต้องการลบเคสรายการนี้ออกจากระบบฯ จริงๆ ใช่ หรือไม่</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบเคส</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
+		const radconfirmoption = {
+			title: 'โปรดยืนยันการลบเคส',
+			msg: $(radConfirmMsg),
+			width: '420px',
+			onOk: function(evt) {
+				radConfirmBox.closeAlert();
+				$('body').loading('start');
+				doDeleteCase(caseID).then((response) => {
+					if (response.status.code == 200) {
+						casecounter.doSetupCounter();
+						$('#NegativeStatusSubCmd').click();
+						$.notify("ลบรายการเคสสำเร็จ", "success");
+					} else if (response.status.code == 201) {
+						$.notify("ไม่สามารถลบรายการเคสได้ เนื่องจากเคสไม่อยู่ในสถานะที่จะลบได้", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเคสได้", "error");
+					}
+					$('body').loading('stop');
+				}).catch((err) => {
+					console.log(err);
+					$.notify("ต้องขออภัยอย่างแรง มีข้อผิดพลาดเกิดขึ้น", "error");
+					$('body').loading('stop');
+				});
+			},
+			onCancel: function(evt){
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+
 	}
 
 	function doDeleteCase(id) {
@@ -1639,11 +1670,12 @@ module.exports = function ( jq ) {
 		doConvertResultToDicom(caseId, hospitalId, userId, orthancStudyID, modality, studyInstanceUID);
 	}
 
-	const doCloaseCase = function(caseId){
+	const doCloseCase = function(caseId){
 		$('body').loading('start');
 		let newStatus = 6;
 		let newDescription = 'User close case to archive job.';
 		common.doUpdateCaseStatus(caseId, newStatus, newDescription).then((response) => {
+			casecounter.doSetupCounter();
 			$('body').loading('stop');
 			$('#SuccessStatusSubCmd').click();
 		});
@@ -1660,7 +1692,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":5,"./createnewcase.js":6,"./utilmod.js":12}],4:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":15,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":6,"./utilmod.js":12}],4:[function(require,module,exports){
 /* casecounter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2025,6 +2057,19 @@ module.exports = function ( jq ) {
 		rqParams.Case_DESC = newCaseData.detail;
 		rqParams.Case_StudyInstanceUID = newCaseData.studyInstanceUID
 		return rqParams;
+	}
+
+	const doGetSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
+			let rqParams = {hospitalId: hospitalId, username: username};
+			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
+			console.log(dicomStudiesRes);
+			resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+		});
 	}
 
 	const doGetOrthancStudyDicom = function(studyId) {
@@ -2392,6 +2437,7 @@ module.exports = function ( jq ) {
     doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
+		doGetSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
@@ -4869,7 +4915,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":15,"../../refer/mod/websocketmessage.js":16,"./websocketmessage.js":13}],13:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":16,"../../refer/mod/websocketmessage.js":17,"./websocketmessage.js":13}],13:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -15847,6 +15893,195 @@ return jQuery;
 } );
 
 },{}],15:[function(require,module,exports){
+/*ai-lib.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+	const apiconnector = require('../../case/mod/apiconnect.js')($);
+  const util = require('../../case/mod/utilmod.js')($);
+  const common = require('../../case/mod/commonlib.js')($);
+
+  const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
+	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
+	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
+
+  const doCallCheckSeries = function(studyID) {
+    return new Promise(async function(resolve, reject) {
+      let seriesList = await common.doGetSeriesList(studyID);
+      let seriesDescList = [];
+      let	promiseList = new Promise(async function(resolve2, reject2){
+        seriesList.Series.forEach(async(item, i) => {
+          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+					let seriesName = undefined;
+					if (seriesTags.MainDicomTags.SeriesDescription){
+						seriesName = seriesTags.MainDicomTags.SeriesDescription
+					} else {
+						seriesName = '[ ' + seriesTags.MainDicomTags.BodyPartExamined + ' ]'
+					}
+          let seriesView = {id: item, desc: seriesName};
+          seriesDescList.push(seriesView);
+        });
+        setTimeout(()=>{
+					resolve2(seriesDescList);
+				}, 500);
+			});
+      Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+    });
+  }
+
+  const doCreateSeriesSelect = function(caseData, dicomSeries){
+    return new Promise(async function(resolve, reject) {
+      let selectView = $('<div style="width: 100%;"></div>');
+      let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
+      let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
+      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
+      $(titleGuide).append($(figgerIcon)).append($(guideText));
+      $(titleGuide).appendTo($(selectView));
+
+      let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+      await dicomSeries.forEach((item, i) => {
+        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+        $(seriesItem).text(item.desc);
+        $(seriesItem).css({'cursor': 'pointer'});
+        $(seriesItem).hover(()=>{
+          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
+        }, ()=>{
+          $(seriesItem).css({'background-color': '', 'color': ''});
+        });
+        $(seriesItem).on('click', async (evt)=>{
+          $(selectView).loading('start');
+          $('#quickreply').empty();
+					$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
+				  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
+          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
+          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+          $(galleryView).css(quickReplyContentStyle);
+          $(galleryView).css({'width': '720px', 'height': 'auto'});
+  			  $('#quickreply').append($(galleryView));
+          $('#quickreply').loading('stop');
+        });
+        $(seriesItem).appendTo($(seriesContent));
+      });
+      $(seriesContent).appendTo($(selectView));
+      resolve($(selectView));
+    });
+  }
+
+  const doCreateThumbPreview = function(caseData, seriesId, seriesDesc, instanceList){
+    return new Promise(async function(resolve, reject) {
+			let aiResultId = undefined;
+
+      let galleryView = $('<div style="width: 100%;"></div>');
+      let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
+      let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
+      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกภาพที่ต้องการส่งให้ AI</span>');
+      let dialogCmdBox = $('<div style="position: relative; display: inline-block; float: right; padding: 2px;"></div>');
+      $(titleGuide).append($(figgerIcon)).append($(guideText)).append($(dialogCmdBox));
+      $(titleGuide).appendTo($(galleryView));
+
+      let okCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
+      $(okCmd).appendTo($(dialogCmdBox));
+      $(dialogCmdBox).append($('<span>  </span>'));
+      let cancelCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: red; cursor: pointer; border-radius: 10px;">ยกเลิก</span>');
+      $(cancelCmd).appendTo($(dialogCmdBox));
+
+      let seriesNameBox = $('<div style="width: 100%; text-align: center; margin-top: 5px;"></div>');
+      $(seriesNameBox).html('<h4>' + seriesDesc + '</h4>');
+      $(seriesNameBox).appendTo($(galleryView));
+
+      let imagePreview = $('<div style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px;"></div>');
+      $(imagePreview).appendTo($(galleryView));
+      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%;"></div>');
+      $(thumbSelector).appendTo($(galleryView));
+
+      let previewPath = '/img/usr/preview/' + seriesId
+      await instanceList.forEach((item, i) => {
+        let thumbImg = $('<img width="60" height="auto"/>');
+				let thumbFileSrc = previewPath + '/' + item + '.png';
+				console.log(thumbFileSrc);
+        $(thumbImg).attr('src', thumbFileSrc);
+        $(thumbImg).css({'cursor': 'pointer'});
+        $(thumbImg).data('thumbImgData', {instanceId: item});
+        $(thumbImg).on('click', async (evt)=>{
+          $(thumbSelector).find('img').removeClass('img-thumb-active');
+          $(thumbImg).addClass('img-thumb-active');
+          let previewImg = $('<img width="360" height="auto"/>');
+          $(previewImg).attr('src', previewPath + '/' + item + '.png');
+          $(imagePreview).empty().append($(previewImg));
+        })
+        $(thumbImg).appendTo($(thumbSelector));
+      });
+      $(okCmd).on('click', async (evt)=>{
+        let thumbSelected = $(thumbSelector).find('img.img-thumb-active');
+        if (thumbSelected.length > 0){
+					$('#quickreply').loading('start');
+          let thumbData = $(thumbSelected).data('thumbImgData');
+          let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
+					//aiResultId = aiRes.result.id;
+					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+		      let embetObject = $('<object data="' + aiRes.result.link + '" type="application/pdf" width="100%" height="480"></object>');
+		      $(embetObject).appendTo($(resultBox));
+					$(thumbSelector).empty().append($(resultBox));
+					/* start convert on cloud */
+					const studyId = caseData.case.Case_OrthancStudyID;
+					const modality = caseData.case.Case_Modality
+					//let pdffilecode = aiResultId;
+					let pdffilecode = aiRes.result.id;
+					let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
+					console.log(convertRes);
+					/********/
+					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+					$(okCmd).text(' ปืด ');
+					$(cancelCmd).hide();
+					$('#quickreply').loading('stop');
+        } else {
+					if (aiResultId) {
+						//start convert ai result to pacs
+						/* ต้องมี wsl ใช้งาน */
+						$('#quickreply').loading('start');
+						const studyId = caseData.case.Case_OrthancStudyID;
+						const modality = caseData.case.Case_Modality
+						let pdffilecode = aiResultId;
+						let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
+						console.log(convertRes);
+						$('#quickreply').loading('stop');
+					} else {
+						$(cancelCmd).click();
+					}
+        }
+      });
+      $(cancelCmd).on('click', (evt)=>{
+        $('#quickreply').empty();
+        $('#quickreply').removeAttr('style');
+      });
+      $(thumbSelector).find('img').first().click();
+      resolve($(galleryView));
+    });
+  }
+
+  const doCallSendAI = function(caseId, seriesId, instanceId){
+    return new Promise(async function(resolve, reject) {
+      let callZipRes = await common.doCallCreateZipInstance(seriesId, instanceId);
+      let callSendAIRes = await common.doCallSendAI(caseId, seriesId, instanceId);
+      resolve(callSendAIRes);
+    });
+  }
+
+  return {
+    commandButtonStyle,
+  	quickReplyDialogStyle,
+  	quickReplyContentStyle,
+
+    doCallCheckSeries,
+    doCreateSeriesSelect,
+    doCreateThumbPreview,
+    doCallSendAI
+	}
+}
+
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/utilmod.js":12}],16:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -15938,7 +16173,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq ) {
 	const $ = jq;

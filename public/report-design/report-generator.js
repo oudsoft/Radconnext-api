@@ -101,7 +101,8 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, cb){
       let qrcodeElem = {url: qrcodeLink, x: 10, y: 1310, width: 100};
       doCreateElement(wrapper, 'image', qrcodeElem);
       if (caseId) {
-        let qrlink = 'https://radconnext.info/portal?caseId=' + caseId;
+        //let qrlink = 'https://radconnext.info/portal?caseId=' + caseId;
+        let qrlink = 'google.co.th';
         let qrlinkElem = {title: qrlink, href: qrlink, x: 15, y: 1410};
         qrlinkElem.width = "300";
         qrlinkElem.height = "30";

@@ -47,7 +47,7 @@
       } else {
         mn = '' + d.getMinutes();
       }
-      var td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
+      var td = yy + '-' + mm + '-' + dd + ' ' + hh + ':' + mn;
       return td;
     }
 
@@ -69,15 +69,16 @@
       $this.messageInputHandle = messageInput;
       let sendCmd = $('<input type="button" value="Send" style="display: inline-block; margin-left: 10px;"/>');
       $(sendCmd).appendTo($(sendBox));
-      $(sendCmd).on('click', async function(evt){
+      $(sendCmd).on('click', function(evt){
         let userMessage = $(messageInput).val();
         if (userMessage) {
           $(messageInput).css({'border': '2px solid black'});
           let contextData = {topicId: settings.topicId, topicName: settings.topicName, myId: settings.myId, myName: settings.myName, audienceId: settings.audienceId, audienceName: settings.audienceName, topicStatusId: settings.topicStatusId};
-          await sendMessageCallback(userMessage, settings.audienceId, settings.myId, contextData);
-          doAppendNewMessage(userMessage, 0);
-          doSaveMessageToLocal(userMessage, settings.myId, settings.topicId, 'read');
-          $(messageInput).val('');
+          sendMessageCallback(userMessage, settings.audienceId, settings.myId, contextData).then(function(){
+            doAppendNewMessage(userMessage, 0);
+            doSaveMessageToLocal(userMessage, settings.myId, settings.topicId, 'read');
+            $(messageInput).val('');
+          });            
         } else {
           $(messageInput).css({'border': '2px solid red'});
         }
