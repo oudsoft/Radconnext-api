@@ -219,6 +219,7 @@ module.exports = function ( jq ) {
 			$.post(convertorEndPoint, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
+        console.log('convert error', error);
 				reject(error);
 			});
     });
@@ -547,6 +548,22 @@ module.exports = function ( jq ) {
 		rqParams.Case_DESC = newCaseData.detail;
 		rqParams.Case_StudyInstanceUID = newCaseData.studyInstanceUID
 		return rqParams;
+	}
+
+	const doGetSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
+			let rqParams = {hospitalId: hospitalId, username: username};
+			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
+			if (dicomStudiesRes.orthancRes.length > 0) {
+				resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+			} else {
+				resolve()
+			}
+		});
 	}
 
 	const doGetOrthancStudyDicom = function(studyId) {
@@ -914,6 +931,7 @@ module.exports = function ( jq ) {
     doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
+		doGetSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
@@ -2458,21 +2476,31 @@ module.exports = function ( jq ) {
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
-      let seriesList = await common.doGetOrthancStudyDicom(studyID);
-      let seriesDescList = [];
-      let	promiseList = new Promise(async function(resolve2, reject2){
-        seriesList.Series.forEach(async(item, i) => {
-          let seriesTags = await common.doGetOrthancSeriesDicom(item);
-          let seriesView = {id: item, desc: seriesTags.MainDicomTags.SeriesDescription};
-          seriesDescList.push(seriesView);
-        });
-        setTimeout(()=>{
-					resolve2(seriesDescList);
-				}, 500);
-			});
-      Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
+      let seriesList = await common.doGetSeriesList(studyID);
+			if (seriesList){
+	      let seriesDescList = [];
+	      let	promiseList = new Promise(async function(resolve2, reject2){
+	        seriesList.Series.forEach(async(item, i) => {
+	          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+						let seriesName = undefined;
+						if (seriesTags.MainDicomTags.SeriesDescription){
+							seriesName = seriesTags.MainDicomTags.SeriesDescription
+						} else {
+							seriesName = '[ ' + seriesTags.MainDicomTags.BodyPartExamined + ' ]'
+						}
+	          let seriesView = {id: item, desc: seriesName};
+	          seriesDescList.push(seriesView);
+	        });
+	        setTimeout(()=>{
+						resolve2(seriesDescList);
+					}, 2500);
+				});
+	      Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			} else {
+				resolve();
+			}
     });
   }
 
@@ -2486,32 +2514,41 @@ module.exports = function ( jq ) {
       $(titleGuide).appendTo($(selectView));
 
       let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-      await dicomSeries.forEach((item, i) => {
-        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-        $(seriesItem).text(item.desc);
-        $(seriesItem).css({'cursor': 'pointer'});
-        $(seriesItem).hover(()=>{
-          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
-        }, ()=>{
-          $(seriesItem).css({'background-color': '', 'color': ''});
-        });
-        $(seriesItem).on('click', async (evt)=>{
-          $(selectView).loading('start');
-          $('#quickreply').empty();
-					$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
-				  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
-          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
-          $(galleryView).css(quickReplyContentStyle);
-          $(galleryView).css({'width': '720px', 'height': 'auto'});
-  			  $('#quickreply').append($(galleryView));
-          $('#quickreply').loading('stop');
-        });
-        $(seriesItem).appendTo($(seriesContent));
-      });
-      $(seriesContent).appendTo($(selectView));
-      resolve($(selectView));
+			let	promiseList = new Promise(async function(resolve2, reject2){
+	      await dicomSeries.forEach((item, i) => {
+	        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+	        $(seriesItem).text(item.desc);
+	        $(seriesItem).css({'cursor': 'pointer'});
+	        $(seriesItem).hover(()=>{
+	          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
+	        }, ()=>{
+	          $(seriesItem).css({'background-color': '', 'color': ''});
+	        });
+	        $(seriesItem).on('click', async (evt)=>{
+	          //$(selectView).loading('start');
+	          $('#quickreply').empty();
+						$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
+					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
+						$('#quickreply').loading('start');
+	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+						console.log(callSeriesRes);
+	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          $(galleryView).css(quickReplyContentStyle);
+	          $(galleryView).css({'width': '720px', 'height': 'auto'});
+	  			  $('#quickreply').append($(galleryView));
+	          $('#quickreply').loading('stop');
+	        });
+	        $(seriesItem).appendTo($(seriesContent));
+	      });
+				setTimeout(()=>{
+					$(seriesContent).appendTo($(selectView));
+		      resolve2($(selectView));
+				}, 2500);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
     });
   }
 
@@ -2545,7 +2582,9 @@ module.exports = function ( jq ) {
       let previewPath = '/img/usr/preview/' + seriesId
       await instanceList.forEach((item, i) => {
         let thumbImg = $('<img width="60" height="auto"/>');
-        $(thumbImg).attr('src', previewPath + '/' + item + '.png');
+				let thumbFileSrc = previewPath + '/' + item + '.png';
+				//console.log(thumbFileSrc);
+        $(thumbImg).attr('src', thumbFileSrc);
         $(thumbImg).css({'cursor': 'pointer'});
         $(thumbImg).data('thumbImgData', {instanceId: item});
         $(thumbImg).on('click', async (evt)=>{
@@ -2577,6 +2616,10 @@ module.exports = function ( jq ) {
 					console.log(convertRes);
 					/********/
 					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+					/*
+						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+					*/
+
 					$(okCmd).text(' ปืด ');
 					$(cancelCmd).hide();
 					$('#quickreply').loading('stop');
@@ -2612,6 +2655,27 @@ module.exports = function ( jq ) {
       resolve(callSendAIRes);
     });
   }
+
+	const doShowSuccessAlertBox = function(){
+	  const registerGuideBox = $('<div></div>');
+	  $(registerGuideBox).append($('<p>การลงทะเบียนผู้ใช้งาน จำเป็นต้องมี <b>อีเมล์</b> หนึ่งบัญชี</p>'));
+	  $(registerGuideBox).append($('<p>และระบบไม่รองรับการลงทะเบียนบน Microsoft Internet Exploere</p>'));
+	  $(registerGuideBox).append($('<p>หากพร้อมแล้วคลิกปุ่ม <b>ตกลง</b> เพื่อเปิดการลงทะเบียนบน Google Chrome</p>'));
+	  let chromeBrowser = $('<div style="padding: 5px; text-align: center;"><img src="/images/chrome-icon.png" width="100px" height="auto"/></div>');
+	  $(registerGuideBox).append($(chromeBrowser));
+	  const radregisteroption = {
+	    title: 'ตำชี้แจงเพื่อดำเนินการลงทะเบียน',
+	    msg: $(registerGuideBox),
+	    width: '460px',
+	    onOk: function(evt) {
+	      let chromeLink = "ChromeHTML:// radconnext.info/index.html?action=register";
+	      window.location.replace(chromeLink);
+	      registerGuide.closeAlert();
+	    }
+	  }
+	  let registerGuide = $('body').radalert(radregisteroption);
+	  $(registerGuide.cancelCmd).hide();
+	}
 
   return {
     commandButtonStyle,
@@ -2879,9 +2943,14 @@ module.exports = function ( jq ) {
 
 	const doSeachChatHistory = function(topicId){
 		return new Promise(async function(resolve, reject){
-	    let historyJson = JSON.parse(localStorage.getItem('localmessage'));
-			if (historyJson) {
-				let history = await historyJson.filter((item)=>{
+	    let localHistory = JSON.parse(localStorage.getItem('localmessage'));
+			console.log(localHistory);
+			let cloudHistory = await apiconnector.doGetApi('/api/chatlog/select/' + topicId, {});
+			console.log(cloudHistory);
+
+			
+			if (localHistory) {
+				let history = await localHistory.filter((item)=>{
 					if (item.topicId == topicId) {
 						return item;
 					}
@@ -3240,7 +3309,7 @@ module.exports = function ( jq ) {
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
 	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
 
-	const backwardCaseStatus = [5, 6, 10, 11, 12];
+	const backwardCaseStatus = [5, 6, 10, 11, 12, 13, 14];
 	let caseHospitalId = undefined;
 	let casePatientId = undefined;
 	let caseId = undefined;
@@ -3774,7 +3843,7 @@ module.exports = function ( jq ) {
 		return $(responseBackwarBox);
 	}
 
-	const doCreateToggleSwitch = function(patientFullName, backwardView) {
+	const doCreateToggleSwitch = function(patientFullName, backwardView, currentCaseId) {
 		let switchBox = $('<div></div>');
 		let toggleSwitch = $('<label class="switch"></label>');
 		let input = $('<input type="checkbox">');
@@ -3786,10 +3855,10 @@ module.exports = function ( jq ) {
 			let patientBackwards = undefined;
 			let isOn = $(input).prop('checked');
 			if (isOn) {
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus);
+				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, currentCaseId);
 			} else {
 				let limit = 2;
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
+				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, currentCaseId, limit);
 			}
 			let backwardContent = await doCreateBackwardItem(patientFullName, patientBackwards.Records, backwardView);
 			$(backwardView).loading('stop');
@@ -3853,7 +3922,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreatePatientBackward = function(backwards, patientFullName) {
+	const doCreatePatientBackward = function(backwards, patientFullName, currentCaseId) {
 		return new Promise(async function(resolve, reject) {
 			let backwardBox = $('<div style="100%"></div>');
 			let titleBox = $('<div style="100%"></div>');
@@ -3864,7 +3933,7 @@ module.exports = function ( jq ) {
 			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			$(backwardView).appendTo($(backwardBox));
 
-			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView);
+			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView, currentCaseId);
 			$(limitToggle).appendTo($(titleBox));
 			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
 
@@ -3889,11 +3958,11 @@ module.exports = function ( jq ) {
       const userdata = JSON.parse(localStorage.getItem('userdata'));
 			const patientFullName = caseOpen.case.patient.Patient_NameEN + ' ' + caseOpen.case.patient.Patient_LastNameEN;
 			let limit = 2;
-			let patientBackward = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
+			let patientBackward = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, caseId, limit);
 
 			let patientBackwardView = undefined;
 			if (patientBackward.Records.length > 0) {
-				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName);
+				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName, caseId);
 			} else {
 				patientBackwardView = $('<div style="100%"><span><b>ไม่พบประวัติการตรวจ</b></span></div>');
 			}
@@ -4109,10 +4178,10 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, limit) {
+	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, currentCaseId, limit) {
 		return new Promise(function(resolve, reject) {
 			var apiUri = '/api/cases/filter/patient';
-			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId};
+			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId, currentCaseId: currentCaseId};
 			if ((limit) && (limit > 0)) {
 				params.limit = limit;
 			}

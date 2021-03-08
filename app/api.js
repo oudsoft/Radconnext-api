@@ -87,6 +87,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const risinterface = require('./db/rest/risinterface.js')(db, log);
 	const scanpartref = require('./db/rest/scanpartref.js')(db, log);
 	const scanpartaux = require('./db/rest/scanpartaux.js')(db, log);
+	const chatlog = require('./db/rest/radchatlog.js')(db, log);
 
 	apiApp.use('/external', externalapiproxy);
 	apiApp.use('/orthancproxy', orthancproxy);
@@ -120,7 +121,8 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/ris', risinterface);
 	apiApp.use('/scanpartref', scanpartref);
 	apiApp.use('/scanpartaux', scanpartaux);
-
+	apiApp.use('/chatlog', chatlog);
+	
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;
 	log.info('Create Internal HTTP Server with command=>' + internalHTTP);

@@ -38,7 +38,7 @@ function RadconWebSocketServer (arg, db, log) {
 			ws.connectType = connectType[1];
 		}
 
-		ws.send(JSON.stringify({type: 'test', message: ws.id + ', You have Connected master websocket success.'}));
+		ws.send(JSON.stringify({type: 'test', message: ws.id + '[' + ws.hospitalId +'], You have Connected master websocket success.'}));
 
 		ws.on('message', async function (message) {
 			var data;
@@ -298,11 +298,11 @@ function RadconWebSocketServer (arg, db, log) {
 	//$this.db.radkeeplogs
 	this.saveChatLog = function(caseId, msgSend){
 		return new Promise(async function(resolve, reject) {
-			$this.db.radchatlogs.findAll({
+			$this.db.radchatlogs.findAll({ attributes: ['Log']
 				where: {caseId: caseId}
 			}).then(async (caseLog)=>{
 				if (caseLog.length > 0) {
-					let newCaseLog = caseLog;
+					let newCaseLog = caseLog[0].Log;
 					newCaseLog.push(msgSend);
 					$this.db.radchatlogs.update({
 				    Log: newCaseLog
@@ -334,7 +334,7 @@ function RadconWebSocketServer (arg, db, log) {
 	this.findOrthancLocalSocket = function(hospitalId) {
 		return new Promise(async function(resolve, reject) {
 			let orthancSocket = await $this.clients.find((ws) =>{
-				if ((ws.hospitalId == hospitalId)  && (ws.id !== 'orthanc')) return ws;
+				if ((ws.hospitalId == hospitalId)  && (ws.id === 'orthanc')) return ws;
 			});
 			resolve(orthancSocket);
 		});

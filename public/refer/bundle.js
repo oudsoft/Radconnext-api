@@ -2157,7 +2157,8 @@ module.exports = function ( jq ) {
       let caseRes = await common.doCallApi('/api/cases/add', rqParams);
       if (caseRes.status.code === 200) {
         $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
-				$('#NewStatusSubCmd').click();
+				$('#NewStatusSubCmd').click(); // <- Tech Page
+				$('#ALLFilter1DayCmd').click(); // <- Refer Page
       } else {
         $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
       }
@@ -3192,7 +3193,7 @@ module.exports = function ( jq ) {
 	        });
 	        setTimeout(()=>{
 						resolve2(seriesDescList);
-					}, 500);
+					}, 2500);
 				});
 	      Promise.all([promiseList]).then((ob)=>{
 					resolve(ob[0]);
@@ -3213,32 +3214,41 @@ module.exports = function ( jq ) {
       $(titleGuide).appendTo($(selectView));
 
       let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-      await dicomSeries.forEach((item, i) => {
-        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-        $(seriesItem).text(item.desc);
-        $(seriesItem).css({'cursor': 'pointer'});
-        $(seriesItem).hover(()=>{
-          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
-        }, ()=>{
-          $(seriesItem).css({'background-color': '', 'color': ''});
-        });
-        $(seriesItem).on('click', async (evt)=>{
-          $(selectView).loading('start');
-          $('#quickreply').empty();
-					$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
-				  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
-          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
-          $(galleryView).css(quickReplyContentStyle);
-          $(galleryView).css({'width': '720px', 'height': 'auto'});
-  			  $('#quickreply').append($(galleryView));
-          $('#quickreply').loading('stop');
-        });
-        $(seriesItem).appendTo($(seriesContent));
-      });
-      $(seriesContent).appendTo($(selectView));
-      resolve($(selectView));
+			let	promiseList = new Promise(async function(resolve2, reject2){
+	      await dicomSeries.forEach((item, i) => {
+	        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+	        $(seriesItem).text(item.desc);
+	        $(seriesItem).css({'cursor': 'pointer'});
+	        $(seriesItem).hover(()=>{
+	          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
+	        }, ()=>{
+	          $(seriesItem).css({'background-color': '', 'color': ''});
+	        });
+	        $(seriesItem).on('click', async (evt)=>{
+	          //$(selectView).loading('start');
+	          $('#quickreply').empty();
+						$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
+					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
+						$('#quickreply').loading('start');
+	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+						console.log(callSeriesRes);
+	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          $(galleryView).css(quickReplyContentStyle);
+	          $(galleryView).css({'width': '720px', 'height': 'auto'});
+	  			  $('#quickreply').append($(galleryView));
+	          $('#quickreply').loading('stop');
+	        });
+	        $(seriesItem).appendTo($(seriesContent));
+	      });
+				setTimeout(()=>{
+					$(seriesContent).appendTo($(selectView));
+		      resolve2($(selectView));
+				}, 2500);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
     });
   }
 
@@ -3309,6 +3319,7 @@ module.exports = function ( jq ) {
 					/*
 						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
 					*/
+
 					$(okCmd).text(' ปืด ');
 					$(cancelCmd).hide();
 					$('#quickreply').loading('stop');
@@ -3344,6 +3355,27 @@ module.exports = function ( jq ) {
       resolve(callSendAIRes);
     });
   }
+
+	const doShowSuccessAlertBox = function(){
+	  const registerGuideBox = $('<div></div>');
+	  $(registerGuideBox).append($('<p>การลงทะเบียนผู้ใช้งาน จำเป็นต้องมี <b>อีเมล์</b> หนึ่งบัญชี</p>'));
+	  $(registerGuideBox).append($('<p>และระบบไม่รองรับการลงทะเบียนบน Microsoft Internet Exploere</p>'));
+	  $(registerGuideBox).append($('<p>หากพร้อมแล้วคลิกปุ่ม <b>ตกลง</b> เพื่อเปิดการลงทะเบียนบน Google Chrome</p>'));
+	  let chromeBrowser = $('<div style="padding: 5px; text-align: center;"><img src="/images/chrome-icon.png" width="100px" height="auto"/></div>');
+	  $(registerGuideBox).append($(chromeBrowser));
+	  const radregisteroption = {
+	    title: 'ตำชี้แจงเพื่อดำเนินการลงทะเบียน',
+	    msg: $(registerGuideBox),
+	    width: '460px',
+	    onOk: function(evt) {
+	      let chromeLink = "ChromeHTML:// radconnext.info/index.html?action=register";
+	      window.location.replace(chromeLink);
+	      registerGuide.closeAlert();
+	    }
+	  }
+	  let registerGuide = $('body').radalert(radregisteroption);
+	  $(registerGuide.cancelCmd).hide();
+	}
 
   return {
     commandButtonStyle,
@@ -3587,7 +3619,7 @@ function doUserLogout() {
   const userdata = JSON.parse(localStorage.getItem('userdata'));
   if (wsm) {
     wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
-  }  
+  }
   localStorage.removeItem('token');
 	localStorage.removeItem('userdata');
 	localStorage.removeItem('dicomfilter');
@@ -3611,6 +3643,7 @@ function doLoadMainPage(){
 	let customUrgentPlugin = "../setting/plugin/jquery-custom-urgent-plugin.js";
   let customSelectPlugin = "../setting/plugin/jquery-custom-select-plugin.js";
   let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
+  let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
 
 	$('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
 	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -3625,6 +3658,12 @@ function doLoadMainPage(){
 	$('head').append('<script src="' + customUrgentPlugin + '"></script>');
   $('head').append('<script src="' + customSelectPlugin + '"></script>');
   $('head').append('<script src="' + chatBoxPlugin + '"></script>');
+  $('head').append('<script src="' + utilityPlugin + '"></script>');
+
+  $('head').append('<link rel="stylesheet" href="../lib/tui-image-editor.min.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="../lib/tui-color-picker.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
 
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
@@ -3923,9 +3962,10 @@ module.exports = function ( jq ) {
 			}
 
 			if (caseItem) {
+				let caseId = caseItem.case.id;
 				let patientId = caseItem.case.patientId;
 				let patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
-				let backwardView = await doCallCreatePatientBackward(patientId, patentFullName);
+				let backwardView = await doCallCreatePatientBackward(patientId, patentFullName, caseId);
 				$(backwardView).appendTo($(caseView));
 			}
 
@@ -4331,15 +4371,15 @@ module.exports = function ( jq ) {
     common.doOpenStoneWebViewer(openData.studyInstanceUID);
   }
 
-	const doCallCreatePatientBackward = function(patientId, patientFullName){
+	const doCallCreatePatientBackward = function(patientId, patientFullName, currentCaseId){
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let hospitalId = userdata.hospitalId;
 			let limit = 2;
-			let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, limit);
+			let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId, limit);
 			let patientBackwardView = undefined;
 			if (patientBackward.Records.length > 0) {
-				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName);
+				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName, patientId, currentCaseId);
 			} else {
 				patientBackwardView = $('<div style="100%"><div><span><b>ประวัติการตรวจ</b></span></div><span>ไม่พบประวัติการตรวจ</span></div>');
 			}
@@ -4347,10 +4387,10 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, limit) {
+	const doLoadPatientBackward = function(hospitalId, patientId, statusIds, currentCaseId, limit) {
 		return new Promise(function(resolve, reject) {
 			var apiUri = '/api/cases/filter/patient';
-			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId};
+			var params = {statusId: statusIds, patientId: patientId, hospitalId: hospitalId, currentCaseId: currentCaseId};
 			if ((limit) && (limit > 0)) {
 				params.limit = limit;
 			}
@@ -4363,7 +4403,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreatePatientBackward = function(backwards, patientFullName) {
+	const doCreatePatientBackward = function(backwards, patientFullName, patientId, currentCaseId) {
 		return new Promise(async function(resolve, reject) {
 			let backwardBox = $('<div style="100%"></div>');
 			let titleBox = $('<div style="100%"></div>');
@@ -4374,7 +4414,7 @@ module.exports = function ( jq ) {
 			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			$(backwardView).appendTo($(backwardBox));
 
-			let limitToggle = doCreateToggleSwitch(patientFullName, backwardView);
+			let limitToggle = doCreateToggleSwitch(patientFullName, patientId, backwardView, currentCaseId);
 			$(limitToggle).appendTo($(titleBox));
 			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
 
@@ -4384,7 +4424,9 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreateToggleSwitch = function(patientFullName, backwardView) {
+	const doCreateToggleSwitch = function(patientFullName, patientId, backwardView, currentCaseId) {
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		let hospitalId = userdata.hospitalId;
 		let switchBox = $('<div></div>');
 		let toggleSwitch = $('<label class="switch"></label>');
 		let input = $('<input type="checkbox">');
@@ -4396,10 +4438,10 @@ module.exports = function ( jq ) {
 			let patientBackwards = undefined;
 			let isOn = $(input).prop('checked');
 			if (isOn) {
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus);
+				patientBackwards = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId);
 			} else {
 				let limit = 2;
-				patientBackwards = await doLoadPatientBackward(caseHospitalId, casePatientId, backwardCaseStatus, limit);
+				patientBackwards = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId, limit);
 			}
 			let backwardContent = await doCreateBackwardItem(patientFullName, patientBackwards.Records, backwardView);
 			$(backwardView).loading('stop');
@@ -4417,7 +4459,7 @@ module.exports = function ( jq ) {
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">วันที่</span>'));
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">รายการ</span>'));
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ภาพ</span>'));
-			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ไฟล์ประวัติ</span>'));
+			//$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ไฟล์ประวัติ</span>'));
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">ผลอ่าน</span>'));
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">หมายเหตุ/อื่นๆ</span>'));
 			const promiseList = new Promise(async function(resolve2, reject2){

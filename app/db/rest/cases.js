@@ -168,10 +168,11 @@ app.post('/filter/patient', (req, res) => {
           const statusId = req.body.statusId;
           const patientId = req.body.patientId;
           const hospitalId = req.body.hospitalId;
+          const currentCaseId = req.body.currentCaseId;
           const limit = req.body.limit;
 
           const caseInclude = [{model: db.caseresponses, attributes: ['id', 'Response_Text']}];
-          const whereClous = {patientId: patientId, hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId } };
+          const whereClous = {patientId: patientId, hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId}, id: { [db.Op.ne]: currentCaseId} };
           const orderby = [['id', 'DESC']];
           let query = undefined;
           if ((limit) && (limit > 0)) {

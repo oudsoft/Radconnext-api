@@ -113,6 +113,7 @@ app.post('/select/(:resourceId)', (req, res) => {
 					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
 				  let yourOrthancId = orthancs[0].id;
 					const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
+					//log.info('orthancRes=>' + JSON.stringify(orthancRes));
 					res.json({status: {code: 200}, orthancRes: orthancRes});
 				} catch(error) {
           log.error(error);

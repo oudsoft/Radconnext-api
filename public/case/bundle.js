@@ -1431,6 +1431,7 @@ module.exports = function ( jq ) {
 			if (dicomRes.status.code == 200) {
 				//alert('แปลงผลอ่านเข้า dicom ชองผู้ป่วยเรียบร้อย\nโปรดตรวจสอบได้จาก Local File.');
 				// ตรงนี้จะมี websocket trigger มาจาก server / pdfconverto.js
+				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let convertLog = {action: 'convert', by: userdata.id, at: new Date()};
 				await common.doCallApi('/api/casereport/appendlog/' + incidents[i].case.id, {Log: convertLog});
 				$('body').loading('stop');
@@ -2067,8 +2068,11 @@ module.exports = function ( jq ) {
 			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
 			let rqParams = {hospitalId: hospitalId, username: username};
 			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
-			console.log(dicomStudiesRes);
-			resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+			if (dicomStudiesRes.orthancRes.length > 0) {
+				resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+			} else {
+				resolve()
+			}
 		});
 	}
 
@@ -3663,7 +3667,8 @@ module.exports = function ( jq ) {
       let caseRes = await common.doCallApi('/api/cases/add', rqParams);
       if (caseRes.status.code === 200) {
         $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
-				$('#NewStatusSubCmd').click();
+				$('#NewStatusSubCmd').click(); // <- Tech Page
+				$('#ALLFilter1DayCmd').click(); // <- Refer Page
       } else {
         $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
       }
@@ -15907,26 +15912,30 @@ module.exports = function ( jq ) {
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
       let seriesList = await common.doGetSeriesList(studyID);
-      let seriesDescList = [];
-      let	promiseList = new Promise(async function(resolve2, reject2){
-        seriesList.Series.forEach(async(item, i) => {
-          let seriesTags = await common.doGetOrthancSeriesDicom(item);
-					let seriesName = undefined;
-					if (seriesTags.MainDicomTags.SeriesDescription){
-						seriesName = seriesTags.MainDicomTags.SeriesDescription
-					} else {
-						seriesName = '[ ' + seriesTags.MainDicomTags.BodyPartExamined + ' ]'
-					}
-          let seriesView = {id: item, desc: seriesName};
-          seriesDescList.push(seriesView);
-        });
-        setTimeout(()=>{
-					resolve2(seriesDescList);
-				}, 500);
-			});
-      Promise.all([promiseList]).then((ob)=>{
-				resolve(ob[0]);
-			});
+			if (seriesList){
+	      let seriesDescList = [];
+	      let	promiseList = new Promise(async function(resolve2, reject2){
+	        seriesList.Series.forEach(async(item, i) => {
+	          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+						let seriesName = undefined;
+						if (seriesTags.MainDicomTags.SeriesDescription){
+							seriesName = seriesTags.MainDicomTags.SeriesDescription
+						} else {
+							seriesName = '[ ' + seriesTags.MainDicomTags.BodyPartExamined + ' ]'
+						}
+	          let seriesView = {id: item, desc: seriesName};
+	          seriesDescList.push(seriesView);
+	        });
+	        setTimeout(()=>{
+						resolve2(seriesDescList);
+					}, 2500);
+				});
+	      Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			} else {
+				resolve();
+			}
     });
   }
 
@@ -15940,32 +15949,41 @@ module.exports = function ( jq ) {
       $(titleGuide).appendTo($(selectView));
 
       let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-      await dicomSeries.forEach((item, i) => {
-        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
-        $(seriesItem).text(item.desc);
-        $(seriesItem).css({'cursor': 'pointer'});
-        $(seriesItem).hover(()=>{
-          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
-        }, ()=>{
-          $(seriesItem).css({'background-color': '', 'color': ''});
-        });
-        $(seriesItem).on('click', async (evt)=>{
-          $(selectView).loading('start');
-          $('#quickreply').empty();
-					$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
-				  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
-          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
-          $(galleryView).css(quickReplyContentStyle);
-          $(galleryView).css({'width': '720px', 'height': 'auto'});
-  			  $('#quickreply').append($(galleryView));
-          $('#quickreply').loading('stop');
-        });
-        $(seriesItem).appendTo($(seriesContent));
-      });
-      $(seriesContent).appendTo($(selectView));
-      resolve($(selectView));
+			let	promiseList = new Promise(async function(resolve2, reject2){
+	      await dicomSeries.forEach((item, i) => {
+	        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+	        $(seriesItem).text(item.desc);
+	        $(seriesItem).css({'cursor': 'pointer'});
+	        $(seriesItem).hover(()=>{
+	          $(seriesItem).css({'background-color': '#02069B', 'color': 'white'});
+	        }, ()=>{
+	          $(seriesItem).css({'background-color': '', 'color': ''});
+	        });
+	        $(seriesItem).on('click', async (evt)=>{
+	          //$(selectView).loading('start');
+	          $('#quickreply').empty();
+						$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
+					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
+						$('#quickreply').loading('start');
+	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+						console.log(callSeriesRes);
+	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          $(galleryView).css(quickReplyContentStyle);
+	          $(galleryView).css({'width': '720px', 'height': 'auto'});
+	  			  $('#quickreply').append($(galleryView));
+	          $('#quickreply').loading('stop');
+	        });
+	        $(seriesItem).appendTo($(seriesContent));
+	      });
+				setTimeout(()=>{
+					$(seriesContent).appendTo($(selectView));
+		      resolve2($(selectView));
+				}, 2500);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
     });
   }
 
@@ -16000,7 +16018,7 @@ module.exports = function ( jq ) {
       await instanceList.forEach((item, i) => {
         let thumbImg = $('<img width="60" height="auto"/>');
 				let thumbFileSrc = previewPath + '/' + item + '.png';
-				console.log(thumbFileSrc);
+				//console.log(thumbFileSrc);
         $(thumbImg).attr('src', thumbFileSrc);
         $(thumbImg).css({'cursor': 'pointer'});
         $(thumbImg).data('thumbImgData', {instanceId: item});
@@ -16033,6 +16051,10 @@ module.exports = function ( jq ) {
 					console.log(convertRes);
 					/********/
 					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+					/*
+						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+					*/
+
 					$(okCmd).text(' ปืด ');
 					$(cancelCmd).hide();
 					$('#quickreply').loading('stop');
@@ -16068,6 +16090,27 @@ module.exports = function ( jq ) {
       resolve(callSendAIRes);
     });
   }
+
+	const doShowSuccessAlertBox = function(){
+	  const registerGuideBox = $('<div></div>');
+	  $(registerGuideBox).append($('<p>การลงทะเบียนผู้ใช้งาน จำเป็นต้องมี <b>อีเมล์</b> หนึ่งบัญชี</p>'));
+	  $(registerGuideBox).append($('<p>และระบบไม่รองรับการลงทะเบียนบน Microsoft Internet Exploere</p>'));
+	  $(registerGuideBox).append($('<p>หากพร้อมแล้วคลิกปุ่ม <b>ตกลง</b> เพื่อเปิดการลงทะเบียนบน Google Chrome</p>'));
+	  let chromeBrowser = $('<div style="padding: 5px; text-align: center;"><img src="/images/chrome-icon.png" width="100px" height="auto"/></div>');
+	  $(registerGuideBox).append($(chromeBrowser));
+	  const radregisteroption = {
+	    title: 'ตำชี้แจงเพื่อดำเนินการลงทะเบียน',
+	    msg: $(registerGuideBox),
+	    width: '460px',
+	    onOk: function(evt) {
+	      let chromeLink = "ChromeHTML:// radconnext.info/index.html?action=register";
+	      window.location.replace(chromeLink);
+	      registerGuide.closeAlert();
+	    }
+	  }
+	  let registerGuide = $('body').radalert(radregisteroption);
+	  $(registerGuide.cancelCmd).hide();
+	}
 
   return {
     commandButtonStyle,

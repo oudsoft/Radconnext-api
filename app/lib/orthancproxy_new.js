@@ -335,20 +335,24 @@ app.post('/convert/ai/report', function(req, res) {
 
 		stdout = await runcommand(command);
 
+    coppyFileCmd = formatStr('cp %s %s && cp %s %s', (aiDownloadDir + '/' + pdfFileName), (publicDir + process.env.USRPDF_DIR + '/' + pdfFileName), (aiDownloadDir + '/' + dcmFile), (publicDir + process.env.USRPDF_DIR + '/' + dcmFile));
+    //log.info('copyCommand=> ' + coppyFileCmd);
+    await runcommand(coppyFileCmd);
     /*
     /*** ค้าง  ****/
     /*
     ตำแหน่ง download file pdf/dcm
     studyInstanceUID
     */
-    
+
     let triggerMsg = 'Please tell your orthanc update';
     let studyInstanceUID = studyObj.MainDicomTags.StudyInstanceUID;
-    let socketTrigger = {type: 'trigger', message: triggerMsg, studyid: studyID, dcmname: dcmFile, studyInstanceUID: studyInstanceUID, owner: username, hostname: req.hostname};
+    let socketTrigger = {type: 'trigger', message: triggerMsg, studyid: studyId, dcmname: dcmFile, studyInstanceUID: studyInstanceUID, owner: username, hostname: req.hostname};
     //await websocket.sendMessage(socketTrigger, 'orthanc');
-    let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
-    yourLocalSocket.send(JSON.stringify(socketTrigger));
-
+    let yourLocalSocket = await socket.findOrthancLocalSocket(hospitalId);
+    if (yourLocalSocket) {
+      yourLocalSocket.send(JSON.stringify(socketTrigger));
+    }
 		res.status(200).send({result: {code: 200}, result: stdout});
 	});
 });

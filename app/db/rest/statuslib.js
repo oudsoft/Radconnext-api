@@ -470,7 +470,7 @@ const onViewResultCaseEvent = function(caseId) {
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
     let newReportLog = reportLogs[0];
     if (reportLogs.length > 0){
-      newReportLog = reportLogs[0];
+      newReportLog = reportLogs[0].Log;
       newReportLog.push(appendLog);
     } else {
       newReportLog = [appendLog];
@@ -517,7 +517,7 @@ const onPrintResultCaseEvent = function(caseId) {
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
     let newReportLog = reportLogs[0];
     if (reportLogs.length > 0){
-      newReportLog = reportLogs[0];
+      newReportLog = reportLogs[0].Log;
       newReportLog.push(appendLog);
     } else {
       newReportLog = [appendLog];
@@ -566,7 +566,7 @@ const onEditResultCaseEvent = function(caseId) {
     let newReportLog = [];
     if (reportLogs.length > 0){
       if (reportLogs[0].Log) {
-        newReportLog = reportLogs[0];
+        newReportLog = reportLogs[0].Log;
         newReportLog.push(appendLog);
       } else {
         newReportLog = [appendLog];
@@ -616,7 +616,7 @@ const onPreliminaryResultCaseEvent = function(caseId) {
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
     let newReportLog = reportLogs[0];
     if (reportLogs.length > 0){
-      newReportLog = reportLogs[0];
+      newReportLog = reportLogs[0].Log;
       newReportLog.push(appendLog);
     } else {
       newReportLog = [appendLog];
