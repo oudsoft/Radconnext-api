@@ -268,6 +268,22 @@ app.post('/studies/list', (req, res) => {
 							}
 						}
 
+					} else {
+						if ((fromDate) && (fromDate !== '*')) {
+							whereClous = {
+								orthancId: yourOrthancId,
+								ResourceType: 'study',
+								StudyTags: {
+									MainDicomTags: {
+										StudyDate: {
+											[db.Op.gte]: fromDate
+										}
+									}
+								}
+							}
+						} else {
+							///
+						}
 					}
 					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['id', 'DESC']] };
 					if ((limit) && (limit > 0)) {

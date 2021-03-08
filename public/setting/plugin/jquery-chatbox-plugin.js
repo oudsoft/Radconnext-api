@@ -78,7 +78,7 @@
             doAppendNewMessage(userMessage, 0);
             doSaveMessageToLocal(userMessage, settings.myId, settings.topicId, 'read');
             $(messageInput).val('');
-          });            
+          });
         } else {
           $(messageInput).css({'border': '2px solid red'});
         }
@@ -171,37 +171,42 @@
   	}
     const doRestoreFromLocal = function(){
       let dfd = $.Deferred();
-      let localMessageJson = JSON.parse(localStorage.getItem('localmessage'));
-      let localMessage = localMessageJson;
-      //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
-      //$('.footer').simplelog({test: JSON.stringify(localMessage)})
-      doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
-  			if (localMessage) {
-          for (let i=0; i < localMessage.length; i++) {
-            let msgJson = localMessage[i];
-            let from = msgJson.from;
-            let topicId = msgJson.topicId;
-            let msg = msgJson.msg;
-            if (topicId == settings.topicId) {
-              if (from === settings.audienceId) {
-                let isSuccess = onReceiveMessage(msg, from, topicId);
-                if (isSuccess) {
-                  doDecreaseReddotEvent();
-                  msgJson.status = 'read';
+      let localMsgStorage = localStorage.getItem('localmessage');
+      if ((localMsgStorage) && (localMsgStorage !== '')) {
+        let localMessageJson = JSON.parse(localMsgStorage);
+        //let localMessage = localMessageJson;
+        //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
+        //$('.footer').simplelog({test: JSON.stringify(localMessage)})
+        doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
+    			if (localMessage) {
+            for (let i=0; i < localMessage.length; i++) {
+              let msgJson = localMessage[i];
+              let from = msgJson.from;
+              let topicId = msgJson.topicId;
+              let msg = msgJson.msg;
+              if (topicId == settings.topicId) {
+                if (from === settings.audienceId) {
+                  let isSuccess = onReceiveMessage(msg, from, topicId);
+                  if (isSuccess) {
+                    doDecreaseReddotEvent();
+                    msgJson.status = 'read';
+                  }
+                } else if (from === settings.myId) {
+                  onReceiveMessage(msg, settings.myId, topicId);
                 }
-              } else if (from === settings.myId) {
-                onReceiveMessage(msg, settings.myId, topicId);
               }
             }
-          }
-          localStorage.setItem('localmessage', JSON.stringify(localMessage));
-          setTimeout(function(){
+            localStorage.setItem('localmessage', JSON.stringify(localMessage));
+            setTimeout(function(){
+              dfd.resolve();
+            }, 2300)
+          } else {
             dfd.resolve();
-          }, 2300)
-        } else {
-          dfd.resolve();
-        }
-      });
+          }
+        });
+      } else {
+        dfd.resolve();
+      }
       return dfd.promise();
     }
     const doFindMessageOfTopic = function(orgMessage, topicId){

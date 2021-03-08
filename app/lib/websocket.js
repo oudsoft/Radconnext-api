@@ -325,7 +325,7 @@ function RadconWebSocketServer (arg, db, log) {
 		return new Promise(async function(resolve, reject) {
 			let clientConns = [];
 			await $this.clients.forEach((item, i) => {
-				clientConns.push(item.id);
+				clientConns.push({id: item.id, hospitalId: item.hospitalId});
 			});
 			resolve(clientConns);
 		});

@@ -4577,13 +4577,16 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject){
 			let cloudHistory = undefined;
 			let localHistory = undefined;
-	    let localLog = JSON.parse(localStorage.getItem('localmessage'));
-			if (localLog) {
-				localHistory = await localLog.filter((item)=>{
-					if (item.topicId == topicId) {
-						return item;
-					}
-				});
+			let localMsgStorage = localStorage.getItem('localmessage');
+			if ((localMsgStorage) && (localMsgStorage !== '')) {
+		    let localLog = JSON.parse(localMsgStorage);
+				if (localLog) {
+					localHistory = await localLog.filter((item)=>{
+						if (item.topicId == topicId) {
+							return item;
+						}
+					});
+				}
 			}
 			let cloudLog = await apiconnector.doGetApi('/api/chatlog/select/' + topicId, {});
 			if (cloudLog) {
@@ -4596,14 +4599,22 @@ module.exports = function ( jq ) {
 
 			if (localHistory) {
 				if (cloudHistory) {
-					let localLastMsg = localHistory[localHistory.length-1];
-					let localLastUpd = new Date(localLastMsg.datetime);
-					let cloudLastMsg = cloudHistory[cloudHistory.length-1];
-					let cloudLastUpd = new Date(cloudLastMsg.datetime);
-					if (cloudLastUpd.getTime() > localLastUpd.getTime()){
-						resolve(cloudHistory);
+					if (localHistory.length > 0) {
+						if (cloudHistory.length > 0) {
+							let localLastMsg = localHistory[localHistory.length-1];
+							let localLastUpd = new Date(localLastMsg.datetime);
+							let cloudLastMsg = cloudHistory[cloudHistory.length-1];
+							let cloudLastUpd = new Date(cloudLastMsg.datetime);
+							if (cloudLastUpd.getTime() > localLastUpd.getTime()){
+								resolve(cloudHistory);
+							} else {
+								resolve(localHistory);
+							}
+						} else {
+							resolve(localHistory);
+						}
 					} else {
-						resolve(localHistory);
+						resolve([]);
 					}
 				} else {
 					resolve(localHistory);
