@@ -3979,6 +3979,8 @@ module.exports = function ( jq ) {
 
 			let contactRadioToolsBar = $('<div id="ContactTools" style="width: 99%; min-height: 80px; text-align: right; display: none;"></div>');
 			if ((dicomData.casestatusId == 5) || (dicomData.casestatusId == 6) || (dicomData.casestatusId == 10) || (dicomData.casestatusId == 11) || (dicomData.casestatusId == 12) || (dicomData.casestatusId == 13) || (dicomData.casestatusId == 14)) {
+				let history = await doSeachChatHistory(dicomData.caseId);
+				localStorage.setItem('localmessage', history);
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let simpleChatBoxOption = {
 					topicId: dicomData.caseId,
@@ -3999,7 +4001,7 @@ module.exports = function ( jq ) {
 
 				simpleChatBoxHandle.restoreLocal();
 
-				let softPhoneCmd = doCreateSoftPhoneCallCmd(caseItem, simpleChatBoxHandle);
+				let softPhoneCmd = doCreateSoftPhoneCallCmd(caseItem);
 				let zoomCmd = doCreateZoomCallCmd(caseItem, simpleChatBoxHandle);
 				let externalToolsBox = $('<div style="position: relative; display: inline-block; bottom: -14px;"></div>');
 				$(externalToolsBox).append($(softPhoneCmd)).append($(zoomCmd))
@@ -4142,11 +4144,20 @@ module.exports = function ( jq ) {
     return new Promise(async function(resolve, reject){
       let resultRes = await apiconnector.doCallApi('/api/cases/result/'+ caseId, {});
       let resultReport = resultRes.Records[0];
-			let pdfStream = await util.doCreateDownloadPDF(resultReport.PDF_Filename);
-      let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
-      let embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
-      $(embetObject).appendTo($(resultBox));
-      resolve($(resultBox));
+			let pdfStream = undefined;
+			let embetObject = undefined;
+			try {
+				pdfStream = await util.doCreateDownloadPDF(resultReport.PDF_Filename);
+	      embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
+			} catch (err) {
+				console.log(err);
+				embetObject = $('<object data="" type="application/pdf" width="100%" height="480"></object>');
+			} finally {
+				let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
+
+	      $(embetObject).appendTo($(resultBox));
+	      resolve($(resultBox));
+			}
     });
   }
 
@@ -4287,7 +4298,7 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	const doCreateSoftPhoneCallCmd = function(caseItem, chatHandle){
+	const doCreateSoftPhoneCallCmd = function(caseItem){
 		const softPhoneIconUrl = '/images/phone-call-icon.png';
 		let softPhoneBox = $('<div style="position: relative; display: inline-block; text-align: center; margin-right: 20px;"></div>');
     let softPhoneIcon = $('<img style="postion: absolute; width: 30px; height: auto; cursor: pointer;"/>');
@@ -4560,6 +4571,51 @@ module.exports = function ( jq ) {
 		});
 		*/
 		return $(responseBackwarBox);
+	}
+
+	const doSeachChatHistory = function(topicId){
+		return new Promise(async function(resolve, reject){
+			let cloudHistory = undefined;
+			let localHistory = undefined;
+	    let localLog = JSON.parse(localStorage.getItem('localmessage'));
+			if (localLog) {
+				localHistory = await localLog.filter((item)=>{
+					if (item.topicId == topicId) {
+						return item;
+					}
+				});
+			}
+			let cloudLog = await apiconnector.doGetApi('/api/chatlog/select/' + topicId, {});
+			if (cloudLog) {
+				cloudHistory = await cloudLog.Log.filter((item)=>{
+					if (item.topicId == topicId) {
+						return item;
+					}
+				});
+			}
+
+			if (localHistory) {
+				if (cloudHistory) {
+					let localLastMsg = localHistory[localHistory.length-1];
+					let localLastUpd = new Date(localLastMsg.datetime);
+					let cloudLastMsg = cloudHistory[cloudHistory.length-1];
+					let cloudLastUpd = new Date(cloudLastMsg.datetime);
+					if (cloudLastUpd.getTime() > localLastUpd.getTime()){
+						resolve(cloudHistory);
+					} else {
+						resolve(localHistory);
+					}
+				} else {
+					resolve(localHistory);
+				}
+			} else {
+				if (cloudHistory) {
+					resolve(cloudHistory);
+				} else {
+					resolve([]);
+				}
+			}
+		});
 	}
 
   return {

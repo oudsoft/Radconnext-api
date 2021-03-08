@@ -298,7 +298,7 @@ function RadconWebSocketServer (arg, db, log) {
 	//$this.db.radkeeplogs
 	this.saveChatLog = function(caseId, msgSend){
 		return new Promise(async function(resolve, reject) {
-			$this.db.radchatlogs.findAll({ attributes: ['Log']
+			$this.db.radchatlogs.findAll({ attributes: ['Log'],
 				where: {caseId: caseId}
 			}).then(async (caseLog)=>{
 				if (caseLog.length > 0) {

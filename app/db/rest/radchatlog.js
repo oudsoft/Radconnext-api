@@ -11,10 +11,14 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 var db, log, auth;
 
-app.get('/select/(:caseId)', (req, res) => {
+app.get('/select/(:caseId)', async (req, res) => {
   let caseId = req.params.caseId;
   let chatLog = await db.radchatlogs.findAll({ attributes: ['Log'], where: {	caseId: caseId}});
-  res.json({status: {code: 200}, Log: chatLog});
+  if (chatLog.length > 0){
+    res.json({status: {code: 200}, Log: chatLog[0].Log});
+  } else {
+    res.json({status: {code: 200}, Log: []});
+  }
 });
 
 /*

@@ -2752,6 +2752,7 @@ module.exports = function ( jq ) {
 		if (openCase.case.casestatusId == 14){
 			doSeachChatHistory(caseId).then(async (history) => {
 				if (history) {
+					localStorage.setItem('localmessage', history);
 					const userdata = JSON.parse(localStorage.getItem('userdata'));
 					let lastHis = history.find((item)=>{
 						if (item.from !== userdata.username) return item;
@@ -2943,21 +2944,45 @@ module.exports = function ( jq ) {
 
 	const doSeachChatHistory = function(topicId){
 		return new Promise(async function(resolve, reject){
-	    let localHistory = JSON.parse(localStorage.getItem('localmessage'));
-			console.log(localHistory);
-			let cloudHistory = await apiconnector.doGetApi('/api/chatlog/select/' + topicId, {});
-			console.log(cloudHistory);
-
-			
-			if (localHistory) {
-				let history = await localHistory.filter((item)=>{
+			let cloudHistory = undefined;
+			let localHistory = undefined;
+	    let localLog = JSON.parse(localStorage.getItem('localmessage'));
+			if (localLog) {
+				localHistory = await localLog.filter((item)=>{
 					if (item.topicId == topicId) {
 						return item;
 					}
 				});
-				resolve(history);
+			}
+			let cloudLog = await apiconnector.doGetApi('/api/chatlog/select/' + topicId, {});
+			if (cloudLog) {
+				cloudHistory = await cloudLog.Log.filter((item)=>{
+					if (item.topicId == topicId) {
+						return item;
+					}
+				});
+			}
+
+			if (localHistory) {
+				if (cloudHistory) {
+					let localLastMsg = localHistory[localHistory.length-1];
+					let localLastUpd = new Date(localLastMsg.datetime);
+					let cloudLastMsg = cloudHistory[cloudHistory.length-1];
+					let cloudLastUpd = new Date(cloudLastMsg.datetime);
+					if (cloudLastUpd.getTime() > localLastUpd.getTime()){
+						resolve(cloudHistory);
+					} else {
+						resolve(localHistory);
+					}
+				} else {
+					resolve(localHistory);
+				}
 			} else {
-				resolve();
+				if (cloudHistory) {
+					resolve(cloudHistory);
+				} else {
+					resolve([]);
+				}
 			}
 		});
 	}
