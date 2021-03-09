@@ -469,6 +469,9 @@ const RadChatLogDef = {
 //Case_ID
 //User_ID
 const RadAILogDef = {
+			studyId : {
+				type: Sequelize.STRING(50)
+			},
 			seriesId : {
 				type: Sequelize.STRING(50)
 			},

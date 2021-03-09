@@ -1940,6 +1940,7 @@ function doUserLogout() {
 }
 
 function doLoadMainPage(){
+  //localStorage.removeItem('localmessage');
 	/*
 		jquery loading api
 		https://carlosbonetti.github.io/jquery-loading/
@@ -2601,6 +2602,7 @@ module.exports = function ( jq ) {
         if (thumbSelected.length > 0){
 					$('#quickreply').loading('start');
           let thumbData = $(thumbSelected).data('thumbImgData');
+					console.log(caseData);
           let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
 					//aiResultId = aiRes.result.id;
 					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
@@ -2752,7 +2754,7 @@ module.exports = function ( jq ) {
 		if (openCase.case.casestatusId == 14){
 			doSeachChatHistory(caseId).then(async (history) => {
 				if (history) {
-					localStorage.setItem('localmessage', history);
+					localStorage.setItem('localmessage', JSON.stringify(history));
 					const userdata = JSON.parse(localStorage.getItem('userdata'));
 					let lastHis = history.find((item)=>{
 						if (item.from !== userdata.username) return item;
@@ -5466,16 +5468,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		//console.log(localMessage);
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {
@@ -16583,15 +16592,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {

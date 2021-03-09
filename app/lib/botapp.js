@@ -208,11 +208,11 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
     				userHelpText += helper[hid];
             userHelpText += '\n\nหากต้องการใช้บริการใดๆ ของผม โปรดเลือกจากเมนูครับ';
             action = 'quick';
-            if (users[0].usertypeId==2){
+            if (radUser.usertypeId==2){
               await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.techMainMenu));
-            } else if (users[0].usertypeId==4){
+            } else if (radUser.usertypeId==4){
               await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.radioMainMenu));
-            } else if (users[0].usertypeId==6){
+            } else if (radUser.usertypeId==6){
               await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.mainMenu));
             } else {
               await replyAction(replyToken, lineApi.createBotMenu(userHelpText, action, lineApi.mainMenu));

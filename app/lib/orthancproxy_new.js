@@ -256,17 +256,17 @@ app.post('/create/zip/instance', function(req, res) {
 app.post('/sendai', function(req, res) {
 	const { AIChest4allAsyncCall, downloadAIChestFile, checkStatus } = require('./mod/aichest4all_call.js');
 
-	const printAIProps = async function(userId, caseId, seriesId, instanceId, data){
+	const printAIProps = async function(userId, seriesId, instanceId, data, resultLink, studyId){
 		//log.info('AI Data=>' + JSON.stringify(data.data));
 	  //log.info('AI Result=>' + JSON.stringify(data.data.result));
-		let newAILog = {seriesId: seriesId, instanceId: instanceId, ResultId: data.data.id, ResultJson: data.data.result};
+		let newAILog = {seriesId: seriesId, instanceId: instanceId, ResultId: data.data.id, ResultJson: data.data.result, studyId: studyId};
 		let adAILog = await db.radailogs.create(newAILog);
-		await db.radailogs.update({userId: userId, caseId: caseId}, {where: {id: adAILog.id}});
+		await db.radailogs.update({userId: userId}, {where: {id: adAILog.id}});
 	}
 	let userId = req.body.userId;
-	let caseId = req.body.caseId;
 	let seriesId = req.body.seriesId;
 	let instanceId = req.body.instanceId;
+  let studyId = req.body.studyId;
 
 	let zipTargetFilename = instanceId + '.zip';
 	let zipPath = formatStr('%s/%s/%s', usrPreviewDir, seriesId, zipTargetFilename);
@@ -278,7 +278,7 @@ app.post('/sendai', function(req, res) {
 		}
 		return aiRes.ids.map(id => checkStatus(id, async (airesult) => {
 			let resultLink = await downloadAIChestFile(airesult.data.id, 'pdf');
-			printAIProps(userId, caseId, seriesId,instanceId, airesult, resultLink);
+			printAIProps(userId, seriesId, instanceId, airesult, resultLink, studyId);
 			res.status(200).send({result: {link: resultLink, id: airesult.data.id}});
 		}, console.error))
 	}).catch(error => {

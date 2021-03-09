@@ -616,10 +616,10 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallSendAI = function(caseId, seriesId, instanceId){
+	const doCallSendAI = function(seriesId, instanceId, studyId){
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let params = {caseId: caseId, userId: userdata.id, seriesId: seriesId, instanceId: instanceId};
+			let params = { userId: userdata.id, seriesId: seriesId, instanceId: instanceId, studyId: studyId};
 			let apiurl = '/api/orthancproxy/sendai';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
@@ -633,6 +633,16 @@ module.exports = function ( jq ) {
 			let apiurl = '/api/orthancproxy/convert/ai/report';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
+		});
+	}
+
+	const doCallAIResultLog = function(studyId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = { userId: userdata.id, studyId: studyId};
+			let apiurl = '/api/ailog/select/' + studyId;
+			let aiLogRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(aiLogRes);
 		});
 	}
 
@@ -938,6 +948,7 @@ module.exports = function ( jq ) {
 		doCallCreateZipInstance,
 		doCallSendAI,
 		doConvertAIResult,
+		doCallAIResultLog,
 		doUpdateCaseStatus,
 		doCreateNewCustomUrgent,
 		doCallSelectUrgentType,
@@ -1195,16 +1206,18 @@ module.exports = function ( jq ) {
 					let desc, protoname, mld, sa, studydate, bdp;
 					if ((dj[i].MainDicomTags) && (dj[i].SamplingSeries)){
 						if (dj[i].MainDicomTags.StudyDescription) {
-							desc = '<div class="study-desc">' + dj[i].MainDicomTags.StudyDescription + '</div>';
 							bdp = dj[i].MainDicomTags.StudyDescription;
 						} else {
 							if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 								bdp = dj[i].SamplingSeries.MainDicomTags.ProtocolName;
+							} else if (dj[i].SamplingSeries.MainDicomTags.Manufacturer.indexOf('FUJIFILM') >= 0) {
+								bdp = dj[i].SamplingSeries.MainDicomTags.PerformedProcedureStepDescription;
 							} else {
 								bdp = '';
 							}
-							desc = '';
 						}
+						desc = '<div class="study-desc">' + bdp + '</div>';
+
 						if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 							protoname = '<div class="protoname">' + dj[i].SamplingSeries.MainDicomTags.ProtocolName + '</div>';
 						} else {
@@ -3209,7 +3222,7 @@ module.exports = function ( jq ) {
       let selectView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
-      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
+      let guideText = $('<span id="GalleryTitle" style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
       $(titleGuide).append($(figgerIcon)).append($(guideText));
       $(titleGuide).appendTo($(selectView));
 
@@ -3231,12 +3244,22 @@ module.exports = function ( jq ) {
 					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
 						$('#quickreply').loading('start');
 	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-						console.log(callSeriesRes);
+						let modality = callSeriesRes.MainDicomTags.Modality;
+						let studyId = callSeriesRes.ParentStudy;
 	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(item.id, item.desc, callSeriesRes.Instances, studyId, modality);
 	          $(galleryView).css(quickReplyContentStyle);
 	          $(galleryView).css({'width': '720px', 'height': 'auto'});
 	  			  $('#quickreply').append($(galleryView));
+						if (callSeriesRes.Instances.length == 1){
+							//$(galleryView).find('#ImagePreview').empty();
+							$(galleryView).find('#OKCmd').click();
+							$(galleryView).find('#ThumbSelector').empty();
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						} else {
+							$(galleryView).find('#ImagePreview').css({'display': 'block'});
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						}
 	          $('#quickreply').loading('stop');
 	        });
 	        $(seriesItem).appendTo($(seriesContent));
@@ -3252,10 +3275,8 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateThumbPreview = function(caseData, seriesId, seriesDesc, instanceList){
+  const doCreateThumbPreview = function(seriesId, seriesDesc, instanceList, studyId, modality){
     return new Promise(async function(resolve, reject) {
-			let aiResultId = undefined;
-
       let galleryView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
@@ -3264,7 +3285,7 @@ module.exports = function ( jq ) {
       $(titleGuide).append($(figgerIcon)).append($(guideText)).append($(dialogCmdBox));
       $(titleGuide).appendTo($(galleryView));
 
-      let okCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
+      let okCmd = $('<span id="OKCmd" style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
       $(okCmd).appendTo($(dialogCmdBox));
       $(dialogCmdBox).append($('<span>  </span>'));
       let cancelCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: red; cursor: pointer; border-radius: 10px;">ยกเลิก</span>');
@@ -3274,9 +3295,9 @@ module.exports = function ( jq ) {
       $(seriesNameBox).html('<h4>' + seriesDesc + '</h4>');
       $(seriesNameBox).appendTo($(galleryView));
 
-      let imagePreview = $('<div style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px;"></div>');
+      let imagePreview = $('<div id="ImagePreview" style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px; display: none;"></div>');
       $(imagePreview).appendTo($(galleryView));
-      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%;"></div>');
+      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%; display: none;"></div>');
       $(thumbSelector).appendTo($(galleryView));
 
       let previewPath = '/img/usr/preview/' + seriesId
@@ -3299,44 +3320,62 @@ module.exports = function ( jq ) {
       $(okCmd).on('click', async (evt)=>{
         let thumbSelected = $(thumbSelector).find('img.img-thumb-active');
         if (thumbSelected.length > 0){
-					$('#quickreply').loading('start');
+					//$('#quickreply').loading('start');
+					$(galleryView).append($('<div id="overlay"><div class="loader"></div></div>'));
+					$(galleryView).loading({overlay: $("#overlay"), stoppable: true});
+					$(galleryView).loading('start');
+
           let thumbData = $(thumbSelected).data('thumbImgData');
-          let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
-					//aiResultId = aiRes.result.id;
+          let aiRes = await doCallSendAI(seriesId, thumbData.instanceId, studyId);
 					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
 		      let embetObject = $('<object data="' + aiRes.result.link + '" type="application/pdf" width="100%" height="480"></object>');
 		      $(embetObject).appendTo($(resultBox));
 					$(thumbSelector).empty().append($(resultBox));
-					/* start convert on cloud */
-					const studyId = caseData.case.Case_OrthancStudyID;
-					const modality = caseData.case.Case_Modality
-					//let pdffilecode = aiResultId;
-					let pdffilecode = aiRes.result.id;
-					let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-					console.log(convertRes);
-					/********/
-					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
-					/*
-						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
-					*/
 
-					$(okCmd).text(' ปืด ');
-					$(cancelCmd).hide();
-					$('#quickreply').loading('stop');
-        } else {
-					if (aiResultId) {
-						//start convert ai result to pacs
-						/* ต้องมี wsl ใช้งาน */
-						$('#quickreply').loading('start');
-						const studyId = caseData.case.Case_OrthancStudyID;
-						const modality = caseData.case.Case_Modality
-						let pdffilecode = aiResultId;
-						let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-						console.log(convertRes);
-						$('#quickreply').loading('stop');
-					} else {
-						$(cancelCmd).click();
+					/* start convert on cloud */
+
+					let wsl = undefined;
+					try {
+						wsl = new WebSocket('ws://localhost:3000/api/orthanc/2');
+					} catch(err) {
+						console.log('Can not connect to local socket.', err);
 					}
+					console.log(wsl);
+					wsl.onopen = function () {
+						console.log('Local Client Websocket is connected to Local server')
+					};
+
+					wsl.onmessage = function (msgEvt) {
+						let data = JSON.parse(msgEvt.data);
+						console.log('Local WebSocket Client have data in=> ', data);
+					}
+					wsl.onclose = function(event) {
+						console.log("Local WebSocket Client is closed now. with  event:=> ", event);
+					};
+
+					wsl.onerror = function (err) {
+						console.log("Local WebSocket Client Got an error", err);
+					};
+
+					setTimeout(async()=>{
+						if ((wsl.readyState == 0) || (wsl.readyState == 1)){
+							let pdffilecode = aiRes.result.id;
+							let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
+							console.log(convertRes);
+							/********/
+							//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+							/*
+								ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+							*/
+						} else {
+							console.log('you are not hospital orthanc host. We can not convert dicom to ypur pacs.');
+						}
+					}, 3000);
+					$(guideText).text('ผลอ่านจาก AI');
+					$(okCmd).text('  ปิด  ');
+					$(cancelCmd).hide();
+					$(galleryView).loading('stop');
+					$(galleryView).find('#overlay').remove();
         }
       });
       $(cancelCmd).on('click', (evt)=>{
@@ -3348,10 +3387,10 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCallSendAI = function(caseId, seriesId, instanceId){
+  const doCallSendAI = function(seriesId, instanceId, studyId){
     return new Promise(async function(resolve, reject) {
       let callZipRes = await common.doCallCreateZipInstance(seriesId, instanceId);
-      let callSendAIRes = await common.doCallSendAI(caseId, seriesId, instanceId);
+      let callSendAIRes = await common.doCallSendAI(seriesId, instanceId, studyId);
       resolve(callSendAIRes);
     });
   }
@@ -3464,16 +3503,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		//console.log(localMessage);
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {
@@ -3629,6 +3675,7 @@ function doUserLogout() {
 }
 
 function doLoadMainPage(){
+  //localStorage.removeItem('localmessage');
 	/*
 		jquery loading api
 		https://carlosbonetti.github.io/jquery-loading/
@@ -3980,7 +4027,7 @@ module.exports = function ( jq ) {
 			let contactRadioToolsBar = $('<div id="ContactTools" style="width: 99%; min-height: 80px; text-align: right; display: none;"></div>');
 			if ((dicomData.casestatusId == 5) || (dicomData.casestatusId == 6) || (dicomData.casestatusId == 10) || (dicomData.casestatusId == 11) || (dicomData.casestatusId == 12) || (dicomData.casestatusId == 13) || (dicomData.casestatusId == 14)) {
 				let history = await doSeachChatHistory(dicomData.caseId);
-				localStorage.setItem('localmessage', history);
+				localStorage.setItem('localmessage', JSON.stringify(history));
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let simpleChatBoxOption = {
 					topicId: dicomData.caseId,
@@ -4170,8 +4217,33 @@ module.exports = function ( jq ) {
 			$(aiCmdBox).appendTo($(commandBox));
 			let aiCmd = $('<input type="button" value=" AI "/>');
 			$(aiCmd).appendTo($(aiCmdBox));
-			$(aiCmd).on('click', (evt)=>{
-				doExecAICmdClick(dicomData, caseData);
+			$(aiCmd).on('click', async(evt)=>{
+				let aiResultLogRes = await common.doCallAIResultLog(dicomData.dicomID);
+				if (aiResultLogRes.Log) {
+					let sentTimeCounter = aiResultLogRes.Log.length;
+					if (sentTimeCounter > 0) {
+						const announceMsg = $('<div></div>');
+				    $(announceMsg).append($('<p>ระบบฯ พบว่า Dicom ขุดนี้เคยส่งไปให้ AI อ่านผลแล้ว จำนวน ' + sentTimeCounter + ' ครั้ง</p>'));
+						$(announceMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> เพื่อดำเนินการต่อ</p>'));
+						$(announceMsg).append($('<p>หรือไม่ส่ง คลิกปุ่ม <b>ยกเลิก</b></p>'));
+						const radalertoption = {
+				      title: 'แจ้งให้ทราบ',
+				      msg: $(announceMsg),
+				      width: '560px',
+				      onOk: function(evt) {
+			          radAlertBox.closeAlert();
+								doExecAICmdClick(dicomData, caseData);
+				      },
+							onCancel: function(evt){
+								radAlertBox.closeAlert();
+							}
+				    }
+						let radAlertBox = $('body').radalert(radalertoption);
+
+					} else {
+						doExecAICmdClick(dicomData, caseData);
+					}
+				}
 			});
 			let createNewCaseCmdBox = $('<div style="display: table-cell; text-align: center; width: 50%;"></div>');
 			$(createNewCaseCmdBox).appendTo($(commandBox));
@@ -4207,7 +4279,7 @@ module.exports = function ( jq ) {
 				const sorryMsg = $('<div></div>');
 		    $(sorryMsg).append($('<p>ระบบค้นหาภาพจากระบบไม่เจอโปรดแจ้งผูดูแลระบบฯ ของคุณ</p>'));
 				const radalertoption = {
-		      title: 'ขออภัยที่เกิดจ้อผิดพลาด',
+		      title: 'ขออภัยที่เกิดข้อผิดพลาด',
 		      msg: $(sorryMsg),
 		      width: '560px',
 		      onOk: function(evt) {
@@ -4864,16 +4936,18 @@ module.exports = function ( jq ) {
 					let desc, protoname, mld, sa, studydate, bdp;
 					if ((dj[i].MainDicomTags) && (dj[i].SamplingSeries)){
 						if (dj[i].MainDicomTags.StudyDescription) {
-							desc = '<div class="study-desc">' + dj[i].MainDicomTags.StudyDescription + '</div>';
 							bdp = dj[i].MainDicomTags.StudyDescription;
 						} else {
 							if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 								bdp = dj[i].SamplingSeries.MainDicomTags.ProtocolName;
+							} else if (dj[i].SamplingSeries.MainDicomTags.Manufacturer.indexOf('FUJIFILM') >= 0) {
+								bdp = dj[i].SamplingSeries.MainDicomTags.PerformedProcedureStepDescription;
 							} else {
 								bdp = '';
 							}
-							desc = '';
 						}
+						desc = '<div class="study-desc">' + bdp + '</div>';
+
 						if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 							protoname = '<div class="protoname">' + dj[i].SamplingSeries.MainDicomTags.ProtocolName + '</div>';
 						} else {
@@ -5024,15 +5098,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {

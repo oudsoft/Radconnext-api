@@ -2705,16 +2705,18 @@ module.exports = function ( jq ) {
 					let desc, protoname, mld, sa, studydate, bdp;
 					if ((dj[i].MainDicomTags) && (dj[i].SamplingSeries)){
 						if (dj[i].MainDicomTags.StudyDescription) {
-							desc = '<div class="study-desc">' + dj[i].MainDicomTags.StudyDescription + '</div>';
 							bdp = dj[i].MainDicomTags.StudyDescription;
 						} else {
 							if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 								bdp = dj[i].SamplingSeries.MainDicomTags.ProtocolName;
+							} else if (dj[i].SamplingSeries.MainDicomTags.Manufacturer.indexOf('FUJIFILM') >= 0) {
+								bdp = dj[i].SamplingSeries.MainDicomTags.PerformedProcedureStepDescription;
 							} else {
 								bdp = '';
 							}
-							desc = '';
 						}
+						desc = '<div class="study-desc">' + bdp + '</div>';
+
 						if (dj[i].SamplingSeries.MainDicomTags.ProtocolName) {
 							protoname = '<div class="protoname">' + dj[i].SamplingSeries.MainDicomTags.ProtocolName + '</div>';
 						} else {
@@ -16036,6 +16038,7 @@ module.exports = function ( jq ) {
         if (thumbSelected.length > 0){
 					$('#quickreply').loading('start');
           let thumbData = $(thumbSelected).data('thumbImgData');
+					console.log(caseData);
           let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
 					//aiResultId = aiRes.result.id;
 					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
@@ -16199,16 +16202,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		//console.log(localMessage);
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {
@@ -16289,15 +16299,23 @@ module.exports = function ( jq ) {
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
-		let localMessage = JSON.parse(localStorage.getItem('localmessage'));
-		let localMessageJson = localMessage;
-		if (localMessageJson) {
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 		} else {
-			localMessageJson = [];
-			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
 		}
-		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
 	}
 
   return {
