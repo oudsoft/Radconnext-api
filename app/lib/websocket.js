@@ -248,11 +248,15 @@ function RadconWebSocketServer (arg, db, log) {
 	this.sendLocalGateway = function(message, hospitalId) {
 		return new Promise(async function(resolve, reject) {
 			let gatewaySocket = await $this.clients.find((ws) =>{
-				if ((ws.hospitalId == hospitalId)  && (ws.id == 'orthanc') && (ws.connectType === 'local') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+				if ((ws.hospitalId == hospitalId)  && (ws.id === 'orthanc')) return ws;
 			});
 			if (gatewaySocket) {
-				gatewaySocket.send(JSON.stringify(message));
-				resolve(gatewaySocket);
+				if ((gatewaySocket.readyState == 0) || (gatewaySocket.readyState == 1)) {
+					gatewaySocket.send(JSON.stringify(message));
+					resolve({status: 'OK'});
+				} else {
+					resolve();
+				}
 			} else {
 				resolve();
 			}

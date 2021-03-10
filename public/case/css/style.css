@@ -107,13 +107,13 @@ input[type='checkbox'] {
 	padding: 5px;
 }
 .pacs-command {
-	width: 22px;
+	width: 42px;
 	height: auto;
 	cursor: pointer;
 	padding: 4px;
 }
 .pacs-command-dd {
-	width: 30px;
+	width: 50px;
 	height: auto;
 	cursor: pointer;
 	padding: 3px;

@@ -178,13 +178,9 @@ app.post('/add', async (req, res) => {
 	  let adDicomTransferLog = await DicomTransferLog.create(newDicomTransferLog);
 	  //log.info('New dicom ' + resourceType + ' Type transfer => ' + JSON.stringify(adDicomTransferLog));
 	  let cwss = websocket.socket.clients;
-	  if (resourceType === 'patient'){
-	    cwss.forEach((wc) => {
-	      if (wc.hospitalId == hospitalId) {
-	        let socketTrigger = {type: 'refresh', section: 'PACSDiv'};
-	        wc.send(JSON.stringify(socketTrigger));
-	      }
-	    });
+	  if (resourceType === 'study'){
+			let socketTrigger = {type: 'newdicom', dicom: newDicomTransferLog};
+			websocket.sendLocalGateway(socketTrigger, hospitalId)
 	  }
 	  res.json({Result: "OK", Record: adDicomTransferLog});
 	} else {

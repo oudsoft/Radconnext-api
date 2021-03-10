@@ -1291,20 +1291,6 @@ module.exports = function ( jq ) {
 				});
 				$(downlodDicomButton).appendTo($(operationCmdBox));
 
-				let aiInterfaceButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/ai-icon.png" title="Send Dicom to AI analysis."/>');
-				$(aiInterfaceButton).click(async function() {
-					$('body').loading('start');
-					const ai = require('../../radio/mod/ai-lib.js')($);
-					let seriesList = await ai.doCallCheckSeries(incidents[i].case.Case_OrthancStudyID);
-					let seriesSelect = await ai.doCreateSeriesSelect(incidents[i], seriesList);
-					$(seriesSelect).css(ai.quickReplyContentStyle);
-					$(seriesSelect).css({'height': 'auto'});
-					$('#quickreply').css(ai.quickReplyDialogStyle);
-					$('#quickreply').append($(seriesSelect));
-					$('body').loading('stop');
-				});
-				$(aiInterfaceButton).appendTo($(operationCmdBox));
-
 				if ((incidents[i].case.casestatus.id == 1) || (incidents[i].case.casestatus.id == 2) || (incidents[i].case.casestatus.id == 3) || (incidents[i].case.casestatus.id == 4) || (incidents[i].case.casestatus.id == 7)) {
 					let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/update-icon-2.png" title="Edit Case Detail."/>');
 					$(editCaseButton).click(function() {
@@ -1693,7 +1679,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/ai-lib.js":15,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":6,"./utilmod.js":12}],4:[function(require,module,exports){
+},{"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":6,"./utilmod.js":12}],4:[function(require,module,exports){
 /* casecounter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1990,32 +1976,6 @@ module.exports = function ( jq ) {
   	})
   }
 
-  const doDeleteDicom = function(studyID) {
-  	let userConfirm = confirm('โปรดยืนยันเพื่อลบรายการนี้ โดยคลิกปุ่ม ตกลง หรือ OK');
-  	if (userConfirm == true){
-  		$('body').loading('start');
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			const hospitalId = userdata.hospitalId;
-			apiconnector.doCallDeleteDicom(studyID, hospitalId).then((response) => {
-				console.log(response);
-				//if (response.status.code == 200) {
-				if (response) {
-					$('#CurrentPage').remove();
-					alert('เดำเนินการลบข้อมูลเรียบร้อยแล้ว');
-					doSearchOrthanc();
-					$('body').loading('stop');
-				} else {
-					alert('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้')
-					$('body').loading('stop');
-				}
-			}).catch((err) => {
-				console.log('Error on Delete dicom from orthanc', err);
-				alert('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้')
-				$('body').loading('stop');
-			})
-		}
-  }
-
   const doPreparePatientParams = function(newCaseData){
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
@@ -2126,10 +2086,10 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallSendAI = function(caseId, seriesId, instanceId){
+	const doCallSendAI = function(seriesId, instanceId, studyId){
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let params = {caseId: caseId, userId: userdata.id, seriesId: seriesId, instanceId: instanceId};
+			let params = { userId: userdata.id, seriesId: seriesId, instanceId: instanceId, studyId: studyId};
 			let apiurl = '/api/orthancproxy/sendai';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
@@ -2143,6 +2103,16 @@ module.exports = function ( jq ) {
 			let apiurl = '/api/orthancproxy/convert/ai/report';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
+		});
+	}
+
+	const doCallAIResultLog = function(studyId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = { userId: userdata.id, studyId: studyId};
+			let apiurl = '/api/ailog/select/' + studyId;
+			let aiLogRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(aiLogRes);
 		});
 	}
 
@@ -2438,7 +2408,6 @@ module.exports = function ( jq ) {
 		doGetApi,
 		doOpenStoneWebViewer,
 		doDownloadDicom,
-    doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
@@ -2448,6 +2417,7 @@ module.exports = function ( jq ) {
 		doCallCreateZipInstance,
 		doCallSendAI,
 		doConvertAIResult,
+		doCallAIResultLog,
 		doUpdateCaseStatus,
 		doCreateNewCustomUrgent,
 		doCallSelectUrgentType,
@@ -2474,6 +2444,7 @@ module.exports = function ( jq ) {
   const util = require('./utilmod.js')($);
   const common = require('./commonlib.js')($);
 	const newreffuser = require('./createnewrefferal.js')($);
+	const ai = require('../../radio/mod/ai-lib.js')($);
 
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 
@@ -2487,10 +2458,36 @@ module.exports = function ( jq ) {
 		//doCallSearhOrthanc(queryString).then(async (studies) => {
 			$(".mainfull").empty();
 			let resultTitle = $('<div class="title-content"></div>');
-			let logoPage = $('<img src="/images/orthanc-icon-1.png" width="40px" height="auto" style="float: left;"/>');
+			let logoPage = $('<img src="/images/orthanc-icon-1.png" width="40px" height="auto" style="position: relative; display: inline-block;"/>');
 			$(logoPage).appendTo($(resultTitle));
-			let titleResult = $('<div style="float: left; margin-left: 10px; margin-top: -5px;"><h3>รายการภาพในระบบที่ค้นพบ</h3></div>');
+			let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px; top: -10px;"><h3>รายการภาพในระบบ</h3></div>');
 			$(titleResult).appendTo($(resultTitle));
+
+			let queryDicom = JSON.parse(queryString);
+			let filterDisplayText = queryDicom.Query.Modality;
+			if (!queryDicom.Query.Modality || (queryDicom.Query.Modality === '*')) {
+				filterDisplayText = 'All';
+			}			
+			if (!queryDicom.Query.StudyDate || (queryDicom.Query.StudyDate === '*')){
+				filterDisplayText += ' [All]';
+			} else {
+				let studyDate = queryDicom.Query.StudyDate;
+				if (studyDate){
+					let n = studyDate.indexOf('-');
+					if (n > 0){
+						studyDate = studyDate.split('');
+						studyDate.splice(n, 1);
+						studyDate = studyDate.join('')
+					} else {
+						studyDate = studyDate;
+					}
+				}
+				studyDate = util.formatStudyDate(studyDate);
+				filterDisplayText += ' [' + studyDate + ']';
+			}
+			let filterDisplayTextBox = $('<div style="position: relative; display: inline-block; margin-left: 10px; top: -10px;"></div>');
+			$(filterDisplayTextBox).append($('<span>' + filterDisplayText + '</span>'));
+			$(resultTitle).append($(filterDisplayTextBox));
 
 			$(".mainfull").empty().append($(resultTitle));
 			if (studies.length > 0) {
@@ -2600,7 +2597,6 @@ module.exports = function ( jq ) {
 				}
 			}
 			let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyDate: studyDate};
-			console.log(rqParams);
 			let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
 			let studies = [];
 			if (dicomStudiesRes.orthancRes) {
@@ -2614,7 +2610,7 @@ module.exports = function ( jq ) {
 	}
 
   const doCreateDicomHeaderRow = function() {
-		const headerLabels = ['No.', 'Study Date', 'HN', 'Name', 'Sex/Age', 'Modality', 'Study Desc. / Protocol Name', 'Operation'];
+		const headerLabels = ['No.', 'Study Date', 'HN', 'Name', 'Sex/Age', 'Modality', 'Study Desc. / Protocol Name'/*, 'Operation'*/];
 		const tableRow = $('<div style="display: table-row;"></div>');
 		for (var i = 0; i < headerLabels.length; i++) {
 			let item = headerLabels[i];
@@ -2625,7 +2621,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateDicomItemRow = function(no, studyDate, studyTime, hn, name, sa, mdl, sdd, defualtValue, dicomSeries, dicomID){
-		const tableRow = $('<div style="display: table-row; padding: 2px;" class="case-row"></div>');
+		const tableRow = $('<div style="display: table-row; padding: 2px; cursor: pointer;" class="case-row"></div>');
 
 		let dicomValue = $('<div style="display: table-cell; padding: 2px; text-align: center; vertical-align: middle;">' + no + '</div>');
 		$(dicomValue).appendTo($(tableRow));
@@ -2648,39 +2644,146 @@ module.exports = function ( jq ) {
 		dicomValue = $('<div style="display: table-cell; padding: 2px; vertical-align: middle;">' + sdd + '</div>');
 		$(dicomValue).appendTo($(tableRow));
 
-		let operationField = $('<div style="display: table-cell; padding: 2px; text-align: center; vertical-align: middle;"></div>');
-		$(operationField).appendTo($(tableRow));
+		//let operationField = $('<div style="display: table-cell; padding: 2px; text-align: center; vertical-align: middle;"></div>');
+		//$(operationField).appendTo($(tableRow));
 
-		let previewCmd = $('<img class="pacs-command-dd" data-toggle="tooltip" src="../images/preview-icon.png" title="เปิดดูรูปด้วย Web Viewer"/>');
-		$(previewCmd).on('click', function(evt){
-			common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
-		});
-		$(previewCmd).appendTo($(operationField));
 
-		let createNewCaseCmd = $('<img class="pacs-command-dd" data-toggle="tooltip" src="../images/doctor-icon.png" title="ส่งรังสีแพทย์เพื่ออ่านผล"/>');
-		$(createNewCaseCmd).on('click', async function(evt){
-			let patientName = defualtValue.patient.name;
-			let allSeries = dicomSeries.length;
-			let allImageInstances = await doCallCountInstanceImage(dicomSeries, patientName);
-			doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
-		});
-		$(createNewCaseCmd).appendTo($(operationField));
+		$(tableRow).on('click', async (evt)=>{
+			const figgerIcon = $('<img src="/images/figger-right-icon.png" width="30px" height="auto"/>');
 
-		let downloadDicomCmd = $('<img class="pacs-command" data-toggle="tooltip" src="../images/zip-icon.png" title="ดาวน์โหลด zip ไฟล์"/>');
-		$(downloadDicomCmd).on('click', function(evt){
-			let dicomFilename = defualtValue.patient.name.split(' ');
-			dicomFilename = dicomFilename.join('_');
-			dicomFilename = dicomFilename + '-' + defualtValue.studyDate + '.zip';
-			common.doDownloadDicom(dicomID, dicomFilename);
-		});
-		$(downloadDicomCmd).appendTo($(operationField));
+			let closePopupCmd = $('<span style="position: relative; display: inline-block; float: right; padding: 2px;">Close</span>');
+			$(closePopupCmd).on('click', (evt)=>{
+				$('#quickreply').empty();
+				$('#quickreply').removeAttr('style');
+			})
 
-		let deleteDicomCmd = $('<img class="pacs-command" data-toggle="tooltip" src="../images/delete-icon.png" title="ลบรายการนี้"/>');
-		$(deleteDicomCmd).on('click', function(evt){
-			common.doDeleteDicom(dicomID);
-		});
-		$(deleteDicomCmd).appendTo($(operationField));
+			let previewCmd = $('<img class="pacs-command-dd" data-toggle="tooltip" src="../images/preview-icon.png" title="เปิดดูรูปด้วย Web Viewer"/>');
+			$(previewCmd).on('click', function(evt){
+				$(closePopupCmd).click();
+				common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
+			});
 
+			let createNewCaseCmd = $('<img class="pacs-command-dd" data-toggle="tooltip" src="../images/doctor-icon.png" title="ส่งรังสีแพทย์เพื่ออ่านผล"/>');
+			$(createNewCaseCmd).on('click', async function(evt){
+				$(closePopupCmd).click();
+				let patientName = defualtValue.patient.name;
+				let allSeries = dicomSeries.length;
+				let allImageInstances = await doCallCountInstanceImage(dicomSeries, patientName);
+				doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
+			});
+
+			let aiInterfaceButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/ai-icon.png" title="ขอผลอ่านจาก AI"/>');
+			$(aiInterfaceButton).click(async function() {
+				$(closePopupCmd).click();
+				$('body').loading('start');
+				let seriesList = await ai.doCallCheckSeries(dicomID);
+				if (seriesList) {
+					let seriesSelect = await ai.doCreateSeriesSelect(seriesList);
+					$(seriesSelect).css(ai.quickReplyContentStyle);
+					$(seriesSelect).css({'height': 'auto'});
+					$('#quickreply').css(ai.quickReplyDialogStyle);
+					$('#quickreply').append($(seriesSelect));
+					$('body').loading('stop');
+
+					let howmanySeries = $(seriesSelect).find('.series-item');
+					if (howmanySeries.length == 1) {
+						let singleSeries = $(howmanySeries)[0];
+						$(singleSeries).click();
+					}
+				} else {
+					const sorryMsg = $('<div></div>');
+			    $(sorryMsg).append($('<p>ระบบค้นหาภาพจากระบบไม่เจอโปรดแจ้งผูดูแลระบบฯ ของคุณ</p>'));
+					const radalertoption = {
+			      title: 'ขออภัยที่เกิดข้อผิดพลาด',
+			      msg: $(sorryMsg),
+			      width: '560px',
+			      onOk: function(evt) {
+		          radAlertBox.closeAlert();
+			      }
+			    }
+					let radAlertBox = $('body').radalert(radalertoption);
+			    $(radAlertBox.cancelCmd).hide();
+				}
+			});
+
+			let downloadDicomCmd = $('<img class="pacs-command" data-toggle="tooltip" src="../images/zip-icon.png" title="ดาวน์โหลด zip ไฟล์"/>');
+			$(downloadDicomCmd).on('click', function(evt){
+				$(closePopupCmd).click();
+				let dicomFilename = defualtValue.patient.name.split(' ');
+				dicomFilename = dicomFilename.join('_');
+				dicomFilename = dicomFilename + '-' + defualtValue.studyDate + '.zip';
+				common.doDownloadDicom(dicomID, dicomFilename);
+			});
+
+			let deleteDicomCmd = $('<img class="pacs-command" data-toggle="tooltip" src="../images/delete-icon.png" title="ลบรายการนี้"/>');
+			$(deleteDicomCmd).on('click', function(evt){
+				$(closePopupCmd).click();
+				let radAlertMsg = $('<div></div>');
+				$(radAlertMsg).append($('<p>คุณต้องการลบ Dicom ของผู้ป่วย</p>'));
+				$(radAlertMsg).append($('<p>HN: <b>' + hn + '</b></p>'));
+				$(radAlertMsg).append($('<p>Name: <b>' + name + '</b></p>'));
+				$(radAlertMsg).append($('<p><b>ใช่ หรือไม่?</b></p>'));
+				$(radAlertMsg).append($('<p>หาก <b>ใช่</b> คลิกปุ่ม <b>ตกลง</b> เพื่อดำเนินการลบภาพ/p>'));
+				$(radAlertMsg).append($('<p>หาก <b>ไม่ใช่</b> คลิกปุ่ม <b>ยกเลิก</b> เพื่อยกเลิก</p>'));
+				const radconfirmoption = {
+					title: 'โปรดยืนยันการลบภาพ',
+					msg: $(radAlertMsg),
+					width: '420px',
+					onOk: function(evt) {
+						$('body').loading('start');
+						radConfirmBox.closeAlert();
+						let userdata = JSON.parse(localStorage.getItem('userdata'));
+						const hospitalId = userdata.hospitalId;
+						apiconnector.doCallDeleteDicom(dicomID, hospitalId).then((response) => {
+							if (response) {
+								$.notify('เดำเนินการลบข้อมูลเรียบร้อยแล้ว', 'success');
+								$('body').loading('stop');
+							} else {
+								$.notify('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้', 'error');
+								$('body').loading('stop');
+							}
+						}).catch((err) => {
+							$.notify('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้', 'error');
+							$('body').loading('stop');
+						});
+					},
+					onCancel: function(evt){
+						radConfirmBox.closeAlert();
+					}
+				}
+				let radConfirmBox = $('body').radalert(radconfirmoption);
+			});
+
+			let popupDicomCmdBox = $('<div></div>');
+
+			let popupTitleBar = $('<div style="position: relative; background-color: #02069B; color: white; border: 2px solid grey; min-height: 20px;"></div>');
+			let titleTextBox = $('<span style="display: inline-block; margin-left: 8px;"></span>');
+      $(titleTextBox).text('รายการคำสั่งเพื่อดำเนินการกับ Dicom');
+			$(closePopupCmd).css({'margin-right': '2px', 'cursor': 'pointer', 'background-color': 'red', 'color': 'white'});
+      $(figgerIcon).css({'margin-top': '5px'});
+      $(popupTitleBar).append($(figgerIcon)).append($(titleTextBox)).append($(closePopupCmd));
+
+			let popupDicomSummary = $('<div style="position: relative; min-height: 10px; padding: 5px;"></div>');
+			$(popupDicomSummary).append($('<span><b>HN:</b>  </span>'));
+			$(popupDicomSummary).append($('<span>' + hn + '  </span>'));
+			$(popupDicomSummary).append($('<span><b>Name:</b>  </span>'));
+			$(popupDicomSummary).append($('<span>' + name + '</span>'));
+
+			let popupCmdBar = $('<div style="position: relative; min-height: 50px; padding: 5px; text-align: center;"></div>');
+			$(popupCmdBar).append($(previewCmd));
+			$(popupCmdBar).append($(createNewCaseCmd));
+			$(popupCmdBar).append($(aiInterfaceButton));
+			$(popupCmdBar).append($(downloadDicomCmd));
+			$(popupCmdBar).append($(deleteDicomCmd));
+
+			$(popupDicomCmdBox).append($(popupTitleBar)).append($(popupDicomSummary)).append($(popupCmdBar))
+
+			$(popupDicomCmdBox).css({'width': '720px', 'height': '180px'});
+			$(popupDicomCmdBox).css(ai.quickReplyContentStyle);
+			$('#quickreply').css(ai.quickReplyDialogStyle);
+			$('#quickreply').append($(popupDicomCmdBox));
+		})
+		//console.log(defualtValue);
 		return $(tableRow);
 	}
 
@@ -3745,7 +3848,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":7,"./utilmod.js":12}],7:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":15,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":7,"./utilmod.js":12}],7:[function(require,module,exports){
 /*createnewrefferal.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -15909,7 +16012,7 @@ module.exports = function ( jq ) {
 
   const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
-	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
+	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '10px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
@@ -15941,19 +16044,19 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateSeriesSelect = function(caseData, dicomSeries){
+  const doCreateSeriesSelect = function(dicomSeries){
     return new Promise(async function(resolve, reject) {
       let selectView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
-      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
+      let guideText = $('<span id="GalleryTitle" style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
       $(titleGuide).append($(figgerIcon)).append($(guideText));
       $(titleGuide).appendTo($(selectView));
 
       let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
 			let	promiseList = new Promise(async function(resolve2, reject2){
 	      await dicomSeries.forEach((item, i) => {
-	        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+	        let seriesItem = $('<div class="series-item" style="position: relative; width: 100%; padding: 2px;"></div>');
 	        $(seriesItem).text(item.desc);
 	        $(seriesItem).css({'cursor': 'pointer'});
 	        $(seriesItem).hover(()=>{
@@ -15968,12 +16071,22 @@ module.exports = function ( jq ) {
 					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
 						$('#quickreply').loading('start');
 	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-						console.log(callSeriesRes);
+						let modality = callSeriesRes.MainDicomTags.Modality;
+						let studyId = callSeriesRes.ParentStudy;
 	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(item.id, item.desc, callSeriesRes.Instances, studyId, modality);
 	          $(galleryView).css(quickReplyContentStyle);
 	          $(galleryView).css({'width': '720px', 'height': 'auto'});
 	  			  $('#quickreply').append($(galleryView));
+						if (callSeriesRes.Instances.length == 1){
+							//$(galleryView).find('#ImagePreview').empty();
+							$(galleryView).find('#OKCmd').click();
+							$(galleryView).find('#ThumbSelector').empty();
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						} else {
+							$(galleryView).find('#ImagePreview').css({'display': 'block'});
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						}
 	          $('#quickreply').loading('stop');
 	        });
 	        $(seriesItem).appendTo($(seriesContent));
@@ -15989,10 +16102,8 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateThumbPreview = function(caseData, seriesId, seriesDesc, instanceList){
+  const doCreateThumbPreview = function(seriesId, seriesDesc, instanceList, studyId, modality){
     return new Promise(async function(resolve, reject) {
-			let aiResultId = undefined;
-
       let galleryView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
@@ -16001,7 +16112,7 @@ module.exports = function ( jq ) {
       $(titleGuide).append($(figgerIcon)).append($(guideText)).append($(dialogCmdBox));
       $(titleGuide).appendTo($(galleryView));
 
-      let okCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
+      let okCmd = $('<span id="OKCmd" style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
       $(okCmd).appendTo($(dialogCmdBox));
       $(dialogCmdBox).append($('<span>  </span>'));
       let cancelCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: red; cursor: pointer; border-radius: 10px;">ยกเลิก</span>');
@@ -16011,9 +16122,9 @@ module.exports = function ( jq ) {
       $(seriesNameBox).html('<h4>' + seriesDesc + '</h4>');
       $(seriesNameBox).appendTo($(galleryView));
 
-      let imagePreview = $('<div style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px;"></div>');
+      let imagePreview = $('<div id="ImagePreview" style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px; display: none;"></div>');
       $(imagePreview).appendTo($(galleryView));
-      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%;"></div>');
+      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%; display: none;"></div>');
       $(thumbSelector).appendTo($(galleryView));
 
       let previewPath = '/img/usr/preview/' + seriesId
@@ -16036,45 +16147,68 @@ module.exports = function ( jq ) {
       $(okCmd).on('click', async (evt)=>{
         let thumbSelected = $(thumbSelector).find('img.img-thumb-active');
         if (thumbSelected.length > 0){
-					$('#quickreply').loading('start');
+					//$('#quickreply').loading('start');
+					$(galleryView).append($('<div id="overlay"><div class="loader"></div></div>'));
+					$(galleryView).loading({overlay: $("#overlay"), stoppable: true});
+					$(galleryView).loading('start');
+
           let thumbData = $(thumbSelected).data('thumbImgData');
-					console.log(caseData);
-          let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
-					//aiResultId = aiRes.result.id;
+          let aiRes = await doCallSendAI(seriesId, thumbData.instanceId, studyId);
 					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
 		      let embetObject = $('<object data="' + aiRes.result.link + '" type="application/pdf" width="100%" height="480"></object>');
 		      $(embetObject).appendTo($(resultBox));
 					$(thumbSelector).empty().append($(resultBox));
-					/* start convert on cloud */
-					const studyId = caseData.case.Case_OrthancStudyID;
-					const modality = caseData.case.Case_Modality
-					//let pdffilecode = aiResultId;
-					let pdffilecode = aiRes.result.id;
-					let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-					console.log(convertRes);
-					/********/
-					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
-					/*
-						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
-					*/
 
-					$(okCmd).text(' ปืด ');
-					$(cancelCmd).hide();
-					$('#quickreply').loading('stop');
-        } else {
-					if (aiResultId) {
-						//start convert ai result to pacs
-						/* ต้องมี wsl ใช้งาน */
-						$('#quickreply').loading('start');
-						const studyId = caseData.case.Case_OrthancStudyID;
-						const modality = caseData.case.Case_Modality
-						let pdffilecode = aiResultId;
-						let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-						console.log(convertRes);
-						$('#quickreply').loading('stop');
-					} else {
-						$(cancelCmd).click();
+					/* start convert on cloud */
+
+					let wsl = undefined;
+					try {
+						wsl = new WebSocket('ws://localhost:3000/api/orthanc/2');
+					} catch(err) {
+						console.log('Can not connect to local socket.', err);
 					}
+					console.log(wsl);
+					wsl.onopen = function () {
+						console.log('Local Client Websocket is connected to Local server')
+					};
+
+					wsl.onmessage = function (msgEvt) {
+						let data = JSON.parse(msgEvt.data);
+						console.log('Local WebSocket Client have data in=> ', data);
+					}
+					wsl.onclose = function(event) {
+						console.log("Local WebSocket Client is closed now. with  event:=> ", event);
+					};
+
+					wsl.onerror = function (err) {
+						console.log("Local WebSocket Client Got an error", err);
+					};
+
+					setTimeout(async()=>{
+						if ((wsl.readyState == 0) || (wsl.readyState == 1)){
+							let pdffilecode = aiRes.result.id;
+							let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
+							console.log(convertRes);
+							/********/
+							//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+							/*
+								ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+							*/
+							wsl.close();
+						} else {
+							console.log('you are not hospital orthanc host. We can not convert dicom to ypur pacs.');
+						}
+					}, 3000);
+					$(guideText).text('ผลอ่านจาก AI');
+					$(okCmd).text('  ปิด  ');
+					$(cancelCmd).hide();
+					$(seriesNameBox).hide();
+					$(galleryView).loading('stop');
+					$(galleryView).find('#overlay').remove();
+					$(okCmd).on('click', (evt)=>{
+		        $('#quickreply').empty();
+		        $('#quickreply').removeAttr('style');
+		      });
         }
       });
       $(cancelCmd).on('click', (evt)=>{
@@ -16086,10 +16220,10 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCallSendAI = function(caseId, seriesId, instanceId){
+  const doCallSendAI = function(seriesId, instanceId, studyId){
     return new Promise(async function(resolve, reject) {
       let callZipRes = await common.doCallCreateZipInstance(seriesId, instanceId);
-      let callSendAIRes = await common.doCallSendAI(caseId, seriesId, instanceId);
+      let callSendAIRes = await common.doCallSendAI(seriesId, instanceId, studyId);
       resolve(callSendAIRes);
     });
   }

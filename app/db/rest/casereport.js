@@ -508,17 +508,6 @@ app.post('/convert', (req, res) => {
 				let dicom = await dicomConvertor(studyID, modality, pdfFileName, hospitalId);
 
 				log.info('If you are => ' + ur[0].username + ', you will be recieve notity for trigger on local ORTHANC.');
-				/*
-				let cwss = websocket.socket.clients;
-				cwss.forEach((wc) => {
-					log.info('wc.id=> ' + wc.id);
-					log.info('ur[0].username=> ' + ur[0].username);
-					if (wc.id == ur[0].username) {
-						let socketTrigger = {type: 'trigger', message: 'Please tell your orthanc update', studyid: studyID, dcmname: dicom.dcmname, studyInstanceUID: studyInstanceUID, owner: ur[0].username, hostname: req.hostname + ':4443'};
-						wc.send(JSON.stringify(socketTrigger));
-					}
-				});
-				*/
 				let socketTrigger = {type: 'trigger', message: 'Please tell your orthanc update', studyid: studyID, dcmname: dicom.dcmname, studyInstanceUID: studyInstanceUID, owner: ur[0].username, hostname: req.hostname};
 				//await websocket.sendMessage(socketTrigger, 'orthanc');
 				let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
