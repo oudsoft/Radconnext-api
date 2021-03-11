@@ -104,7 +104,7 @@
           Template
         </div>
       </div>
-      <!--      
+      <!--
       <div class="NavSub" id="QueryRetrieveSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -249,7 +249,8 @@
 
   doDisplayUserFullName(yourUserdata);
 
-  $('#UserInfoMenu').css({'color': 'white'});
+  //$('#UserInfoMenu').css({'color': 'white'});
+  $('.NavRowTextCell, .NavSubTextCell').css({'color': 'white'});
   $('#UserInfoMenu').hover(()=>{$('#UserInfoMenu').css({'color': 'black'})}, ()=>{$('#UserInfoMenu').css({'color': 'white'})});
 
   $('#UserInfoSubCmd').click((evt)=>{

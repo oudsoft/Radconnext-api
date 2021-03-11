@@ -495,7 +495,8 @@ app.post('/deletedicom/(:studyID)', function(req, res) {
 		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
 		var command = 'curl -X DELETE --user ' + cloud.user + ':' + cloud.pass + ' -H "user: ' + cloud.user + '" ' + orthancUrl + '/studies/' + studyID;
 		log.info('Delete Dicom with command >>', command);
-		runcommand(command).then((stdout) => {
+		runcommand(command).then(async (stdout) => {
+      await db.dicomtransferlogs.destroy({ where: { ResourceID: studyID } });
 			res.status(200).send({response: {message: stdout}});
 		});
 	});

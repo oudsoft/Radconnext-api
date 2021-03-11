@@ -1,0 +1,54 @@
+{
+    "ID": "cfc2c42d-ad3b7311-59cfefc8-86a7f4cf-e04f80ca",
+    "Type": "Study",
+    "Series": [
+        "8119c35e-29eab157-27ce11ee-a8a1ad75-cbebd93f"
+    ],
+    "IsStable": false,
+    "LastUpdate": "20210311T024829",
+    "MainDicomTags": {
+        "StudyID": "",
+        "StudyDate": "20210311",
+        "StudyTime": "094303.000",
+        "AccessionNumber": "AC622102814",
+        "InstitutionName": "VIRAJSILP HOSPITAL",
+        "StudyDescription": "",
+        "StudyInstanceUID": "1.2.840.113845.11.1000000002143326077.20210311094143.1183680",
+        "RequestingPhysician": "SUPPHATHAI^HANSOMBUN",
+        "ReferringPhysicianName": "SUPPHATHAI^HANSOMBUN"
+    },
+    "ParentPatient": "f562cba2-937001ec-52fb4945-c5431bde-c5829998",
+    "SamplingSeries": {
+        "ID": "8119c35e-29eab157-27ce11ee-a8a1ad75-cbebd93f",
+        "Type": "Series",
+        "Status": "Unknown",
+        "IsStable": false,
+        "Instances": [
+            "d774eb21-3a5ec4f3-be303038-bb7fb43f-b7b98512"
+        ],
+        "LastUpdate": "20210311T024829",
+        "ParentStudy": "cfc2c42d-ad3b7311-59cfefc8-86a7f4cf-e04f80ca",
+        "MainDicomTags": {
+            "Modality": "CR",
+            "SeriesDate": "20210311",
+            "SeriesTime": "094501.000",
+            "StationName": "ru0",
+            "Manufacturer": "FUJIFILM Corporation",
+            "SeriesNumber": "1001",
+            "OperatorsName": "KAMONWAN",
+            "BodyPartExamined": "CHEST",
+            "SeriesInstanceUID": "1.2.392.200036.9125.3.160722811916340.64965577383.352028",
+            "ContrastBolusAgent": "",
+            "PerformedProcedureStepDescription": "Chest X-Ray (PP)",
+            "AcquisitionDeviceProcessingDescription": "CHEST PA"
+        },
+        "ExpectedNumberOfInstances": null
+    },
+    "PatientMainDicomTags": {
+        "PatientID": "62-21-001889",
+        "PatientSex": "M",
+        "PatientName": "PHAKWAT",
+        "OtherPatientIDs": "",
+        "PatientBirthDate": "20200408"
+    }
+}

@@ -578,7 +578,8 @@
 
   doDisplayUserFullName(yourUserdata);
 
-  $('#UserInfoMenu').css({'color': 'white'});
+  //$('#UserInfoMenu').css({'color': 'white'});
+  $('.NavRowTextCell, .NavSubTextCell').css({'color': 'white'});
   $('#UserInfoMenu').hover(()=>{$('#UserInfoMenu').css({'color': 'black'})}, ()=>{$('#UserInfoMenu').css({'color': 'white'})});
 
   $('#UserInfoSubCmd').click((evt)=>{

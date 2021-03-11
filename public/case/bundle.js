@@ -172,6 +172,7 @@ function doLoadMainPage(){
   });
 
   document.addEventListener("triggercounter", casecounter.onCaseChangeStatusTrigger);
+  document.addEventListener("triggernewdicom", onNewDicomTransferTrigger);
 
   let userdata = JSON.parse(doGetUserData());
 	//console.log(userdata);
@@ -347,6 +348,12 @@ const showScanpartAux = async function() {
 		$(".mainfull").append($('<h4>ไม่พบรายการ Scan Part ของคุณ</h4>'));
 	}
 	$('body').loading('stop');
+}
+
+const onNewDicomTransferTrigger = function(evt){
+  let trigerData = evt.detail.data;
+  let dicom = trigerData.dicom;
+  console.log(dicom);
 }
 
 function doSaveQueryOrthanc(filterData) {
@@ -1419,7 +1426,7 @@ module.exports = function ( jq ) {
 				// ตรงนี้จะมี websocket trigger มาจาก server / pdfconverto.js
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let convertLog = {action: 'convert', by: userdata.id, at: new Date()};
-				await common.doCallApi('/api/casereport/appendlog/' + incidents[i].case.id, {Log: convertLog});
+				await common.doCallApi('/api/casereport/appendlog/' + caseId, {Log: convertLog});
 				$('body').loading('stop');
 			}
 		}).catch((err) => {
@@ -5055,6 +5062,11 @@ module.exports = function ( jq ) {
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'newdicom') {
+			let eventName = 'triggernewdicom'
+			let triggerData = {dicom : data.dicom};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
     } else if (data.type == 'notify') {

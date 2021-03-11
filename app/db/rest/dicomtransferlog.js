@@ -202,16 +202,6 @@ app.post('/delete', async (req, res) => {
   res.json({Result: "OK"});
 });
 
-// /api/dicomtransferlog/3/21776058-56a21078-f5e147ef-03854de7-88c7f837
-// http://202.28.68.28:8042/studies/929a9934-78066d77-49181fbd-05cad6c2-18e9114e
-app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
-  let orthancId = req.params.orthancId;
-  let studyId = req.params.studyId;
-  let hostname = req.hostname;
-  let fullStudy = await doLoadOrthancStudies(orthancId, hostname, studyId);
-  res.json({Result: "OK", Record: fullStudy});
-});
-
 //Study List API
 app.post('/studies/list', (req, res) => {
   let token = req.headers.authorization;
@@ -281,7 +271,8 @@ app.post('/studies/list', (req, res) => {
 							///
 						}
 					}
-					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['id', 'DESC']] };
+					//let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['id', 'DESC']] };
+					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['StudyTags.MainDicomTags.StudyDate', 'DESC']] };
 					if ((limit) && (limit > 0)) {
 						studiesModelList.limit = limit;
 					}
@@ -304,6 +295,24 @@ app.post('/studies/list', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+});
+
+// /api/dicomtransferlog/3/21776058-56a21078-f5e147ef-03854de7-88c7f837
+// http://202.28.68.28:8042/studies/929a9934-78066d77-49181fbd-05cad6c2-18e9114e
+app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
+  let orthancId = req.params.orthancId;
+  let studyId = req.params.studyId;
+  let hostname = req.hostname;
+  let fullStudy = await doLoadOrthancStudies(orthancId, hostname, studyId);
+  res.json({Result: "OK", Record: fullStudy});
+});
+
+app.get('/socket/test/newdicom/(:hospitalId)', async(req, res) => {
+	let hospitalId = req.params.hospitalId;
+	let testDicom = require('../../lib/mod/dicom-test.json');
+  let socketTrigger = {type: 'newdicom', dicom: testDicom};
+  websocket.sendLocalGateway(socketTrigger, hospitalId)
+  res.json({status: {code: 200}, Clients: allClients});
 });
 
 module.exports = ( wsssocket, dbconn, monitor ) => {
