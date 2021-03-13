@@ -22,6 +22,7 @@ const express = require('express');
 const mainApp = express();
 
 const debug = require('debug')('config:server');
+const http = require('http');
 const https = require('https');
 const privateKey = fs.readFileSync(__dirname + '/key.pem', 'utf8');
 const certificate = fs.readFileSync(__dirname + '/key.crt', 'utf8');
@@ -44,46 +45,35 @@ mainApp.use('/', express.static(__dirname + '/../public'));
  * Create HTTP server.
  */
 
-//doGetAllRootApp().then((rootUri) => {
-  httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
-	//webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
-  //const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
-  const {api, db} = require(__dirname + '/../app/api.js')(httpsServer, log);
-  const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
-  mainApp.use('/api', api);
-  mainApp.use('/app', app);
 
-  /*
-  log.info('hosted=>' + JSON.stringify(rootUri));
-  rootUri.forEach((item)=>{
-    log.info(item.Hos_RootPathUri);
-    mainApp.use('/' + item.Hos_RootPathUri + '/api', api);
-    mainApp.use('/' + item.Hos_RootPathUri + '/app', app);
-  });
-  */
+//httpServer = http.createServer( mainApp ).listen(4443);
+httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
+httpsServer.listen(port);
+httpsServer.on('error', onError);
+httpsServer.on('listening', onListening);
 
-  const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
-  //const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
-  
-  mainApp.use('/api/login', login);
+//webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
+//const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
+const {api, db} = require(__dirname + '/../app/api.js')(httpsServer, log);
+const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
+mainApp.use('/api', api);
+mainApp.use('/app', app);
 
-  //const util = require(__dirname + '/../app/lib/mod/util.js')(log);
-  //mainApp.use('/app', app);
-  mainApp.get('/', (req, res) => {
-    const hostname = req.headers.host;
-  	const rootname = req.originalUrl.split('/')[1];
-    log.info('hostname = ' + hostname);
-    log.info('rootname = ' + rootname);
-    log.info('METHODE = ' + req.method);
-  })
-  /**
-   * Listen on provided port, on all network interfaces.
-   */
+const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
+//const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
 
-  httpsServer.listen(port);
-  httpsServer.on('error', onError);
-  httpsServer.on('listening', onListening);
-//})
+mainApp.use('/api/login', login);
+
+//const util = require(__dirname + '/../app/lib/mod/util.js')(log);
+//mainApp.use('/app', app);
+mainApp.get('/', (req, res) => {
+  const hostname = req.headers.host;
+	const rootname = req.originalUrl.split('/')[1];
+  log.info('hostname = ' + hostname);
+  log.info('rootname = ' + rootname);
+  log.info('METHODE = ' + req.method);
+})
+
 /**
  * Normalize a port into a number, string, or false.
  */

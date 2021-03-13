@@ -480,32 +480,6 @@ module.exports = function ( jq ) {
   	})
   }
 
-  const doDeleteDicom = function(studyID) {
-  	let userConfirm = confirm('โปรดยืนยันเพื่อลบรายการนี้ โดยคลิกปุ่ม ตกลง หรือ OK');
-  	if (userConfirm == true){
-  		$('body').loading('start');
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			const hospitalId = userdata.hospitalId;
-			apiconnector.doCallDeleteDicom(studyID, hospitalId).then((response) => {
-				console.log(response);
-				//if (response.status.code == 200) {
-				if (response) {
-					$('#CurrentPage').remove();
-					alert('เดำเนินการลบข้อมูลเรียบร้อยแล้ว');
-					doSearchOrthanc();
-					$('body').loading('stop');
-				} else {
-					alert('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้')
-					$('body').loading('stop');
-				}
-			}).catch((err) => {
-				console.log('Error on Delete dicom from orthanc', err);
-				alert('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้')
-				$('body').loading('stop');
-			})
-		}
-  }
-
   const doPreparePatientParams = function(newCaseData){
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
@@ -616,10 +590,10 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallSendAI = function(caseId, seriesId, instanceId){
+	const doCallSendAI = function(seriesId, instanceId, studyId){
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			let params = {caseId: caseId, userId: userdata.id, seriesId: seriesId, instanceId: instanceId};
+			let params = { userId: userdata.id, seriesId: seriesId, instanceId: instanceId, studyId: studyId};
 			let apiurl = '/api/orthancproxy/sendai';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
@@ -633,6 +607,16 @@ module.exports = function ( jq ) {
 			let apiurl = '/api/orthancproxy/convert/ai/report';
 			let orthancRes = await apiconnector.doCallApi(apiurl, params)
 			resolve(orthancRes);
+		});
+	}
+
+	const doCallAIResultLog = function(studyId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = { userId: userdata.id, studyId: studyId};
+			let apiurl = '/api/ailog/select/' + studyId;
+			let aiLogRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(aiLogRes);
 		});
 	}
 
@@ -928,7 +912,6 @@ module.exports = function ( jq ) {
 		doGetApi,
 		doOpenStoneWebViewer,
 		doDownloadDicom,
-    doDeleteDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
@@ -938,6 +921,7 @@ module.exports = function ( jq ) {
 		doCallCreateZipInstance,
 		doCallSendAI,
 		doConvertAIResult,
+		doCallAIResultLog,
 		doUpdateCaseStatus,
 		doCreateNewCustomUrgent,
 		doCallSelectUrgentType,
@@ -1700,6 +1684,11 @@ module.exports = function ( jq ) {
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newdicom') {
+			let eventName = 'triggernewdicom'
+			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -2338,7 +2327,9 @@ module.exports = function ( jq ) {
 
   const doCreateCaseItemRow = function(caseItem) {
     return new Promise(async function(resolve, reject) {
+			console.log(caseItem);
       let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
+			console.log(caseTask);
 			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 			let casedatetime = caseDate.split('T');
 			let casedateSegment = casedatetime[0].split('-');
@@ -2473,7 +2464,7 @@ module.exports = function ( jq ) {
 
   const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '13', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
-	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '20px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
+	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '15% auto', 'padding': '10px', 'border': '1px solid #888', 'width': '520px', 'height': '200px', 'font-family': 'THSarabunNew', 'font-size': '24px' };
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
@@ -2505,19 +2496,19 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateSeriesSelect = function(caseData, dicomSeries){
+  const doCreateSeriesSelect = function(dicomSeries){
     return new Promise(async function(resolve, reject) {
       let selectView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
-      let guideText = $('<span style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
+      let guideText = $('<span id="GalleryTitle" style="position: relative; display: inline-block; margin-left: 5px;">โปรดเลือกซีรีส์ที่ต้องการส่งภาพให้ AI</span>');
       $(titleGuide).append($(figgerIcon)).append($(guideText));
       $(titleGuide).appendTo($(selectView));
 
       let seriesContent = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
 			let	promiseList = new Promise(async function(resolve2, reject2){
 	      await dicomSeries.forEach((item, i) => {
-	        let seriesItem = $('<div style="position: relative; width: 100%; padding: 2px;"></div>');
+	        let seriesItem = $('<div class="series-item" style="position: relative; width: 100%; padding: 2px;"></div>');
 	        $(seriesItem).text(item.desc);
 	        $(seriesItem).css({'cursor': 'pointer'});
 	        $(seriesItem).hover(()=>{
@@ -2532,12 +2523,22 @@ module.exports = function ( jq ) {
 					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
 						$('#quickreply').loading('start');
 	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
-						console.log(callSeriesRes);
+						let modality = callSeriesRes.MainDicomTags.Modality;
+						let studyId = callSeriesRes.ParentStudy;
 	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
-	          let galleryView = await doCreateThumbPreview(caseData, item.id, item.desc, callSeriesRes.Instances);
+	          let galleryView = await doCreateThumbPreview(item.id, item.desc, callSeriesRes.Instances, studyId, modality);
 	          $(galleryView).css(quickReplyContentStyle);
 	          $(galleryView).css({'width': '720px', 'height': 'auto'});
 	  			  $('#quickreply').append($(galleryView));
+						if (callSeriesRes.Instances.length == 1){
+							//$(galleryView).find('#ImagePreview').empty();
+							$(galleryView).find('#OKCmd').click();
+							$(galleryView).find('#ThumbSelector').empty();
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						} else {
+							$(galleryView).find('#ImagePreview').css({'display': 'block'});
+							$(galleryView).find('#ThumbSelector').css({'display': 'block'});
+						}
 	          $('#quickreply').loading('stop');
 	        });
 	        $(seriesItem).appendTo($(seriesContent));
@@ -2553,10 +2554,8 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateThumbPreview = function(caseData, seriesId, seriesDesc, instanceList){
+  const doCreateThumbPreview = function(seriesId, seriesDesc, instanceList, studyId, modality){
     return new Promise(async function(resolve, reject) {
-			let aiResultId = undefined;
-
       let galleryView = $('<div style="width: 100%;"></div>');
       let titleGuide = $('<div style="position: relative; width: 100%; padding: 2px; background-color: #02069B; color: white;"></div>');
       let figgerIcon = $('<img src="/images/figger-right-icon.png" width="25px" height="auto" style="position: relative; display: inline-block;"/>');
@@ -2565,7 +2564,7 @@ module.exports = function ( jq ) {
       $(titleGuide).append($(figgerIcon)).append($(guideText)).append($(dialogCmdBox));
       $(titleGuide).appendTo($(galleryView));
 
-      let okCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
+      let okCmd = $('<span id="OKCmd" style="padding: 2px; border: 1px solid white; background-color: green; cursor: pointer; border-radius: 10px;">ตกลง</span>');
       $(okCmd).appendTo($(dialogCmdBox));
       $(dialogCmdBox).append($('<span>  </span>'));
       let cancelCmd = $('<span style="padding: 2px; border: 1px solid white; background-color: red; cursor: pointer; border-radius: 10px;">ยกเลิก</span>');
@@ -2575,9 +2574,9 @@ module.exports = function ( jq ) {
       $(seriesNameBox).html('<h4>' + seriesDesc + '</h4>');
       $(seriesNameBox).appendTo($(galleryView));
 
-      let imagePreview = $('<div style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px;"></div>');
+      let imagePreview = $('<div id="ImagePreview" style="width: 100%; min-height: 220px; text-align: center; margin-top: 5px; display: none;"></div>');
       $(imagePreview).appendTo($(galleryView));
-      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%;"></div>');
+      let thumbSelector = $('<div id="ThumbSelector" style="width: 100%; display: none;"></div>');
       $(thumbSelector).appendTo($(galleryView));
 
       let previewPath = '/img/usr/preview/' + seriesId
@@ -2600,45 +2599,68 @@ module.exports = function ( jq ) {
       $(okCmd).on('click', async (evt)=>{
         let thumbSelected = $(thumbSelector).find('img.img-thumb-active');
         if (thumbSelected.length > 0){
-					$('#quickreply').loading('start');
+					//$('#quickreply').loading('start');
+					$(galleryView).append($('<div id="overlay"><div class="loader"></div></div>'));
+					$(galleryView).loading({overlay: $("#overlay"), stoppable: true});
+					$(galleryView).loading('start');
+
           let thumbData = $(thumbSelected).data('thumbImgData');
-					console.log(caseData);
-          let aiRes = await doCallSendAI(caseData.case.id, seriesId, thumbData.instanceId);
-					//aiResultId = aiRes.result.id;
+          let aiRes = await doCallSendAI(seriesId, thumbData.instanceId, studyId);
 					let resultBox = $('<div style="width: 97%; padding: 10px; border: 1px solid black; background-color: #ccc; margin-top: 4px;"></div>');
 		      let embetObject = $('<object data="' + aiRes.result.link + '" type="application/pdf" width="100%" height="480"></object>');
 		      $(embetObject).appendTo($(resultBox));
 					$(thumbSelector).empty().append($(resultBox));
-					/* start convert on cloud */
-					const studyId = caseData.case.Case_OrthancStudyID;
-					const modality = caseData.case.Case_Modality
-					//let pdffilecode = aiResultId;
-					let pdffilecode = aiRes.result.id;
-					let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-					console.log(convertRes);
-					/********/
-					//$(okCmd).text('แปลงผลอ่านเข้า PACS');
-					/*
-						ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
-					*/
 
-					$(okCmd).text(' ปืด ');
-					$(cancelCmd).hide();
-					$('#quickreply').loading('stop');
-        } else {
-					if (aiResultId) {
-						//start convert ai result to pacs
-						/* ต้องมี wsl ใช้งาน */
-						$('#quickreply').loading('start');
-						const studyId = caseData.case.Case_OrthancStudyID;
-						const modality = caseData.case.Case_Modality
-						let pdffilecode = aiResultId;
-						let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
-						console.log(convertRes);
-						$('#quickreply').loading('stop');
-					} else {
-						$(cancelCmd).click();
+					/* start convert on cloud */
+
+					let wsl = undefined;
+					try {
+						wsl = new WebSocket('ws://localhost:3000/api/orthanc/2');
+					} catch(err) {
+						console.log('Can not connect to local socket.', err);
 					}
+					console.log(wsl);
+					wsl.onopen = function () {
+						console.log('Local Client Websocket is connected to Local server')
+					};
+
+					wsl.onmessage = function (msgEvt) {
+						let data = JSON.parse(msgEvt.data);
+						console.log('Local WebSocket Client have data in=> ', data);
+					}
+					wsl.onclose = function(event) {
+						console.log("Local WebSocket Client is closed now. with  event:=> ", event);
+					};
+
+					wsl.onerror = function (err) {
+						console.log("Local WebSocket Client Got an error", err);
+					};
+
+					setTimeout(async()=>{
+						if ((wsl.readyState == 0) || (wsl.readyState == 1)){
+							let pdffilecode = aiRes.result.id;
+							let convertRes = await common.doConvertAIResult(studyId, pdffilecode, modality);
+							console.log(convertRes);
+							/********/
+							//$(okCmd).text('แปลงผลอ่านเข้า PACS');
+							/*
+								ต้องบอก user ว่า แปลงเข้า local orthanc และ pacs แล้ว
+							*/
+							wsl.close();
+						} else {
+							console.log('you are not hospital orthanc host. We can not convert dicom to ypur pacs.');
+						}
+					}, 3000);
+					$(guideText).text('ผลอ่านจาก AI');
+					$(okCmd).text('  ปิด  ');
+					$(cancelCmd).hide();
+					$(seriesNameBox).hide();
+					$(galleryView).loading('stop');
+					$(galleryView).find('#overlay').remove();
+					$(okCmd).on('click', (evt)=>{
+		        $('#quickreply').empty();
+		        $('#quickreply').removeAttr('style');
+		      });
         }
       });
       $(cancelCmd).on('click', (evt)=>{
@@ -2650,10 +2672,10 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCallSendAI = function(caseId, seriesId, instanceId){
+  const doCallSendAI = function(seriesId, instanceId, studyId){
     return new Promise(async function(resolve, reject) {
       let callZipRes = await common.doCallCreateZipInstance(seriesId, instanceId);
-      let callSendAIRes = await common.doCallSendAI(caseId, seriesId, instanceId);
+      let callSendAIRes = await common.doCallSendAI(seriesId, instanceId, studyId);
       resolve(callSendAIRes);
     });
   }

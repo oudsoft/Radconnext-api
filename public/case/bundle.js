@@ -2455,7 +2455,7 @@ module.exports = function ( jq ) {
 
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 
-  const doLoadDicomFromOrthanc = function(){
+  const doLoadDicomFromOrthanc = function(viewPage){
 		$('body').loading('start');
 		let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
     let userItemPerPage = userDefualtSetting.itemperpage;
@@ -2474,7 +2474,7 @@ module.exports = function ( jq ) {
 			let filterDisplayText = queryDicom.Query.Modality;
 			if (!queryDicom.Query.Modality || (queryDicom.Query.Modality === '*')) {
 				filterDisplayText = 'All';
-			}			
+			}
 			if (!queryDicom.Query.StudyDate || (queryDicom.Query.StudyDate === '*')){
 				filterDisplayText += ' [All]';
 			} else {
@@ -2511,10 +2511,14 @@ module.exports = function ( jq ) {
         let dicomView = await doShowDicomResult(showDicoms, 0);
         $(".mainfull").find('#ResultView').empty().append($(dicomView));
 
+				let showPage = 1;
+				if ((viewPage) && (viewPage > 0)){
+					showPage = viewPage;
+				}
         let navigBarBox = $('<div id="NavigBar"></div>');
         $(".mainfull").append($(navigBarBox));
         let navigBarOption = {
-          currentPage: 1,
+          currentPage: showPage,
           itemperPage: userItemPerPage,
           totalItem: studies.length,
           styleClass : {'padding': '4px', "font-family": "THSarabunNew", "font-size": "20px"},
@@ -2742,16 +2746,17 @@ module.exports = function ( jq ) {
 						let userdata = JSON.parse(localStorage.getItem('userdata'));
 						const hospitalId = userdata.hospitalId;
 						apiconnector.doCallDeleteDicom(dicomID, hospitalId).then((response) => {
+							$('body').loading('stop');
 							if (response) {
 								$.notify('เดำเนินการลบข้อมูลเรียบร้อยแล้ว', 'success');
-								$('body').loading('stop');
+								let atPage = $('#NavigBar').find('#CurrentPageInput').val();
+								doLoadDicomFromOrthanc(atPage);
 							} else {
 								$.notify('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้', 'error');
-								$('body').loading('stop');
 							}
 						}).catch((err) => {
-							$.notify('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้', 'error');
 							$('body').loading('stop');
+							$.notify('เกิดความผิดพลาด ไม่สามารถลบรายการนี้ได้ในขณะนี้', 'error');
 						});
 					},
 					onCancel: function(evt){

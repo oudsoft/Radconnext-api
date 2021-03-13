@@ -179,8 +179,8 @@ app.post('/add', async (req, res) => {
 	  //log.info('New dicom ' + resourceType + ' Type transfer => ' + JSON.stringify(adDicomTransferLog));
 	  let cwss = websocket.socket.clients;
 	  if (resourceType === 'study'){
-			let socketTrigger = {type: 'newdicom', dicom: newDicomTransferLog};
-			websocket.sendLocalGateway(socketTrigger, hospitalId)
+			let socketTrigger = {type: 'newdicom', dicom: studyTags};
+			let result = await websocket.sendLocalGateway(socketTrigger, hospitalId)
 	  }
 	  res.json({Result: "OK", Record: adDicomTransferLog});
 	} else {
@@ -272,7 +272,7 @@ app.post('/studies/list', (req, res) => {
 						}
 					}
 					//let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['id', 'DESC']] };
-					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['StudyTags.MainDicomTags.StudyDate', 'DESC']] };
+					let studiesModelList = {attributes: ['StudyTags'], where: whereClous, order: [['StudyTags.MainDicomTags.StudyDate', 'DESC'], ['StudyTags.MainDicomTags.StudyTime', 'DESC']] };
 					if ((limit) && (limit > 0)) {
 						studiesModelList.limit = limit;
 					}
@@ -297,6 +297,11 @@ app.post('/studies/list', (req, res) => {
   }
 });
 
+app.get('/socket/clients', async(req, res) => {
+  let allClients = await Task.getClients();
+  res.json({status: {code: 200}, Clients: allClients});
+});
+
 // /api/dicomtransferlog/3/21776058-56a21078-f5e147ef-03854de7-88c7f837
 // http://202.28.68.28:8042/studies/929a9934-78066d77-49181fbd-05cad6c2-18e9114e
 app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
@@ -309,10 +314,11 @@ app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
 
 app.get('/socket/test/newdicom/(:hospitalId)', async(req, res) => {
 	let hospitalId = req.params.hospitalId;
+	log.info('hospitalId=>' + hospitalId);
 	let testDicom = require('../../lib/mod/dicom-test.json');
   let socketTrigger = {type: 'newdicom', dicom: testDicom};
-  websocket.sendLocalGateway(socketTrigger, hospitalId)
-  res.json({status: {code: 200}, Clients: allClients});
+  let sendResult = await websocket.sendLocalGateway(socketTrigger, hospitalId)
+  res.json({status: {code: 200}, Result: sendResult});
 });
 
 module.exports = ( wsssocket, dbconn, monitor ) => {

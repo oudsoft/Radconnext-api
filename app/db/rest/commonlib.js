@@ -218,6 +218,7 @@ const doCaseExpireAction = function(caseId, socket, newcaseStatusId, radioProfil
 const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg, caseMsgData){
   return new Promise(async function(resolve, reject) {
     const action = 'quick';
+    log.info('Check Case Statud =>' + nowcaseStatus[0].casestatusId + ', ' + baseCaseStatusId);
     log.info('The Task of caseId ' + caseId + ' will be replace by new task.');
     tasks.removeTaskByCaseId(caseId);
 

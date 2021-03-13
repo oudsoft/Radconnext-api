@@ -70,9 +70,8 @@ app.post('/select/(:caseId)', (req, res) => {
   }
 });
 
-app.get('/socket/clients', async(req, res) => {
-  let allClients = await Task.getClients();
-  res.json({status: {code: 200}, Clients: allClients});
+app.get('/list', (req, res) => {
+  res.json({Result: "OK", Records: Task.caseTasks});
 });
 
 module.exports = ( taskCase, dbconn, monitor ) => {
