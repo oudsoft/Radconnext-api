@@ -37,24 +37,13 @@ app.post('/list', (req, res) => {
 app.post('/select/(:caseId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
-    auth.doDecodeToken(token).then((ur) => {
+    auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
           let caseId = req.params.caseId;
-          const promiseList = new Promise(async function(resolve, reject) {
-            let taskByCases = Task.caseTasks.filter((task, i) => {
-              return (task.caseId == caseId);
-            });
-            setTimeout(()=>{
-              resolve(taskByCases);
-            }, 100);
-          });
-          Promise.all([promiseList]).then((ob)=> {
-            res.json({status: {code: 200}, Records: ob[0]});
-          }).catch((err)=>{
-            reject(err);
-            res.json({status: {code: 500}, error: err});
-          });
+          let thatCase = await Task.selectTaskByCaseId(caseId);
+          log.info('ThatTask=>' + JSON.stringify(thatCase));
+          res.json({status: {code: 200}, Records: [thatCase]});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -71,7 +60,7 @@ app.post('/select/(:caseId)', (req, res) => {
 });
 
 app.get('/list', (req, res) => {
-  res.json({Result: "OK", Records: Task.caseTasks});
+  res.json({Result: "OK", Records: Task.getTasks()});
 });
 
 module.exports = ( taskCase, dbconn, monitor ) => {

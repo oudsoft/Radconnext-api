@@ -15,7 +15,7 @@ function RadconCaseTask (socket, db, log) {
     tasks Model {caseId, statusId, triggerAt: datetime, task<cron.schedule>}
   */
 
-  this.doCreateNewTask = function (caseId, username, triggerParam, radioUsername, hospitalName, baseCaseStatusId, cb) {
+  this.doCreateNewTaskCase = function (caseId, username, triggerParam, radioUsername, hospitalName, baseCaseStatusId, cb) {
     return new Promise(async function(resolve, reject) {
       const startDate = new Date();
       const day = Number(triggerParam.dd) * 24 * 60 * 60 * 1000;
@@ -28,11 +28,15 @@ function RadconCaseTask (socket, db, log) {
       let endMN = endDate.getMinutes();
       let endSS = endDate.getSeconds();
       let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
+      log.info('scheduleTrigger=> ' + scheduleTrigger);
   		let task = cron.schedule(scheduleTrigger, function(){
         cb(caseId, socket, endDate);
       });
-      let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate/*, task: task*/};
+      let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate, task: task};
+
       $this.caseTasks.push(newTask);
+
+      log.info('All new Task ' + /*JSON.stringify($this.caseTasks)*/$this.caseTasks);
       let msg = 'You have a new Case on ' + hospitalName + '. This your case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
       let notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
       let canSend = await socket.sendMessage(notify, radioUsername);
@@ -43,17 +47,36 @@ function RadconCaseTask (socket, db, log) {
       }
       notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
       await socket.sendMessage(notify, username);
-      resolve(endDate);
+      resolve(newTask);
     });
   }
 
-  this.removeTaskByCaseId = async function (caseId) {
-    let anotherTasks = await $this.caseTasks.filter((task)=>{
-      if (task.caseId != caseId) {
-        return task;
+  this.removeTaskByCaseId = function (caseId) {
+    return new Promise(async function(resolve, reject) {
+      let anotherTasks = await $this.caseTasks.filter((task)=>{
+        if (task.caseId != caseId) {
+          return task;
+        }
+      });
+      $this.caseTasks = anotherTasks;
+      resolve(anotherTasks);
+    });
+  }
+
+  this.selectTaskByCaseId = function (caseId) {
+    return new Promise(async function(resolve, reject) {
+      let theCase = await $this.caseTasks.find((task)=>{
+        if (task.caseId == caseId) {
+          return task;
+        }
+      });
+      if (theCase){
+        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, triggerAt: theCase.triggerAt};
+        resolve(thisTask);
+      } else {
+        resolve();
       }
     });
-    $this.caseTasks = anotherTasks;
   }
 
   this.getTasks = function(){

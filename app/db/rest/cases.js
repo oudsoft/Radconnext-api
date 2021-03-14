@@ -688,7 +688,7 @@ module.exports = ( dbconn, caseTask, monitor, websocket ) => {
   auth = require('./auth.js')(db, log);
   lineApi = require('../../lib/mod/lineapi.js')(db, log);
   uti = require('../../lib/mod/util.js')(db, log);
-  common = require('./commonlib.js')(db, log, tasks);
+  common = require('./commonlib.js')(db, log);
   statusControl = require('./statuslib.js')(db, log, tasks, socket);
   Case = db.cases;
   return app;

@@ -3,7 +3,7 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 
-var log, db, tasks, uti, lineApi;
+var log, db, uti, lineApi;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -215,21 +215,21 @@ const doCaseExpireAction = function(caseId, socket, newcaseStatusId, radioProfil
   });
 }
 
-const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg, caseMsgData){
+const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, lineCaseDetaileMsg, caseMsgData){
   return new Promise(async function(resolve, reject) {
     const action = 'quick';
-    log.info('Check Case Statud =>' + nowcaseStatus[0].casestatusId + ', ' + baseCaseStatusId);
-    log.info('The Task of caseId ' + caseId + ' will be replace by new task.');
-    tasks.removeTaskByCaseId(caseId);
+    log.info('The Task of caseId ' + caseId + ' will be clear and will be replace with new task.');
+    await tasks.removeTaskByCaseId(caseId);
 
-    let endTime = await tasks.doCreateNewTask(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
+    let newTask = await tasks.doCreateNewTaskCase(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         await doCaseExpireAction(caseId, socket, baseCaseStatusId, radioProfile, userProfile, lineCaseDetaileMsg, userProfile.hospitalName);
       } else {
-        tasks.removeTaskByCaseId(caseId);
+        await tasks.removeTaskByCaseId(caseId);
       }
     });
+    let endTime = newTask.triggerAt;
     let fmtEndDate = uti.doFormateDateTime(endTime);
     let endDateText = uti.parseStr('%s-%s-%s %s:%s น. ', fmtEndDate.YY, fmtEndDate.MM, fmtEndDate.DD, fmtEndDate.HH, fmtEndDate.MN);
 
@@ -238,9 +238,6 @@ const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerPa
       let fmtNowDate = uti.doFormateDateTime();
       if (baseCaseStatusId == 1 ) {
 
-        //let lineCaseMsg = lineCaseDetaileMsg + 'เคสนี้จะหมดอายุภายใน ' + endDateText + '\nคุณสมารถตอบรับหรือปฏิเสธเคสนี้ได้โดยเลือกจากเมนูด้านล่างครับ';
-        //let radioTitleCaseMsg = { type: "text",	text: lineCaseMsg };
-        //await lineApi.pushConnect(radioProfile.lineUserId, radioTitleCaseMsg);
         let dataOnCaseBot = {
           headerTitle: 'แจ้งเคสใหม่',
           caseDatetime: uti.parseStr('%s-%s-%s %s:%s น. ', fmtNowDate.YY, fmtNowDate.MM, fmtNowDate.DD, fmtNowDate.HH, fmtNowDate.MN),
@@ -251,11 +248,6 @@ const doCreateTaskAction = function(caseId, userProfile, radioProfile, triggerPa
         };
         let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
-        //log.info('bubbleMenu=>' + JSON.stringify(bubbleMenu));
-        //let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(acceptActionMenu);
-        //let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, 'quick', acceptActionMenu);
-        //log.info('menuQuickReply=>' + JSON.stringify(menuQuickReply));
-        //await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
         let lineCaseMsgFmt = 'แจ้งกำหนดเวลาส่งผลอ่านของเคส\nชื่อ %s\nรพ.%s\n\nกำหนดส่งผลอ่าน %s\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
@@ -324,10 +316,9 @@ const doCollectRadioCurrentState = function(radioId, radioUsername, socket) {
   });
 }
 
-module.exports = (dbconn, monitor, casetask) => {
+module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
-  tasks = casetask;
   uti = require('../../lib/mod/util.js')(db, log);
   lineApi = require('../../lib/mod/lineapi.js')(db, log);
   return {

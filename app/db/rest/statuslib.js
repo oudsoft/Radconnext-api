@@ -127,7 +127,6 @@ const onNewCaseEvent = function(caseId){
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
-    log.info('radioProfile=> ' + JSON.stringify(radioProfile));
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
     let userProfile = await common.doLoadUserProfile(userId);
 
@@ -149,17 +148,13 @@ const onNewCaseEvent = function(caseId){
     if (radioProfile.autoacc == 0) {
       //Create Task Schedule
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
-
-      let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
-
+      let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     } else if (radioProfile.autoacc == 1) {
       let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
       let acceptedCaseStatusId = acceptedCaseStatus[0].id;
       await newCase.setCasestatus(acceptedCaseStatus[0]);
       let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
-
-      let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
-
+      let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
     }
     let actions = await doGetControlStatusAt(newCase.casestatusId);
     resolve(actions);
@@ -200,7 +195,7 @@ const onAcceptCaseEvent = function(caseId) {
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
     let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
 
-    let theTask = await common.doCreateTaskAction(caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+    let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);

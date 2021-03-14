@@ -318,6 +318,6 @@ module.exports = ( dbconn, caseTask, monitor, websocket  ) => {
   auth = require('./auth.js')(db, log);
   tasks = caseTask;
   socket = websocket;
-  common = require('./commonlib.js')(db, log, tasks);
+  common = require('./commonlib.js')(db, log);
   return app;
 }

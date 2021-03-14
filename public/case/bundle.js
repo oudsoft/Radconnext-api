@@ -1247,7 +1247,7 @@ module.exports = function ( jq ) {
 				if ((incidents[i].case.casestatus.id == 1) || (incidents[i].case.casestatus.id == 2) || (incidents[i].case.casestatus.id == 8) || (incidents[i].case.casestatus.id == 9)) {
 					let caseTask = await common.doCallApi('/api/tasks/select/'+ incidents[i].case.id, {});
 					//{"status":{"code":200},"Records":[{"caseId":217,"username":"sutin","radioUsername":"test0003","triggerAt":"2020-12-13T07:13:52.968Z"}]}
-					if ((caseTask.Records) && (caseTask.Records.length > 0) && (caseTask.Records[0].triggerAt)){
+					if ((caseTask.Records) && (caseTask.Records.length > 0) && (caseTask.Records[0]) && (caseTask.Records[0].triggerAt)){
 						let caseTriggerAt = new Date(caseTask.Records[0].triggerAt);
 						let diffTime = Math.abs(caseTriggerAt - new Date());
 						let hh = parseInt(diffTime/(1000*60*60));
@@ -1368,6 +1368,7 @@ module.exports = function ( jq ) {
 		try {
 
 			let apiRes = await common.doCallApi(apiUrl, rqParams);
+			console.log(apiRes);
 			let response = apiRes.Records[0];
 			let resPatient = response.case.patient;
   		let patient = {id: resPatient.Patient_HN, name: resPatient.Patient_NameEN, name_th: resPatient.Patient_NameTH, age: resPatient.Patient_Age, sex: resPatient.Patient_Sex, patientCitizenID: resPatient.Patient_CitizenID};
@@ -1987,10 +1988,16 @@ module.exports = function ( jq ) {
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
 		let patientNameEN = patientFragNames[0];
-		let patientLastNameEN = patientFragNames[1];
+		let patientLastNameEN = patientFragNames[0];
+		if (patientFragNames.length >= 2) {
+			patientLastNameEN = patientFragNames[1];
+		}
 		patientFragNames = newCaseData.patientNameTH.split(' ');
 		let patientNameTH = patientFragNames[0];
-		let patientLastNameTH = patientFragNames[1];
+		let patientLastNameTH = patientFragNames[0];
+		if (patientFragNames.length >= 2) {
+			patientLastNameTH = patientFragNames[1];
+		}
 		rqParams.Patient_HN = newCaseData.hn;
 		rqParams.Patient_NameTH = patientNameTH;
 		rqParams.Patient_LastNameTH = patientLastNameTH;
@@ -2543,12 +2550,6 @@ module.exports = function ( jq ) {
 			}
 			$('body').loading('stop');
 		});
-
-		/*
-		doCallSearhDicomLog(queryString).then(async (studies) => {
-			console.log(studies);
-		});
-		*/
 	}
 
   const doCallSearhOrthanc = function(query) {
@@ -2801,6 +2802,7 @@ module.exports = function ( jq ) {
 
 	const doShowDicomResult = function(dj, startRef){
 		return new Promise(async function(resolve, reject) {
+			/*
 			await dj.sort((a,b) => {
 				let av = util.getDatetimeValue(a.MainDicomTags.StudyDate, a.MainDicomTags.StudyTime);
 				let bv = util.getDatetimeValue(b.MainDicomTags.StudyDate, b.MainDicomTags.StudyTime);
@@ -2810,7 +2812,7 @@ module.exports = function ( jq ) {
 					return 0;
 				}
 			});
-
+			*/
 			const table = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			const tableHeader = doCreateDicomHeaderRow();
 			$(tableHeader).appendTo($(table));
@@ -3226,8 +3228,6 @@ module.exports = function ( jq ) {
 						openStoneWebViewerCounter += 1;
 						goToSecondStep();
 					} else {
-						//New Case
-						//let confirmImageInstance = confirm('โปรดยืนยันว่าคุณได้ตรวจสอบจำนวน Series มี ' + allSeries + ' ซีรีส์ และจำนวนภาพ มี ' + allImageInstances + ' ภาพ\nครบถูกต้องแล้ว');
 
 						let radAlertMsg = $('<div></div>');
 						$(radAlertMsg).append($('<p>คุณได้ตรวจสอบจำนวน Series และ จำนวนภาพ ทั้งหมดใน Study นี้ ครบถูกต้องแล้วดังนี้</p>'));
@@ -3246,7 +3246,6 @@ module.exports = function ( jq ) {
 								goToSecondStep();
 				      },
 				      onCancel: function(evt){
-								//alert('โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้\nและกลับมาดำเนินการต่อในขั้นตอนต่อไป');
 								radConfirmBox.closeAlert();
 								$(radAlertMsg).empty();
 								$(radAlertMsg).append($('<p>โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้</p>'));
@@ -3266,16 +3265,6 @@ module.exports = function ( jq ) {
 				      }
 				    }
 				    let radConfirmBox = $('body').radalert(radconfirmoption);
-						/*
-						if (confirmImageInstance) {
-							openStoneWebViewerCounter += 1;
-							goToSecondStep();
-						} else {
-							alert('โปรตรวจสอบจำนวน Series และจำนวนรูปภาพ จากแท็บใหม่ที่ระบบฯ กำลังจะเปิดให้\nและกลับมาดำเนินการต่อในขั้นตอนต่อไป');
-							$(previewCmd).click();
-							openStoneWebViewerCounter += 1;
-						}
-						*/
 					}
 				}
 			});
@@ -3598,10 +3587,34 @@ module.exports = function ( jq ) {
 					if ((radioRes.Record.length > 0) && (radioRes.Record[0].Profile.readyState == 1)) {
 						saveNow();
 					} else {
+						/*
 						let yourConfirm = confirm("เนื่องจาก ณ เวลานี้ รังสีแพทย์ที่คุณเลือกได้ปิดรับงานใหม่ไปแล้ว\nโปรดยืนยันว่าคุณต้องการส่งเคสนี้ให้กับรังสีแพทย์ที่ระบุไว้จริงๆ โดยคลิก ตกลง หรือ OK");
 						if(yourConfirm){
 							saveNow();
 						}
+						*/
+
+						let radAlertMsg = $('<div></div>');
+						$(radAlertMsg).append($('<p>เนื่องจากรังสีแพทย์ที่คุณเลือกได้ปิดรับงานใหม่ไปแล้ว</p>'));
+						$(radAlertMsg).append($('<p>โปรดยืนยันว่าคุณต้องการส่งเคสนี้ให้กับรังสีแพทย์ที่ระบุไว้จริงๆ</p>'));
+						$(radAlertMsg).append($('<p><b>ใช่ หรือไม่?</b></p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ใช่</b> คลิกปุ่ม <b>ตกลง</b> เพื่อดำเนินการส่งเคส/p>'));
+						$(radAlertMsg).append($('<p>หาก <b>ไม่ใช่</b> คลิกปุ่ม <b>ยกเลิก</b> เพื่อยกเลิกการส่งเคส</p>'));
+						const radconfirmoption = {
+							title: 'โปรดยืนยันการส่งเคสในกรณีรังสีแพทย์ปิดรับงาน',
+							msg: $(radAlertMsg),
+							width: '420px',
+							onOk: function(evt) {
+								$('body').loading('start');
+								radConfirmBox.closeAlert();
+								saveNow();
+							},
+							onCancel: function(evt){
+								radConfirmBox.closeAlert();
+							}
+						}
+						let radConfirmBox = $('body').radalert(radconfirmoption);
+
 					}
 				} else {
 					$('.mainfull').find('#Radiologist').notify("โปรดเลือกรังสีแพทย์ที่ต้องการส่งไปอ่านผล", "error");
@@ -3717,7 +3730,8 @@ module.exports = function ( jq ) {
     let acc = $('.mainfull').find('#ACC').val();
     let department = $('.mainfull').find('#Department').val();
     let drOwner = $('.mainfull').find('#Refferal').val();
-    //let bodyPart = $('.mainfull').find('#Bodypart').val();
+    let bodyPart = $('.mainfull').find('#Bodypart').val();
+		/*
 		let bodyPart = '';
 		if (defualtValue.studyDesc) {
 			bodyPart += defualtValue.studyDesc;
@@ -3725,6 +3739,7 @@ module.exports = function ( jq ) {
 		if (defualtValue.protocalName) {
 			bodyPart += ' / ' + defualtValue.protocalName;
 		}
+		*/
 		let scanPart = $('.mainfull').find('#Scanpart').val();
     //let drReader = $('.mainfull').find('#Radiologist').val();
 		console.log(radioSelected);
@@ -3765,6 +3780,7 @@ module.exports = function ( jq ) {
       if (patientdb.Records.length === 0) {
         //ไม่มี hn ใน db -> add
         let patientData = common.doPreparePatientParams(newCaseData);
+				console.log('patientData', patientData);
         rqParams = {data: patientData, hospitalId: hospitalId};
         patientRes = await common.doCallApi('/api/patient/add', rqParams);
         //console.log(patientRes);
@@ -3784,8 +3800,11 @@ module.exports = function ( jq ) {
       let caseRes = await common.doCallApi('/api/cases/add', rqParams);
       if (caseRes.status.code === 200) {
         $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
-				$('#NewStatusSubCmd').click(); // <- Tech Page
-				$('#ALLFilter1DayCmd').click(); // <- Refer Page
+				if (userdata.usertypeId == 2) {
+					$('#NewStatusSubCmd').click(); // <- Tech Page
+				} else if (userdata.usertypeId == 5) {
+					$('#ALLFilter1DayCmd').click(); // <- Refer Page
+				}
       } else {
         $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
       }
