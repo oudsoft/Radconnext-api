@@ -245,10 +245,10 @@
               $(this).css({'height': 'auto', 'width': '100%'});
             }
           }
+          let imgLabel = $('<p id="ImgLabel"></p>');
+          $(imgLabel).text(imgName);
+          $(imgBox).append($(imgLabel));
         };
-
-        let imgLabel = $(playerViewBox).find('.imgbox').find('p');
-        $(imgLabel).text(imgName);
 
         if (isAutoPlay == true){
           timer = window.setTimeout(()=>{
