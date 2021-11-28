@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Say Hello</title>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/jquery-ui.min.js"></script>
+    <link href="../lib/jquery-ui.min.css" rel="stylesheet">
+    <!--
+  	<script type="text/javascript" src="bundle.js"></script>
+    -->
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
+
+<script type="text/javascript">
+/*****************************************************/
+const doCreateShareCmd = function(myLiffUrl){
+  //let myLiffUrl = 'https://liff.line.me/1655999531-z5xnKvpR?id=' + id;
+  let lineShareIconCmd = $('<img src="' + radconnextUrl + '/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;"/>');
+  $(lineShareIconCmd).on('click', (evt)=>{
+    let linkTarget = 'https://social-plugins.line.me/lineit/share?url=' + myLiffUrl;
+    window.open(linkTarget, '_blank');
+  });
+  return $(lineShareIconCmd);
+}
+const doCreateDownloadCmd = function(imgSrc){
+  let downloadIconCmd = $('<img src="' + radconnextUrl + '/images/download-icon-2.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+  $(downloadIconCmd).on('click', (evt)=>{
+    let imgPaths = imgSrc.split('/');
+    let saveFileName = imgPaths[imgPaths.length-1];
+    let pom = document.createElement('a');
+    pom.setAttribute('href', imgSrc);
+    pom.setAttribute('download', saveFileName);
+    pom.click();
+  });
+  return $(downloadIconCmd);
+}
+const doCreateBackCmd = function(backUrl){
+  let backIconCmd = $('<img src="' + radconnextUrl + '/images/back-icon.png" style="cursor: pointer; margin-left: 10px; width: 50px; height: auto;"/>');
+  $(backIconCmd).on('click', (evt)=>{
+    window.location.replace(backUrl);
+  });
+  return $(backIconCmd);
+}
+const doCreatePlayCmd = function(){
+  let playIconCmd = $('<img src="' + radconnextUrl + '/images/play-icon.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+  $(playIconCmd).on('click', (evt)=>{
+    $.getScript( "../js/main.js", function( code, textStatus, jqxhr ) {
+      //let execResult = eval(code);
+    });
+  });
+  return $(playIconCmd);
+}
+const doCreateSponsorBox = function(imageTitle, linkTo){
+  let sponsorBoard = $('<img src="' + imageTitle + '" style="cursor: pointer; width: 100%; height: auto; display: none;"/>');
+  $(sponsorBoard).on('click', (evt)=>{
+    let sponsorLink =
+    window.open(linkTo, '_blank');
+  });
+  return $(sponsorBoard);
+}
+/*****************************************************/
+  const radconnextUrl = 'https://radconnext.info';
+  const usrUploadPath = '/img/usr/upload/share';
+  const usrSeriesRootPath = '/img/usr/upload';
+
+  const doCallListUsrUpload = function(){
+    return new Promise(function(resolve, reject) {
+      let callEndPoint = '/api/usr/upload/share/list';
+      let params = {};
+      $.post(callEndPoint, params, function(data){
+        resolve(data);
+      }).fail(function(error) {
+        reject(error);
+      });
+    });
+  }
+  const doCallListSeries = function(seriesUrl) {
+    return new Promise(function(resolve, reject) {
+      let params = {};
+      $.post(seriesUrl, params, function(data){
+        resolve(data);
+      }).fail(function(error) {
+        reject(error);
+      });
+    });
+  }
+
+  const doCallReadViewCounter = function(params){
+    return new Promise(function(resolve, reject) {
+      let readUrl = '/api/action/counter/read/view';
+      $.post(readUrl, params, function(data){
+        resolve(data);
+      }).fail(function(error) {
+        reject(error);
+      });
+    });
+  }
+
+  const doCallUpdateViewCounter = function(params){
+    return new Promise(function(resolve, reject) {
+      let readUrl = '/api/action/counter/update/view';
+      $.post(readUrl, params, function(data){
+        resolve(data);
+      }).fail(function(error) {
+        reject(error);
+      });
+    });
+  }
+
+  const doCreateUsrUploadThumb = function(usrUploadList){
+    return new Promise(async function(resolve, reject) {
+      let thumbWrapper = $('<div style="position: relative; width: 100%;"></div>');
+      await usrUploadList.forEach((item, i) => {
+        let thumbPrev = doCreateThumb(item);
+        $(thumbWrapper).append($(thumbPrev));
+      });
+      resolve($(thumbWrapper));
+    });
+  }
+
+  const doCreateThumb = function(imageFile){
+    var imageFileLower = imageFile.toLowerCase();
+    var n = imageFileLower.indexOf("jpg");
+    if (n >= 0){
+      let src = usrUploadPath + '/' + imageFile;
+      let thumb = $('<img width="65px" height="auto" src="' + src + '"/>');
+      $(thumb).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
+      $(thumb).on('click', (evt)=> {
+        let imageCodes = imageFile.split('.');
+        let openLink = '/share/?id=' + imageCodes[0];
+        window.open(openLink, '_blank');
+      });
+      return $(thumb);
+    } else {
+      return;
+    }
+  }
+  const doCreateImagesSeriesThumb = function(seriesId, listImages){
+    return new Promise(async function(resolve, reject) {
+      let thumbWrapper = $('<div style="position: relative; width: 100%;"></div>');
+      await listImages.forEach((item, i) => {
+        let thumbPrev = doCreateImageThumb(seriesId, item);
+        $(thumbWrapper).append($(thumbPrev));
+      });
+      resolve($(thumbWrapper));
+    });
+  }
+  const doCreateImageThumb = function(seriesId, imageFile){
+    var imageFileLower = imageFile.toLowerCase();
+    var n = imageFileLower.indexOf("jpg");
+    var m = imageFileLower.indexOf("mp4");
+    if (n >= 0){
+      let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
+      let thumb = $('<img width="65px" height="auto" src="' + src + '"/>');
+      $(thumb).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
+      $(thumb).on('click', (evt)=> {
+        let imageCode = imageFile.split('.');
+        let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
+        window.location.replace(openUrl);
+      })
+      return $(thumb);
+    } else if (m >= 0){
+      let thumb = $('<img width="65px" height="auto" src="/images/start-play-icon.png"/>');
+      $(thumb).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
+      $(thumb).on('click', (evt)=> {
+        let clipCode = imageFile.split('.');
+        let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + clipCode[0];
+        window.location.replace(openUrl);
+      })
+      return $(thumb);
+    } else {
+      return;
+    }
+  }
+
+  /*****************************************************/
+  const defaultTitle = 'Rad Connext Share';
+
+  const queryString = decodeURIComponent(window.location.search).replace("?liff.state=", "");
+  const params = new URLSearchParams(queryString);
+  const id = params.get('id');
+
+  let sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
+  let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/title.jpg'
+  let imageTitle2 = radconnextUrl + '/img/usr/upload/sponsor-001/1058008.jpg'
+  let linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
+  let sponsorBoard = doCreateSponsorBox(imageTitle, linkTo);
+  let sponsorBoard2 = doCreateSponsorBox(imageTitle2, linkTo);
+  $(sponsorBox).append($(sponsorBoard)).append($(sponsorBoard2));
+
+  let shareBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
+  let myLiffUrl = undefined;
+  let imgSrc = undefined;
+  if (id != null && id != '') {
+    //เปิดรูปที่ root
+    myLiffUrl = radconnextUrl + '/share/?id=' + id;
+    imgSrc = usrUploadPath + '/' + id + '.jpg';
+    let shareCmd = doCreateShareCmd(myLiffUrl);
+    $(shareBox).append($(shareCmd));
+    let downloadCmd = doCreateDownloadCmd(imgSrc);
+    $(shareBox).append($(downloadCmd));
+    //let playCmd = doCreatePlayCmd();
+    //$(shareBox).append($(playCmd));
+    //let imgView = $('<img width="100%" height="auto"/>');
+    //$(imgView).attr('src', imgSrc);
+
+
+    let imgView = new Image();
+    imgView.src = imgSrc;
+
+    //let img = $('<img src="' + src + '" width="100%" height="auto" style="padding: 4px; border: 2px solid grey;"/>');
+    imgView.onload = function() {
+      if (this.width > screen.width) {
+        $(imgView).css({'width': '100%'});
+      }
+    };
+
+    $(imgView).css({'margin-top': '50px'});
+
+    $('#app').append($(imgView)).css({'text-align': 'center'});
+    $('#app').append($(shareBox));
+    //$('#app').prepend($(thumbsWrapper));
+    $('#app').prepend($(sponsorBox));
+  } else {
+    let seriesIdParam = params.get('seriesId');
+    if (seriesIdParam){
+      let fakeSeriesId = seriesIdParam.split('k!');
+      const seriesId = fakeSeriesId[0];
+      //const seriesId = params.get('seriesId');
+      //const conId = params.get('conId');
+      const conId = fakeSeriesId[1];
+      if (seriesId != null && seriesId != '') {
+        if (conId != null && conId != '') {
+          let seriesPath = '/share/?seriesId=' + seriesId;
+          let conPath = seriesPath  + 'k!' + conId; // <- PARAMETER ตัวที่สอง web browser ของ line ไม่รับ ทำให้เปิดแชร์เฉพาะรูปไม่ได้
+          let shareUrl = radconnextUrl + conPath;
+          let shareCmd = doCreateShareCmd(shareUrl);
+          let backCmd = doCreateBackCmd(seriesPath);
+
+          if (seriesId !== 'mp4'){
+            //เปิดรูปของซีรีส์
+            let view = undefined;
+            let imageFileName = conId + '.jpg';
+            let counterParams = {seriesId: seriesId, contentId: conId};
+            doCallUpdateViewCounter(counterParams).then(async (updateRes)=>{
+              console.log(updateRes);
+              let readRes = await doCallReadViewCounter(counterParams);
+              console.log(readRes);
+              view = $('<div style="width: 100%; text-align: center;"></div>');
+              let bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
+              let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFileName;
+
+
+              let img = new Image();
+              img.src = src;
+
+              //let img = $('<img src="' + src + '" width="100%" height="auto" style="padding: 4px; border: 2px solid grey;"/>');
+              img.onload = function() {
+                if (this.width > screen.width) {
+                  $(img).css({'width': '100%'});
+                }
+              };
+
+              $(img).css({'margin-top': '50px'});
+
+              let downloadCmd = doCreateDownloadCmd(src);
+              $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
+              $(view).append($(sponsorBoard)).append($(img)).append($(bottomBar))
+
+              //let newWindow = window.open();
+              //$(newWindow.document.body).append($(view));
+
+              $('#app').empty().append($(view));
+            });
+
+          } else {
+            // play clip ใน mp4
+            let clipFileName = conId + '.mp4';
+            view = $('<div style="width: 100%; text-align: center;"></div>');
+            let bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
+            let src = usrSeriesRootPath + '/' + seriesId + '/' + clipFileName;
+            let downloadCmd = doCreateDownloadCmd(src);
+            let localVideo = document.createElement('video');
+            localVideo.id = 'LocalVideo';
+            localVideo.style.position = 'relative';
+            localVideo.style.display = 'inline-block';
+            localVideo.style.width = '320px';
+            localVideo.style.height = 'auto';
+            localVideo.style.border = '1px solid green';
+            localVideo.style.padding = '2px';
+            localVideo.controls = true;
+            localVideo.autoplay = true;
+            localVideo.crossorigin = "anonymous";
+            localVideo.src = src;
+            setTimeout(() => {
+              localVideo.addEventListener("canplay",  function() {
+                localVideo.play();
+              });
+            }, 2500);
+            $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
+            $(view).append($(sponsorBox)).append($(localVideo)).append($(bottomBar))
+
+            //let newWindow = window.open();
+            //$(newWindow.document.body).append($(view));
+            $('#app').empty().append($(view));
+          }
+
+          if ((seriesId !== 'capture-001') && (seriesId !== 'sponsor-001')) {
+            document.title = 'WOW WOW Wow...';
+          } else {
+            document.title = defaultTitle;
+          }
+
+        } else {
+          //เปิดรายการรูปจากซีรีส์
+          myLiffUrl = radconnextUrl + '/share/?seriesId=' + seriesId;
+          let seriesUrl = '/api/usr/upload/series/' + seriesId;
+          doCallListSeries(seriesUrl).then(async (resMe)=>{
+            let counterParams = {seriesId: seriesId};
+            let updateRes = await doCallUpdateViewCounter(counterParams);
+            console.log(updateRes);
+            let readRes = await doCallReadViewCounter(counterParams);
+            console.log(readRes);
+            let thumbsWrapper = await doCreateImagesSeriesThumb(seriesId, resMe);
+            $(thumbsWrapper).css({'margin-top': '50px'});
+            let shareCmd = doCreateShareCmd(myLiffUrl);
+            $(shareBox).append($(shareCmd));
+            $('#app').prepend($(thumbsWrapper));
+            $('#app').append($(shareBox));
+            $('#app').prepend($(sponsorBox));
+            document.title = seriesId;
+          });
+        }
+      }
+    } else {
+      //เปิดหน้ารวมของ root <- แสดงรายการภาพของ root
+      myLiffUrl = radconnextUrl + '/share';
+      doCallListUsrUpload().then((resMe)=>{
+        doCreateUsrUploadThumb(resMe).then(async (thumbsWrapper)=>{
+          let readRes = await doCallReadViewCounter();
+          console.log(readRes);
+
+          $(thumbsWrapper).css({'margin-top': '50px'});
+          let shareCmd = doCreateShareCmd(myLiffUrl);
+          $(shareBox).append($(shareCmd));
+          $('#app').prepend($(thumbsWrapper));
+          $('#app').append($(shareBox));
+          $('#app').prepend($(sponsorBox));
+          document.title = defaultTitle;
+        })
+      });
+    }
+  }
+
+  const doPlaySport = function(n){
+    let bannerImages = $(sponsorBox).children('img');
+    $(bannerImages[n]).css({'display': 'block'});
+    let timer = window.setTimeout(()=>{
+      $(bannerImages[n]).css({'display': 'none'});
+      let i = n + 1;
+      if (n >= (bannerImages.length-1)){
+        i = 0;
+      }
+      doPlaySport(i);
+    }, 30 * 1000);
+  }
+
+  doPlaySport(0);
+
+//https://medium.com/linedevth/%E0%B9%80%E0%B8%97%E0%B8%84%E0%B8%99%E0%B8%B4%E0%B8%84%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-universal-link-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B9%84%E0%B8%94%E0%B9%89%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87-liff-url-%E0%B9%81%E0%B8%A5%E0%B8%B0-web-url-%E0%B9%82%E0%B8%94%E0%B8%A2%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%9E%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%A1%E0%B8%B7%E0%B8%AD-7bf17a435339
+
+//https://medium.com/linedevth/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-content-sharer-%E0%B9%83%E0%B8%AB%E0%B9%89-line-oa-%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-line-social-plugins-23156fbe5415
+</script>

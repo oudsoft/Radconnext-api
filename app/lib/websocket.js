@@ -1,0 +1,545 @@
+/* websocket.js */
+
+function RadconWebSocketServer (arg, db, log) {
+	const $this = this;
+	this.httpsServer = arg;
+	const WebSocketServer = require('ws').Server;
+	const wss = new WebSocketServer({server: this.httpsServer/*, path: '/' + roomname */});
+	this.socket = wss;
+	this.clients = [];
+	this.db = db;
+
+	wss.on('connection', async function (ws, req) {
+		log.info(ws._socket.remoteAddress);
+		log.info(ws._socket._peername);
+		log.info(req.connection.remoteAddress);
+		log.info(`WS Conn Url : ${req.url} Connected.`);
+		let fullReqPaths = req.url.split('?');
+		let wssPath = fullReqPaths[0];
+		let wssQuery = fullReqPaths[1];
+		log.info(wssPath);
+		//wssPath = wssPath.substring(1);
+		wssPath = wssPath.split('/');
+		log.info(wssPath);
+		let clientId = wssPath[(wssPath.length -2)];
+		/*
+		//-> แบบนี้ user 1 account ใช้งานมากกว่า 1 เครื่องไม่ได้
+		let anotherSockets = await $this.clients.filter((client) =>{
+			if (client.id !== clientId) return ws;
+		});
+		anotherSockets.push(ws);
+		$this.clients = anotherSockets;
+		*/
+
+		ws.id = clientId;
+		ws.hospitalId = wssPath[(wssPath.length -1)];
+		ws.counterping = 0;
+		ws.screenstate = 0;
+		let connectType;
+		if (wssQuery) {
+			let queries = wssQuery.split('&');
+			connectType = queries[0].split('=');
+			ws.connectType = connectType[1];
+		}
+
+		if (ws.id === 'orthanc') {
+			let allSocket = await $this.listClient();
+			log.info('allSocket before orthanc connect=> ' + JSON.stringify(allSocket));
+			let localSocket = await $this.findOrthancLocalSocket(ws.hospitalId);
+			if (!localSocket){
+				$this.clients.push(ws);
+			} else {
+				if ((localSocket.readyState != 0) && (localSocket.readyState != 1)) {
+					await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+					$this.clients.push(ws);
+				}
+			}
+			allSocket = await $this.listClient();
+			log.info('allSocket after orthanc connect=> ' + JSON.stringify(allSocket));
+		} else {
+			let allClient = await $this.listClient();
+			log.info('allClient before one connect=> ' + JSON.stringify(allClient));
+			$this.clients.push(ws);
+			allClient = await $this.listClient();
+			log.info('allClient after one connect=> ' + JSON.stringify(allClient));
+		}
+
+		ws.send(JSON.stringify({type: 'test', message: ws.id + '[' + ws.hospitalId +'], You have Connected master websocket success.'}));
+
+		ws.on('message', async function (message) {
+			var data;
+
+			//accepting only JSON messages
+			try {
+				data = JSON.parse(message);
+			} catch (e) {
+				log.info("Invalid JSON of Socket data.");
+				data = {};
+			}
+
+			log.info('socket data => ' + JSON.stringify(data));
+			let hospitalId, owner, localSocket;
+			if (data.type) {
+				switch (data.type) {
+					case "trigger":
+						let command = 'curl -X POST --user demo:demo http://localhost:8042/tools/execute-script -d "doLocalStore(\'' + data.dcmname + '\')"';
+						$this.runCommand(command).then((result) => {
+							ws.send(JSON.stringify({type: 'result', message: result}));
+						});
+          break;
+					case "notify":
+						if (data.sendto === ws.id) {
+							ws.send(JSON.stringify({type: 'notify', message: data.notify, statusId: data.statusId, caseId: data.caseId}));
+						}
+					break;
+					case "exec":
+						if (data.data) {
+							hospitalId = data.data.hospitalId;
+							let localSocket = await $this.findHospitalLocalSocket(ws, hospitalId);
+							if (localSocket) {
+								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+									localSocket.send(JSON.stringify(data));
+								} else {
+									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+									ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+								}
+							} else {
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+							}
+						}
+					break;
+					case "cfindresult":
+						owner = data.owner;
+						hospitalId = data.hospitalId;
+						queryPath = data.queryPath;
+						let cfindResult = {type: "cfindresult", result: data.data, hospitalId: hospitalId, owner: owner, queryPath: queryPath};
+						$this.selfSendMessage(ws, cfindResult, owner);
+					break;
+					case "move":
+						if (data.data) {
+							hospitalId = data.data.hospitalId;
+							let localSocket = await $this.findHospitalLocalSocket(ws, hospitalId);
+							if (localSocket) {
+								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+									localSocket.send(JSON.stringify(data));
+								} else {
+									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+									ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+								}
+							} else {
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+							}
+						}
+					break;
+					case "cmoveresult":
+						owner = data.owner;
+						hospitalId = data.hospitalId;
+						let patientID = data.PatientID;
+						let cmoveResult = {type: "cmoveresult", result: data.data, patientID: patientID, owner: owner, hospitalId: hospitalId};
+						$this.selfSendMessage(ws, cmoveResult, owner);
+					break;
+					case "clientrun":
+						if (data.commands) {
+							let localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
+							if (localSocket) {
+								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+									localSocket.send(JSON.stringify({type: 'run', commands: data.commands, sender: data.sender}));
+									ws.send(JSON.stringify({type: 'notify', message: 'your command will process.'}));
+								} else {
+									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+									ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+								}
+							} else {
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'not found your commands.'}));
+						}
+					break;
+					case "clientresult":
+						let hospitalId = data.hospitalId;
+						let sender = data.sender;
+						let result = data.results;
+						let resultMsg = {type: 'clientresult', result: result}
+						$this.sendMessage(resultMsg, sender);
+					break;
+					case "clientlog":
+						localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
+						if (localSocket) {
+							if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+								localSocket.send(JSON.stringify({type: 'log', sender: data.sender}));
+								ws.send(JSON.stringify({type: 'notify', message: 'your request log will be transfer.'}));
+							} else {
+								await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+						}
+					break;
+					case "clientreportlog":
+						localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
+						if (localSocket) {
+							if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+								localSocket.send(JSON.stringify({type: 'reportlog', sender: data.sender}));
+								ws.send(JSON.stringify({type: 'notify', message: 'your request log will be transfer.'}));
+							} else {
+								await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+						}
+					break;
+					case "clientdicomlog":
+						localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
+						if (localSocket) {
+							if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
+								localSocket.send(JSON.stringify({type: 'dicomlog', sender: data.sender}));
+								ws.send(JSON.stringify({type: 'notify', message: 'your request log will be transfer.'}));
+							} else {
+								await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+						}
+					break;
+					case "logreturn":
+						let logReturn = {type: 'logreturn', log: data.result.log, sender: data.sender};
+						$this.selfSendMessage(ws, logReturn, data.sender);
+					break;
+					case "reportlogreturn":
+						let reportLogReturn = {type: 'reportlogreturn', log: data.result.log, sender: data.sender};
+						$this.selfSendMessage(ws, reportLogReturn, data.sender);
+					break;
+					case "dicomlogreturn":
+						let dicomLogReturn = {type: 'dicomlogreturn', log: data.result.log, sender: data.sender};
+						$this.selfSendMessage(ws, dicomLogReturn, data.sender);
+					break;
+
+					case "runresult":
+						owner = data.owner;
+						let runResult = {type: "runresult", result: data.data, owner: owner};
+						$this.selfSendMessage(ws, runResult, owner);
+					break;
+					case "clientrestart":
+						let clientSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
+						if (clientSocket) {
+							if ((clientSocket.readyState == 0) || (clientSocket.readyState == 1)) {
+								clientSocket.send(JSON.stringify({type: 'restart', sender: data.sender}));
+								ws.send(JSON.stringify({type: 'notify', message: 'your command will process.'}));
+							} else {
+								await $this.removeNoneActiveSocket(clientSocket.id, clientSocket.hospitalId);
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+						}
+					break;
+					case "callzoom":
+						let sendTo = data.sendTo;
+						let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+						$this.selfSendMessage(ws, callData, sendTo);
+					break;
+					case "callzoomback":
+						let sendBackTo = data.sendTo;
+						let resultData = {type: 'callzoomback', result: data.result};
+						$this.selfSendMessage(ws, resultData, sendBackTo);
+					break;
+					case "reset":
+						ws.counterping = 0;
+					break;
+					case "set":
+						ws.screenstate = data.value;
+					break;
+					case "message":
+						let sendto = data.sendto;
+						let from = data.from;
+						let context = data.context;
+						let sendDate = new Date();
+						let msgSend = {type: 'message', msg: data.msg, topicId: context.topicId, from: from, context: context, datetime: sendDate};
+						$this.sendMessage(msgSend, sendto);
+						if (data.context.topicId) {
+							let topicId = data.context.topicId;
+							let topicType = data.context.topicType;
+							$this.saveChatLog(topicId, topicType, msgSend);
+						}
+					break;
+					case "logout":
+						let socketUsername = data.username;
+						let anotherSockets = await $this.clients.filter((client) =>{
+							if (client.id !== socketUsername) return ws;
+						});
+						$this.clients = anotherSockets
+					break;
+					case "clientecho":
+						let echoHospitalId = data.hospitalId;
+						let echoSender = data.sender;
+						let localOrthanc = await $this.findHospitalLocalSocket(ws, echoHospitalId);
+						if (localOrthanc) {
+							if ((localOrthanc.readyState == 0) || (localOrthanc.readyState == 1)) {
+								localOrthanc.send(JSON.stringify({type: 'echo', hospitalId: echoHospitalId, sender: echoSender}));
+								ws.send(JSON.stringify({type: 'notify', message: 'your request echo will be process.'}));
+							} else {
+								await $this.removeNoneActiveSocket(localOrthanc.id, localOrthanc.hospitalId);
+								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
+							}
+						} else {
+							ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
+						}
+					break;
+					case "echoreturn":
+						let returnHospitalId = data.hospitalId;
+						let returnSender = data.sender;
+						let returnMsg = {type: 'echoreturn', message: data.myconnection};
+						$this.sendMessage(returnMsg, returnSender);
+					break;
+					case "clientupdate":
+
+					break;
+				}
+			} else {
+				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
+			}
+		});
+
+		ws.isAlive = true;
+
+		ws.on('pong', () => {
+			ws.counterping += 1;
+			ws.isAlive = true;
+			ws.send(JSON.stringify({type: 'ping', counterping: ws.counterping, datetime: new Date()}));
+		});
+
+		ws.on('close', async function(client, req) {
+			//log.info('client id => ' + client.id + ' closed.');
+			log.info('ws=> ' + ws.id + '/' + ws.hospitalId + ' closed.');
+			await $this.removeNoneActiveSocket(ws.id, ws.hospitalId);
+			let allSocket = await $this.listClient();
+			log.info('allSocket after one close=> ' + JSON.stringify(allSocket));
+		});
+
+	});
+
+	setInterval(() => {
+		wss.clients.forEach((ws) => {
+			if (!ws.isAlive) return ws.terminate();
+			ws.ping(null, false, true);
+		});
+	}, 60000);
+
+	this.findUserSocket = function(username) {
+		return new Promise(async function(resolve, reject) {
+			let yourSocket = await $this.clients.find((ws) =>{
+				if ((ws.id == username) && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+			});
+			resolve(yourSocket);
+		});
+	}
+
+	this.filterUserSocket = function(username) {
+		return new Promise(async function(resolve, reject) {
+			let targetSocket =await $this.clients.filter((ws) =>{
+				if ((ws.id == username) && ((ws.readyState == 0) || (ws.readyState == 1))) {
+					return ws;
+				}
+			});
+			resolve(targetSocket);
+		});
+	}
+
+	this.findHospitalLocalSocket = function(fromWs, hospitalId) {
+		return new Promise(async function(resolve, reject) {
+			let yourSocket = await $this.clients.find((ws) =>{
+				if ((ws.hospitalId == hospitalId)  && (ws !== fromWs) && (ws.connectType === 'local') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+			});
+			resolve(yourSocket);
+		});
+	}
+
+	this.selfSendMessage = async function(fromWs, message, sendto) {
+		let userSocket = await $this.findUserSocket(sendto);
+		if (userSocket) {
+			userSocket.send(JSON.stringify(message));
+			return true;
+		} else {
+			log.error('selfSendMessage::Can not find socket of ' + sendto);
+			return false;
+		}
+	}
+
+	this.sendMessage = function(message, sendto) {
+		return new Promise(async function(resolve, reject) {
+			let userSockets = await $this.filterUserSocket(sendto);
+			if (userSockets.length > 0) {
+				await userSockets.forEach((socket, i) => {
+					socket.send(JSON.stringify(message));
+					socket.counterping = 0;
+				});
+				resolve(true);
+			} else {
+				log.error('sendMessage::Can not find socket of ' + sendto);
+				resolve(false);
+			}
+		});
+	}
+
+	this.sendLocalGateway = function(message, hospitalId) {
+		return new Promise(async function(resolve, reject) {
+			let gatewaySockets = await $this.clients.filter((ws) =>{
+				//if ((ws.hospitalId == hospitalId)  && (ws.id === 'orthanc')) return ws;
+				if (ws.hospitalId == hospitalId) return ws;
+			});
+
+			let sendingTo = [];
+			if (gatewaySockets.length > 0) {
+				const promiseList = new Promise(async function(resolve2, reject2) {
+					await gatewaySockets.forEach(async (ws, i) => {
+						if ((ws.readyState == 0) || (ws.readyState == 1)) {
+							ws.send(JSON.stringify(message));
+							sendingTo.push({user: ws.id, sent: 'yes'});
+						} else {
+							await $this.removeNoneActiveSocket(ws.id, ws.hospitalId);
+							sendingTo.push({user: ws.id, sent: 'no'});
+						}
+					});
+					setTimeout(()=> {
+            resolve2(sendingTo);
+          },500);
+        });
+        Promise.all([promiseList]).then((ob)=> {
+					resolve({sent: {sataus: 'OK'}, items: ob[0]});
+				});
+			} else {
+				resolve({sent: {sataus: 'NOT FOUND HOSPITAL CLIENT'}, items: sendingTo});
+			}
+		});
+	}
+
+	this.getPingCounter = function(username){
+		return new Promise(async function(resolve, reject) {
+			let userSockets = await $this.filterUserSocket(username);
+			if (userSockets.length > 0) {
+				resolve(userSockets[0].counterping);
+			} else {
+				log.error('getPingCounter::Can not find socket of ' + username);
+				resolve(false);
+			}
+		});
+	}
+
+	this.getScreenState = function(username){
+		return new Promise(async function(resolve, reject) {
+			let userScreenState = await $this.filterUserSocket(username);
+			if (userScreenState.length > 0) {
+				resolve(userScreenState[0].screenstate);
+			} else {
+				log.error('getScreenState::Can not find socket of ' + username);
+				resolve(false);
+			}
+		});
+	}
+
+	this.unlockScreenUser = function(username){
+		return new Promise(async function(resolve, reject) {
+			let userScreenStates = await $this.filterUserSocket(username);
+			if (userScreenStates.length > 0) {
+				let result = $this.sendMessage(JSON.stringify({type: 'unlockscreen'}), userScreenStates[0].id);
+				resolve(result);
+			} else {
+				log.error('getScreenState::Can not find socket of ' + username);
+				resolve(false);
+			}
+		});
+	}
+	//$this.db.radkeeplogs
+	this.saveChatLog = function(topicId, topicType, msgSend){
+		return new Promise(async function(resolve, reject) {
+			$this.db.radchatlogs.findAll({ attributes: ['Log'],
+				where: {caseId: topicId, topicType: topicType}
+			}).then(async (caseLog)=>{
+				if (caseLog.length > 0) {
+					let newCaseLog = caseLog[0].Log;
+					newCaseLog.push(msgSend);
+					$this.db.radchatlogs.update({
+				    Log: newCaseLog
+				  },{
+				    where: {
+				      caseId: topicId
+				    }
+				  }).then((caseLog) => resolve(caseLog));
+				} else {
+					let newCaseLog = [msgSend];
+					let newLog = await $this.db.radchatlogs.create({Log: newCaseLog});
+					$this.db.radchatlogs.update({caseId: topicId, topicType: topicType}, {where: {id: newLog.id}});
+					resolve(newLog);
+				}
+			});
+		});
+	}
+
+	this.listClient = function(){
+		return new Promise(async function(resolve, reject) {
+			let clientConns = [];
+			await $this.clients.forEach((item, i) => {
+				clientConns.push({id: item.id, hospitalId: item.hospitalId, state: item.readyState});
+			});
+			resolve(clientConns);
+		});
+	}
+
+	this.findOrthancLocalSocket = function(hospitalId) {
+		return new Promise(async function(resolve, reject) {
+			let allSocket = await $this.listClient();
+			log.info('allSocket before find orthanc=> ' + JSON.stringify(allSocket));
+			log.info('find orthanc of hospitalId=>' + hospitalId);
+			let orthancSocket = await $this.clients.find((ws) =>{
+				if ((ws.hospitalId == hospitalId) && (ws.id === 'orthanc') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+			});
+			if (orthancSocket) {
+				log.info('orthanc found=> ' + orthancSocket.id + '/' + orthancSocket.hospitalId + '/' + orthancSocket.readyState);
+			}
+			resolve(orthancSocket);
+		});
+	}
+
+	this.removeNoneActiveSocket = function(wsId, hospitalId){
+		return new Promise(async function(resolve, reject) {
+			let anotherActiveSockets = await $this.clients.filter((client) =>{
+				if (client.id !== wsId) {
+					if ((client.readyState == 0) || (client.readyState == 1)) {
+						return client;
+					}
+				} else {
+					if (client.hospitalId != hospitalId){
+						if ((client.readyState == 0) || (client.readyState == 1)) {
+							return client;
+						}
+					}
+				}
+			});
+			$this.clients = anotherActiveSockets;
+			resolve($this.clients);
+		});
+	}
+
+	this.runCommand = function (command) {
+		return new Promise(function(resolve, reject) {
+			const exec = require('child_process').exec;
+			exec(command, (error, stdout, stderr) => {
+				if(error === null) {
+					resolve(`${stdout}`);
+				} else {
+					reject(`${stderr}`);
+				}
+	    });
+		});
+	}
+
+}
+
+module.exports = ( arg, relation, monitor ) => {
+	const webSocketServer = new RadconWebSocketServer(arg, relation, monitor);
+	return webSocketServer;
+}
