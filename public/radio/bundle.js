@@ -3739,15 +3739,15 @@ module.exports = function ( jq ) {
     let newPasswordRow = $('<tr></tr>');
     let retryPasswordRow = $('<tr></tr>');
     $(changePwdWrapper).append($(newPasswordRow)).append($(retryPasswordRow));
-    let newPasswordLabelCell = $('<td width="30%" align="left">New Password <span style="color: red;">*</span></td>');
+    let newPasswordLabelCell = $('<td width="40%" align="left">New Password <span style="color: red;">*</span></td>');
     let newPasswordValueCell = $('<td width="*" align="left"></td>');
     $(newPasswordRow).append($(newPasswordLabelCell)).append($(newPasswordValueCell));
     let retryPasswordLabelCell = $('<td align="left">Retry Password <span style="color: red;">*</span></td>');
     let retryPasswordValueCell = $('<td align="left"></td>');
     $(retryPasswordRow).append($(retryPasswordLabelCell)).append($(retryPasswordValueCell));
 
-    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 160px;"/>');
-    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 160px;"/>');
+    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 190px;"/>');
+    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 190px;"/>');
     $(newPasswordValueCell).append($(newPasswordValue));
     $(retryPasswordValueCell).append($(retryPasswordValue));
     $(changePwdDlg).append($(changePwdWrapper));
