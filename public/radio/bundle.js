@@ -3739,15 +3739,15 @@ module.exports = function ( jq ) {
     let newPasswordRow = $('<tr></tr>');
     let retryPasswordRow = $('<tr></tr>');
     $(changePwdWrapper).append($(newPasswordRow)).append($(retryPasswordRow));
-    let newPasswordLabelCell = $('<td width="25%" align="left">New Password <span style="color: red;">*</span></td>');
+    let newPasswordLabelCell = $('<td width="30%" align="left">New Password <span style="color: red;">*</span></td>');
     let newPasswordValueCell = $('<td width="*" align="left"></td>');
     $(newPasswordRow).append($(newPasswordLabelCell)).append($(newPasswordValueCell));
     let retryPasswordLabelCell = $('<td align="left">Retry Password <span style="color: red;">*</span></td>');
-    let retryPasswordValueCell = $('<td width="*" align="left"></td>');
+    let retryPasswordValueCell = $('<td align="left"></td>');
     $(retryPasswordRow).append($(retryPasswordLabelCell)).append($(retryPasswordValueCell));
 
-    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 200px;"/>');
-    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 200px;"/>');
+    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 160px;"/>');
+    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 160px;"/>');
     $(newPasswordValueCell).append($(newPasswordValue));
     $(retryPasswordValueCell).append($(retryPasswordValue));
     $(changePwdDlg).append($(changePwdWrapper));
@@ -3784,7 +3784,7 @@ module.exports = function ( jq ) {
     const radconfirmoption = {
       title: 'เปลี่ยน Password',
       msg: $(changePwdDlg),
-      width: '420px',
+      width: '440px',
       onOk: function(evt) {
         let newPassword = doVerifyNewPassword();
         if ((newPassword) && (newPassword !== '')) {
