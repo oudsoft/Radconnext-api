@@ -6800,7 +6800,7 @@ module.exports = function ( jq ) {
 	}
 
 	const changePasswordCmdClick = function(evt){
-		changepwddl.doCreateChangePwdDlg();
+		changepwddlg.doCreateChangePwdDlg();
 	}
 
 	const switchOptions = {onActionCallback: onActionCommonHandle, offActionCallback: offActionCommonHandle};
