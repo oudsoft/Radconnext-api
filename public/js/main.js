@@ -1,8 +1,7 @@
 //$('head').append('<script src="https://radconnext.info/lib/jquery.js"></script>');
-//$('head').append('<script src="https://radconnext.info/lib/jquery-ui.min.js"></script>');
-//$('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/jquery-ui.min.css" type="text/css" />');
-//$('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
-
+$('head').append('<script src="https://radconnext.info/lib/jquery-ui.min.js"></script>');
+$('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/jquery-ui.min.css" type="text/css" />');
+$('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
 $('head').append('<script type="text/javascript" src="https://radconnext.info/lib/fabric.js"></script>');
 setTimeout(()=>{
 	$('head').append('<link href="https://radconnext.info/lib/tui-image-editor.min.css" rel="stylesheet">');

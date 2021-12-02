@@ -245,7 +245,7 @@
               $(this).css({'height': 'auto', 'width': '100%'});
             }
           }
-          let imgLabel = $('<p id="ImgLabel"></p>').css({'color': 'yellow'});
+          let imgLabel = $('<p id="ImgLabel"></p>').css({'color': 'red'});
           $(imgLabel).text(imgName);
           $(imgBox).append($(imgLabel));
         };
