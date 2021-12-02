@@ -12,14 +12,14 @@ var db, log, auth, uti, Task;
 
 app.post('/response', async function(req, res) {
   log.info('voip response => ' + JSON.stringify(req.body));
-
+  /*
   let forwardCmdFmt = "curl -k -X POST -H \"Content-Type: Content-Type: application/json\" https://202.28.68.28:8443/api/voipapp/response  -d  '%s'";
   let forwardCmd = uti.fmtStr(forwardCmdFmt, req.body);
   log.info('forwardCmd => ' + forwardCmd);
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
+  */
 
-  /*
   let caseId = req.body.inc_id;
   let yourTask = Task.selectTaskByCaseId(caseId);
   if (yourTask){
@@ -31,7 +31,7 @@ app.post('/response', async function(req, res) {
       });
     }
   }
-  */
+  
   //await Task.removeTaskByCaseId(caseId);
   res.json({status: {code: 200}, ok: 'ok'});
 });
