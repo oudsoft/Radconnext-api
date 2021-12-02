@@ -234,6 +234,19 @@ app.get('/do/resubmit/(:caseId)/(:hospitalId)', async (req, res) => {
   res.json({status: {code: 200}, result: reSubmitRes});
 });
 
+app.get('/radio/profile/(:radioId)', async (req, res) => {
+  let radioId = req.params.radioId;
+  let profileRes = await common.doLoadRadioProfile(radioId);
+  res.json({status: {code: 200}, result: profileRes});
+});
+
+app.get('/do/test/push/(:lineUserId)/(:msg)', async (req, res) => {
+  let lineUserId = req.params.lineUserId;
+  let msg = req.params.msg;
+  let pushRes = await common.doTestPushConnect(lineUserId, msg);
+  res.json({status: {code: 200}, result: pushRes});
+});
+
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {
   db = dbconn;
   log = monitor;

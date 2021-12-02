@@ -19,7 +19,7 @@ setTimeout(()=>{
 	$('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/scanpart.css" type="text/css" />');
 	//$('head').append('<script src="https://radconnext.info/lib/player.js?t=jyoky"></script>');
-	$('head').append('<script src="https://radconnext.info/lib/player.js?ty=jxokyh"></script>');
+	$('head').append('<script src="https://radconnext.info/lib/player.js?ty=mjxokyh"></script>');
 
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');

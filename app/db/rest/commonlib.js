@@ -1084,6 +1084,17 @@ const doFindTechHospitalUsername = function(hospitalId){
   });
 }
 
+const doTestPushConnect = function(lineUserId, msg){
+  return new Promise(async function(resolve, reject) {
+    let action = 'quick';
+    let lineMsg = lineApi.createBotMenu(msg, action, lineApi.techMainMenu);
+    let pushRes = await lineApi.pushConnect(lineUserId, lineMsg);
+    resolve(pushRes);
+  });
+}
+
+
+
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
@@ -1139,6 +1150,7 @@ module.exports = (dbconn, monitor) => {
     doConsultExpireAction,
     doSendEmailToAdmin,
     doCallLineUserInfo,
-    doFindTechHospitalUsername
+    doFindTechHospitalUsername,
+    doTestPushConnect
   }
 }
