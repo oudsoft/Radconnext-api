@@ -31,10 +31,10 @@ app.post('/response', async function(req, res) {
   if ((voip) && (voip.caseId)){
     //voip.doAppendNewKEY(caseId, key);
     voip.responseKEYs.push(key);
-    if (voip.responseKEYs.length >= 2){
-      voip.responseKEYs.forEach((item, i) => {
-        log.info(i + '. => ' + JSON.stringify(item));
-      });
+    //if (voip.responseKEYs.length >= 2){
+      //voip.responseKEYs.forEach((item, i) => {
+        //log.info(i + '. => ' + JSON.stringify(item));
+      //});
       let action = undefined;
       let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
       let radioId = targetCases[0].Case_RadiologistId;
@@ -45,8 +45,8 @@ app.post('/response', async function(req, res) {
         //Reject Case by VoIP
         changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
       }
-      await Voip.removeTaskByCaseId(caseId);
-    }
+      //await Voip.removeTaskByCaseId(caseId);
+    //}
   }
 
   res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
