@@ -26,10 +26,11 @@ app.post('/response', async function(req, res) {
   log.info('yourCaseId => ' + caseId);
   let key = req.body.response_key;
   log.info('yourKey => ' + key);
-  let voip = Voip.selectTaskByCaseId(caseId);
+  let voip = await Voip.selectTaskByCaseId(caseId);
   log.info('yourVoip => ' + JSON.stringify(voip));
   if ((voip) && (voip.caseId)){
-    voip.doAppendNewKEY(key);
+    //voip.doAppendNewKEY(caseId, key);
+    voip.responseKEYs.push(key);
     if (voip.responseKEYs.length >= 2){
       voip.responseKEYs.forEach((item, i) => {
         log.info(i + '. => ' + JSON.stringify(item));

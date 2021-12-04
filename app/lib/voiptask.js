@@ -5,7 +5,6 @@ function RadconVoipTask (socket, db, log) {
   const cron = require('node-cron');
 
 	this.voipTasks = [];
-  this.responseKEYs =[];
 
   this.doCreateNewTaskVoip = function (caseId, username, triggerParam, radioUsername, cb) {
     return new Promise(async function(resolve, reject) {
@@ -105,11 +104,24 @@ function RadconVoipTask (socket, db, log) {
   }
 
   this.doAppendNewKEY = function(key){
-    $this.responseKEYs.push(key);
+    return new Promise(async function(resolve, reject) {
+      let myTask = await $this.selectTaskByCaseId(caseId);
+      if ((myTask) && (myTask.caseId)){
+        myTask.responseKEYs.push(key);
+      }
+      resolve(myTask);
+    });
   }
 
-  this.getKEYs = function(){
-    return $this.responseKEYs;
+  this.getKEYs = function(caseId){
+    return new Promise(async function(resolve, reject) {
+      let myTask = await $this.selectTaskByCaseId(caseId);
+      let key = [];
+      if ((myTask) && (myTask.caseId)){
+        key = myTask.responseKEYs;
+      }
+      resolve(key);
+    });
   }
 }
 
