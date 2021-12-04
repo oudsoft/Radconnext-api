@@ -313,7 +313,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
       let taskCaseResult = await reRunGenerateCaseTask();
       let taskConsultResult = await doReConsultTask();
       let lastExceedCaseResult = await doLoadExceedCase();
-      resolve({taskCaseResult, taskConsultResult, lastExceedCaseResult});
+      resolve({taskCaseResult, taskConsultResult/*, lastExceedCaseResult*/});
     });
   }
 
