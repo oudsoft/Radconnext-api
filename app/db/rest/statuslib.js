@@ -460,21 +460,6 @@ const onExpiredCaseEvent = function(caseId) {
     /*
     on Expired จะเกิดขึ้น และควบคุมโดย task อยู่แล้ว
     */
-    /*
-    const userId = targetCase.userId;
-    const hospitalId = targetCase.hospitalId;
-    const radioId = targetCase.Case_RadiologistId;
-    const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-
-    //Load Radio radioProfile
-    let radioProfile = await common.doLoadRadioProfile(radioId);
-    //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
-    let userProfile = await common.doLoadUserProfile(userId);
-
-    let lineCaseDetaileMsg = uti.fmtStr(common.msgExpCaseRadioDetailPattern, userProfile.hospitalName, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
-
-    await common.doCaseExpireAction(tasks, caseId, socket, targetCase.casestatusId, radioProfile, userProfile, lineCaseDetaileMsg, userProfile.hospitalName);
-    */
   });
 }
 

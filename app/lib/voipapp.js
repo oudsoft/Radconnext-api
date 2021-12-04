@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const express = require('express');
 const app = express();
 
-var db, log, auth, uti, Task;
+var db, log, auth, lineApi, uti, statusControl, common, socket, Task, Warning, Voip;
 
 app.post('/response', async function(req, res) {
   log.info('voip response => ' + JSON.stringify(req.body));
@@ -19,33 +19,49 @@ app.post('/response', async function(req, res) {
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   */
-
+  let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
   let caseId = req.body.inc_id;
   log.info('yourCaseId => ' + caseId);
-  let yourTask = Task.selectTaskByCaseId(caseId);
-  log.info('yourTask => ' + JSON.stringify(yourTask));
-  if ((yourTask) && (yourTask.caseId)){
-    let key = req.body.response_key;
-    yourTask.doAppendNewKEY(key);
-    if (yourTask.responseKEYs.length >= 2){
-      yourTask.responseKEYs.forEach((item, i) => {
+  let key = req.body.response_key;
+  log.info('yourKey => ' + key);
+  let voip = Voip.selectTaskByCaseId(caseId);
+  log.info('yourVoip => ' + JSON.stringify(voip));
+  if ((voip) && (voip.caseId)){
+    voip.doAppendNewKEY(key);
+    if (voip.responseKEYs.length >= 2){
+      voip.responseKEYs.forEach((item, i) => {
         log.info(i + '. => ' + JSON.stringify(item));
       });
+      let action = undefined;
+      let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
+      let radioId = targetCases[0].Case_RadiologistId;
+      if (voip.responseKEYs[0] == 1){
+        //Accept Case by VoIP
+        changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, 'Radio Accept by VoIP App');
+      } else if (voip.responseKEYs[0] == 3) {
+        //Reject Case by VoIP
+        changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
+      }
+      await Voip.removeTaskByCaseId(caseId);
     }
   }
 
-
-  //await Task.removeTaskByCaseId(caseId);
-  res.json({status: {code: 200}, ok: 'ok'});
+  res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
 });
 
-module.exports = ( taskVoip, dbconn, monitor ) => {
+module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {
   db = dbconn;
   log = monitor;
-  Task = taskVoip;
+  socket = webSocket;
+  Task = taskCase;
+  Warning = warningTask;
+  Voip = voipTask;
   auth = require('../db/rest/auth.js')(db, log);
+  lineApi = require('./mod/lineapi.js')(db, log);
   uti = require('./mod/util.js')(db, log);
+  statusControl = require('../db/rest/statuslib.js')(db, log, Task, Warning, Voip, socket);
+  common = require('../db/rest/commonlib.js')(db, log);
   return app;
 }

@@ -74,7 +74,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const zoomApp = require('./lib/zoom.js')(db, log);
 	const botApp = require('./lib/botapp.js')(taskCase, taskWarning, voipTask, db, log, webSocketServer);
 	const bugReportApp = require('./lib/bugreportapp.js')( db, log, webSocketServer);
-	const voipapp = require('./lib/voipapp.js')( voipTask, db, log);
+	const voipapp = require('./lib/voipapp.js')( taskCase, taskWarning, voipTask, db, log, webSocketServer);
 	const voipTaskApp = require('./lib/voiptaskapp.js')( voipTask, db, log);
 
 	const users = require('./db/rest/users.js')(db, log);
