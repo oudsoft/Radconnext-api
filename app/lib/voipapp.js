@@ -12,13 +12,15 @@ var db, log, auth, lineApi, uti, statusControl, common, socket, Task, Warning, V
 
 app.post('/response', async function(req, res) {
   log.info('voip response => ' + JSON.stringify(req.body));
-  /*
+
   let forwardCmdFmt = "curl -k -X POST -H \"Content-Type: application/json\" https://202.28.68.28:8443/api/voipapp/response  -d  '%s'";
   let forwardCmd = uti.fmtStr(forwardCmdFmt, JSON.stringify(req.body));
   log.info('forwardCmd => ' + forwardCmd);
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
-  */
+  res.json({status: {code: 200}, ok: 'me'});
+  
+  /*
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -29,27 +31,21 @@ app.post('/response', async function(req, res) {
   let voip = await Voip.selectTaskByCaseId(caseId);
   log.info('yourVoip => ' + JSON.stringify(voip));
   if ((voip) && (voip.caseId)){
-    //voip.doAppendNewKEY(caseId, key);
     voip.responseKEYs.push(key);
-    //if (voip.responseKEYs.length >= 2){
-      //voip.responseKEYs.forEach((item, i) => {
-        //log.info(i + '. => ' + JSON.stringify(item));
-      //});
-      let action = undefined;
-      let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
-      let radioId = targetCases[0].Case_RadiologistId;
-      if (voip.responseKEYs[0] == 1){
-        //Accept Case by VoIP
-        changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, 'Radio Accept by VoIP App');
-      } else if (voip.responseKEYs[0] == 3) {
-        //Reject Case by VoIP
-        changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
-      }
-      //await Voip.removeTaskByCaseId(caseId);
-    //}
+    let action = undefined;
+    let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
+    let radioId = targetCases[0].Case_RadiologistId;
+    if (voip.responseKEYs[0] == 1){
+      //Accept Case by VoIP
+      changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, 'Radio Accept by VoIP App');
+    } else if (voip.responseKEYs[0] == 3) {
+      //Reject Case by VoIP
+      changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
+    }
+    await Voip.removeTaskByCaseId(caseId);
   }
-
   res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
+  */
 });
 
 module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {
