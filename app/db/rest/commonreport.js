@@ -585,7 +585,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
   });
 }
 
-const doReSubmitReport = function(caseId, hospitalId, hostname){
+const doReSubmitReport = function(caseId, hostname){
   return new Promise(async function(resolve, reject) {
     //const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
     let cases = await db.cases.findAll({ where: {id: caseId}});
@@ -598,6 +598,7 @@ const doReSubmitReport = function(caseId, hospitalId, hostname){
     if (caseresponses.length > 0){
       let responseId = caseresponses[0].id;
       let userId = cases[0].userId;
+      let hospitalId = cases[0].hospitalId;
       let caseCreateAt = uti.formatDateTimeStr(cases[0].createdAt);
       let casedatetime = caseCreateAt.split('T');
       let casedateSegment = casedatetime[0].split('-');

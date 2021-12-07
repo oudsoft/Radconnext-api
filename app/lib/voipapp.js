@@ -12,15 +12,15 @@ var db, log, auth, lineApi, uti, statusControl, common, socket, Task, Warning, V
 
 app.post('/response', async function(req, res) {
   log.info('voip response => ' + JSON.stringify(req.body));
-  /*
+
   let forwardCmdFmt = "curl -k -X POST -H \"Content-Type: application/json\" https://202.28.68.28:8443/api/voipapp/response  -d  '%s'";
   let forwardCmd = uti.fmtStr(forwardCmdFmt, JSON.stringify(req.body));
   log.info('forwardCmd => ' + forwardCmd);
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   res.json({status: {code: 200}, ok: 'me'});
-  */
 
+  /*
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -45,7 +45,7 @@ app.post('/response', async function(req, res) {
     await Voip.removeTaskByCaseId(caseId);
   }
   res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
-  
+  */
 });
 
 module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {
