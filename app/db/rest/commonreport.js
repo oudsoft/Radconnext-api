@@ -585,31 +585,53 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
   });
 }
 
-const doReSubmitReport = function(caseId, hospitalId){
+const doReSubmitReport = function(caseId, hospitalId, hostname){
   return new Promise(async function(resolve, reject) {
     //const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
-    const hosReports = await db.hospitalreports.findAll({ attributes: ['AutoConvert'], where: {hospitalId: hospitalId}});
-    const autoConvert = hosReports[0].AutoConvert;
-    if (autoConvert == 1){
-      let cases = await db.cases.findAll({ where: {id: caseId}});
-      log.info('cases=> ' + JSON.stringify(cases));
-      let caseresponses = await db.caseresponses.findAll({ where: {caseId: caseId}});
-      log.info('caseresponses=> ' + JSON.stringify(caseresponses));
-      let casereports = await db.casereports.findAll({ where: {caseresponseId: caseresponses[0].id}});
-      log.info('casereports=> ' + JSON.stringify(casereports));
-      let pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;;
-      let seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
-      let sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
-      let dicom = {seriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, sopInstanceUIDs: sopInstanceUIDs};
-      let radioId = cases[0].Case_RadiologistId;
-      let risParams = await risParamCreator(caseId, radioId);
+    let cases = await db.cases.findAll({ where: {id: caseId}});
+    log.info('cases=> ' + JSON.stringify(cases));
+    let patients = await db.patients.findAll({ where: {id: cases[0].patientId}});
+    log.info('patients=> ' + JSON.stringify(patients));
+    let caseresponses = await db.caseresponses.findAll({ where: {caseId: caseId}});
+    //log.info('caseresponses=> ' + JSON.stringify(caseresponses));
 
-      let socketTrigger = {type: 'resubmitreport', pdfDicomSeriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, risParams: risParams, dicom: dicom};
-      let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
-			log.info('send resubmitreport trigger result => ' + JSON.stringify(result));
-      resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
+    if (caseresponses.length > 0){
+      let responseId = caseresponses[0].id;
+      let userId = cases[0].userId;
+      let caseCreateAt = uti.formatDateTimeStr(cases[0].createdAt);
+      let casedatetime = caseCreateAt.split('T');
+      let casedateSegment = casedatetime[0].split('-');
+      casedateSegment = casedateSegment.join('');
+      let casedate = casedateSegment;
+      casedateSegment = casedatetime[1].split(':');
+      let casetime = casedateSegment.join('');
+      let fileExt = 'pdf';
+      let pdfFileName = patients[0].Patient_NameEN + '_' + patients[0].Patient_LastNameEN + '-' + casedate + '-' + casetime + '.' + fileExt;
+      let newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, pdfFileName, hostname);
+      log.info('Create-Report=> ' + JSON.stringify(newReportRes));
+
+      let casereports = await db.casereports.findAll({ where: {caseresponseId: responseId}});
+      log.info('casereports=> ' + JSON.stringify(casereports));
+
+      const hosReports = await db.hospitalreports.findAll({ attributes: ['AutoConvert'], where: {hospitalId: hospitalId}});
+      const autoConvert = hosReports[0].AutoConvert;
+      if (autoConvert == 1){
+        let pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;;
+        let seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
+        let sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
+        let dicom = {seriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, sopInstanceUIDs: sopInstanceUIDs};
+        let radioId = cases[0].Case_RadiologistId;
+        let risParams = await risParamCreator(caseId, radioId);
+
+        let socketTrigger = {type: 'newreport', pdfDicomSeriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, risParams: risParams, dicom: dicom};
+        let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
+  			log.info('send resubmitreport trigger result => ' + JSON.stringify(result));
+        resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
+      } else {
+        resolve({status: {code: 200}, submit: 'none', cuase: 'not auto convert on configuration hospital report.'});
+      }
     } else {
-      resolve({status: {code: 200}, submit: 'none', cuase: 'not auto convert on configuration hospital report.'});
+      resolve({status: {code: 200}, cause: 'case response empty'});
     }
   });
 }

@@ -598,7 +598,7 @@ app.post('/', async function(req, res) {
         break;
         case 'image':
           var imageId = userEvent.message.id;
-          var unSupportMsg = 'ต้องขออภัยระบบยังรองรับฟังก์ชั่นนี้ในขณะนี้\nโปรดใช้เมนูจากด้านล่างครับ';
+          var unSupportMsg = 'ต้องขออภัยระบบยังไม่รองรับฟังก์ชั่นนี้ในขณะนี้\nโปรดใช้เมนูจากด้านล่างครับ';
           var action = 'quick';
           if (usertypeId==2){
             await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.techMainMenu));

@@ -230,7 +230,8 @@ app.get('/test/submitresult', async (req, res) => {
 app.get('/do/resubmit/(:caseId)/(:hospitalId)', async (req, res) => {
   let caseId = req.params.caseId;
   let hospitalId = req.params.hospitalId;
-  let reSubmitRes = await commonReport.doReSubmitReport(caseId, hospitalId);
+  let hostname = req.hostname;
+  let reSubmitRes = await commonReport.doReSubmitReport(caseId, hospitalId, hostname);
   res.json({status: {code: 200}, result: reSubmitRes});
 });
 
