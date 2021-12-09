@@ -43,7 +43,7 @@
   console.log(userdata);
 
   function doGetOrthancURL(hospitalId){
-    let orthancUrl = 'http://119.59.98.111';
+    let orthancUrl = 'http://150.995.26.106';
     if (hospitalId == 2){
       orthancUrl += ':8043';
     } else if (hospitalId == 3){
@@ -77,7 +77,7 @@
       });
     });
   }
-  
+
   $('#ReDicomCmd').on('click', async (evt)=>{
     let hospitalID = $('#HospitalID').val();
     let studyID = $('#StudYID').val();

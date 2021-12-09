@@ -981,10 +981,16 @@ app.get('/line/userinfo/(:luneUserId)', async (req, res) => {
 
 app.get('/list/(:hospitalId)', async (req, res) => {
   const hospitalId = req.params.hospitalId;
-  const limit = 20;
+  const qlimit = req.query.limit;
+  log.info('qlimit=>' + qlimit);
+  let limit = 20;
+  if ((qlimit) && (qlimit > 0)){
+    limit = qlimit;
+  }
   const startAt = 0;
   const orderby = [['id', 'DESC']];
-  const cases = await Case.findAll({offset: startAt, limit: limit, where: {hospitalId: hospitalId}, order: orderby});
+  const caseInclude = [{model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_HN']}];
+  const cases = await Case.findAll({include: caseInclude, offset: startAt, limit: limit, where: {hospitalId: hospitalId}, order: orderby});
   res.json({Result: "OK", Records: cases, TotalRecordCount: cases.length});
 });
 
