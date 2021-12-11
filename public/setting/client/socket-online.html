@@ -88,14 +88,15 @@
           $(itemRow).append($(cmdCol));
           if (sockets[i].id !== 'orthanc'){
             let yourOrthancSockets = await sockets.filter((item)=>{
-              if (item.hospitalId == sockets[i].hospitalId){
+              if ((item.hospitalId == 'orthanc') && (item.hospitalId == sockets[i].hospitalId)){
                 return item;
               }
             });
             if (yourOrthancSockets.length == 0){
               let clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
-              $(clientReConnectCmd).on('click', (evt)=>{
-                doReConnectSocket(sockets[i].id);
+              $(clientReConnectCmd).on('click', async (evt)=>{
+                let reconnRes = await doReConnectSocket(sockets[i].id);
+                console.log(reconnRes);
               });
               $(cmdCol).append($(clientReConnectCmd));
             } else {

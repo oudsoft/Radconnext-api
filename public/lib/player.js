@@ -358,15 +358,21 @@
       let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg"/>');
       $(fileChooser).css({'display': 'none'});
       $(fileChooser).on('change', (evt)=> {
+        if (isAutoPlay == true) {
+          window.clearTimeout(timer);
+          isAutoPlay = false;
+          $(playerCmdBox).find('#AutoPlayCmd').click();
+        }
         selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
-        isAutoPlay = false;
         $(playerViewBox).find('#AutoPlayCmd').val(' Play ');
         $(playerViewBox).find('#LocalVideo').remove();
+        /*
         if (timer) {
           window.clearTimeout(timer);
           $('#AuotoPlayCmd').click();
         }
+        */
         let filesArray = selectedFiles.toArray();
         filesArray.forEach((item, i) => {
           let fileOption = $('<option value="' + item.type + '">' + (i+1) + '. ' + item.name + '</option>');
