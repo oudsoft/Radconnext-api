@@ -982,7 +982,7 @@ app.get('/line/userinfo/(:luneUserId)', async (req, res) => {
 app.get('/list/(:hospitalId)', async (req, res) => {
   const hospitalId = req.params.hospitalId;
   const qlimit = req.query.limit;
-  log.info('qlimit=>' + qlimit);
+  //log.info('qlimit=>' + qlimit);
   let limit = 20;
   if ((qlimit) && (qlimit > 0)){
     limit = qlimit;

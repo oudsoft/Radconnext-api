@@ -18,7 +18,7 @@
         <select id="HospitalID"></select><span>  </span>
         <label for="Limit">Limit:</label><span>  </span>
         <select id="Limit"></select><span>  </span>
-        <input type="button" id="LoadCaseCmd" value="Load Last 20 Cases."/>
+        <input type="button" id="LoadCaseCmd" value="Load Cases."/>
       </div>
       <div id="CaseList"></div>
     </div>
@@ -75,6 +75,16 @@
     });
   }
 
+  const doLoadRadioFullName = function(radioId){
+    return new Promise(async function(resolve, reject) {
+      let callUrl = '/api/users/select/' + radioId;
+      let params = {};
+      $.get(callUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
   const doCallLoadLast20Cases = function(hospitalId, limit){
     return new Promise(async function(resolve, reject) {
       let callUrl = '/api/cases/list/' + hospitalId  + '?limit=' + limit;
@@ -119,7 +129,17 @@
           $(itemRow).append($('<td align="center">' + cases[i].id + '</td>'));
           $(itemRow).append($('<td align="left">' + cases[i].createdAt + '</td>'));
           $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + '</td>'));
-          $(itemRow).append($('<td align="center">' + cases[i].Case_RadiologistId + '</td>'));
+          let radioCol = $('<td align="center"></td>');
+          let radioIdCell = $('<span data-toggle="tooltip">' + cases[i].Case_RadiologistId + '</span>');
+          $(radioIdCell).on('mouseover', (evt)=>{
+            doLoadRadioFullName(cases[i].Case_RadiologistId).then((callRes)=>{
+              console.log(callRes.user[0]);
+              let radioFN = callRes.user[0].userinfo.User_NameTH + ' ' + callRes.user[0].userinfo.User_LastNameTH;
+              $(radioIdCell).prop('title', radioFN);
+            });
+          });
+          $(itemRow).append($(radioCol));
+          $(radioCol).append($(radioIdCell));
           $(itemRow).append($('<td align="center">' + cases[i].casestatusId + '</td>'));
           let cmdCol = $('<td align="center"></td>');
           $(itemRow).append($(cmdCol));
