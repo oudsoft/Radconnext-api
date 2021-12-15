@@ -24,9 +24,6 @@
     </div>
   </body>
 </html>
-<style>
-
-</style>
 <script type="text/javascript">
 
   $( document ).ready(function() {
@@ -105,6 +102,48 @@
     });
   }
 
+  const doReZipCase = function(caseId){
+    let callUrl = '/api/cases/rezip/' + caseId;
+    let params = {};
+    $.get(callUrl, params).then((response) => {
+      //resolve(response);
+      console.log(response);
+      alert('OK');
+    });
+  }
+
+  function doCallLoadStudyTags(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  function doReStructureDicom(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  function doReDicomLog(hospitalID, studyID){
+    return new Promise(async function(resolve, reject) {
+      let studyTags = await doCallLoadStudyTags(hospitalID, studyID);
+      console.log(studyTags);
+      let reStudyRes = await doReStructureDicom(hospitalID, studyID, studyTags);
+      console.log(reStudyRes);
+      alert('OK');
+    });
+  }
+
   const doLoadLast20Cases = function(evt){
     let limit = $('#Limit').val();
     let hospitalId = $('#HospitalID').val();
@@ -119,7 +158,7 @@
   const doShowCaseList = function(cases){
     return new Promise(async function(resolve, reject) {
       let caseTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
-      let headerRow = $('<tr><td width="5%" align="center">#</td><td width="10%" align="center">Case ID</td><td width="20%" align="center">CreatedAt</td><td width="25%" align="center">Patient Name</td><td width="10%" align="center">Radio ID</td><td width="10%" align="center">Status ID</td><td width="*" align="center">CMD</td></tr>');
+      let headerRow = $('<tr><td width="5%" align="center">#</td><td width="10%" align="center">Case ID</td><td width="20%" align="center">Created At</td><td width="25%" align="center">Patient Name</td><td width="10%" align="center">Radio ID</td><td width="10%" align="center">Status ID</td><td width="*" align="center">CMD</td></tr>');
       $(caseTable).append($(headerRow));
       let promiseList = new Promise(async function(resolve2, reject2) {
         for (let i=0; i < cases.length; i++){
@@ -127,7 +166,13 @@
           $(itemRow).appendTo($(caseTable));
           $(itemRow).append($('<td align="center">' + (i+1) + '</td>'));
           $(itemRow).append($('<td align="center">' + cases[i].id + '</td>'));
-          $(itemRow).append($('<td align="left">' + cases[i].createdAt + '</td>'));
+          let caseCreateAt = cases[i].createdAt;
+
+          let d = new Date(caseCreateAt);
+          let casedate = formatDateStr(d);
+          let casetime = formatTimeStr(d);
+
+          $(itemRow).append($('<td align="left">' + casedate + ' : ' + casetime + '</td>'));
           $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + '</td>'));
           let radioCol = $('<td align="center"></td>');
           let radioIdCell = $('<span data-toggle="tooltip">' + cases[i].Case_RadiologistId + '</span>');
@@ -151,7 +196,17 @@
             });
             $(cmdCol).append($(reSubmitCmd));
           } else {
-            $(cmdCol).append($('<span></span>'));
+            let reZipCmd = $('<input type="button" value="Re-Zip"/>');
+            $(reZipCmd).on('click', (evt)=>{
+              doReZipCase(cases[i].id);
+            });
+            $(cmdCol).append($(reZipCmd));
+            $(cmdCol).append($('<span>  </span>'));
+            let reDicomCmd = $('<input type="button" value="Re-Dicom"/>');
+            $(reDicomCmd).on('click', (evt)=>{
+              doReDicomLog(cases[i].hospitalId, cases[i].Case_OrthancStudyID);
+            });
+            $(cmdCol).append($(reDicomCmd));
           }
         }
         setTimeout(()=> {
@@ -192,4 +247,80 @@
     return indexOf.call(this, needle) > -1;
   }
 
+  const formatDateStr = function(d) {
+		var yy, mm, dd;
+		yy = d.getFullYear();
+		if (d.getMonth() + 1 < 10) {
+			mm = '0' + (d.getMonth() + 1);
+		} else {
+			mm = '' + (d.getMonth() + 1);
+		}
+		if (d.getDate() < 10) {
+			dd = '0' + d.getDate();
+		} else {
+			dd = '' + d.getDate();
+		}
+		var td = `${yy}-${mm}-${dd}`;
+		return td;
+	}
+
+	const formatTimeStr = function(d) {
+		var hh, mn, ss;
+		hh = d.getHours();
+    if (hh < 10){
+      hh = '0' + hh;
+    }
+		mn = d.getMinutes();
+    if (mn < 10){
+      mn = '0' + mn;
+    }
+		ss = d.getSeconds();
+    if (ss < 10){
+      ss = '0' + ss;
+    }
+		var td = `${hh}:${mn}:${ss}`;
+		return td;
+	}
+
 </script>
+
+<style>
+  .tooltip {
+  	position: relative;
+  	display: inline-block;
+  	border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+  	visibility: hidden;
+  	width: 120px;
+  	background-color: #555;
+  	color: #fff;
+  	text-align: center;
+  	border-radius: 6px;
+  	padding: 5px 0;
+  	position: absolute;
+  	z-index: 1;
+  	bottom: 125%;
+  	left: 50%;
+  	margin-left: -60px;
+  	opacity: 0;
+  	transition: opacity 0.3s;
+  }
+
+  .tooltip .tooltiptext::after {
+  	content: "";
+  	position: absolute;
+  	top: 100%;
+  	left: 50%;
+  	margin-left: -5px;
+  	border-width: 5px;
+  	border-style: solid;
+  	border-color: #555 transparent transparent transparent;
+  }
+
+  .tooltip:hover .tooltiptext {
+  	visibility: visible;
+  	opacity: 1;
+  }
+</style>

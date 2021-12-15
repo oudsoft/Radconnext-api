@@ -2655,8 +2655,8 @@ function doLoadMainPage(){
   let htmlformatlib = '../lib/htmlformatlib.js';
 
 	let countdownclockPluginUrl = "../setting/plugin/jquery-countdown-clock-plugin.js";
-	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js"
-  let readystatePlugin = "../setting/plugin/jqury-readystate-plugin.js"
+	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js";
+  let readystatePlugin = "../setting/plugin/jqury-readystate-plugin.js";
   let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
   let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
 

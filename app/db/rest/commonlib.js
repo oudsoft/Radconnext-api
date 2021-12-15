@@ -844,10 +844,9 @@ const doConvertPatientHistoryImage2Dicom = function(studyID, hospitalId, hostNam
       archiveFileName = uti.fmtStr('%s_%s-%s-%s.zip', patientNameEN, patientLastNameEN, studyDate, studyTime);
       archiveFilePath = usrArchiveDir + '/' + archiveFileName;
 
-      let clearZipCommand = uti.fmtStr('rm %s', archiveFilePath);
-
-      let isExist = fs.existsSync(clearZipCommand);
+      let isExist = fs.existsSync(archiveFilePath);
       if (isExist) {
+        let clearZipCommand = uti.fmtStr('rm %s', archiveFilePath);
         await uti.runcommand(clearZipCommand);
       }
 
