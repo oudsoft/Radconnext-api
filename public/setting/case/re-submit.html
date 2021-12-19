@@ -52,6 +52,7 @@
     $('#Limit').append($('<option value="40">40</option>'));
     $('#Limit').append($('<option value="50">50</option>'));
     $('#Limit').append($('<option value="100">100</option>'));
+    $('#Limit').append($('<option value="200">200</option>'));
     $('#Limit').val("20").change();
     $('#HospitalID').empty();
     doCallLoadHospitalList().then((hospitals)=>{
