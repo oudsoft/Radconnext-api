@@ -140,7 +140,7 @@
       console.log(studyTags);
       let reStudyRes = await doReStructureDicom(hospitalID, studyID, studyTags);
       console.log(reStudyRes);
-      alert('OK');
+      resolve(reStudyRes);
     });
   }
 
