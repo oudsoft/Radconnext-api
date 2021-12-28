@@ -537,12 +537,12 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       log.info('isEditResponse=>' + isEditResponse);
       let pdfPages = report.reportPages;
       log.info('pdfPages=>' + pdfPages);
+      let lastReports = await db.casereports.findAll({attributes: ['PDF_DicomSeriesIds', 'SeriesInstanceUIDs', 'SOPInstanceUIDs'], where: {caseresponseId: responseId}});
+      log.info('lastReports=>' + JSON.stringify(lastReports));
 
       let dicom = undefined;
-      if (isEditResponse) {
+      if ((isEditResponse) && (lastReports.length > 0)) {
 
-        let lastReports = await db.casereports.findAll({attributes: ['PDF_DicomSeriesIds', 'SeriesInstanceUIDs', 'SOPInstanceUIDs'], where: {caseresponseId: responseId}});
-        log.info('lastReports=>' + JSON.stringify(lastReports));
         let seriesIds = lastReports[0].PDF_DicomSeriesIds.items;
 
         let deleteRes = await doDeleteResultSeries(seriesIds, hospitalId, hostname);

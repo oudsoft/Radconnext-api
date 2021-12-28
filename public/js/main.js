@@ -26,8 +26,8 @@ setTimeout(()=>{
 		let myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330});
 		$('body').append($(myPBox));
 
-		$(myPBox).draggable({containment: "body"});
-		$(myPBox).resizable({containment: 'body',
+		$(myPBox).draggable({containment: "parent"});
+		$(myPBox).resizable({containment: 'parent',
 			stop: function(evt) {
 				$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
 			}
