@@ -362,7 +362,7 @@
           window.clearTimeout(timer);
           isAutoPlay = false;
           //$(playerCmdBox).find('#AutoPlayCmd').click();
-          $('#AutoPlayCmd').click();
+          //$('#AutoPlayCmd').click();
         }
         selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
