@@ -166,7 +166,7 @@
     const doCreateImagePreview = function(fileURL, label){
       let labelBox = $('<p id="GGLabel" style="font-family: EkkamaiStandard; font-size: 20px; color: yellow;">' + label + '</p>');
       $(labelBox).css({'color': settings.ggFontColor});
-      let imgBox = $('<div id="ImgBox" class="imgbox" style="position: absolute; padding: 10px; text-align: center; top: -90px;"></div>');
+      let imgBox = $('<div id="ImgBox" class="imgbox" style="position: absolute; padding: 10px; text-align: center; top: -120px;"></div>');
       let imgView = $('<div class="imgview" style="position: relative; width: 450px; height: auto;"></div>');
       $(imgBox).append($(imgView));
 
@@ -361,7 +361,8 @@
         if (isAutoPlay == true) {
           window.clearTimeout(timer);
           isAutoPlay = false;
-          $(playerCmdBox).find('#AutoPlayCmd').click();
+          //$(playerCmdBox).find('#AutoPlayCmd').click();
+          $('#AutoPlayCmd').click();
         }
         selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
