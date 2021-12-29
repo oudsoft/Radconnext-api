@@ -154,10 +154,10 @@
         if (n == undefined) {
           n = 0;
         }
-        $(playerViewBox).find('#FileSrcListBox').hide();
         $(playerViewBox).css({'text-align': 'center'});
         let selectedFileType = selectedFiles[n].type;
         if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
+          $(playerViewBox).find('#FileSrcListBox').hide();
           doPlaySlide();
         }
       }
