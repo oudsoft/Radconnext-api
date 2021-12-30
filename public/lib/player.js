@@ -361,12 +361,10 @@
         if (isAutoPlay == true) {
           window.clearTimeout(timer);
           isAutoPlay = false;
-          //$(playerCmdBox).find('#AutoPlayCmd').click();
-          //$('#AutoPlayCmd').click();
         }
         selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
-        $(playerViewBox).find('#AutoPlayCmd').val(' Play ');
+        $(playerViewBox).find('#AutoPlayCmd').attr('src', pluginUrl+ '/images/start-play-icon.png');
         $(playerViewBox).find('#LocalVideo').remove();
         /*
         if (timer) {
@@ -537,7 +535,7 @@
         doToggleAutoPlay(evt);
       });
 
-      let togglePlayListCmd = $('<img id="AutoPlayCmd" data-toggle="tooltip" title="Show Image List"/>');
+      let togglePlayListCmd = $('<img id="ImageListCmd" data-toggle="tooltip" title="Show Image List"/>');
       $(togglePlayListCmd).attr('src', pluginUrl+ '/images/list-item-icom.png');
       $(togglePlayListCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
       $(togglePlayListCmd).on('click', (evt)=>{
