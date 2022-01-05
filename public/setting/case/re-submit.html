@@ -145,6 +145,16 @@
     });
   }
 
+  const doOpenResult = function(caseId){
+    let openUrl = '/api/casereport/select/' + caseId;
+    let params = {};
+    $.post(openUrl, params).then((response) => {
+      console.log(response);
+      let resultUrl = response.Records[0].PDF_Filename;
+      window.open(resultUrl, '_blank');
+    });
+  }
+
   const doLoadLast20Cases = function(evt){
     let limit = $('#Limit').val();
     let hospitalId = $('#HospitalID').val();
@@ -160,6 +170,7 @@
     return new Promise(async function(resolve, reject) {
       let caseTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
       let headerRow = $('<tr><td width="5%" align="center">#</td><td width="10%" align="center">Case ID</td><td width="20%" align="center">Created At</td><td width="25%" align="center">Patient Name</td><td width="10%" align="center">Radio ID</td><td width="10%" align="center">Status ID</td><td width="*" align="center">CMD</td></tr>');
+      $(headerRow).css({'background-color': 'grey', 'color': 'white'});
       $(caseTable).append($(headerRow));
       let promiseList = new Promise(async function(resolve2, reject2) {
         for (let i=0; i < cases.length; i++){
@@ -195,6 +206,12 @@
             $(reSubmitCmd).on('click', (evt)=>{
               doResubmitReport(cases[i].id);
             });
+            let openResultCmd = $('<input type="button" value="Open"/>');
+            $(openResultCmd).on('click', (evt)=>{
+              doOpenResult(cases[i].id);
+            });
+            $(cmdCol).append($(openResultCmd));
+            $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(reSubmitCmd));
           } else {
             let reZipCmd = $('<input type="button" value="Re-Zip"/>');
