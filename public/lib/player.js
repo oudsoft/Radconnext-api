@@ -519,7 +519,7 @@
     const init = function() {
       playerMainBox = $('<div id="PlayerBox" style="width: 100%; height: 100%;"></div>'); // background-color: rgba(0,0,0,0.1)
       playerCmdBox = $('<div id="PlayerCmdBox" style="position: relative; width: 100%; top: 0px; padding: 5px; top: -20px;"></div>');
-      playerViewBox = $('<div id="PlayerViewBox" style="position: relative; width: 100%; top: 50px;"></div>');
+      playerViewBox = $('<div id="PlayerViewBox" style="position: relative; width: 100%; top: 100px;"></div>');
 
       let fileChooserCmd = $('<img data-toggle="tooltip" title="Open"/>');
       $(fileChooserCmd).attr('src', pluginUrl+ '/images/open-file-icon.png');

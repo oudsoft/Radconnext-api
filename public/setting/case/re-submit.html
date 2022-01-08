@@ -148,7 +148,7 @@
   const doOpenResult = function(caseId){
     let openUrl = '/api/casereport/select/' + caseId;
     let params = {};
-    $.post(openUrl, params).then((response) => {
+    $.get(openUrl, params).then((response) => {
       console.log(response);
       let resultUrl = response.Records[0].PDF_Filename;
       window.open(resultUrl, '_blank');
