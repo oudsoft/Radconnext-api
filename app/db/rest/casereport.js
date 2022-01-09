@@ -369,7 +369,7 @@ app.get('/create/(:caseId)', async (req, res) => {
 	}
 });
 
-app.get('/select/(:caseId)', (req, res) => {
+app.get('/select/(:caseId)', async (req, res) => {
     const caseId = req.params.caseId;
     const caserep = await Report.findAll({attributes: excludeColumn, where: {caseId: caseId}});
     res.json({ status: {code: 200}, Records: caserep});
