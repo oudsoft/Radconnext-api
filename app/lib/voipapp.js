@@ -48,6 +48,20 @@ app.post('/response', async function(req, res) {
   */
 });
 
+app.post('/callradio', async function(req, res) {
+  log.info('call params => ' + JSON.stringify(req.body));
+  const caseId = '1000';
+  let hospitalCode = req.body.hospitalCode;
+  let urgentCode = req.body.urgentCode;
+  let msisdn = req.body.msisdn;
+  let voiceTransactionId = uti.doCreateVoiceTranctionId();
+  let requestFmtCmd = "curl -k https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s"
+  let requestCmd = uti.fmtStr(requestFmtCmd, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
+  let requestRes = await uti.runcommand(requestCmd);
+  log.info('requestRes => ' + JSON.stringify(requestRes));
+  res.json({status: {code: 200}, ok: 'nano'});
+});
+
 module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {
   db = dbconn;
   log = monitor;
