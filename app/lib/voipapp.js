@@ -55,9 +55,28 @@ app.post('/callradio', async function(req, res) {
   let urgentCode = req.body.urgentCode;
   let msisdn = req.body.msisdn;
   let voiceTransactionId = uti.doCreateVoiceTranctionId();
+  /*
   let requestFmtCmd = "curl -k https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s"
   let requestCmd = uti.fmtStr(requestFmtCmd, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
   let requestRes = await uti.runcommand(requestCmd);
+  log.info('requestRes => ' + JSON.stringify(requestRes));
+  res.json({status: {code: 200}, ok: 'nano'});
+  */
+
+  const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
+  let voiceCallURL = uti.fmtStr(requestFmtCmdvoiceCallURL, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
+  let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
+  let rqParams = {
+    method: 'GETT',
+    uri: voiceCallURL,
+    body: voiceData,
+    headers: {
+      //...voiceData.getHeaders()
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+  let voiceRes = await uti.voipRequest(rqParams)
+
   log.info('requestRes => ' + JSON.stringify(requestRes));
   res.json({status: {code: 200}, ok: 'nano'});
 });
