@@ -77,7 +77,7 @@ app.post('/callradio', async function(req, res) {
   }
   let voiceRes = await uti.voipRequest(rqParams)
 
-  log.info('requestRes => ' + JSON.stringify(requestRes));
+  log.info('voiceRes => ' + JSON.stringify(voiceRes));
   res.json({status: {code: 200}, ok: 'nano'});
 });
 
