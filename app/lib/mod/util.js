@@ -419,8 +419,10 @@ const voipRequest = function(rqParam) {
 			method: rqParam.method,
 			url: rqParam.uri,
 			headers: rqParam.headers,
-			body: rqParam.body
+			body: rqParam.body,
+			strictSSL: false
 		};
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 		request(proxyParams, (err, res, body) => {
 			if (!err) {
 				resolve({status: {code: 200}, res: res});
