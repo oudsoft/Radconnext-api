@@ -19,11 +19,9 @@ app.post('/response', async function(req, res) {
   log.info('forwardCmd => ' + forwardCmd);
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
-  */
   res.json({status: {code: 200}, ok: 'me'});
+  */
 
-
-  /*
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -48,7 +46,6 @@ app.post('/response', async function(req, res) {
     await Voip.removeTaskByCaseId(caseId);
   }
   res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
-  */
 });
 
 app.post('/callradio', async function(req, res) {

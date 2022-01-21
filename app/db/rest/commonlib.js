@@ -486,31 +486,19 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let totalMinute = dayMn + hourMn + minuteMn;
       let voiceUrgent = uti.doCalUrgentVoiceCall(totalMinute);
       if (voiceUrgent){
-        const voiceCallURL = 'https://api.smartmed.softcontrol.net/api.php';
-        const requestCallURL = 'https://radconnext.com/voip_test/send_api.php';
-        let voiceTransactionId = uti.doCreateVoiceTranctionId();
-        /*
-        let voiceData = new FormData();
-        voiceData.append('act', 'send_api');
-        voiceData.append('inc_id', caseId);
-        voiceData.append('transaction_id', voiceTransactionId);
-        voiceData.append('phone_number', radioProfile.radioPhoneNo);
-        voiceData.append('hosp_code', hospitalCode);
-        voiceData.append('urgent_type', voiceUrgent);
-        voiceData.append('end_point', voiceCallURL);
-        */
-        let voiceData = 'act=send_api&inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + radioProfile.radioPhoneNo + '&hosp_code=' + hospitalCode + '&urgent_type=' + voiceUrgent + '&end_point=' + voiceCallURL;
+        const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
+        let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
+        let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
         let rqParams = {
-  				method: 'POST',
-  				uri: requestCallURL,
-  				body: voiceData,
+          method: 'GET',
+          uri: voiceCallURL,
+          body: voiceData,
           headers: {
-            //...voiceData.getHeaders()
             'Content-Type': 'application/x-www-form-urlencoded'
           }
-  			}
+        }
         let voiceRes = await uti.voipRequest(rqParams)
-        //log.info('voiceRes=> ' + JSON.stringify(voiceRes));
+        log.info('voiceRes=> ' + JSON.stringify(voiceRes));
         resolve(voiceRes);
       } else {
         resolve();
