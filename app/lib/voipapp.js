@@ -19,9 +19,10 @@ app.post('/response', async function(req, res) {
   log.info('forwardCmd => ' + forwardCmd);
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
-  res.json({status: {code: 200}, ok: 'me'});
   */
-  
+  res.json({status: {code: 200}, ok: 'me'});
+
+
   /*
   let changeRes = {};
   let yourResponse = req.body;
