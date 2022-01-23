@@ -55,7 +55,7 @@ var eventHandlers = {
 
 var options = {
   'eventHandlers'    : eventHandlers,
-  'mediaConstraints' : { 'audio': true, 'video': true }
+  'mediaConstraints' : { 'audio': true, 'video': false }
 };
 
 var session = ua.call('sip:2001@radconnext.me', options);
