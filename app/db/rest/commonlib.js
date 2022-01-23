@@ -443,31 +443,9 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         // doCallToRadioPhone
-        let voiceData = {
-          inc_id: caseData.caseId,
-          transaction_id:  caseData.transactionId, //"202111100123940",
-          phone_number: radioProfile.radioPhoneNo,
-          hosp_code: caseData.hospitalCode, //"lpt",
-          urgent_type: caseData.urgentType, //"urgent_cta_neuro_body"
-        };
-        /*
-        let rqParams = {
-  				method: 'POST',
-  				uri: 'https://api.smartmed.softcontrol.net/api.php',
-  				body: voiceData,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-  			}
-        let voiceRes = await uti.voipRequest(rqParams);
-        */
 
-        let callPhoneCmdFmt = "curl -X POST -H \"Content-Type: Content-Type: application/json\" https://api.smartmed.softcontrol.net/api.php  -d  '%s'";
-        let callPhoneCmd = uti.fmtStr(callPhoneCmdFmt, JSON.stringify(voiceData));
-        log.info('callPhoneCmd => ' + callPhoneCmd);
-        let callPhoneRes = await uti.runcommand(callPhoneCmd);
+        let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
-
       }
       //await tasks.removeTaskByCaseId(caseId);
     });
