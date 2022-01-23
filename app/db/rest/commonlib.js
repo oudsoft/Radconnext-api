@@ -477,7 +477,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }
-        let voiceRes = await uti.voipRequest(rqParams)
+        let voiceRes = await uti.voipRequest(rqParams);
         log.info('voiceRes=> ' + JSON.stringify(voiceRes));
         resolve(voiceRes);
       } else {
