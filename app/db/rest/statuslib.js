@@ -270,6 +270,7 @@ const onNewCaseEvent = function(caseId, options){
 
     //Load Urgent Profile
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.urgenttypeId}});
+    log.info('radioProfile=>' + JSON.stringify(radioProfile));
     if ((radioProfile.autoacc == 0) || (!radioProfile.autoacc)) {
       //Create Task Schedule
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
