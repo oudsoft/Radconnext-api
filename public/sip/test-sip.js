@@ -2,10 +2,10 @@
 // Create our JsSIP instance and run it:
 
 //var socket = new JsSIP.WebSocketInterface('wss://192.168.99.9:8089/ws');
-var socket = new JsSIP.WebSocketInterface('wss://202.28.68.6:5060/ws');
+var socket = new JsSIP.WebSocketInterface('wss://radconnext.me/ws');
 var configuration = {
   sockets  : [ socket ],
-  uri      : 'sip:2000@202.28.68.6',
+  uri      : 'sip:2000@radconnext.me',
   password : 'qwerty2000'
 };
 socket.onmessage = function(msgEvt){
@@ -58,4 +58,4 @@ var options = {
   'mediaConstraints' : { 'audio': true, 'video': true }
 };
 
-var session = ua.call('sip:2001@202.28.68.6', options);
+var session = ua.call('sip:2001@radconnext.me', options);
