@@ -2402,7 +2402,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":17,"../../refer/mod/websocketmessage.js":20,"./websocketmessage.js":6}],6:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":18,"../../refer/mod/websocketmessage.js":21,"./websocketmessage.js":6}],6:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -2575,8 +2575,8 @@ const acccase = require('./mod/acccaselib.js')($);
 const searchcase = require('./mod/searchcaselib.js')($);
 const opencase = require('./mod/opencase.js')($);
 const template = require('./mod/templatelib.js')($);
-const profile = require('./mod/profilelib.js')($);
-//const profile = require('./mod/profilelibV2.js')($);
+//const profile = require('./mod/profilelib.js')($);
+const profile = require('./mod/profilelibV2.js')($);
 
 const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
 
@@ -3185,7 +3185,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":11,"./mod/opencase.js":13,"./mod/profilelib.js":14,"./mod/searchcaselib.js":15,"./mod/templatelib.js":16,"./mod/welcomelib.js":18,"jquery":19}],8:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":12,"./mod/opencase.js":14,"./mod/profilelibV2.js":15,"./mod/searchcaselib.js":16,"./mod/templatelib.js":17,"./mod/welcomelib.js":19,"jquery":20}],8:[function(require,module,exports){
 /* acccaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3765,6 +3765,103 @@ module.exports = function ( jq ) {
 }
 
 },{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],10:[function(require,module,exports){
+/*changepwddlg.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	const apiconnector = require('../../case/mod/apiconnect.js')($);
+  const util = require('../../case/mod/utilmod.js')($);
+  const common = require('../../case/mod/commonlib.js')($);
+
+  const doCreateChangePwdDlg = function(){
+    let changePwdDlg = $('<div></div>');
+    let changePwdWrapper = $('<table width="100%" border="0" cellspacing="0" cellpadding="2"></table>');
+    let newPasswordRow = $('<tr></tr>');
+    let retryPasswordRow = $('<tr></tr>');
+    $(changePwdWrapper).append($(newPasswordRow)).append($(retryPasswordRow));
+    let newPasswordLabelCell = $('<td width="40%" align="left">New Password <span style="color: red;">*</span></td>');
+    let newPasswordValueCell = $('<td width="*" align="left"></td>');
+    $(newPasswordRow).append($(newPasswordLabelCell)).append($(newPasswordValueCell));
+    let retryPasswordLabelCell = $('<td align="left">Retry Password <span style="color: red;">*</span></td>');
+    let retryPasswordValueCell = $('<td align="left"></td>');
+    $(retryPasswordRow).append($(retryPasswordLabelCell)).append($(retryPasswordValueCell));
+
+    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 190px;"/>');
+    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 190px;"/>');
+    $(newPasswordValueCell).append($(newPasswordValue));
+    $(retryPasswordValueCell).append($(retryPasswordValue));
+    $(changePwdDlg).append($(changePwdWrapper));
+
+    const doVerifyNewPassword = function(){
+      let newPassword = $(newPasswordValue).val();
+      let retryPassword = $(retryPasswordValue).val();
+      if (newPassword !== ''){
+        $(newPasswordValue).css({'border': ''});
+        if (retryPassword !== ''){
+          $(retryPasswordValue).css({'border': ''});
+          if (newPassword === retryPassword){
+            $(newPasswordValue).css({'border': ''});
+            $(retryPasswordValue).css({'border': ''});
+            return newPassword;
+          } else {
+            $(newPasswordValue).css({'border': '1px solid red'});
+            $(retryPasswordValue).css({'border': '1px solid red'});
+            $.notify('New Password กับ Retry Password มีค่าไม่เหมือนกัน', 'error');
+            return;
+          }
+        } else {
+          $(retryPasswordValue).css({'border': '1px solid red'});
+          $.notify('Retry Password ต้องไม่ว่าง', 'error');
+          return;
+        }
+      } else {
+        $(newPasswordValue).css({'border': '1px solid red'});
+        $.notify('New Password ต้องไม่ว่าง', 'error');
+        return;
+      }
+    }
+
+    const radconfirmoption = {
+      title: 'เปลี่ยน Password',
+      msg: $(changePwdDlg),
+      width: '440px',
+      onOk: function(evt) {
+        let newPassword = doVerifyNewPassword();
+        if ((newPassword) && (newPassword !== '')) {
+          $('body').loading('start');
+          changePwdDlgBox.closeAlert();
+          let userdata = JSON.parse(localStorage.getItem('userdata'));
+          let userId = userdata.id;
+          let reqParams = {userId: userId, password: newPassword};
+          console.log(reqParams);
+          $.post('/api/users/resetpassword', reqParams).then((response) => {
+            console.log(response);
+            $('body').loading('stop');
+            if (response) {
+              $.notify('เปลี่ยน Password สำเร็จ', 'success');
+            } else {
+              $.notify('เปลี่ยน Password ไม่สำเร็จ', 'error');
+            }
+          });
+        }
+      },
+      onCancel: function(evt){
+        changePwdDlgBox.closeAlert();
+      }
+    }
+    let changePwdDlgBox = $('body').radalert(radconfirmoption);
+  }
+
+  const doShowChangePwdDlg = function(){
+
+  }
+
+  return {
+    doCreateChangePwdDlg
+  }
+}
+
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],11:[function(require,module,exports){
 /* chatmanager.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4088,7 +4185,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":5,"../main.js":7}],11:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":5,"../main.js":7}],12:[function(require,module,exports){
 /* newcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5030,7 +5127,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./chatmanager.js":10}],12:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./chatmanager.js":11}],13:[function(require,module,exports){
 /* onrefreshtrigger.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5057,7 +5154,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /* opencase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6586,18 +6683,19 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./ai-lib.js":9,"./chatmanager.js":10,"./templatelib.js":16}],14:[function(require,module,exports){
-/* profilelib.js */
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./ai-lib.js":9,"./chatmanager.js":11,"./templatelib.js":17}],15:[function(require,module,exports){
+/*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
 
 	const apiconnector = require('../../case/mod/apiconnect.js')($);
   const util = require('../../case/mod/utilmod.js')($);
   const common = require('../../case/mod/commonlib.js')($);
+	const changepwddlg = require('./changepwddlg.js')($);
 
+  const profileTitle = 'ตั้งค่าการแจ้งเตือนและรับเคส';
 
   const doCreateProfileTitlePage = function(){
-    const profileTitle = 'ตั้งค่าการแจ้งเตือนและรับเคส';
     let profileTitleBox = $('<div></div>');
     let logoPage = $('<img src="/images/setting-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
     $(logoPage).appendTo($(profileTitleBox));
@@ -6606,168 +6704,420 @@ module.exports = function ( jq ) {
     return $(profileTitleBox);
   }
 
-  const doCreateHeader = function(){
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
+  const doCreateBlankTable = function(){
+    let blankTable = $('<table cellspacing="0" cellpadding="0" border="1" width="100%"></table>');
+    let headerRow = $('<tr></tr>');
+    let activeRow = $('<tr></tr>');
+    let lockRow = $('<tr></tr>');
+    let offlineRow = $('<tr></tr>');
+    let commandRow = $('<tr></tr>');
 
-		let headColumn = $('<div id="StatusNameColumn" style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>สถานะ</span>');
-		$(headColumn).appendTo($(headerRow));
+    let activeNameCell = $('<td><b>Active</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let activeControlCell = $('<td id="ActiveControl"></td>');
 
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การแจ้งเตือน</span>');
-		$(headColumn).appendTo($(headerRow));
+    let lockNameCell = $('<td><b>Lock</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let lockControlCell = $('<td id="LockControl"></td>');
 
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การรับเคส</span>');
-		$(headColumn).appendTo($(headerRow));
+    let offlineNameCell = $('<td><b>Offline</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let offlineControlCell = $('<td id="OfflineControl"></td>');
 
-    return $(headerRow);
+    let commandCell = $('<td colspan="2" id="ProfilePageCmd" align="center"></td>');
+
+    $(headerRow).append($('<td class="header-cell" width="15%">สถานะ</td>'));
+    $(headerRow).append($('<td class="header-cell" width="*">ตั้งค่า</td>'));
+
+    $(activeRow).append($(activeNameCell)).append($(activeControlCell));
+    $(lockRow).append($(lockNameCell)).append($(lockControlCell));
+    $(offlineRow).append($(offlineNameCell)).append($(offlineControlCell));
+    $(commandRow).append($(commandCell));
+    return $(blankTable).append(headerRow).append($(activeRow)).append($(lockRow)).append($(offlineRow)).append($(commandRow));
   }
 
-  const doCreateActiveRow = function(profile){
-    let activeRow = $('<div style="display: table-row; width: 100%;"></div>');
+	const onActionCommonHandle = function(evt) {
+		console.log('one');
+	}
 
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(activeRow));
-    $(statusNameCell).append($('<span>Active</span>'));
+	const offActionCommonHandle = function(evt) {
+		console.log('two');
+	}
 
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(activeRow));
+	const onActiveHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#ActiveControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoActiveGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
 
-    let webmessageNotityBox = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
-    $(webmessageNotityBox).appendTo($(notifyCell));
-    let webmessageSwitchControl = $('<div id="WebmessageSwitchControl"></div>');
-    let webmessageSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let webmessageSwitch = $(webmessageSwitchControl).readystate(webmessageSwitchOption);
-    if (profile.Profile.activeState.webNotify == 1) {
-      webmessageSwitch.onAction();
+	const offActiveHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#ActiveControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectActiveHandle(evt);
+	}
+
+	const onLockHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#LockControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoLockGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
+
+	const offLockHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#LockControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectLockHandle(evt);
+	}
+
+	const onOfflineHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#OfflineControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoOfflineGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
+
+	const offOfflineHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#OfflineControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectOfflineHandle(evt);
+	}
+
+	const manSelectActiveHandle = function(evt){
+		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectActiveHandle = function(evt){
+		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const manSelectLockHandle = function(evt){
+		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectLockHandle = function(evt){
+		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const manSelectOfflineHandle = function(evt){
+		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectOfflineHandle = function(evt){
+		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const changePasswordCmdClick = function(evt){
+		changepwddlg.doCreateChangePwdDlg();
+	}
+
+	const switchOptions = {onActionCallback: onActionCommonHandle, offActionCallback: offActionCommonHandle};
+	const activeActions = {onActionCallback: onActiveHandle, offActionCallback: offActiveHandle};
+	const lockActions = {onActionCallback: onLockHandle, offActionCallback: offLockHandle};
+	const offlineActions = {onActionCallback: onOfflineHandle, offActionCallback: offOfflineHandle};
+	const switchStyle = {'position': 'relative', 'top': '5px', 'left': '20px', 'display': 'inline-block'};
+	const switchLabelStyle = {'position': 'relative', 'top': '10px', 'margin-left': '5px'};
+	const radioLabelStyle = {'position': 'relative', 'top': '-1px', 'margin-left': '15px'};
+	const radioBtnStyle = {'transform': 'scale(2.5)'};
+
+	const doCreateManAutoRadioBox = function(groupName, manCallback, autoCallback){
+		let wrapperBox = $('<div id="ManAutoOptionBox" style="position: relative; display: inline-block; margin-left: 30px; top: 10px;"></div>');
+		let manOptionBtn = $('<input type="radio" id="ManOption" value="1" checked="true"/>').prop('name', groupName).css(radioBtnStyle);
+		let autoOptionBtn = $('<input type="radio" id="AutoOption" value="2"/>').prop('name', groupName).css(radioBtnStyle);
+		$(manOptionBtn).on('click', (evt)=>{
+			manCallback(evt);
+		});
+		$(autoOptionBtn).on('click', (evt)=>{
+			autoCallback(evt);
+		});
+		$(wrapperBox).append($(manOptionBtn));
+		$(wrapperBox).append($('<label>Manual (คน)</label>').css(radioLabelStyle));
+		$(wrapperBox).append($(autoOptionBtn).css({'margin-left': '20px'}));
+		$(wrapperBox).append($('<label>Auto</label>').css(radioLabelStyle));
+		return $(wrapperBox);
+	}
+
+	const doCreatePhoneCallOptionControlBox = function(options){
+		let wrapperBox = $('<div id="PhoneCallOptionBox" style="position: relative; display: none; top: 10px; padding: 10px; border: 2px solid black;"></div>');
+		let option1HRElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ ไม่เกิน 1 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option4HRElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ 1 - 4 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option24HRElem = $('<div style="line-height: 20px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ ไม่เกิน 24 ชม.</span>'));
+		let option1DElem = $('<div style="line-height: 20px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ เกิน 24 ชม.</span>'));
+		let option1HRInput = $('<input type="number" id="Option1HRInput" style="width: 60px;">');
+		$(option1HRInput).val(options.optionCaseControl.case1H);
+		let option4HRInput = $('<input type="number" id="Option4HRInput" style="width: 60px;">');
+		$(option4HRInput).val(options.optionCaseControl.case4H);
+		let option24HRInput = $('<input type="number" id="Option24HRInput" style="width: 60px;">');
+		let option1DInput = $('<input type="number" id="Option1DInput" style="width: 60px;">');
+		$(option1HRElem).append($(option1HRInput).css({'margin-left': '10px'}));
+		$(option1HRElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		$(option4HRElem).append($(option4HRInput).css({'margin-left': '10px'}));
+		$(option4HRElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(option1HRElem)).append($(option4HRElem)).append($(option24HRElem)).append($(option1DElem));
+	}
+
+	const doCreateSwitchBox = function(box, switchOptions, defaultValue){
+		let switchBox = $(box).readystate(switchOptions);
+    if (defaultValue == 1) {
+      switchBox.onAction();
     } else {
-      webmessageSwitch.offAction();
+      switchBox.offAction();
     }
-    $(webmessageSwitchControl).appendTo($(webmessageNotityBox));
-    $(webmessageSwitchControl).append($('<label style="position: absolute; top: 10px; left: 70px;">Website</label>'));
+		return switchBox;
+	}
 
-    let lineNotityBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(lineNotityBox).appendTo($(notifyCell));
-    let lineSwitchControl = $('<div id="LineSwitchControl"></div>');
-    let lineSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let lineSwitch = $(lineSwitchControl).readystate(lineSwitchOption);
-    if (profile.Profile.activeState.lineNotify == 1) {
-      lineSwitch.onAction();
-    } else {
-      lineSwitch.offAction();
-    }
-    $(lineSwitchControl).appendTo($(lineNotityBox)); //&nbsp;&nbsp;
-    $(lineNotityBox).append($('<label style="position: absolute; top: 10px; left: 70px;">LINE</label>'));
+	const doCreateWebNotifyContolSwitch = function(initValue){
+		let switchLabel = $('<label>แจ้งเตือนทาง Web Site</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="WebNotifySwitchBox"></div>').css(switchStyle);
 
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
 
-    let autocallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(autocallBox).appendTo($(notifyCell));
-    let autocallSwitchControl = $('<div id="AutocallSwitchControl"></div>');
-    let autocallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let autocallSwitch = $(autocallSwitchControl).readystate(autocallSwitchOption);
-    if (profile.Profile.activeState.phoneCall == 2) {
-      autocallSwitch.onAction();
-    } else {
-      autocallSwitch.offAction();
-    }
-    $(autocallSwitchControl).appendTo($(autocallBox)); //&nbsp;&nbsp;
-    $(autocallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Auto Call</label>'));
+	const doCreateLineBotNotifyContolSwitch = function(initValue){
+		let switchLabel = $('<label>แจ้งเตือนทาง Line</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="LineBotNotifySwitchBox"></div>').css(switchStyle);
 
-    let mancallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(mancallBox).appendTo($(notifyCell));
-    let mancallSwitchControl = $('<div id="MancallSwitchControl"></div>');
-    let mancallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let mancallSwitch = $(mancallSwitchControl).readystate(mancallSwitchOption);
-    if (profile.Profile.activeState.phoneCall == 1) {
-      mancallSwitch.onAction();
-    } else {
-      mancallSwitch.offAction();
-    }
-    $(mancallSwitchControl).appendTo($(mancallBox)); //&nbsp;&nbsp;
-    $(mancallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Manual Call</label>'));
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
 
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(activeRow));
+	const doCreatePhoneCallActiveContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
 
-    let caseAccBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(caseAccBox).appendTo($(caseAccCell));
-    let caseAccSwitchControl = $('<div id="CaseAcccallSwitchControl"></div>');
-    let caseAccSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let caseAccSwitch = $(caseAccSwitchControl).readystate(caseAccSwitchOption);
-    if (profile.Profile.activeState.autoAcc == 1) {
-      caseAccSwitch.onAction();
-    } else {
-      caseAccSwitch.offAction();
-    }
-    $(caseAccSwitchControl).appendTo($(caseAccBox)); //&nbsp;&nbsp;
-    $(caseAccBox).append($('<label style="position: absolute; top: 10px; left: 70px;">รับเคสอัตโนมัติ</label>'));
+		doCreateSwitchBox(switchBox, activeActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoActiveGroup', manSelectActiveHandle, autoSelectActiveHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
 
-    return $(activeRow);
+	const doCreateAutoAcceptSwitch = function(initValue){
+		let switchLabel = $('<label>รับเคสอัตโนมัติ</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="AutoAcceptSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoOnReadySwitch = function(initValue){
+		let switchLabel = $('<label>เปลี่ยนสถานะเป็นรับงานเมื่อฉัน Login</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="AutoOnReadySwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
+
+	const doCreatePhoneCallLockContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, lockActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoLockGroup', manSelectLockHandle, autoSelectLockHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoLockScreenControlBox = function(initValue){
+		let wrapperBox = $('<div id="AutoLockScreenControlBox" style="position: relative; display: block; top: 10px; padding: 10px;"></div>');
+		let controlElem = $('<div style="line-height: 40px;"></div>').append($('<span>เข้าสู่ Mode Lock เมื่อไม่ได้ใช้งาน</span>'));
+		let controlInput = $('<input type="number" id="AutoLockScreenMinuteInput" style="width: 60px;">');
+		$(controlInput).val(initValue);
+		$(controlElem).append($(controlInput).css({'margin-left': '10px'}));
+		$(controlElem).append($('<span>นาที (สูงสุด 60)</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(controlElem));
+	}
+
+	const doCreateUnLockScreenControlBox = function(initValue, callback){
+		let switchLabel = $('<label>ใช้ Password ในการ Unlock</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="UnlockOptionSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+
+		let changePasswordCmd = $('<a href="#">เปลี่ยน Password</a>');
+		$(changePasswordCmd).on('click', (evt)=>{
+			callback(evt);
+		});
+		$(switchWrapper).append($(changePasswordCmd).css({'position': 'relative', 'display': 'inline-block', 'margin-left': '50px', 'margin-top': '10px'}));
+		return $(switchWrapper);
+	}
+
+	const doCreatePhoneCallOfflineContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, offlineActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoOfflineGroup', manSelectOfflineHandle, autoSelectOfflineHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoLogoutControlBox = function(initValue){
+		let wrapperBox = $('<div id="AutoLogoutControlBox" style="position: relative; display: block; top: 10px; padding: 10px;"></div>');
+		let controlElem = $('<div style="line-height: 40px;"></div>').append($('<span>Logout เมื่อไม่ได้ใช้งาน</span>'));
+		let controlInput = $('<input type="number" id="AutoLogoutMinuteInput" style="width: 60px;">');
+		$(controlInput).val(initValue);
+		$(controlElem).append($(controlInput).css({'margin-left': '10px'}));
+		$(controlElem).append($('<span>นาที (ต้องมากว่า Lock Screen)</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(controlElem));
+	}
+
+  const doCreateProfilePage = function(){
+    return new Promise(async function(resolve, reject) {
+      $('body').loading('start');
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let myProfileRes = await doCallMyProfile(userdata.id);
+			if (myProfileRes.status.code == 200){
+				let myProfile = undefined;
+	      if ((myProfileRes) && (myProfileRes.Record.length > 0)) {
+	        myProfile = myProfileRes.Record[0];
+	      } else {
+					let getDefaultProfileUrl = '/api/userprofile/default';
+					let defaultRes = await common.doGetApi(getDefaultProfileUrl, {});
+					let firstProfile = {Profile: defaultRes.default};
+	        myProfile = firstProfile;
+	      }
+				console.log(myProfile);
+				let initValue = 1;
+
+	      let myProfilePage = $('<div style="width: 100%;"></div>');
+
+	      let profileTable = doCreateBlankTable();
+
+				let webNotifyBox = doCreateWebNotifyContolSwitch(myProfile.Profile.activeState.webNotify);
+				profileTable.find('#ActiveControl').append($(webNotifyBox));
+
+				let linebotNotifyActiveBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.activeState.lineNotify);
+				profileTable.find('#ActiveControl').append($(linebotNotifyActiveBox));
+
+				let phoneCallActiveBox = doCreatePhoneCallActiveContolSwitch(myProfile.Profile.activeState.phoneCall, myProfile.Profile.activeState.phoneCallOptions);
+				profileTable.find('#ActiveControl').append($(phoneCallActiveBox));
+
+				let autoAcceptOptionBox = doCreateAutoAcceptSwitch(myProfile.Profile.activeState.autoAcc);
+				profileTable.find('#ActiveControl').append($(autoAcceptOptionBox));
+
+				let autoOnReadyOptionBox = doCreateAutoOnReadySwitch(myProfile.Profile.activeState.autoReady);
+				profileTable.find('#ActiveControl').append($(autoOnReadyOptionBox));
+
+				let linebotNotifyLockBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.lockState.lineNotify);
+				profileTable.find('#LockControl').append($(linebotNotifyLockBox));
+
+				let phoneCallLockBox = doCreatePhoneCallLockContolSwitch(myProfile.Profile.lockState.phoneCall, myProfile.Profile.lockState.phoneCallOptions);
+				profileTable.find('#LockControl').append($(phoneCallLockBox));
+
+				let autoLockSreenBox = doCreateAutoLockScreenControlBox(myProfile.Profile.lockState.autoLockScreen);
+				profileTable.find('#LockControl').append($(autoLockSreenBox));
+
+				let unlockScreenControlBox = doCreateUnLockScreenControlBox(myProfile.Profile.lockState.passwordUnlock, changePasswordCmdClick);
+				profileTable.find('#LockControl').append($(unlockScreenControlBox));
+
+				let linebotNotifyOfflineBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.offlineState.lineNotify);
+				profileTable.find('#OfflineControl').append($(linebotNotifyOfflineBox));
+
+				let phoneCallOfflineBox = doCreatePhoneCallOfflineContolSwitch(myProfile.Profile.offlineState.phoneCall, myProfile.Profile.offlineState.phoneCallOptions);
+				profileTable.find('#OfflineControl').append($(phoneCallOfflineBox));
+
+				let autoLogoutControlBox = doCreateAutoLogoutControlBox(myProfile.Profile.offlineState.autoLogout);
+				profileTable.find('#OfflineControl').append($(autoLogoutControlBox));
+
+				let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
+				profileTable.find('#ProfilePageCmd').append($(cmdBar));
+
+	      $(myProfilePage).append($(profileTable));
+	      resolve($(myProfilePage));
+	      $('body').loading('stop');
+			} else if (myProfileRes.status.code == 210){
+				reject({error: {code: 210, cause: 'Token Expired!'}});
+			} else {
+				let apiError = 'api error at doCallMyProfile';
+				console.log(apiError);
+				reject({error: apiError});
+			}
+    });
   }
 
-  const doCreateLockRow = function(profile){
-    let lockRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(lockRow));
-    $(statusNameCell).append($('<span>Lock</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(lockRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(lockRow));
-
-    return $(lockRow);
-  }
-
-  const doCreateOfflinekRow = function(profile){
-    let offlineRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(offlineRow));
-    $(statusNameCell).append($('<span>Offline</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(offlineRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(offlineRow));
-
-    return $(offlineRow);
-  }
-
-  const doCreateLockOptionRow = function(profile, statusNameColumnWidth){
-    let lockOptionRow = $('<div style="position: relative; width: 99.95%; margin-top: 5px; border: 2px solid grey;"></div>');
-    let minuteValueLockBox = $('<div style="width: 100%;"></div>');
-    $(minuteValueLockBox).css('margin-left', statusNameColumnWidth);
-    let unlockOptionBox = $('<div style="width: 100%; position: relative;"></div>');
-    $(unlockOptionBox).css('margin-left', statusNameColumnWidth);
-    $(minuteValueLockBox).appendTo($(lockOptionRow));
-    $(unlockOptionBox).appendTo($(lockOptionRow));
-
-    let minuteValue = $('<input id="MinuteValue" type="text" id="MinuteLockValue" size="4"/>');
-    $(minuteValue).val(profile.Profile.lockState.autoLockScreen);
-    $(minuteValueLockBox).append($('<span>ล็อคเมื่อไม่ได้ใช้งานเกิน&nbsp;&nbsp;</span>'));
-    $(minuteValueLockBox).append($(minuteValue));
-    $(minuteValueLockBox).append($('<span>&nbsp;&nbsp;นาที่&nbsp;&nbsp;(สูงสุด 60 นาที)</span>'));
-
-    let unlockOptionControl = $('<div id="UnlockOptionControl"></div>');
-    let unlockOptionSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let unlockOptionSwitch = $(unlockOptionControl).readystate(unlockOptionSwitchOption);
-    if (profile.Profile.lockState.passwordUnlock == 1) {
-      unlockOptionSwitch.onAction();
-    } else {
-      unlockOptionSwitch.offAction();
-    }
-    $(unlockOptionControl).appendTo($(unlockOptionBox)); //&nbsp;&nbsp;
-    $(unlockOptionBox).append($('<label style="position: absolute; top: 5px; left: 70px;">ต้องการใช้ Password ในการปลดล็อค</label>'));
-
-    return $(lockOptionRow);
-  }
-
-  const doCreatePageCmd = function(pageHandle, saveCallBack){
+	const doCreatePageCmd = function(pageHandle, saveCallBack){
     let cmdBar = $('<div style="width: 100%; margin-top: 5px; text-align: center;"></div>');
     let saveCmd = $('<input type="button" value=" Save " class="action-btn"/>');
     let backCmd = $('<input type="button" value=" Back " class="none-action-btn"/>');
@@ -6776,86 +7126,120 @@ module.exports = function ( jq ) {
     $(backCmd).appendTo($(cmdBar));
     $(backCmd).on('click', (evt)=>{$('#AcceptedCaseCmd').click()});
     $(saveCmd).on('click', (evt)=>{
-      let webmessageSwitchControl = $(pageHandle).find('#WebmessageSwitchControl').find('input[type=checkbox]').prop('checked');
-      let lineSwitchControl = $(pageHandle).find('#LineSwitchControl').find('input[type=checkbox]').prop('checked');
-      let autocallSwitchControl = $(pageHandle).find('#AutocallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let mancallSwitchControl = $(pageHandle).find('#MancallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let caseAcccallSwitchControl = $(pageHandle).find('#CaseAcccallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let minuteValue = $(pageHandle).find('#MinuteValue').val();
-      let unlockOptionControl = $(pageHandle).find('#UnlockOptionControl').find('input[type=checkbox]').prop('checked');
 
-      if ((minuteValue > 0) && (minuteValue < 61)) {
-        $(pageHandle).find('#MinuteValue').css('border', '');
-				/*
-        let profileValue = {
-          screen: {
-            lock: minuteValue,
-            unlock: unlockOptionControl? 1:0
-          },
-          autoacc: caseAcccallSwitchControl? 1:0,
-          casenotify: {
-            webmessage: webmessageSwitchControl? 1:0,
-            line: lineSwitchControl? 1:0,
-            autocall: autocallSwitchControl? 1:0,
-            mancall: mancallSwitchControl? 1:0
-          }
-        }
-				*/
-				
-				let profileValue = {
-					activeState: {
-						webNotify: webmessageSwitchControl? 1:0,
-						lineNotify: lineSwitchControl? 1:0,
-						phoneCall: autocallSwitchControl? 1:0,
-						phoneCallOptions: {
-							manAutoOption:  mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
+			let activeWebNotify = pageHandle.find('#ActiveControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeLineNotify = pageHandle.find('#ActiveControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let activePhoneCall = pageHandle.find('#ActiveControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeManAutoOption = pageHandle.find('#ActiveControl').find('input[name="ManAutoActiveGroup"]:checked').val();
+			let activePhoneCall1H = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let activePhoneCall4H = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let activeAutoAcc = pageHandle.find('#ActiveControl').find('#AutoAcceptSwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeAutoReady = pageHandle.find('#ActiveControl').find('#AutoOnReadySwitchBox').find('input[type=checkbox]').prop('checked');
+
+			let lockLineNotify = pageHandle.find('#LockControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let lockPhoneCall = pageHandle.find('#LockControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let lockManAutoOption = pageHandle.find('#LockControl').find('input[name="ManAutoLockGroup"]:checked').val();
+			let lockPhoneCall1H = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let lockPhoneCall4H = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let lockAutoLockScreenMinut = pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').val();
+			let lockPasswordUnlock = pageHandle.find('#LockControl').find('#UnlockOptionSwitchBox').find('input[type=checkbox]').prop('checked');
+
+			let offlineLineNotify = pageHandle.find('#OfflineControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let offlinePhoneCall = pageHandle.find('#OfflineControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let offlineManAutoOption = pageHandle.find('#OfflineControl').find('input[name="ManAutoOfflineGroup"]:checked').val();
+			let offlinePhoneCall1H = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let offlinePhoneCall4H = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let offlineAutoLogoutMinut = pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').val();
+
+			let verifyProfile1 = ((lockAutoLockScreenMinut > -1) && (lockAutoLockScreenMinut < 61));
+			let verifyProfile2 = ((offlineAutoLogoutMinut <= 0) || ((offlineAutoLogoutMinut > 0) && (offlineAutoLogoutMinut > lockAutoLockScreenMinut)));
+
+			if (verifyProfile1) {
+				pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '');
+				if (verifyProfile2) {
+					pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '');
+					pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').css('border', '');
+					let profileValue = {
+						activeState: {
+							webNotify: activeWebNotify? 1:0,
+							lineNotify: activeLineNotify? 1:0,
+							phoneCall: activePhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: activeManAutoOption,
+								optionCaseControl: {
+									case1H: activePhoneCall1H? activePhoneCall1H:0,
+									case4H: activePhoneCall4H? activePhoneCall4H:0
+								}
+							},
+							autoAcc: activeAutoAcc? 1:0,
+							autoReady: activeAutoReady? 1:0
 						},
-						autoAcc: caseAcccallSwitchControl? 1:0,
-						//autoReady: activeAutoReady? 1:0
-					},
-					lockState: {
-						lineNotify: 1,
-						phoneCall: 0,
-						phoneCallOptions: {
-							manAutoOption: mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
+						lockState: {
+							lineNotify: lockLineNotify? 1:0,
+							phoneCall: lockPhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: lockManAutoOption,
+								optionCaseControl: {
+									case1H: lockPhoneCall1H? lockPhoneCall1H:0,
+									case4H: lockPhoneCall4H? lockPhoneCall4H:0
+								}
+							},
+							autoLockScreen: lockAutoLockScreenMinut,
+							passwordUnlock: lockPasswordUnlock? 1:0
 						},
-						autoLockScreen: minuteValue,
-						passwordUnlock: unlockOptionControl? 1:0
-					},
-					offlineState: {
-						lineNotify: 1,
-						phoneCall: 0,
-						phoneCallOptions: {
-							manAutoOption: mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
-						},
-						autoLogout: 0
+						offlineState: {
+							lineNotify: offlineLineNotify? 1:0,
+							phoneCall: offlinePhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: offlineManAutoOption,
+								optionCaseControl: {
+									case1H: offlinePhoneCall1H? offlinePhoneCall1H:0,
+									case4H: offlinePhoneCall4H? offlinePhoneCall4H:0
+								}
+							},
+							autoLogout: offlineAutoLogoutMinut
+						}
+					};
+					console.log(profileValue);
+					saveCallBack(profileValue);
+				} else {
+					pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '1px solid red');
+					pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').css('border', '1px solid red');
+					let radAlertMsg = $('<div></div>');
+					$(radAlertMsg).append($('<p>กรณีมีการตั้งค่า Logout อัตโนมัติ</p>'));
+					$(radAlertMsg).append($('<p>ค่าจำนวนนาทีของ Logout อัตโนมัติ ต้องมากกว่า จำนวนนาทีของล็อคจอภาพ</p>'));
+					const radalertoption = {
+						title: 'ตั้งค่าไม่ถูกต้อง',
+						msg: $(radAlertMsg),
+						width: '420px',
+						onOk: function(evt) {
+							radAlertBox.closeAlert();
+						}
 					}
-				};
-
-        saveCallBack(profileValue);
-      } else {
-        $(pageHandle).find('#MinuteValue').css('border', '1px solid red');
-        $.notify("ค่าจำนวนนาทีต้องมีค่าระหว่าง 1-60", "error");
-      }
-    });
+					let radAlertBox = $('body').radalert(radalertoption);
+				}
+			} else {
+				pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '1px solid red');
+				let radAlertMsg = $('<div></div>');
+				$(radAlertMsg).append($('<p>กรณีมีการตั้งค่า เข้าสู่ Mode Lock เมื่อไม่ได้ใช้งาน</p>'));
+				$(radAlertMsg).append($('<p>ด้วยค่าจำนวนนาที ระหว่าง 0 - 60</p>'));
+				const radalertoption = {
+					title: 'ตั้งค่าไม่ถูกต้อง',
+					msg: $(radAlertMsg),
+					width: '420px',
+					onOk: function(evt) {
+						radAlertBox.closeAlert();
+					}
+				}
+				let radAlertBox = $('body').radalert(radalertoption);
+			}
+		});
     return $(cmdBar);
   }
 
-  const doCallSaveMyProfile = function(profileData){
+	const doCallSaveMyProfile = function(profileData){
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+			$('body').loading('start');
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let radioId = userdata.id;
 			let rqParams = undefined;
@@ -6879,12 +7263,6 @@ module.exports = function ( jq ) {
 			try {
 				let response = await common.doCallApi(apiUrl, rqParams);
         if (response.status.code == 200) {
-
-					/*
-          userdata.userprofiles.splice(0,userdata.userprofiles.length);
-          profileData.readyState = readyState;
-          userdata.userprofiles.push({Profile: profileData});
-					*/
 					userdata.userprofiles[0].Profile = profileData;
 					userdata.userprofiles[0].Profile.readyState = readyState;
 					console.log(userdata.userprofiles[0].Profile);
@@ -6900,10 +7278,10 @@ module.exports = function ( jq ) {
         $('body').loading('stop');
 	      reject(e);
     	}
-    });
-  }
+		});
+	}
 
-  const doCallMyProfile = function(radioId){
+	const doCallMyProfile = function(radioId){
     return new Promise(async function(resolve, reject) {
 			let rqParams = {};
 			let apiUrl = '/api/userprofile/select/' + radioId;
@@ -6916,63 +7294,14 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateProfilePage = function(){
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-      let myProfilePage = $('<div style="width: 100%;"></div>');
-      let myProfileView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      let myLockOptionBox = $('<div style="width: 100%;"></div>');
-      $(myProfileView).appendTo($(myProfilePage));
-      $(myLockOptionBox).appendTo($(myProfilePage));
-      let headerRow = doCreateHeader();
-      $(headerRow).appendTo($(myProfileView));
-      let statusNameColumnWidth = $(headerRow).find('#StatusNameColumn').css('width');
-      let myProfileRes = await doCallMyProfile(userdata.id);
-			if (myProfileRes.status.code == 200){
-	      let myProfile = undefined;
-	      if ((myProfileRes) && (myProfileRes.Record.length > 0)) {
-	        myProfile = myProfileRes.Record[0];
-	      } else {
-					let getDefaultProfileUrl = '/api/userprofile/default';
-					let defaultRes = await common.doGetApi(getDefaultProfileUrl, {});
-					let firstProfile = {Profile: defaultRes.default};
-
-					//let firstProfile = {Profile: common.defaultProfile};
-
-					//localStorage.setItem('userprofiles', JSON.stringify(firstProfile));
-	        myProfile = firstProfile;
-	      }
-	      let activeRow = doCreateActiveRow(myProfile);
-	      let lockRow = doCreateLockRow(myProfile);
-	      let offlineRow = doCreateOfflinekRow(myProfile);
-	      let lockOptionRow = doCreateLockOptionRow(myProfile, statusNameColumnWidth);
-	      let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
-	      $(activeRow).appendTo($(myProfileView));
-	      $(lockRow).appendTo($(myProfileView));
-	      $(offlineRow).appendTo($(myProfileView));
-	      $(lockOptionRow).appendTo($(myLockOptionBox));
-	      $(cmdBar).appendTo($(myProfilePage));
-	      resolve($(myProfilePage));
-	      $('body').loading('stop');
-			} else if (myProfileRes.status.code == 210){
-				reject({error: {code: 210, cause: 'Token Expired!'}});
-			} else {
-				let apiError = 'api error at doCallMyProfile';
-				console.log(apiError);
-				reject({error: apiError});
-			}
-    });
-  }
-
   return {
     doCreateProfileTitlePage,
+    doCreateProfilePage,
     doCallMyProfile,
-    doCreateProfilePage
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./changepwddlg.js":10}],16:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7461,7 +7790,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],16:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],17:[function(require,module,exports){
 /* templatelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8267,7 +8596,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],17:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],18:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -8393,7 +8722,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /* welcomelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8604,7 +8933,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":12}],19:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":13}],20:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -19478,7 +19807,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
