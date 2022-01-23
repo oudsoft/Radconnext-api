@@ -21,7 +21,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
 
   let doLoadAliveCase = function(casestatusIds){
     return new Promise(async function(resolve, reject) {
-      const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
+      const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name', 'Hos_Code']}];
       let aliveCases = await db.cases.findAll({include: caseInclude, attributes: ['id', 'urgenttypeId', 'userId', 'casestatusId', 'Case_RadiologistId', 'createdAt', 'Case_StudyDescription', 'Case_ProtocolName', 'Case_BodyPart', 'Case_Modality'], where: {casestatusId: { [db.Op.in]: casestatusIds}}});
       resolve(aliveCases);
     });
@@ -155,6 +155,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
               let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
               log.info('triggerMinut=>' + triggerMinut);
               if ((triggerMinut) && (triggerMinut > 0)) {
+                let hospitalCode = aliveCase.hospital.Hos_Code;
                 let voiceTransactionId = uti.doCreateVoiceTranctionId();
                 let voipTriggerParam = undefined;
                 let voiceUrgent = undefined;
