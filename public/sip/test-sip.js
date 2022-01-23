@@ -1,11 +1,12 @@
 /*test-sip.js*/
 // Create our JsSIP instance and run it:
 
-var socket = new JsSIP.WebSocketInterface('wss://192.168.99.9:8089/ws');
+//var socket = new JsSIP.WebSocketInterface('wss://192.168.99.9:8089/ws');
+var socket = new JsSIP.WebSocketInterface('wss://202.28.68.6');
 var configuration = {
   sockets  : [ socket ],
-  uri      : 'sip:1000@192.168.99.9',
-  password : 'Aa1308'
+  uri      : 'sip:2000@202.28.68.6',
+  password : 'qwerty2000'
 };
 socket.onmessage = function(msgEvt){
   let data = JSON.parse(msgEvt.data);
@@ -57,4 +58,4 @@ var options = {
   'mediaConstraints' : { 'audio': true, 'video': true }
 };
 
-var session = ua.call('sip:9019@192.168.99.9', options);
+var session = ua.call('sip:2001@202.28.68.6', options);
