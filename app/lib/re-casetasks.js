@@ -170,7 +170,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
                   voiceUrgent = uti.doCalUrgentVoiceCall(triggerAt);
                 } else {
                   voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-                  voiceUrgent = doCalUrgentVoiceCall(1);
+                  voiceUrgent = uti.doCalUrgentVoiceCall(1);
                 }
                 let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
                 let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, newCase.casestatusId, caseVoipData);
