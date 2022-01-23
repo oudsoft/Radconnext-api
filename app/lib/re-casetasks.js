@@ -174,7 +174,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
                   voiceUrgent = uti.doCalUrgentVoiceCall(1);
                 }
                 let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-                let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, newCase.casestatusId, caseVoipData);
+                let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, caseStatusId, caseVoipData);
               }
             }
             alives.push(caseId);
