@@ -465,7 +465,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
       let voiceTransactionId = uti.doCreateVoiceTranctionId();
       let msisdn = radioProfile.radioPhoneNo;
-      if (voiceUrgent){
+      if (urgentCode){
         const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
         let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
         let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
