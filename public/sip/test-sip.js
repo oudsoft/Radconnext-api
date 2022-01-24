@@ -2,7 +2,7 @@
 // Create our JsSIP instance and run it:
 
 //var socket = new JsSIP.WebSocketInterface('wss://192.168.99.9:8089/ws');
-var socket = new JsSIP.WebSocketInterface('ws://radconnext.me:8088/ws');
+var socket = new JsSIP.WebSocketInterface('wss://radconnext.me:8089/ws');
 var configuration = {
   sockets  : [ socket ],
   uri      : 'sip:2000@radconnext.me',
