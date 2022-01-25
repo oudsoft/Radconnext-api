@@ -6,7 +6,7 @@
 var socket = new WebSocket('wss://202.28.68.6:8089/ws'/*, { rejectUnauthorized: false }*/);
 var configuration = {
   sockets  : [ socket ],
-  uri      : 'sip:2000@202.28.68.6:8089',
+  uri      : 'sip:2000@202.28.68.6',
   password : 'qwerty2000'
 };
 socket.onmessage = function(msgEvt){
@@ -59,4 +59,4 @@ var options = {
   'mediaConstraints' : { 'audio': true, 'video': false }
 };
 
-//var session = ua.call('sip:2001@202.28.68.6:8089/ws', options);
+//var session = ua.call('sip:2001@202.28.68.6', options);
