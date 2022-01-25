@@ -303,7 +303,9 @@ const onNewCaseEvent = function(caseId, options){
         }
       }
     } else if (radioProfile.autoacc == 1) {
-      if (socket.getScreenState(radioProfile.username) == 0){
+      let radioSocketState = socket.getScreenState(radioProfile.username);
+      log.info('radioSocketState=>' + radioSocketState);
+      if (radioSocketState == 0){
         let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
         let acceptedCaseStatusId = acceptedCaseStatus[0].id;
         let currentStatusId = newCase.casestatusId;
@@ -322,7 +324,7 @@ const onNewCaseEvent = function(caseId, options){
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
       }
-      
+
     }
     let actions = await doGetControlStatusAt(newCase.casestatusId);
     let yourLocalSocket = await socket.findOrthancLocalSocket(hospitalId);
