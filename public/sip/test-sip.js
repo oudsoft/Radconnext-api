@@ -58,4 +58,4 @@ var options = {
   'mediaConstraints' : { 'audio': true, 'video': false }
 };
 
-var session = ua.call('sip:2001@radconnext.me', options);
+//var session = ua.call('sip:2001@radconnext.me', options);
