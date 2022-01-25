@@ -10,6 +10,25 @@ const app = express();
 
 var db, log, auth, lineApi, uti, statusControl, common, socket, Task, Warning, Voip;
 
+const doChangeCaseStatusMany = function(radioId, newStatusId){
+  return new Promise(async function(resolve, reject) {
+    let allTargetCases = await db.cases.findAll({ attributes: ['id'], where: {casestatusId: 1, Case_RadiologistId: radioId}});
+    let changeReses = [];
+    const promiseList = new Promise(async function(resolve2, reject2) {
+      await allTargetCases.forEach(async (item, i) => {
+        let changeCaseRes = await statusControl.doChangeCaseStatus(1, newStatusId, item.id, radioId, 'Radio Accept by VoIP App');
+        changeReses.push(changeCaseRes);
+      });
+      setTimeout(()=>{
+        resolve2(changeReses);
+      }, 1000);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    });
+  });
+}
+
 app.post('/response', async function(req, res) {
   log.info('voip response => ' + JSON.stringify(req.body));
 
@@ -42,6 +61,10 @@ app.post('/response', async function(req, res) {
     } else if (voip.responseKEYs[0] == 3) {
       //Reject Case by VoIP
       changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
+    } else if (voip.responseKEYs[0] == 4) {
+      changeRes = await doChangeCaseStatusMany(radioId, 2);
+    } else if (voip.responseKEYs[0] == 6) {
+      changeRes = await doChangeCaseStatusMany(radioId, 3);
     }
     await Voip.removeTaskByCaseId(caseId);
   }
