@@ -3449,9 +3449,12 @@ module.exports = function ( jq ) {
 	          	$(myAccCaseView).append($(caseRow));
 						}
 	        }
+					$('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').text(caseLists.length);
+					$('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').show();
 	      } else {
 	        let notFoundMessage = $('<h3>ไม่พบรายการเคสใหม่ของคุณในขณะนี้</h3>')
 	        $(myAccCaseView).append($(notFoundMessage));
+					$('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').hide();
 	      }
 	      resolve($(myAccCaseView));
 	      $('body').loading('stop');
@@ -4691,6 +4694,14 @@ module.exports = function ( jq ) {
 
 				let searchConsultCmd = doCreateSearchConsultCmd();
 				$(myCaseViewBox).append($(searchConsultCmd));
+
+				let allNewIntend = caseLists.length + consultLists.length;
+				if (allNewIntend > 0) {
+					$('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').text(allNewIntend);
+					$('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').show();
+				} else {
+					$('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').hide();
+				}
 
 	      $('body').loading('stop');
 	      resolve($(myCaseViewBox));
