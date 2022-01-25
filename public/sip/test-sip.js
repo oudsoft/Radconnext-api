@@ -6,7 +6,7 @@
 var socket = new WebSocket('wss://202.28.68.6:8089/ws'/*, { rejectUnauthorized: false }*/);
 var configuration = {
   sockets  : [ socket ],
-  uri      : 'sip:2000@202.28.68.6:8089/ws',
+  uri      : 'sip:2000@202.28.68.6:8089',
   password : 'qwerty2000'
 };
 socket.onmessage = function(msgEvt){
