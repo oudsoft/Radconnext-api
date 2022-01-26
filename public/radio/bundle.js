@@ -7083,6 +7083,13 @@ module.exports = function ( jq ) {
 				profileTable.find('#ActiveControl').append($(linebotNotifyActiveBox));
 
 				let phoneCallActiveBox = doCreatePhoneCallActiveContolSwitch(myProfile.Profile.activeState.phoneCall, myProfile.Profile.activeState.phoneCallOptions);
+				let manAutoOptionAciveBox = $(phoneCallActiveBox).find('#ManAutoOptionBox');
+				console.log(myProfile.Profile.activeState.phoneCall);
+				if (myProfile.Profile.activeState.phoneCall == 0){
+					$(manAutoOptionAciveBox).hide();
+				} else if (myProfile.Profile.activeState.phoneCall == 1){
+					$(manAutoOptionAciveBox).show();
+				}
 				profileTable.find('#ActiveControl').append($(phoneCallActiveBox));
 
 				let autoAcceptOptionBox = doCreateAutoAcceptSwitch(myProfile.Profile.activeState.autoAcc);
@@ -7095,6 +7102,12 @@ module.exports = function ( jq ) {
 				profileTable.find('#LockControl').append($(linebotNotifyLockBox));
 
 				let phoneCallLockBox = doCreatePhoneCallLockContolSwitch(myProfile.Profile.lockState.phoneCall, myProfile.Profile.lockState.phoneCallOptions);
+				let manAutoOptionLockBox = $(phoneCallLockBox).find('#ManAutoOptionBox');
+				if (myProfile.Profile.lockState.phoneCall == 0){
+					$(manAutoOptionLockBox).hide();
+				} else if (myProfile.Profile.lockState.phoneCall == 1){
+					$(manAutoOptionLockBox).show();
+				}
 				profileTable.find('#LockControl').append($(phoneCallLockBox));
 
 				let autoLockSreenBox = doCreateAutoLockScreenControlBox(myProfile.Profile.lockState.autoLockScreen);
@@ -7107,6 +7120,12 @@ module.exports = function ( jq ) {
 				profileTable.find('#OfflineControl').append($(linebotNotifyOfflineBox));
 
 				let phoneCallOfflineBox = doCreatePhoneCallOfflineContolSwitch(myProfile.Profile.offlineState.phoneCall, myProfile.Profile.offlineState.phoneCallOptions);
+				let manAutoOptionOfflineBox = $(phoneCallOfflineBox).find('#ManAutoOptionBox');
+				if (myProfile.Profile.offlineState.phoneCall == 0){
+					$(manAutoOptionOfflineBox).hide();
+				} else if (myProfile.Profile.offlineState.phoneCall == 1){
+					$(manAutoOptionOfflineBox).show();
+				}
 				profileTable.find('#OfflineControl').append($(phoneCallOfflineBox));
 
 				let autoLogoutControlBox = doCreateAutoLogoutControlBox(myProfile.Profile.offlineState.autoLogout);
