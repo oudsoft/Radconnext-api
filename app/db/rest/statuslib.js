@@ -230,6 +230,31 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
   return triggerMinut;
 }
 
+const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, casestatusId){
+  return new Promise(async function(resolve, reject) {
+    let voiceTransactionId = uti.doCreateVoiceTranctionId();
+    let voipTriggerParam = undefined;
+    let voiceUrgent = undefined;
+    let triggerAt = totalMinut - triggerMinut;
+    if (triggerAt > 0){
+      let delta = triggerAt;
+      let dd = Math.floor(delta / 1440);
+      delta -= dd * 1440;
+      let hh = Math.floor(delta / 60) % 24;
+      delta -= hh * 60;
+      let mn = delta;
+      voipTriggerParam = {dd: dd, hh: hh, mn: mn};
+      voiceUrgent = uti.doCalUrgentVoiceCall(triggerAt);
+    } else {
+      voipTriggerParam = {dd: 0, hh: 0, mn: 2};
+      voiceUrgent = uti.doCalUrgentVoiceCall(1);
+    }
+    let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
+    let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
+    resolve(theVoipTask);
+  });
+}
+
 const onNewCaseEvent = function(caseId, options){
   return new Promise(async function(resolve, reject) {
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name', 'Hos_Code']}];
@@ -293,30 +318,12 @@ const onNewCaseEvent = function(caseId, options){
         let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
         log.info('triggerMinut=>' + triggerMinut);
         if ((triggerMinut) && (triggerMinut > 0)) {
-          let voiceTransactionId = uti.doCreateVoiceTranctionId();
-          let voipTriggerParam = undefined;
-          let voiceUrgent = undefined;
-          let triggerAt = totalMinut - triggerMinut;
-          if (triggerAt > 0){
-            let delta = triggerAt;
-            let dd = Math.floor(delta / 1440);
-            delta -= dd * 1440;
-            let hh = Math.floor(delta / 60) % 24;
-            delta -= hh * 60;
-            let mn = delta;
-            voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-            voiceUrgent = uti.doCalUrgentVoiceCall(triggerAt);
-          } else {
-            voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-            voiceUrgent = uti.doCalUrgentVoiceCall(1);
-          }
-          let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-          let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, newCase.casestatusId, caseVoipData);
+          let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
         }
       }
     } else if (radioProfile.autoacc == 1) {
       let radioSocketState = socket.getScreenState(radioProfile.username);
-      log.info('radioSocketState=>' + radioSocketState);
+      log.info('radioSocketState=>' + JSON.stringify(radioSocketState));
       if (radioSocketState == 0){
         let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
         let acceptedCaseStatusId = acceptedCaseStatus[0].id;
@@ -331,12 +338,19 @@ const onNewCaseEvent = function(caseId, options){
           let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
           await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
         }
-
       } else {
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+        if (radioProfile.radioAutoCall == 1) {
+          let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
+          log.info('totalMinut=>' + totalMinut);
+          let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
+          log.info('triggerMinut=>' + triggerMinut);
+          if ((triggerMinut) && (triggerMinut > 0)) {
+            let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
+          }
+        }
       }
-
     }
     let actions = await doGetControlStatusAt(newCase.casestatusId);
     let yourLocalSocket = await socket.findOrthancLocalSocket(hospitalId);
@@ -1162,6 +1176,7 @@ module.exports = (dbconn, monitor, casetask, warningtask, voiptask, websocket) =
     doCanChange,
     doChangeCaseStatus,
     doCalTriggerMinut,
+    doAutoPhoneCallRadio,
     onNewCaseEvent,
     onAcceptCaseEvent,
     onRejectCaseEvent,
