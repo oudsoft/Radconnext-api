@@ -444,7 +444,6 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
 
 const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, caseData){
   return new Promise(async function(resolve, reject) {
-    //let newTask = await tasks.doCreateNewTaskCase(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
     let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
@@ -453,7 +452,6 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
       }
-      //await tasks.removeTaskByCaseId(caseId);
     });
     let endTime = newTask.triggerAt;
 
@@ -484,7 +482,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
           }
         }
         let voiceRes = await uti.voipRequest(rqParams);
-        log.info('voiceRes=> ' + JSON.stringify(voiceRes));
+        //log.info('voiceRes=> ' + JSON.stringify(voiceRes));
         resolve(voiceRes);
       } else {
         resolve();
@@ -1035,6 +1033,7 @@ const doSendEmailToAdmin = function(subject, msgHtml){
     };
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
+        log.info('send mail error => ' + JSON.stringify(error));
         reject(error);
       } else {
         resolve(info.response);

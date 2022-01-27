@@ -1046,8 +1046,8 @@ const doControlAddNewResponse = function(reqData) {
               resolve({ status: {code: 200}, result: {responseId: adResponse.id}, warning: 'Abnormal save new report'});
             }
           } else {
-            let subject = 'WARNING\nNormal Flow save Response Event with Exception Can not Change Status.';
-            let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
+            //let subject = 'WARNING\nNormal Flow save Response Event with Exception Can not Change Status.';
+            //let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
             resolve({ status: {code: 203}, result: {responseId: adResponse.id}});
           }
         } else {
@@ -1075,8 +1075,8 @@ const doControlAddNewResponse = function(reqData) {
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
           }
 
-          let subject = 'WARNING\nUn-Normal Flow save Response Event.';
-          let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
+          //let subject = 'WARNING\nUn-Normal Flow save Response Event.';
+          //let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
           resolve({ status: {code: 200}, result: {responseId: responseId}});
         }
       } else if (isEditResponse){
@@ -1119,8 +1119,8 @@ const doControlAddNewResponse = function(reqData) {
               }
               resolve({ status: {code: 200}, result: {responseId: responseId}});
             } else {
-              let subject = 'WARNING\nNormal Flow edit Response Event with Exception Can not Change Status.';
-              let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
+              //let subject = 'WARNING\nNormal Flow edit Response Event with Exception Can not Change Status.';
+              //let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
               resolve({ status: {code: 203}, result: {responseId: responseId}});
             }
           } else if (responseType === 'draft'){
@@ -1132,8 +1132,8 @@ const doControlAddNewResponse = function(reqData) {
             resolve({ status: {code: 200}, result: {responseId: responseId}});
           }
         } else {
-          let subject = 'WARNING\nNormal Flow edit Response Event with Exception without responseid.';
-          let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
+          //let subject = 'WARNING\nNormal Flow edit Response Event with Exception without responseid.';
+          //let sendEmailRes = await doReportCaseChangeStatusBug(subject, caseId, userId, reportType, responseType, nowStatusId, responseId);
           resolve({ status: {code: 203}, result: {responseId: 'undefided'}});
         }
       } else {

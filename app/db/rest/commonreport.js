@@ -541,30 +541,37 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       log.info('lastReports=>' + JSON.stringify(lastReports));
 
       let dicom = undefined;
-      if ((isEditResponse) && (lastReports.length > 0)) {
+      if (lastReports[0].PDF_DicomSeriesIds) {
+        if ((isEditResponse) && (lastReports.length > 0)) {
 
-        let seriesIds = lastReports[0].PDF_DicomSeriesIds.items;
+          let seriesIds = lastReports[0].PDF_DicomSeriesIds.items;
 
-        let deleteRes = await doDeleteResultSeries(seriesIds, hospitalId, hostname);
+          let deleteRes = await doDeleteResultSeries(seriesIds, hospitalId, hostname);
 
-        if (seriesIds.length > pdfPages){
-          let htmlFileName = pdfReportFileName + '.html';
-          log.info('htmlFileName=> ' + htmlFileName);
-          let newReport = await doAppendBlankPageToHtmlFile(htmlFileName, 1);
-          log.info('newReport=> ' + JSON.stringify(newReport));
-          pdfPages = newReport.reportPages;
+          if (seriesIds.length > pdfPages){
+            let htmlFileName = pdfReportFileName + '.html';
+            log.info('htmlFileName=> ' + htmlFileName);
+            let newReport = await doAppendBlankPageToHtmlFile(htmlFileName, 1);
+            log.info('newReport=> ' + JSON.stringify(newReport));
+            pdfPages = newReport.reportPages;
+          }
+
+          let seriesInstanceUIDs = lastReports[0].SeriesInstanceUIDs.items;
+          let sopInstanceUIDs = lastReports[0].SOPInstanceUIDs.items;
+          dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs);
+          log.info('dicom last result => ' + JSON.stringify(dicom));
+          await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
+        } else {
+          dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
+          log.info('dicom first result => ' + JSON.stringify(dicom));
+          await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
+          //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
         }
-
-        let seriesInstanceUIDs = lastReports[0].SeriesInstanceUIDs.items;
-        let sopInstanceUIDs = lastReports[0].SOPInstanceUIDs.items;
-        dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs);
-        log.info('dicom last result => ' + JSON.stringify(dicom));
-        await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
       } else {
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
-        //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
+        //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}        
       }
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
