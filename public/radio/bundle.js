@@ -6888,13 +6888,13 @@ module.exports = function ( jq ) {
 		let option24HRLElem = $('<div style="line-height: 20px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ ไม่เกิน 24 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
 		let option24HRUElem = $('<div style="line-height: 20px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ เกิน 24 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
 		let option1HRInput = $('<input type="number" id="Option1HRInput" style="width: 60px;">');
-		$(option1HRInput).val(options.optionCaseControl.case1H);
+		$(option1HRInput).val(options.optionCaseControl.case1H? options.optionCaseControl.case1H:0);
 		let option4HRInput = $('<input type="number" id="Option4HRInput" style="width: 60px;">');
-		$(option4HRInput).val(options.optionCaseControl.case4H);
+		$(option4HRInput).val(options.optionCaseControl.case4H? options.optionCaseControl.case4H:0);
 		let option24HRLInput = $('<input type="number" id="Option24HRLInput" style="width: 60px;">');
-		$(option24HRLInput).val(options.optionCaseControl.case24HL);
+		$(option24HRLInput).val(options.optionCaseControl.case24HL? options.optionCaseControl.case24HL:0);
 		let option24HRUInput = $('<input type="number" id="Option24HRUInput" style="width: 60px;">');
-		$(option24HRUInput).val(options.optionCaseControl.case24HU);
+		$(option24HRUInput).val(options.optionCaseControl.case24HU? options.optionCaseControl.case24HU:0);
 		$(option1HRElem).append($(option1HRInput).css({'margin-left': '10px'}));
 		$(option1HRElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
 		$(option4HRElem).append($(option4HRInput).css({'margin-left': '10px'}));
