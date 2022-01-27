@@ -101,7 +101,9 @@ const defaultRadioProfileV2 = {
       manAutoOption: 1,
       optionCaseControl: {
         case1H: 0,
-        case4H: 0
+        case4H: 0,
+        case24HL: 0,
+        case24HU: 0
       }
     }
   },
@@ -114,7 +116,9 @@ const defaultRadioProfileV2 = {
       manAutoOption: 1,
       optionCaseControl: {
         case1H: 0,
-        case4H: 0
+        case4H: 0,
+        case24HL: 0,
+        case24HU: 0
       }
     }
   },
@@ -126,7 +130,9 @@ const defaultRadioProfileV2 = {
       manAutoOption: 1,
       optionCaseControl: {
         case1H: 0,
-        case4H: 0
+        case4H: 0,
+        case24HL: 0,
+        case24HU: 0
       }
     }
   }

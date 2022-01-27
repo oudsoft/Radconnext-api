@@ -199,6 +199,10 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
       triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case1H;
     } else if ((totalMinut > 60) && (totalMinut <= 240)){
       triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case4H;
+    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+    } else if (totalMinut > 1440){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
     }
   } else if (socket.getScreenState(radioProfile.username) == 1){
     //lock State
@@ -206,6 +210,10 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
       triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case1H;
     } else if ((totalMinut > 60) && (totalMinut <= 240)){
       triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case4H;
+    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+    } else if (totalMinut > 1440){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
     }
   } else {
     //offline State
@@ -213,6 +221,10 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
       triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case1H;
     } else if ((totalMinut > 60) && (totalMinut <= 240)){
       triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case4H;
+    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+    } else if (totalMinut > 1440){
+      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
     }
   }
   return triggerMinut;
@@ -296,7 +308,7 @@ const onNewCaseEvent = function(caseId, options){
             voiceUrgent = uti.doCalUrgentVoiceCall(triggerAt);
           } else {
             voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-            voiceUrgent = doCalUrgentVoiceCall(1);
+            voiceUrgent = uti.doCalUrgentVoiceCall(1);
           }
           let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
           let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, newCase.casestatusId, caseVoipData);
