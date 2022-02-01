@@ -73,6 +73,7 @@
       $.post(callUrl, params).then((response) => {
         console.log(response);
         $('#Msisdn').val('');
+        $('#CaseList').empty().text(JSON.stringify(response));
       });
     } else {
       $('#Msisdn').css('border', '1px solid red');

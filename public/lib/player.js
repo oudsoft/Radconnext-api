@@ -151,8 +151,9 @@
         //$(toggleCmd).val('Stop');
         $(toggleCmd).attr('src', pluginUrl+ '/images/stop-play-icon.png');
         let n = $(playerViewBox).find('select').prop('selectedIndex');
-        if (n == undefined) {
+        if (!n) {
           n = 0;
+          $(playerViewBox).find('select').prop('selectedIndex', n);
         }
         $(playerViewBox).css({'text-align': 'center'});
         let selectedFileType = selectedFiles[n].type;
