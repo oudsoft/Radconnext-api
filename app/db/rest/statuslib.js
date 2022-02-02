@@ -244,7 +244,9 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospital
       delta -= hh * 60;
       let mn = delta;
       voipTriggerParam = {dd: dd, hh: hh, mn: mn};
+      log.info('triggerAt=>' + triggerAt);
       voiceUrgent = uti.doCalUrgentVoiceCall(triggerAt);
+      log.info('voiceUrgent=>' + voiceUrgent);
     } else {
       voipTriggerParam = {dd: 0, hh: 0, mn: 2};
       voiceUrgent = uti.doCalUrgentVoiceCall(1);

@@ -402,15 +402,17 @@ const doCalUrgentVoiceCall = function(mn){
     return;
   } else if ((mn > 0) && (mn < 45)) {
     return 'ct_neuro_fast_tract';
-  } else if ((mn >= 45) && (mn < (2*60))) {
+  } else if ((mn >= 45) && (mn < 120)) {
     return 'ct_neuro_emergency';
-  } else if ((mn >= 120) && (mn < (4*60))) {
+  } else if ((mn >= 120) && (mn < 240)) {
     return 'urgent';
-  } else if ((mn >= 240) && (mn < (24*60))) {
+  } else if ((mn >= 240) && (mn < 1440)) {
     return 'normal_24hr';
-  } else if (mn >= (24*60)) {
+  } else if (mn >= 1440) {
     return 'urgent_cta_neuro_body';
-  }
+  } else {
+		return;
+	}
 }
 
 const voipRequest = function(rqParam) {
