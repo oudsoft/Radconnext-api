@@ -244,12 +244,12 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospital
       delta -= hh * 60;
       let mn = delta;
       voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-      //log.info('totalMinut=>' + totalMinut);
+      log.info('totalMinut=>' + totalMinut);
       voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
-      //log.info('voiceUrgent=>' + voiceUrgent);
+      log.info('voiceUrgent=>' + voiceUrgent);
     } else {
       voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-      voiceUrgent = uti.doCalUrgentVoiceCall(1);
+      voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
     }
     let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
     let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
