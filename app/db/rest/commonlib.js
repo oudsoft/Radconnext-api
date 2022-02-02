@@ -449,7 +449,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         // doCallToRadioPhone
 
-        let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode);
+        let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
       }
     });
@@ -459,14 +459,17 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
   });
 }
 
-const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospitalCode){
+const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospitalCode, urgentType){
   return new Promise(async function(resolve, reject) {
     if ((radioProfile.radioAutoCall == 1) && (radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '')) {
+      /*
       let dayMn = Number(triggerParam.dd) * 24 * 60;
       let hourMn = Number(triggerParam.hh) * 60;
       let minuteMn = Number(triggerParam.mn);
       let totalMinute = dayMn + hourMn + minuteMn;
       let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
+      */
+      let urgentCode = urgentType;
       let voiceTransactionId = uti.doCreateVoiceTranctionId();
       let msisdn = radioProfile.radioPhoneNo;
       if (urgentCode){
