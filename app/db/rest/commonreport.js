@@ -172,13 +172,6 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 
         });
 				writerStream.on('error', function(err){ log.error(err.stack); });
-				/******/
-
-        /*
-				log.info("Create Htlm Report Success.");
-				setTimeout(async ()=>{
-				}, 3000);
-        */
 			});
 		});
 	});
@@ -571,8 +564,11 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
-        //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}        
+        //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
       }
+
+      common.removeReportTempFile(pdfReportFileName);
+
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
         //update resullt to envision

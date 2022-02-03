@@ -473,7 +473,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let urgentCode = urgentType;
       let voiceTransactionId = uti.doCreateVoiceTranctionId();
       let msisdn = radioProfile.radioPhoneNo;
-      log.info('urgentCode=>' + urgentCode);      
+      log.info('urgentCode=>' + urgentCode);
       if (urgentCode){
         const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
         let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
@@ -1070,6 +1070,31 @@ const doTestPushConnect = function(lineUserId, msg){
   });
 }
 
+const removeReportTempFile = function(fileCode) {
+	const publicDir = path.normalize(__dirname + '/../../../public');
+	const USRPDF_PATH = process.env.USRPDF_PATH;
+	const cron = require('node-cron');
+  const removeAfter = 1440; /*minutes */
+  const startDate = new Date();
+  let endDate = new Date(startDate.getTime() + (removeAfter * 60 * 1000));
+  let endMM = endDate.getMonth() + 1;
+  let endDD = endDate.getDate();
+  let endHH = endDate.getHours();
+  let endMN = endDate.getMinutes();
+  let endSS = endDate.getSeconds();
+  let scheduleRemove = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
+	let task = cron.schedule(scheduleRemove, function(){
+    var rmCommand = uti.fmtStr('rm %s/%s.bmp', publicDir + USRPDF_PATH, fileCode);
+    rmCommand += uti.fmtStr(' && rm %s/%s.html', publicDir + USRPDF_PATH, fileCode);
+    rmCommand += uti.fmtStr(' && rm %s/%s.pdf', publicDir + USRPDF_PATH, fileCode);
+    rmCommand += uti.fmtStr(' && rm %s/%s.dcm', publicDir + USRPDF_PATH, fileCode);
+    uti.runcommand(rmCommand).then((stdout) => {
+      log.info('result => ' + stdout);
+    }).catch((err) => {
+      log.error('err: 500 >>', err);
+    });
+  });
+}
 
 
 module.exports = (dbconn, monitor) => {
@@ -1128,6 +1153,7 @@ module.exports = (dbconn, monitor) => {
     doSendEmailToAdmin,
     doCallLineUserInfo,
     doFindTechHospitalUsername,
-    doTestPushConnect
+    doTestPushConnect,
+    removeReportTempFile
   }
 }

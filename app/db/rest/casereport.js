@@ -39,32 +39,6 @@ const runcommand = function (command) {
 	});
 }
 
-const removeTempFile = function(fileCode) {
-	const publicDir = path.normalize(__dirname + '/../../../public');
-	const USRPDF_PATH = process.env.USRPDF_PATH;
-	const cron = require('node-cron');
-  const removeAfter = 10; /*minutes */
-  const startDate = new Date();
-  let endDate = new Date(startDate.getTime() + (removeAfter * 60 * 1000));
-  let endMM = endDate.getMonth() + 1;
-  let endDD = endDate.getDate();
-  let endHH = endDate.getHours();
-  let endMN = endDate.getMinutes();
-  let endSS = endDate.getSeconds();
-  let scheduleRemove = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
-	let task = cron.schedule(scheduleRemove, function(){
-    var command = parseStr('rm %s/%s.bmp', publicDir + USRPDF_PATH, fileCode);
-    command += parseStr(' && rm %s/%s.html', publicDir + USRPDF_PATH, fileCode);
-    command += parseStr(' && rm %s/%s.pdf', publicDir + USRPDF_PATH, fileCode);
-    log.info('Remove tepmfiles with command => ' + command);
-    runcommand(command).then((stdout) => {
-      log.info('result => ' + stdout);
-    }).catch((err) => {
-      log.error('err: 500 >>', err);
-    });
-  });
-}
-
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
