@@ -59,24 +59,32 @@
     $('#UrgentCode').append($('<option value="urgent">urgent</option>'));
     $('#UrgentCode').append($('<option value="normal_24hr">normal_24hr</option>'));
 
-    $('#Msisdn').val('');
+    $('#Msisdn').val('0825172674');
   }
 
   const doTestCall = function(evt){
     let msisdn = $('#Msisdn').val();
     if (msisdn != ''){
-      $('#Msisdn').css('border', '');
-      let hospitalCode = $('#HospitalCode').val();
-      let urgentCode = $('#UrgentCode').val();
-      let params = {hospitalCode: hospitalCode, urgentCode: urgentCode, msisdn: msisdn};
-      let callUrl = '/api/voipapp/callradio';
-      $.post(callUrl, params).then((response) => {
-        console.log(response);
-        $('#Msisdn').val('');
-        $('#CaseList').empty().text(JSON.stringify(response));
-      });
+      const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
+      let isCorrectFormat = phoneNoTHRegEx.test(msisdn);
+      if (isCorrectFormat){
+        $('#Msisdn').css('border', '');
+        let hospitalCode = $('#HospitalCode').val();
+        let urgentCode = $('#UrgentCode').val();
+        let params = {hospitalCode: hospitalCode, urgentCode: urgentCode, msisdn: msisdn};
+        let callUrl = '/api/voipapp/callradio';
+        $.post(callUrl, params).then((response) => {
+          console.log(response);
+          $('#Msisdn').val('');
+          $('#CaseList').empty().text(JSON.stringify(response));
+        });
+      } else {
+        $('#Msisdn').css('border', '1px solid red');
+        alert('เบอร์โทรศัพท์ไม่ถูกต้อง');
+      }
     } else {
       $('#Msisdn').css('border', '1px solid red');
+      alert('ยังไม่ป้อนเบอร์โทรศัพท์');
     }
   }
 </script>

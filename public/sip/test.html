@@ -16,7 +16,45 @@
   </head>
   <body>
     <div id="app">
-      <audio id="RemoteAudio" controls></audio>
+      <div id="InputControl">
+        <label for="Msisdn">Phone No.:</label><span>  </span>
+        <input type="text" id="Msisdn" size="15"/><span>  </span>
+        <input type="button" id="CallCmd" value=" โทร "/>
+        <input type="button" id="HangupCmd" value=" วางสาย "/>
+      </div>
+      <div id="AudioControl">
+        <audio id="RemoteAudio" controls></audio>
+      </div>
     </div>
   </body>
 </html>
+<style>
+  #InputControl{
+
+    line-height: 50px;
+    text-align: center;
+    padding: 20px;
+  }
+  #AudioControl{
+    display: none;
+    text-align: center;
+    padding: 30px;
+  }
+  #CallCmd{
+    display: inline-block;
+  }
+  #HangupCmd{
+    display: none;
+  }
+</style>
+
+<script type="text/javascript">
+  $( document ).ready(function() {
+    $('#CallCmd').on('click', (evt)=>{
+      doCall(evt);
+    });
+    $('#HangupCmd').on('click', (evt)=>{
+      doHangup(evt);
+    });
+  });
+</script>

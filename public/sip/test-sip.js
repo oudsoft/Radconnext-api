@@ -1,9 +1,13 @@
 /*test-sip.js*/
 // Create our JsSIP instance and run it:
 
-//var socket = new JsSIP.WebSocketInterface('wss://192.168.99.9:8089/ws');
+JsSIP.debug.disable('JsSIP:*');
+
+var session = undefined;
+//var remoteAudio = document.getElementById('RemoteAudio');
+
 var socket = new JsSIP.WebSocketInterface('wss://202.28.68.6:8089/ws');
-//var socket = new WebSocket('wss://radconnext.me:8089/ws'/*, { rejectUnauthorized: false }*/);
+
 var configuration = {
   sockets  : [ socket ],
   authorization_user: '2002',
@@ -46,102 +50,171 @@ ua.start();
 // Register callbacks to desired call events
 var eventHandlers = {
   'progress': function(e) {
-    console.log('call is in progress');
+    console.log('call is in progress ...');
+    document.getElementById('CallCmd').style.display = 'none';
+    document.getElementById('HangupCmd').style.display = 'inline-block';
   },
   'failed': function(e) {
     console.log('call failed with cause: ', e/*.data.cause*/);
-  },
-  'started': function(e){
-    console.log('started');
-    var rtcSession = e.sender;
-    if (rtcSession.getRemoteStreams().length > 0) {
-      console.log(rtcSession.getRemoteStreams());
-      //remoteView.src = window.URL.createObjectURL(rtcSession.getRemoteStreams()[0]);
-    }
-  },
-  'newRTCSession': function(data) {
-    var session = data.session;
-    if(session.direction === 'outgoing'){
-      console.log('stream outgoing  -------->');
-      session.on('connecting', function() {
-        console.log('CONNECT');
-      });
-      session.on('peerconnection', function(e) {
-        console.log('1accepted');
-      });
-      session.on('ended', console.log('completeSession'));
-      session.on('failed', console.log('completeSession'));
-      session.on('accepted',function(e) {
-        console.log('accepted')
-      });
-      session.on('confirmed',function(e){
-        console.log('CONFIRM STREAM');
-      });
-    }
+    document.getElementById('CallCmd').style.display = 'inline-block';
+    document.getElementById('HangupCmd').style.display = 'none';
   },
   'ended': function(e) {
     console.log('call ended with cause: ', e/*.data.cause*/);
+    var remoteAudio = document.getElementById('RemoteAudio');
+    var stream = remoteAudio.srcObject;
+    if (stream){
+      var tracks = stream.getTracks();
+      if (tracks){
+        tracks.forEach(function(track) {
+          track.stop();
+        });
+      }
+    }
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'none';
+    document.getElementById('CallCmd').style.display = 'inline-block';
+    document.getElementById('HangupCmd').style.display = 'none';
+    document.getElementById('Msisdn').value = '';
   },
   'confirmed': function(e) {
-    console.log('call confirmed');
+    console.log('call confirmed ...', e);
   }
+};
+
+var servers = {
+  iceServers: [{ "url": "stun:stun2.1.google.com:19302" }, {'url': 'stun:stun.services.mozilla.com'}]
 };
 
 var options = {
-  'eventHandlers': eventHandlers,
-  //'mediaConstraints' : { 'audio': true, 'video': false }
-   'mediaType': { 'audio': true, 'video': false }
+  //pcConfig: servers,
+  eventHandlers: eventHandlers,
+  mediaConstraints : { 'audio': true, 'video': false },
+  rtcOfferConstraints: {'offerToReceiveAudio': true, 'offerToReceiveVideo': false},
+  sessionTimersExpires: 7200
 };
 
-//var session = ua.call('sip:2000@202.28.68.6', options);
-
-var session = ua.call('0835077746', options);
-console.log(session);
-
-session.on('addstream',function(evt) {
-  console.log('Reached in Add Stream', evt)
-  document.getElementById('RemoteAudio').src = window.URL.createObjectURL(evt.stream)
-})
 //https://gist.github.com/echohes/a15fcef59e78271d7a3acb0df480b6b6
 //https://github.com/versatica/JsSIP/issues/545
 //https://gist.github.com/dtolb/79e813d45fac6488e4c67993b393ddda
+//https://tipsfordev.com/bind-mediastream-to-video-element-with-jssip-bad-media-description
 
-var callOptions = {
-  mediaConstraints: {
-    audio: true, // only audio calls
-    video: false
-  }
-};
+var callOptions = {mediaConstraints: options.mediaConstraints};
 
 ua.on("newRTCSession", function(data){
-    var session = data.session;
+var rtcSession = data.session;
+session = rtcSession;
+if (rtcSession.direction === "incoming") {
+    // incoming call here
+    rtcSession.on("accepted",function(e){
+      // the call has answered
+      console.log('onaccept', e);
+    });
+    rtcSession.on("confirmed",function(e){
+      // this handler will be called for incoming calls too
+      console.log('onconfirm', e);
+      var from = e.ack.from._display_name;
+      $('#Msisdn').val(from);
+      $('#CallCmd').hide();
+      $('#HangupCmd').show();
+    });
+    rtcSession.on("ended",function(e){
+      // the call has ended
+      console.log('onended', e);
+      //remoteAudio.srcObject = null;
+      var remoteAudio = document.getElementById("RemoteAudio");
+      var stream = remoteAudio.srcObject;
+      if (stream){
+        var tracks = stream.getTracks();
+        if (tracks){
+          tracks.forEach(function(track) {
+            track.stop();
+          });
+        }
+      }
+      var audioControl = document.getElementById('AudioControl');
+      audioControl.style.display = 'none';
 
-    if (session.direction === "incoming") {
-        // incoming call here
-        session.on("accepted",function(){
-            // the call has answered
-        });
-        session.on("confirmed",function(){
-            // this handler will be called for incoming calls too
-        });
-        session.on("ended",function(){
-            // the call has ended
-        });
-        session.on("failed",function(){
-            // unable to establish the call
-        });
-        session.on('addstream', function(e){
-            // set remote audio stream (to listen to remote audio)
-            // remoteAudio is <audio> element on page
-            var remoteAudio = document.getElementById("RemoteAudio");
-            remoteAudio.src = window.URL.createObjectURL(e.stream);
-            remoteAudio.play();
-        });
+      $('#Msisdn').val('');
+      $('#CallCmd').show();
+      $('#HangupCmd').hide();
 
-        // Answer call
-        session.answer(callOptions);
+    });
+    rtcSession.on("failed",function(e){
+      // unable to establish the call
+      console.log('onfailed', e);
+      var audioControl = document.getElementById('AudioControl');
+      audioControl.style.display = 'none';      
+      $('#CallCmd').show();
+      $('#HangupCmd').hide();
+    });
+    rtcSession.on('addstream', function(e){
+      // set remote audio stream (to listen to remote audio)
+      // remoteAudio is <audio> element on page
+      console.log('onaddstream', e);
+    });
 
-        // Reject call (or hang up it)
-        session.terminate();
-    }
+    // Answer call
+    rtcSession.answer(callOptions);
+
+    rtcSession.connection.addEventListener('addstream', function (e) {
+      var remoteAudio = document.getElementById("RemoteAudio");
+      remoteAudio.srcObject = e.stream;
+      remoteAudio.play();
+      var audioControl = document.getElementById('AudioControl');
+      audioControl.style.display = 'block';
+    });
+
+    /*
+    rtcSession.on('peerconnection', function(data) {
+      console.log(data);
+      data.peerconnection.addEventListener('addstream', function (e) {
+        // set remote audio stream
+        const remoteAudio = document.createElement('audio');
+        remoteAudio.srcObject = e.stream;
+        remoteAudio.play();
+      });
+    });
+    */
+  }
 });
+
+function doCall(evt){
+  var msisdn = $('#Msisdn').val();
+  if (msisdn !== '') {
+    const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
+    let isCorrectFormat = phoneNoTHRegEx.test(msisdn);
+    if (!isCorrectFormat){
+      doInputErrorHandle();
+    } else {
+      $('#Msisdn').css('border', '');
+      session = ua.call(msisdn, options);
+      console.log(session);
+      session.connection.addEventListener('addstream', function (e) {
+        // set remote audio stream
+        //console.log(e);
+        var remoteAudio = document.getElementById('RemoteAudio');
+        remoteAudio.srcObject = e.stream;
+        remoteAudio.play();
+        var audioControl = document.getElementById('AudioControl');
+        audioControl.style.display = 'block';
+      });
+    }
+  } else{
+    doInputErrorHandle();
+  }
+}
+
+function doInputErrorHandle(){
+  $('#Msisdn').css('border', '');
+  $('#Msisdn').css('border', '1px solid red');
+  aler('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx');
+  return;
+}
+
+function doHangup(evt){
+  if (session){
+    session.terminate();
+    document.getElementById('AudioControl').style.display = 'none';
+  }
+}

@@ -102,10 +102,9 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doCallApiDirect = function (apiname, params) {
+	const doCallApiDirect = function (apiUrl, params) {
 		return new Promise(function(resolve, reject) {
-			var realUrl = '../api' + '/' + apiname + apiExt;
-			$.post(realUrl, params, function(data){
+			$.post(apiUrl, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
 				reject(error);
@@ -267,8 +266,8 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
-      doCallApi(orthancProxyEndPoint, params).then((data)=>{
-  		//$.post(orthancProxyEndPoint, params, function(data){
+      //doCallApi(orthancProxyEndPoint, params).then((data)=>{
+  		$.post(orthancProxyEndPoint, params, function(data){
 				resolve(data);
 			});
   	});
@@ -657,21 +656,21 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let patientHNInput = $('<input type="text" value="*" size="15"/>');
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="15"/>');
 		$(patientHNInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let patientNameInput = $('<input type="text" value="*" size="18"/>');
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="18"/>');
 		$(patientNameInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let modalityInput = $('<input type="text" value="*" size="4"/>');
+		let modalityInput = $('<input type="text" value="*" id="ModalityInput" size="4"/>');
 		$(modalityInput).on('keypress', function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
@@ -813,7 +812,7 @@ module.exports = function ( jq ) {
 					}
 					setTimeout(()=>{
 						resolve2(logicAns);
-					}, 110);
+					}, 10);
 				});
 				Promise.all([promiseList]).then((ob)=>{
 					resolve(ob[0]);
@@ -926,6 +925,7 @@ module.exports = function ( jq ) {
 	  }
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
+		localStorage.removeItem('masternotify');
 		//localStorage.removeItem('dicomfilter');
 	  let url = '/index.html';
 	  window.location.replace(url);
@@ -1343,7 +1343,8 @@ module.exports = function ( jq ) {
 			let rqParams = {patientId: patientId};
 			let apiUrl = '/api/patient/fullname/en/' + patientId;
 			try {
-				let response = await doCallApi(apiUrl, rqParams);
+				//let response = await doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
 				resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -1972,7 +1973,9 @@ module.exports = function ( jq ) {
 			$(popupDicomSummary).append($('<span><b>HN:</b>  </span>'));
 			$(popupDicomSummary).append($('<span>' + hn + '  </span>'));
 			$(popupDicomSummary).append($('<span><b>Name:</b>  </span>'));
-			$(popupDicomSummary).append($('<span>' + name + '</span>'));
+			$(popupDicomSummary).append($('<span>' + name + ' </span>'));
+			$(popupDicomSummary).append($('<span><b>Acc. No.:</b>  </span>'));
+			$(popupDicomSummary).append($('<span>' + defualtValue.acc + '</span>'));
 
 			let popupCmdBar = $('<div style="position: relative; min-height: 50px; padding: 5px; text-align: center;"></div>');
 			$(popupCmdBar).append($(previewCmd));
@@ -1983,7 +1986,7 @@ module.exports = function ( jq ) {
 
 			$(popupDicomCmdBox).append($(popupTitleBar)).append($(popupDicomSummary)).append($(popupCmdBar))
 
-			$(popupDicomCmdBox).css({'width': '720px', 'height': '180px'});
+			$(popupDicomCmdBox).css({'width': '850px', 'height': '180px'});
 			$(popupDicomCmdBox).css(ai.quickReplyContentStyle);
 			$('#quickreply').css(ai.quickReplyDialogStyle);
 			$('#quickreply').append($(popupDicomCmdBox));
@@ -3002,7 +3005,8 @@ module.exports = function ( jq ) {
       rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
       let caseRes = await common.doCallApi('/api/cases/add', rqParams);
       if (caseRes.status.code === 200) {
-				console.log(caseRes.Record);
+				console.log('newCase=>', caseRes.Record);
+				console.log('caseActions=>', caseRes.actions);
 				//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
         $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
 				if (userdata.usertypeId == 2) {
@@ -3014,6 +3018,24 @@ module.exports = function ( jq ) {
 				} else if (userdata.usertypeId == 5) {
 					$('#CaseMainCmd').click(); // <- Refer Page
 				}
+				/*
+				if (caseRes.actions.warnning) {
+					let warningContent = $('<div></div>');
+					$(warningContent).append($('<p>เคสที่สร้างใหม่อาจมีปัญหากับผลอ่านที่รังสีแพทย์ส่งกลับมา</p>'));
+					$(warningContent).append($('<p>โปรดตรวจสอบสถานะการเชื่อมต่อให้พร้อมรับผลอ่าน</p>'));
+					$(warningContent).append($('<a target="_blank" href="http://localhost:3000/api">เปิดหน้าครวจสอบ</a>'));
+					const radalertoption = {
+						title: 'WARNING',
+						msg: $(warningContent),
+						width: '610px',
+						onOk: function(evt) {
+							radAlertBox.closeAlert();
+						}
+					}
+					let radAlertBox = $('body').radalert(radalertoption);
+					$(radAlertBox.cancelCmd).hide();
+				}
+				*/
       } else {
         $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
       }
@@ -3437,10 +3459,10 @@ module.exports = function ( jq ) {
   		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
   		let table = $('<div style="display: table; width: 100%;"></div>');
 
-  		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ)์', yourUserdata.userinfo.User_NameEN);
+  		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
   		$(yourNameENFrag).appendTo($(table));
 
-  		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ)์', yourUserdata.userinfo.User_LastNameEN);
+  		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
   		$(yourLastNameENFrag).appendTo($(table));
 
   		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
@@ -3464,6 +3486,19 @@ module.exports = function ( jq ) {
   		$('#UserProfileBox').empty().append($(table));
   		$(".modal-footer").css('text-align', 'center');
   		$("#SaveUserProfile-Cmd").click((evt)=>{
+				const doSaveUserInfo = function(){
+					$(table).find('#UserPathRadiant').css('border', '');
+					console.log(newPathRadiant);
+					let downloadPathFrags = newPathRadiant.split('\\');
+					console.log(downloadPathFrags);
+					newPathRadiant = downloadPathFrags.join('/');
+					console.log(newPathRadiant);
+					let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+					yourNewUserInfo.userId = yourUserdata.id;
+					yourNewUserInfo.infoId = yourUserdata.userinfo.id;
+					yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
+					doSaveUserProfile(yourNewUserInfo);
+				}
 
   			let newNameEN = $(table).find('#UserNameEN').val();
   			let newLastNameEN = $(table).find('#UserLastNameEN').val();
@@ -3475,39 +3510,49 @@ module.exports = function ( jq ) {
 				let newPathRadiant = $(table).find('#UserPathRadiant').val();
   			if (newNameEN === '') {
   				$(table).find('#UserNameEN').css('border', '1px solid red');
+					$.notify('ต้องมีชื่อ(ภาษาอังกฤษ์)', 'error');
   				return;
   			} else if (newLastNameEN === '') {
   				$(table).find('#UserNameEN').css('border', '');
   				$(table).find('#UserLastNameEN').css('border', '1px solid red');
+					$.notify('ต้องมีนามสกุล(ภาษาอังกฤษ์)', 'error');
   				return;
   			} else if (newNameTH === '') {
   				$(table).find('#UserLastNameEN').css('border', '');
   				$(table).find('#UserNameTH').css('border', '1px solid red');
+					$.notify('ต้องมีชื่อ(ภาษาไทย)', 'error');
   				return;
   			} else if (newLastNameTH === '') {
   				$(table).find('#UserNameTH').css('border', '');
   				$(table).find('#UserLastNameTH').css('border', '1px solid red');
+					$.notify('ต้องมีนามสกุล(ภาษาไทย)', 'error');
   				return;
   			} else if (newEmail === '') {
   				$(table).find('#UserLastNameTH').css('border', '');
   				$(table).find('#UserEmial').css('border', '1px solid red');
   				return;
+				} else if (newPhone !== '') {
+					const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
+					let isCorrectFormat = phoneNoTHRegEx.test(newPhone);
+					if (!isCorrectFormat){
+						$(table).find('#UserEmial').css('border', '');
+						$(table).find('#UserPhone').css('border', '1px solid red');
+						$.notify('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx', 'error');
+						return;
+					} else if (newPathRadiant	 === '') {
+	  				$(table).find('#UserPhone').css('border', '');
+	  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
+	  				return;
+	  			} else {
+						doSaveUserInfo();
+	  			}
 				} else if (newPathRadiant	 === '') {
-  				$(table).find('#UserEmial').css('border', '');
+  				$(table).find('#UserEmail').css('border', '');
   				$(table).find('#UserPathRadiant').css('border', '1px solid red');
+					$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom หากไม่ใช่รังสีแพทย์พิมพ์เป็นอะไรก็ได้แต่ต้องไม่ปล่อยว่างไว้', 'error');
   				return;
   			} else {
-  				$(table).find('#UserPathRadiant').css('border', '');
-					console.log(newPathRadiant);
-					let downloadPathFrags = newPathRadiant.split('\\');
-					console.log(downloadPathFrags);
-					newPathRadiant = downloadPathFrags.join('/');
-					console.log(newPathRadiant);
-  				let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
-  				yourNewUserInfo.userId = yourUserdata.id;
-  				yourNewUserInfo.infoId = yourUserdata.userinfo.id;
-  				yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
-  				doSaveUserProfile(yourNewUserInfo);
+					doSaveUserInfo();
   			}
   		});
   	});
@@ -3922,26 +3967,13 @@ module.exports = function ( jq ) {
 	}
 
 	const doConnectWebsocketLocal = function(username){
-		return new Promise(function(resolve, reject) {
-
-		  let wsUrl = 'wss://localhost:3000/api/' + username + '?type=test';
-			try {
-				wsl = new WebSocket(wsUrl);
-				wsl.onopen = wslOnOpen;
-
-				wsl.onmessage = wslOnMessage;
-
-			  wsl.onclose = wslOnClose;
-
-				wsl.onerror = wslOnError;
-
-				resolve(wsl);
-
-			} catch(error) {
-				reject(error);
-			}
-
-		});
+	  let wsUrl = 'ws://localhost:3000/api/' + username + '?type=local';
+		wsl = new WebSocket(wsUrl);
+		wsl.onopen = wslOnOpen;
+		wsl.onmessage = wslOnMessage;
+	  wsl.onclose = wslOnClose;
+		wsl.onerror = wslOnError;
+		return wsl;
 	}
 
 	const isMobileDeviceCheck = function(){
@@ -4016,6 +4048,23 @@ module.exports = function ( jq ) {
 		return $(myLogBox);
 	}
 
+	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
+	dicomZipSyncWorker.addEventListener("message", async function(event) {
+	  let evtData = event.data;
+	  //{studyID,fileEntryURL}
+		if (evtData.fileEntryURL){
+		  let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
+		  await dicomzipsync.forEach((dicom, i) => {
+		    if (dicom.studyID == evtData.studyID) {
+		      dicom.fileEntryURL = evtData.fileEntryURL;
+		    }
+		  });
+		  localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
+		} else if (evtData.error){
+			$.notify("Your Sync Dicom in Background Error", "error");
+		}
+	});
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -4050,6 +4099,7 @@ module.exports = function ( jq ) {
 		XLSX_FILE_TYPE,
 		doCreateDownloadXLSX,
 		doShowLogWindow,
+		dicomZipSyncWorker,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -4062,7 +4112,6 @@ module.exports = function ( jq, wsm ) {
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
-		console.log(data.type == 'reportlogreturn');
     if (data.type !== 'test') {
       let masterNotify = localStorage.getItem('masternotify');
       let MasterNotify = JSON.parse(masterNotify);
@@ -4176,6 +4225,10 @@ module.exports = function ( jq, wsm ) {
 			document.dispatchEvent(event);
 		} else if (data.type == 'echoreturn') {
 			let eventName = 'echoreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'clientreconnect') {
+			let eventName = 'clientreconnecttrigger';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
     } else {
@@ -15409,7 +15462,9 @@ module.exports = function ( jq, wsm) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
+			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -15421,6 +15476,14 @@ module.exports = function ( jq, wsm) {
 	      let evtData = {};
 	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 	      document.dispatchEvent(event);
+			}
+			if (minuteLogout > 0){
+				if (data.counterping == minuteLogout) {
+					let eventName = 'autologout';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -16208,13 +16271,27 @@ module.exports = function ( jq ) {
 			chatHandle.sendMessage(pwdMsg);
 			chatHandle.sendMessage(topicMsg);
 
-
 			window.open(zoomMeeting.start_url, '_blank');
 			$('body').loading('stop');
 		} else {
 			//radio offline
-			alert('ระบบฯ ไม่สามารถติดต่อรังสีแพทย์ได้\nอย่างไรก็ตามคุณสามารถส่งข้อมูลห้องสนนาที่ปรากฎในกล่องข้อความ่ไปให้รังสีแพทย์ทางช่องทางอื่นได้เช่น ไลน์ อีเมล์ เป็นต้น');
 			$('body').loading('stop');
+			let radAlertMsg = $('<div></div>');
+			$(radAlertMsg).append($('<p>ระบบฯ ไม่สามารถติดต่อรังสีแพทย์ได้ในขณะนี้</p>'));
+			$(radAlertMsg).append($('<p>อย่างไรก็ตามคุณสามารถส่งข้อมูลห้องสนนาที่สร้างขึ้นใหม่</p>'));
+			$(radAlertMsg).append($('<p>่ไปให้รังสีแพทย์ทางช่องทางอื่นได้เช่น ไลน์ อีเมล์ เป็นต้น</p>'));
+			$(radAlertMsg).append($('<p>ลิงค์สำหรับเข้าร่วมสนทนา <b>' + zoomMeeting.join_url + '</b></p>'));
+			$(radAlertMsg).append($('<p>Password เข้าร่วมสนทนา <b>' + zoomMeeting.password + '</b></p>'));
+			$(radAlertMsg).append($('<p>ชื่อหัวข้อสนทนา <b>' + zoomMeeting.topic + '</b></p>'));
+			const radconfirmoption = {
+				title: 'ไม่สามารถติดต่อรังสีแพทย์ได้',
+				msg: $(radAlertMsg),
+				width: '420px',
+				onOk: function(evt) {
+					radConfirmBox.closeAlert();
+				}
+			}
+			let radConfirmBox = $('body').radalert(radconfirmoption);
 		}
 	}
 
