@@ -16204,7 +16204,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSoftPhoneCallCmd = function(caseItem){
-		const softPhoneIconUrl = '/images/phone-call-icon.png';
+		const softPhoneIconUrl = '/images/phone-call-icon-2.png';
 		let softPhoneBox = $('<div style="position: relative; display: inline-block; text-align: center; margin-right: 20px;"></div>');
     let softPhoneIcon = $('<img style="postion: absolute; width: 30px; height: auto; cursor: pointer;"/>');
     $(softPhoneIcon).attr('src', softPhoneIconUrl);
@@ -16224,7 +16224,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateZoomCallCmd = function(caseItem, chatHandle){
-		const zoomIconUrl = '/images/zoom-black-icon.png';
+		const zoomIconUrl = '/images/zoom-white-icon.png';
 		let zoomBox = $('<div style="position: relative; display: inline-block; text-align: center; margin-right: 20px;"></div>');
     let zoomIcon = $('<img style="postion: absolute; width: 30px; height: auto; cursor: pointer;"/>');
     $(zoomIcon).attr('src', zoomIconUrl);
