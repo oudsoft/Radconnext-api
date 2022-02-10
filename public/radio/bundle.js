@@ -3280,7 +3280,7 @@ module.exports = function ( jq ) {
 				} else {
 					alert('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้');
 				}
-			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9)){
+			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9) || (currentCaseRes.current == 14)){
 				eventData.statusId = caseItem.casestatusId;
 	      $(openCmd).trigger('opencase', [eventData]);
 			} else {
