@@ -3269,7 +3269,6 @@ module.exports = function ( jq ) {
 				eventData.StudyDescription = eventData.ProtocolName;
 			}
 			let currentCaseRes = await common.doGetApi('/api/cases/status/' + caseItem.id, {});
-			console.log(currentCaseRes);
 			if (currentCaseRes.current == 2){
 			//if (caseItem.casestatusId == 2) {
 				let newCaseStatus = 8;
@@ -3936,6 +3935,7 @@ module.exports = function ( jq ) {
 					if (lastHis) {
 						let audienceId = lastHis.from;
 						let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
+console.log(audienceInfo);
 						let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
 						let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
 						let topicType = 'case';
