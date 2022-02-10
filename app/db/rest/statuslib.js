@@ -102,7 +102,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           //radio access
           log.info('targetCases[0].Case_RadiologistId=>' + targetCases[0].Case_RadiologistId);
           log.info('userId=>' + userId);
-          if (targetCases[0].Case_RadiologistId == userId) {
+          //if (targetCases[0].Case_RadiologistId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
@@ -115,9 +115,9 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
             } else {
               resolve({change: {status: true}, actions: actions});
             }
-          } else {
-            resolve({change: {status: false}});
-          }
+          //} else {
+            //resolve({change: {status: false}});
+          //}
         } else if (accessBy == 5) {
           //refer access
           if (targetCases[0].Case_RefferalId == userId) {
