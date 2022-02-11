@@ -182,7 +182,7 @@
         //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
         //$('.footer').simplelog({test: JSON.stringify(localMessage)})
         doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
-          console.log(localMessage);
+          //console.log(localMessage);
     			if ((localMessage) && (localMessage.length > 0)) {
             for (let i=0; i < localMessage.length; i++) {
               let msgJson = localMessage[i];
@@ -221,7 +221,7 @@
       return dfd.promise();
     }
     const doFindMessageOfTopic = function(orgMessage, topicId){
-      console.log(orgMessage);
+      //console.log(orgMessage);
       var dfd = $.Deferred();
       if (orgMessage && (orgMessage.length > 0)) {
         let history = orgMessage.filter(function(item){

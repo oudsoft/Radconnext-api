@@ -18,7 +18,7 @@
     <div id="app">
       <div id="InputControl">
         <label for="Msisdn">Phone No.:</label><span>  </span>
-        <input type="text" id="Msisdn" size="15"/><span>  </span>
+        <input type="number" id="Msisdn" size="15"/><span>  </span>
         <input type="button" id="CallCmd" value=" โทร "/>
         <input type="button" id="HangupCmd" value=" วางสาย "/>
       </div>
@@ -55,6 +55,11 @@
     });
     $('#HangupCmd').on('click', (evt)=>{
       doHangup(evt);
+    });
+    $('#Msisdn').on('keypress',function(evt) {
+      if(evt.which == 13) {
+        doCall(evt);
+      };
     });
   });
 </script>

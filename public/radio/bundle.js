@@ -3333,7 +3333,7 @@ module.exports = function ( jq ) {
 	      } else {
 	        //$(caseColumn).append($('<span>not found Task</span>'));
 					$(caseColumn).append($('<span style="color: red;">-</span>'));
-					console.error('not found Task');
+					//console.error('not found Task');
 	  		}
 			} else {
 				$(caseColumn).append($('<span>-</span>'));
@@ -3935,8 +3935,8 @@ module.exports = function ( jq ) {
 					if (lastHis) {
 						let audienceId = lastHis.from;
 						let audienceInfo = await apiconnector.doGetApi('/api/users/searchusername/' + audienceId, {});
-console.log(audienceInfo);
-						let audienceName = audienceInfo.result[0].userinfo.User_NameTH + ' ' + audienceInfo.result[0].userinfo.User_LastNameTH;
+						audienceInfo = await apiconnector.doGetApi('/api/users/select/' + audienceInfo.id, {});
+						let audienceName = audienceInfo.user[0].userinfo.User_NameTH + ' ' + audienceInfo.user[0].userinfo.User_LastNameTH;
 						let topicName = openCase.case.patient.Patient_HN + ' ' + openCase.case.patient.Patient_NameEN + ' ' + openCase.case.patient.Patient_LastNameEN + ' ' + openCase.case.patient.Patient_Sex + '/' + openCase.case.patient.Patient_Age + ' ' + openCase.case.Case_BodyPart;
 						let topicType = 'case';
 						let contact = await doCreateNewAudience(audienceId, audienceName, caseId, topicName);
@@ -3982,8 +3982,10 @@ console.log(audienceInfo);
         let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
         resolve($(contactIcon));
       } else {
-				let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
-        resolve($(contactIcon));
+				//let contactIcon = chatBoxTarget.contact[0];
+				//let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
+        //resolve($(contactIcon));
+				resolve();
       }
     });
   }
@@ -5696,7 +5698,7 @@ module.exports = function ( jq ) {
 				const saveDraftResponseCmd = $(evt.currentTarget);
 		    const saveDraftResponseData = $(saveDraftResponseCmd).data('saveDraftResponseData');
 				let draftResponseRes = await doSaveDraft(saveDraftResponseData);
-				console.log(draftResponseRes);
+				//console.log(draftResponseRes);
 				//if ((draftResponseRes.status.code == 200) || (draftResponseRes.status.code == 203)){
 				if (draftResponseRes.status.code == 200) {
 					caseResponseId = draftResponseRes.result.responseId;
@@ -6299,7 +6301,7 @@ module.exports = function ( jq ) {
 				let canEditResponse = util.contains.call(youCan, selectedCase.case.casestatusId);
 				if (canEditResponse) {
 					let draftResponseRes = caseOpen.caseResponse;
-					console.log(draftResponseRes);
+					//console.log(draftResponseRes);
 					if (draftResponseRes.Record.length > 0) {
 						caseResponseId = draftResponseRes.Record[0].id;
 						$(summary).find('#SimpleEditor').jqteVal(draftResponseRes.Record[0].Response_HTML);
