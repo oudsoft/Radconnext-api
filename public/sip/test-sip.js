@@ -4,6 +4,7 @@
 JsSIP.debug.disable('JsSIP:*');
 
 var session = undefined;
+var rtcSession = undefined;
 //var remoteAudio = document.getElementById('RemoteAudio');
 
 var socket = new JsSIP.WebSocketInterface('wss://202.28.68.6:8089/ws');
@@ -102,79 +103,20 @@ var options = {
 var callOptions = {mediaConstraints: options.mediaConstraints};
 
 ua.on("newRTCSession", function(data){
-var rtcSession = data.session;
-session = rtcSession;
-if (rtcSession.direction === "incoming") {
+  rtcSession = data.session;
+  session = rtcSession;
+  if (rtcSession.direction === "incoming") {
     // incoming call here
-    rtcSession.on("accepted",function(e){
-      // the call has answered
-      console.log('onaccept', e);
-    });
-    rtcSession.on("confirmed",function(e){
-      // this handler will be called for incoming calls too
-      console.log('onconfirm', e);
-      var from = e.ack.from._display_name;
-      $('#Msisdn').val(from);
-      $('#CallCmd').hide();
-      $('#HangupCmd').show();
-    });
-    rtcSession.on("ended",function(e){
-      // the call has ended
-      console.log('onended', e);
-      //remoteAudio.srcObject = null;
-      var remoteAudio = document.getElementById("RemoteAudio");
-      var stream = remoteAudio.srcObject;
-      if (stream){
-        var tracks = stream.getTracks();
-        if (tracks){
-          tracks.forEach(function(track) {
-            track.stop();
-          });
-        }
-      }
-      var audioControl = document.getElementById('AudioControl');
-      audioControl.style.display = 'none';
-
-      $('#Msisdn').val('');
-      $('#CallCmd').show();
-      $('#HangupCmd').hide();
-
-    });
-    rtcSession.on("failed",function(e){
-      // unable to establish the call
-      console.log('onfailed', e);
-      var audioControl = document.getElementById('AudioControl');
-      audioControl.style.display = 'none';      
-      $('#CallCmd').show();
-      $('#HangupCmd').hide();
-    });
-    rtcSession.on('addstream', function(e){
-      // set remote audio stream (to listen to remote audio)
-      // remoteAudio is <audio> element on page
-      console.log('onaddstream', e);
-    });
-
-    // Answer call
-    rtcSession.answer(callOptions);
-
-    rtcSession.connection.addEventListener('addstream', function (e) {
-      var remoteAudio = document.getElementById("RemoteAudio");
-      remoteAudio.srcObject = e.stream;
-      remoteAudio.play();
-      var audioControl = document.getElementById('AudioControl');
-      audioControl.style.display = 'block';
-    });
+    console.log(rtcSession);
+    $('#SipPhoneIncomeBox').css({'top': '10px'});
+    var remoteAudio = document.getElementById("RemoteAudio");
+    doPlayRingIncomeCall(remoteAudio);
+    //var audioControl = document.getElementById('AudioControl');
+    //audioControl.style.display = 'block';
 
     /*
-    rtcSession.on('peerconnection', function(data) {
-      console.log(data);
-      data.peerconnection.addEventListener('addstream', function (e) {
-        // set remote audio stream
-        const remoteAudio = document.createElement('audio');
-        remoteAudio.srcObject = e.stream;
-        remoteAudio.play();
-      });
-    });
+    remoteAudio.srcObject = ;
+    remoteAudio.play();
     */
   }
 });
@@ -216,5 +158,97 @@ function doHangup(evt){
   if (session){
     session.terminate();
     document.getElementById('AudioControl').style.display = 'none';
+    var remoteAudio = document.getElementById("RemoteAudio");
+    remoteAudio.pause();
+    remoteAudio.currentTime = 0;
   }
+}
+
+const doRejectCall = function(evt){
+  doHangup(evt);
+  $('#SipPhoneIncomeBox').css({'top': '-55px'});
+}
+
+const doEndCall = function(evt){
+  doHangup(evt);
+  $('#SipPhoneIncomeBox').css({'top': '-55px'});
+}
+
+const doAcceptCall = function(evt){
+  rtcSession.on("accepted",function(e){
+    // the call has answered
+    console.log('onaccept', e);
+  });
+  rtcSession.on("confirmed",function(e){
+    // this handler will be called for incoming calls too
+    console.log('onconfirm', e);
+    var from = e.ack.from._display_name;
+    $('#Msisdn').val(from);
+    $('#CallCmd').hide();
+    $('#HangupCmd').show();
+    var remoteAudio = document.getElementById("RemoteAudio");
+    remoteAudio.pause();
+    remoteAudio.currentTime = 0;
+  });
+  rtcSession.on("ended",function(e){
+    // the call has ended
+    console.log('onended', e);
+    //remoteAudio.srcObject = null;
+    var remoteAudio = document.getElementById("RemoteAudio");
+    var stream = remoteAudio.srcObject;
+    if (stream){
+      var tracks = stream.getTracks();
+      if (tracks){
+        tracks.forEach(function(track) {
+          track.stop();
+        });
+      }
+    }
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'none';
+
+    $('#Msisdn').val('');
+    $('#CallCmd').show();
+    $('#HangupCmd').hide();
+    $('#SipPhoneIncomeBox').css({'top': '-55px'});
+  });
+  rtcSession.on("failed",function(e){
+    // unable to establish the call
+    console.log('onfailed', e);
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'none';
+    $('#CallCmd').show();
+    $('#HangupCmd').hide()
+    var remoteAudio = document.getElementById("RemoteAudio");
+    remoteAudio.pause();
+    remoteAudio.currentTime = 0;
+  });
+  rtcSession.on('addstream', function(e){
+    // set remote audio stream (to listen to remote audio)
+    // remoteAudio is <audio> element on page
+    console.log('onaddstream', e);
+  });
+
+  // Answer call
+  rtcSession.answer(callOptions);
+
+  rtcSession.connection.addEventListener('addstream', function (e) {
+    var remoteAudio = document.getElementById("RemoteAudio");
+    remoteAudio.srcObject = e.stream;
+    remoteAudio.play();
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'block';
+  });
+}
+
+const doPlayRingIncomeCall = function(audioElem){
+  audioElem.src = '/mp3/telephone-ring-04.mp3';
+  audioElem.load();
+  audioElem.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+  }, false);
+  setTimeout(() => {
+    audioElem.play();
+  }, 500);
 }

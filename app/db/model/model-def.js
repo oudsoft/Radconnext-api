@@ -72,7 +72,10 @@ const RadUserInfoDef = {
 			},
 			User_Hospitals : {
 				type: Sequelize.JSON
-			}
+			},
+			User_SipPhone :  {
+				type: Sequelize.STRING(10),
+			},
 		};
 
 //User_ID

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Rad Connext Web Application</title>
+    <title>Rad Connext SIP Phobe</title>
     <link href="../refer/css/callradio.css" rel="stylesheet">
     <link href="../lib/jquery-ui.min.css" rel="stylesheet">
     <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -12,6 +12,7 @@
     <script type="text/javascript" src="../lib/notify.min.js"></script>
     <script type="text/javascript" src="../lib/jquery.loading.min.js"></script>
     <script type="text/javascript" src="../lib/jssip-3.9.0.min.js"></script>
+    <script type="text/javascript" src="../setting/plugin/jquery-sipphone-income-plugin.js"></script>
   	<script type="text/javascript" src="test-sip.js"></script>
   </head>
   <body>
@@ -61,5 +62,13 @@
         doCall(evt);
       };
     });
+
+    let sipPhoneOptions = {onRejectCallCallback: doRejectCall, onAcceptCallCallback: doAcceptCall, onEndCallCallback: doEndCall};
+
+    let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
+		$(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-55px'});
+		let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
+		$('body').append($(mySipPhoneIncomeBox));
+
   });
 </script>
