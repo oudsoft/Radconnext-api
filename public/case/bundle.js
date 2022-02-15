@@ -35,8 +35,8 @@ $( document ).ready(function() {
           if (userdata.usertypeId == 2){
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
-             sipUA = softphone.doRegisterSoftphone(userdata.userinfo.USER_SipPhone);
-             sipUA.start();
+             //sipUA = softphone.doRegisterSoftphone(userdata.userinfo.USER_SipPhone);
+             //sipUA.start();
            } else {
              alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
              doLoadLogin();
