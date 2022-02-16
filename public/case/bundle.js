@@ -32,12 +32,17 @@ $( document ).ready(function() {
         if (userdata !== 'undefined') {
           userdata = JSON.parse(userdata);
           console.log(userdata);
-          if (userdata.usertypeId == 2){
+          if (userdata.usertypeId == 2) {
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
              if (userdata.userinfo.User_SipPhone){
-               sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
-               sipUA.start();
+                sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
+                sipUA.start();
+                let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
+                let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
+                $(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
+                let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
+                $('body').append($(mySipPhoneIncomeBox));
              }
            } else {
              alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
@@ -6567,7 +6572,7 @@ module.exports = function ( jq ) {
 	    let data = JSON.parse(msgEvt.data);
 	    console.log(data);
 	  }
-		
+
     let sipUri = 'sip:' + softNumber + '@' + realm;
     let sipConfiguration = {
       sockets: [ socket ],
@@ -6626,8 +6631,23 @@ module.exports = function ( jq ) {
     return ua;
   }
 
+	const doRejectCall = function(evt){
+
+	}
+
+	const doAcceptCall = function(evt){
+
+	}
+
+	const doEndCall = function(evt){
+
+	}
+
   return {
-    doRegisterSoftphone
+    doRegisterSoftphone,
+		doRejectCall,
+		doAcceptCall,
+		doEndCall
 	}
 }
 
