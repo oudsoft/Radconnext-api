@@ -13,6 +13,7 @@
     let incomeRowHandle = undefined;
     let answerRowHandle = undefined;
     let ringAudio = undefined;
+    let remoteAudio =undefined;
 
     const doGetIncomeRowHandle = function(){
       return $(incomeRowHandle);
@@ -58,10 +59,13 @@
         this.play();
       }, false);
 
+      remoteAudio = new Audio();
+      remoteAudio.id = 'RemoteAudio';
+      
       let sipPhoneBox = $('<div></div>');
       incomeRowHandle = doCreateIncomeCallRow(onRejectAction, onAcceptAction);
       answerRowHandle = doCreateCallAnswerRow(onEndAction);
-      return $(sipPhoneBox).append($(incomeRowHandle)).append($(answerRowHandle)).append($(ringAudio));
+      return $(sipPhoneBox).append($(incomeRowHandle)).append($(answerRowHandle)).append($(ringAudio)).append($(remoteAudio));
     }
 
     const sipPhone = init(settings.onRejectCallCallback, settings.onAcceptCallCallback, settings.onEndCallCallback);

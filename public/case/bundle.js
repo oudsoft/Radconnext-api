@@ -6619,8 +6619,8 @@ module.exports = function ( jq ) {
         rtcSession.on('failed', function (e) {
           console.log('connecttion failed', e);
           ringAudio.pause();
-          var audioControl = document.getElementById('AudioControl');
-          audioControl.style.display = 'none';
+          let remoteAudio = document.getElementById('RemoteAudio');
+					doClearTracks(remoteAudio);
           $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
           $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
           $('#SipPhoneIncomeBox').css({'top': '-65px'});
@@ -6632,15 +6632,73 @@ module.exports = function ( jq ) {
   }
 
 	const doRejectCall = function(evt){
-
-	}
-
-	const doAcceptCall = function(evt){
-
+		doHangup(evt);
 	}
 
 	const doEndCall = function(evt){
+		doHangup(evt);
+	}
 
+	const doAcceptCall = function(evt){
+		rtcSession.on("accepted",function(e){
+	    // the call has answered
+	    console.log('onaccept', e);
+	  });
+	  rtcSession.on("confirmed",function(e){
+	    // this handler will be called for incoming calls too
+	    console.log('onconfirm', e);
+	    var from = e.ack.from._display_name;
+			console.log(from);
+	  });
+	  rtcSession.on("ended",function(e){
+	    // the call has ended
+	    console.log('onended', e);
+	    var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+	  rtcSession.on("failed",function(e){
+	    // unable to establish the call
+	    console.log('onfailed', e);
+			var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+
+	  // Answer call
+	  rtcSession.answer(options);
+
+	  rtcSession.connection.addEventListener('addstream', function (e) {
+	    var remoteAudio = document.getElementById("RemoteAudio");
+	    remoteAudio.srcObject = e.stream;
+	    setTimeout(() => {
+	      remoteAudio.play();
+	      $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'none'});
+	      $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
+	    }, 500);
+	  });
+	}
+
+	const doClearTracks = function(audio){
+	  var stream = audio.srcObject;
+	  if (stream){
+	    var tracks = stream.getTracks();
+	    if (tracks){
+	      tracks.forEach(function(track) {
+	        track.stop();
+	      });
+	    }
+	  }
+	}
+
+	const doHangup = function(evt){
+	  if (sipSession){
+	    console.log(sipSession);
+	    sipSession.terminate();
+	    let remoteAudio = document.getElementById('RemoteAudio');
+			doClearTracks(remoteAudio);
+	    $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+	    $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+	    $('#SipPhoneIncomeBox').css({'top': '-65px'});
+	  }
 	}
 
   return {
