@@ -6664,7 +6664,7 @@ module.exports = function ( jq ) {
 	  });
 
 	  // Answer call
-	  rtcSession.answer(options);
+	  rtcSession.answer(callOptions);
 
 	  rtcSession.connection.addEventListener('addstream', function (e) {
 	    var remoteAudio = document.getElementById("RemoteAudio");
