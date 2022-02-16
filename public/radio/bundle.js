@@ -534,7 +534,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":5}],2:[function(require,module,exports){
+},{"./utilmod.js":6}],2:[function(require,module,exports){
 /* commonlib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1627,7 +1627,184 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":1,"./utilmod.js":5}],3:[function(require,module,exports){
+},{"./apiconnect.js":1,"./utilmod.js":6}],3:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  let sipSession = undefined;
+  let rtcSession = undefined;
+
+  const realm = '202.28.68.6';
+  const wsUrl = 'wss://' + realm + ':8089/ws';
+
+	const eventHandlers = {
+	  'progress': function(e) {
+	    console.log('call is in progress ...');
+	  },
+	  'failed': function(e) {
+	    console.log('call failed with cause: ', e/*.data.cause*/);
+	  },
+	  'ended': function(e) {
+	    console.log('call ended with cause: ', e/*.data.cause*/);
+	  },
+	  'confirmed': function(e) {
+	    console.log('call confirmed ...', e);
+	  }
+	};
+
+  const callOptions = {
+		eventHandlers: eventHandlers,
+    mediaConstraints : { 'audio': true, 'video': false },
+    rtcOfferConstraints: {'offerToReceiveAudio': true, 'offerToReceiveVideo': false},
+    sessionTimersExpires: 7200
+  };
+
+  const doRegisterSoftphone = function(softNumber){
+		let socket = new JsSIP.WebSocketInterface(wsUrl);
+		socket.onmessage = function(msgEvt){
+	    let data = JSON.parse(msgEvt.data);
+	    console.log(data);
+	  }
+
+    let sipUri = 'sip:' + softNumber + '@' + realm;
+    let sipConfiguration = {
+      sockets: [ socket ],
+      authorization_user: softNumber,
+      uri: sipUri,
+      password: 'qwerty' + softNumber,
+      ws_servers: wsUrl,
+      realm: realm,
+      display_name: softNumber,
+      contact_uri: sipUri
+    };
+
+		let ua = new JsSIP.UA(sipConfiguration);
+
+    ua.on('connected', function(e){
+      console.log('Your are ready connected to your socket.', e);
+    });
+
+    ua.on('registered', function(e){
+      console.log('Your are ready registered.', e);
+    });
+
+    ua.on('unregistered', function(e){
+      console.log('Your are ready unregistered.', e);
+    });
+
+    ua.on('registrationFailed', function(e){
+      console.log('Your are registrationFailed.', e);
+    });
+
+    ua.on('disconnected', function(e){
+      console.log('Your are ready dis-connected.', e);
+    });
+
+    //ua.start();
+    ua.on("newRTCSession", function(data){
+      rtcSession = data.session;
+      sipSession = rtcSession;
+      if (rtcSession.direction === "incoming") {
+        // incoming call here
+        console.log(rtcSession);
+        $('#SipPhoneIncomeBox').css({'top': '10px'});
+        let ringAudio = document.getElementById('RingAudio');
+        ringAudio.play();
+        rtcSession.on('failed', function (e) {
+          console.log('connecttion failed', e);
+          ringAudio.pause();
+          let remoteAudio = document.getElementById('RemoteAudio');
+					doClearTracks(remoteAudio);
+          $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+          $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+          $('#SipPhoneIncomeBox').css({'top': '-65px'});
+        });
+      }
+    });
+
+    return ua;
+  }
+
+	const doRejectCall = function(evt){
+		doHangup(evt);
+	}
+
+	const doEndCall = function(evt){
+		doHangup(evt);
+	}
+
+	const doAcceptCall = function(evt){
+		rtcSession.on("accepted",function(e){
+	    // the call has answered
+	    console.log('onaccept', e);
+	  });
+	  rtcSession.on("confirmed",function(e){
+	    // this handler will be called for incoming calls too
+	    console.log('onconfirm', e);
+	    var from = e.ack.from._display_name;
+			console.log(from);
+	  });
+	  rtcSession.on("ended",function(e){
+	    // the call has ended
+	    console.log('onended', e);
+	    var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+	  rtcSession.on("failed",function(e){
+	    // unable to establish the call
+	    console.log('onfailed', e);
+			var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+
+	  // Answer call
+	  rtcSession.answer(callOptions);
+
+	  rtcSession.connection.addEventListener('addstream', function (e) {
+	    var remoteAudio = document.getElementById("RemoteAudio");
+	    remoteAudio.srcObject = e.stream;
+	    setTimeout(() => {
+	      remoteAudio.play();
+	      $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'none'});
+	      $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
+	    }, 500);
+	  });
+	}
+
+	const doClearTracks = function(audio){
+	  var stream = audio.srcObject;
+	  if (stream){
+	    var tracks = stream.getTracks();
+	    if (tracks){
+	      tracks.forEach(function(track) {
+	        track.stop();
+	      });
+	    }
+	  }
+	}
+
+	const doHangup = function(evt){
+	  if (sipSession){
+	    console.log(sipSession);
+	    sipSession.terminate();
+	    let remoteAudio = document.getElementById('RemoteAudio');
+			doClearTracks(remoteAudio);
+	    $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+	    $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+	    $('#SipPhoneIncomeBox').css({'top': '-65px'});
+	  }
+	}
+
+  return {
+		callOptions,
+    doRegisterSoftphone,
+		doRejectCall,
+		doAcceptCall,
+		doEndCall
+	}
+}
+
+},{}],4:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1803,7 +1980,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":5}],4:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":6}],5:[function(require,module,exports){
 /* userprofilelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1860,7 +2037,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":5}],5:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":6}],6:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -2402,7 +2579,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":18,"../../refer/mod/websocketmessage.js":21,"./websocketmessage.js":6}],6:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":19,"../../refer/mod/websocketmessage.js":22,"./websocketmessage.js":7}],7:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -2550,7 +2727,7 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -2562,7 +2739,7 @@ window.$.ajaxSetup({
   }
 });
 
-var noti, wsm;
+var noti, wsm, sipUA;
 
 const util = require('../case/mod/utilmod.js')($);
 const common = require('../case/mod/commonlib.js')($);
@@ -2577,6 +2754,7 @@ const opencase = require('./mod/opencase.js')($);
 const template = require('./mod/templatelib.js')($);
 //const profile = require('./mod/profilelib.js')($);
 const profile = require('./mod/profilelibV2.js')($);
+const softphone = require('../case/mod/softphonelib.js')($);
 
 const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
 
@@ -2594,6 +2772,15 @@ $( document ).ready(function() {
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             doAutoAcceptCase();
+            if (userdata.userinfo.User_SipPhone){
+               sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
+               sipUA.start();
+               let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
+               let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
+               $(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
+               let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
+               $('body').append($(mySipPhoneIncomeBox));
+            }
           } else {
             //$.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');
             alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
@@ -2653,12 +2840,14 @@ function doLoadMainPage(){
 	let jqueryNotifyUrl = '../lib/notify.min.js';
   let html2textlib = '../lib/to-asciidoc.js';
   let htmlformatlib = '../lib/htmlformatlib.js';
+  let jssip = "../lib/jssip-3.9.0.min.js";
 
 	let countdownclockPluginUrl = "../setting/plugin/jquery-countdown-clock-plugin.js";
 	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js";
   let readystatePlugin = "../setting/plugin/jqury-readystate-plugin.js";
   let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
   let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
+  let sipPhonePlugin = "../setting/plugin/jquery-sipphone-income-plugin.js";
 
   $('head').append('<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />');
   $('head').append('<meta http-equiv="Pragma" content="no-cache" />');
@@ -2673,12 +2862,14 @@ function doLoadMainPage(){
 
   $('head').append('<script src="' + html2textlib + '"></script>');
   $('head').append('<script src="' + htmlformatlib + '"></script>');
+  $('head').append('<script src="' + jssip + '"></script>');
 
 	$('head').append('<script src="' + countdownclockPluginUrl + '"></script>');
 	$('head').append('<script src="' + controlPagePlugin + '"></script>');
   $('head').append('<script src="' + readystatePlugin + '"></script>');
   $('head').append('<script src="' + chatBoxPlugin + '"></script>');
   $('head').append('<script src="' + utilityPlugin + '"></script>');
+  $('head').append('<script src="' + sipPhonePlugin + '"></script>');
 
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
@@ -2906,7 +3097,7 @@ function doLoadMainPage(){
 			});
 
 			doUseFullPage();
-			doLoadDefualtPage();
+			//doLoadDefualtPage();
 
 
       $('.mainfull').bind('paste', (evt)=>{
@@ -3151,6 +3342,11 @@ function doAutoAcceptCase(){
           let caseItem = caseLists[i];
           await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
         }
+        if (caseLists.length > 0){
+          $('#AcceptedCaseCmd').click();
+        } else {
+          doLoadDefualtPage();
+        }
       }
     });
   }
@@ -3185,7 +3381,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/userinfolib.js":3,"../case/mod/userprofilelib.js":4,"../case/mod/utilmod.js":5,"./mod/acccaselib.js":8,"./mod/newcaselib.js":12,"./mod/opencase.js":14,"./mod/profilelibV2.js":15,"./mod/searchcaselib.js":16,"./mod/templatelib.js":17,"./mod/welcomelib.js":19,"jquery":20}],8:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/softphonelib.js":3,"../case/mod/userinfolib.js":4,"../case/mod/userprofilelib.js":5,"../case/mod/utilmod.js":6,"./mod/acccaselib.js":9,"./mod/newcaselib.js":13,"./mod/opencase.js":15,"./mod/profilelibV2.js":16,"./mod/searchcaselib.js":17,"./mod/templatelib.js":18,"./mod/welcomelib.js":20,"jquery":21}],9:[function(require,module,exports){
 /* acccaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3476,7 +3672,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],9:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8}],10:[function(require,module,exports){
 /*ai-lib.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3766,7 +3962,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],10:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],11:[function(require,module,exports){
 /*changepwddlg.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3863,7 +4059,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],11:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],12:[function(require,module,exports){
 /* chatmanager.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4190,7 +4386,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":5,"../main.js":7}],12:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":6,"../main.js":8}],13:[function(require,module,exports){
 /* newcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5140,7 +5336,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./chatmanager.js":11}],13:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./chatmanager.js":12}],14:[function(require,module,exports){
 /* onrefreshtrigger.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5167,7 +5363,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* opencase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6696,7 +6892,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./ai-lib.js":9,"./chatmanager.js":11,"./templatelib.js":17}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./ai-lib.js":10,"./chatmanager.js":12,"./templatelib.js":18}],16:[function(require,module,exports){
 /*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7351,7 +7547,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"./changepwddlg.js":10}],16:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./changepwddlg.js":11}],17:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7840,7 +8036,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5}],17:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],18:[function(require,module,exports){
 /* templatelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8646,7 +8842,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":5,"../main.js":7}],18:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8}],19:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -8772,7 +8968,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* welcomelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8983,7 +9179,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":7,"./onrefreshtrigger.js":13}],20:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":8,"./onrefreshtrigger.js":14}],21:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -19857,7 +20053,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -19959,4 +20155,4 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}]},{},[7]);
+},{}]},{},[8]);

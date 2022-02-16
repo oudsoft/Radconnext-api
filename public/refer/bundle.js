@@ -534,7 +534,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":7}],2:[function(require,module,exports){
+},{"./utilmod.js":8}],2:[function(require,module,exports){
 /* commonlib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1627,7 +1627,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":1,"./utilmod.js":7}],3:[function(require,module,exports){
+},{"./apiconnect.js":1,"./utilmod.js":8}],3:[function(require,module,exports){
 /* createnewcase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3126,7 +3126,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/ai-lib.js":10,"./apiconnect.js":1,"./commonlib.js":2,"./createnewrefferal.js":4,"./utilmod.js":7}],4:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":11,"./apiconnect.js":1,"./commonlib.js":2,"./createnewrefferal.js":4,"./utilmod.js":8}],4:[function(require,module,exports){
 /*createnewrefferal.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3297,7 +3297,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":7}],5:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":8}],5:[function(require,module,exports){
 const $ = require('jquery');
 
 $.ajaxSetup({
@@ -3387,7 +3387,184 @@ $.fn.simplelog = function(dataPairObj){
   this.append($(logMessages));
 }
 
-},{"jquery":9}],6:[function(require,module,exports){
+},{"jquery":10}],6:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  let sipSession = undefined;
+  let rtcSession = undefined;
+
+  const realm = '202.28.68.6';
+  const wsUrl = 'wss://' + realm + ':8089/ws';
+
+	const eventHandlers = {
+	  'progress': function(e) {
+	    console.log('call is in progress ...');
+	  },
+	  'failed': function(e) {
+	    console.log('call failed with cause: ', e/*.data.cause*/);
+	  },
+	  'ended': function(e) {
+	    console.log('call ended with cause: ', e/*.data.cause*/);
+	  },
+	  'confirmed': function(e) {
+	    console.log('call confirmed ...', e);
+	  }
+	};
+
+  const callOptions = {
+		eventHandlers: eventHandlers,
+    mediaConstraints : { 'audio': true, 'video': false },
+    rtcOfferConstraints: {'offerToReceiveAudio': true, 'offerToReceiveVideo': false},
+    sessionTimersExpires: 7200
+  };
+
+  const doRegisterSoftphone = function(softNumber){
+		let socket = new JsSIP.WebSocketInterface(wsUrl);
+		socket.onmessage = function(msgEvt){
+	    let data = JSON.parse(msgEvt.data);
+	    console.log(data);
+	  }
+
+    let sipUri = 'sip:' + softNumber + '@' + realm;
+    let sipConfiguration = {
+      sockets: [ socket ],
+      authorization_user: softNumber,
+      uri: sipUri,
+      password: 'qwerty' + softNumber,
+      ws_servers: wsUrl,
+      realm: realm,
+      display_name: softNumber,
+      contact_uri: sipUri
+    };
+
+		let ua = new JsSIP.UA(sipConfiguration);
+
+    ua.on('connected', function(e){
+      console.log('Your are ready connected to your socket.', e);
+    });
+
+    ua.on('registered', function(e){
+      console.log('Your are ready registered.', e);
+    });
+
+    ua.on('unregistered', function(e){
+      console.log('Your are ready unregistered.', e);
+    });
+
+    ua.on('registrationFailed', function(e){
+      console.log('Your are registrationFailed.', e);
+    });
+
+    ua.on('disconnected', function(e){
+      console.log('Your are ready dis-connected.', e);
+    });
+
+    //ua.start();
+    ua.on("newRTCSession", function(data){
+      rtcSession = data.session;
+      sipSession = rtcSession;
+      if (rtcSession.direction === "incoming") {
+        // incoming call here
+        console.log(rtcSession);
+        $('#SipPhoneIncomeBox').css({'top': '10px'});
+        let ringAudio = document.getElementById('RingAudio');
+        ringAudio.play();
+        rtcSession.on('failed', function (e) {
+          console.log('connecttion failed', e);
+          ringAudio.pause();
+          let remoteAudio = document.getElementById('RemoteAudio');
+					doClearTracks(remoteAudio);
+          $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+          $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+          $('#SipPhoneIncomeBox').css({'top': '-65px'});
+        });
+      }
+    });
+
+    return ua;
+  }
+
+	const doRejectCall = function(evt){
+		doHangup(evt);
+	}
+
+	const doEndCall = function(evt){
+		doHangup(evt);
+	}
+
+	const doAcceptCall = function(evt){
+		rtcSession.on("accepted",function(e){
+	    // the call has answered
+	    console.log('onaccept', e);
+	  });
+	  rtcSession.on("confirmed",function(e){
+	    // this handler will be called for incoming calls too
+	    console.log('onconfirm', e);
+	    var from = e.ack.from._display_name;
+			console.log(from);
+	  });
+	  rtcSession.on("ended",function(e){
+	    // the call has ended
+	    console.log('onended', e);
+	    var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+	  rtcSession.on("failed",function(e){
+	    // unable to establish the call
+	    console.log('onfailed', e);
+			var remoteAudio = document.getElementById('RemoteAudio');
+	    doClearTracks(remoteAudio);
+	  });
+
+	  // Answer call
+	  rtcSession.answer(callOptions);
+
+	  rtcSession.connection.addEventListener('addstream', function (e) {
+	    var remoteAudio = document.getElementById("RemoteAudio");
+	    remoteAudio.srcObject = e.stream;
+	    setTimeout(() => {
+	      remoteAudio.play();
+	      $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'none'});
+	      $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
+	    }, 500);
+	  });
+	}
+
+	const doClearTracks = function(audio){
+	  var stream = audio.srcObject;
+	  if (stream){
+	    var tracks = stream.getTracks();
+	    if (tracks){
+	      tracks.forEach(function(track) {
+	        track.stop();
+	      });
+	    }
+	  }
+	}
+
+	const doHangup = function(evt){
+	  if (sipSession){
+	    console.log(sipSession);
+	    sipSession.terminate();
+	    let remoteAudio = document.getElementById('RemoteAudio');
+			doClearTracks(remoteAudio);
+	    $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+	    $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+	    $('#SipPhoneIncomeBox').css({'top': '-65px'});
+	  }
+	}
+
+  return {
+		callOptions,
+    doRegisterSoftphone,
+		doRejectCall,
+		doAcceptCall,
+		doEndCall
+	}
+}
+
+},{}],7:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3563,7 +3740,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":7}],7:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":8}],8:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -4105,7 +4282,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":11,"../../refer/mod/websocketmessage.js":15,"./websocketmessage.js":8}],8:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":12,"../../refer/mod/websocketmessage.js":16,"./websocketmessage.js":9}],9:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -4253,7 +4430,7 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -15127,7 +15304,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*ai-lib.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -15417,7 +15594,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],11:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":8}],12:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -15543,7 +15720,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -15564,9 +15741,9 @@ const util = require('../case/mod/utilmod.js')($);
 const common = require('../case/mod/commonlib.js')($);
 const userinfo = require('../case/mod/userinfolib.js')($);
 const orthanc = require('./mod/orthanc.js')($);
+const softphone = require('../case/mod/softphonelib.js')($);
 
-
-var noti, wsm, wsl;
+var noti, wsm, wsl, sipUA;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -15581,6 +15758,15 @@ $( document ).ready(function() {
           if (userdata.usertypeId == 5){
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+             if (userdata.userinfo.User_SipPhone){
+                sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
+                sipUA.start();
+                let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
+                let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
+                $(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
+                let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
+                $('body').append($(mySipPhoneIncomeBox));
+             }
            } else {
              $.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');
              doLoadLogin();
@@ -15609,6 +15795,7 @@ function doLoadMainPage(){
 	let jqueryUiJsUrl = "../lib/jquery-ui.min.js";
 	let jqueryLoadingUrl = '../lib/jquery.loading.min.js';
 	let jqueryNotifyUrl = '../lib/notify.min.js';
+  let jssip = "../lib/jssip-3.9.0.min.js";
 	let controlPagePlugin = "../setting/plugin/jquery-controlpage-plugin.js"
   let patientHistoryPluginUrl = "../setting/plugin/jquery-patient-history-image-plugin.js";
 	let scanpartPluginUrl = "../setting/plugin/jquery-scanpart-plugin.js";
@@ -15616,6 +15803,7 @@ function doLoadMainPage(){
   let customSelectPlugin = "../setting/plugin/jquery-custom-select-plugin.js";
   let chatBoxPlugin = "../setting/plugin/jquery-chatbox-plugin.js";
   let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
+  let sipPhonePlugin = "../setting/plugin/jquery-sipphone-income-plugin.js";
 
 	$('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
 	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -15623,6 +15811,7 @@ function doLoadMainPage(){
 	$('head').append('<script src="' + jqueryLoadingUrl + '"></script>');
 	//https://notifyjs.jpillora.com/
 	$('head').append('<script src="' + jqueryNotifyUrl + '"></script>');
+  $('head').append('<script src="' + jssip + '"></script>');
 
 	$('head').append('<script src="' + controlPagePlugin + '"></script>');
   $('head').append('<script src="' + patientHistoryPluginUrl + '"></script>');
@@ -15631,13 +15820,14 @@ function doLoadMainPage(){
   $('head').append('<script src="' + customSelectPlugin + '"></script>');
   $('head').append('<script src="' + chatBoxPlugin + '"></script>');
   $('head').append('<script src="' + utilityPlugin + '"></script>');
+  $('head').append('<script src="' + sipPhonePlugin + '"></script>');
 
   $('head').append('<link rel="stylesheet" href="../lib/tui-image-editor.min.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="../lib/tui-color-picker.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="../case/css/custom-select.css" type="text/css" />');
-  
+
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
   $('body').loading({overlay: $("#overlay"), stoppable: true});
@@ -15754,14 +15944,20 @@ function doGetWsm(){
 	return wsm;
 }
 
+function doGetSipUA(){
+  return sipUA;
+}
+
 module.exports = {
   doGetToken,
   doGetUserData,
 	doGetUserItemPerPage,
-	doGetWsm
+	doGetWsm,
+  softphone,
+  doGetSipUA
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/jquery-ex.js":5,"../case/mod/userinfolib.js":6,"../case/mod/utilmod.js":7,"./mod/orthanc.js":14,"jquery":16}],13:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/jquery-ex.js":5,"../case/mod/softphonelib.js":6,"../case/mod/userinfolib.js":7,"../case/mod/utilmod.js":8,"./mod/orthanc.js":15,"jquery":17}],14:[function(require,module,exports){
 /* caseviewer.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -16041,9 +16237,9 @@ module.exports = function ( jq ) {
 			let commandBox = $('<div style="display: table-row; width: 100%;"></div>');
 			$(commandBox).appendTo($(commandView));
 			let aiCmdBox = $('<div style="display: table-cell; text-align: center; width: 30%;"></div>');
-			$(aiCmdBox).appendTo($(commandBox));
+			//$(aiCmdBox).appendTo($(commandBox));
 			let aiCmd = $('<input type="button" value=" AI "/>');
-			$(aiCmd).appendTo($(aiCmdBox));
+			//$(aiCmd).appendTo($(aiCmdBox));
 			$(aiCmd).on('click', async(evt)=>{
 				let aiResultLogRes = await common.doCallAIResultLog(dicomData.dicomID);
 				if (aiResultLogRes.Log) {
@@ -16220,8 +16416,46 @@ module.exports = function ( jq ) {
 		let softPhoneCmd = $(evt.currentTarget);
 		let softPhoneData = $(softPhoneCmd).data('softPhoneData');
 		console.log(softPhoneData);
-		$.notify('ฟังก์นนี้อยู่ระหว่างดำเนินการเชื่อมต่อระบบฯ', "warn");
-		$('body').loading('stop');
+		let radioId = softPhoneData.caseData.case.Case_RadiologistId;
+		let callSocketUrl = '/api/cases/radio/socket/' + radioId;
+		let rqParams = {};
+		common.doCallApi(callSocketUrl, rqParams).then((radioSockets)=>{
+			const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
+			/*
+			let callNumber = undefined;
+			if (radioSockets.length > 0) {
+				callNumber = softPhoneData.caseData.Radiologist.sipphone;
+			} else {
+				callNumber = softPhoneData.caseData.Radiologist.phone;
+			}
+			*/
+			let callNumber = softPhoneData.caseData.Radiologist.phone;
+			if (callNumber){
+				let isCorrectFormat = phoneNoTHRegEx.test(callNumber);
+				if (isCorrectFormat){
+					const main = require('../main.js');
+					const mySipUA = main.doGetSipUA();
+					let callSession = mySipUA.call(callNumber, main.softphone.callOptions);
+					console.log(callSession);
+					callSession.connection.addEventListener('addstream', function (e) {
+						var remoteAudio = document.getElementById('RemoteAudio');
+						remoteAudio.srcObject = e.stream;
+						setTimeout(() => {
+				      remoteAudio.play();
+							$('#SipPhoneIncomeBox').css({'top': '10px'});
+				      $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'none'});
+				      $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
+				    }, 500);
+					});
+				} else {
+					console.log('Your Phone Number is wrong format.');
+				}
+			} else {
+				console.log('Your Phone Number is Null.');
+			}
+			//$.notify('ฟังก์นนี้อยู่ระหว่างดำเนินการเชื่อมต่อระบบฯ', "warn");
+			$('body').loading('stop');
+		});
 	}
 
 	const doCreateZoomCallCmd = function(caseItem, chatHandle){
@@ -16293,6 +16527,7 @@ module.exports = function ( jq ) {
 				}
 			}
 			let radConfirmBox = $('body').radalert(radconfirmoption);
+			$(radConfirmBox.cancelCmd).hide();
 		}
 	}
 
@@ -16554,7 +16789,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/createnewcase.js":3,"../../case/mod/utilmod.js":7,"../../radio/mod/ai-lib.js":10,"../main.js":12}],14:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/createnewcase.js":3,"../../case/mod/utilmod.js":8,"../../radio/mod/ai-lib.js":11,"../main.js":13}],15:[function(require,module,exports){
 /* orthanc.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -16929,7 +17164,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/createnewrefferal.js":4,"../../case/mod/utilmod.js":7,"./caseviewer.js":13}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/createnewrefferal.js":4,"../../case/mod/utilmod.js":8,"./caseviewer.js":14}],16:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -17031,6 +17266,6 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],16:[function(require,module,exports){
-arguments[4][9][0].apply(exports,arguments)
-},{"dup":9}]},{},[12]);
+},{}],17:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10}]},{},[13]);
