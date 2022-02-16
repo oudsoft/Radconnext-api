@@ -35,8 +35,8 @@ $( document ).ready(function() {
           if (userdata.usertypeId == 2){
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
-             if (userdata.userinfo.USER_SipPhone){
-               sipUA = softphone.doRegisterSoftphone(userdata.userinfo.USER_SipPhone);
+             if (userdata.userinfo.User_SipPhone){
+               sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
                sipUA.start();
              }
            } else {
