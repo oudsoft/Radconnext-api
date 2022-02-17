@@ -50,7 +50,7 @@ app.post('/list/by/hospital/(:hospitalId)', (req, res) => {
         const orderby = [['id', 'ASC']];
         const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
         const users = await User.findAll({attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId}, order: orderby});
-        res.json({{status: {code: 400}, users: users});
+        res.json({status: {code: 400}, users: users});
       } else {
         log.info('Authorization Wrong.');
         res.json({status: {code: 400}, error: 'Your authorization wrong'});
