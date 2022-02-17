@@ -84,7 +84,7 @@
       </div>
     </div>
     <div id="BackCmdDiv">
-      <input type="button" id="EditUserCmd" value="Edit"/>
+      <input type="button" id="EditUserCmd" value=" Edit "/>
     </div>
   </body>
 </html>
@@ -286,7 +286,6 @@
       $(table).append($('<tr><td width="5%" align="center">#</td><td width="5%" align="center">userId</td><td width="20%" align="left">Username</td><td width="10%" align="center">UsertypeId</td><td width="10%" align="center">UserStatusId</td><td width="*" align="center">Command</td></tr>'));
       for(i=0; i < users.length; i++){
         let userData = users[i];userData
-        console.log(userData);
         let row = $('<tr></tr>');
         $(table).append($(row));
         $(row).append($('<td align="center">'+(i+1) +'</td>'));
@@ -311,8 +310,6 @@
   }
 
   function doEditUser(userData){
-    //let userEditId = 10;
-    //let userEditId = queryObj.userid;
     console.log(userData);
     doGetApi('/api/usertypes/options').then((typeoptions) => {
       $("#UserType").empty();
@@ -320,46 +317,32 @@
       Options.forEach((item, i) => {
         $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
       });
-      //doGetApi('/api/user/'+userEditId).then((result) => {
-        //console.log(result);
-        /*/
-        $("#hospital").val(queryObj.hosid);
-        $("#NameEN").val(result.Record.info.User_NameEN);
-        $("#LastNameEN").val(result.Record.info.User_LastNameEN);
-        $("#NameTH").val(result.Record.info.User_NameTH);
-        $("#LastNameTH").val(result.Record.info.User_LastNameTH);
-        $("#Email").val(result.Record.info.User_Email);
-        $("#Phone").val(result.Record.info.User_Phone);
-        $("#SipPhone").val(result.Record.info.User_SipPhone);
-        $("#LineID").val(result.Record.info.User_LineID);
-        $("#Hospitals").val(result.Record.info.User_Hospitals);
-        $("#UserType").val(result.Record.type);
-        $("#UserRegisterAccount").hide();
-        $("#UserRegisterInfo").show();
-        $("#RegisterInfoCmd").hide();
-        let userIdHidden = $("<input type='hidden' id='userId'/>");
-        $(userIdHidden).val(result.Record.user.id);
-        $(userIdHidden).appendTo($("#UserRegisterInfo"));
-        let infoIdHidden = $("<input type='hidden' id='infoId'/>");
-        $(infoIdHidden).val(result.Record.info.id);
-        $(infoIdHidden).appendTo($("#UserRegisterInfo"));
-        let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
-        $(saveButton).appendTo($("#UserRegisterInfo"));
-        $(saveButton).on('click',doUpdateUser);
-        $('#EditUserCmd').hide();
-        doTypeChange();
-        */
-      //});
+      $("#hospital").val(userData.hospitalId);
+      $("#NameEN").val(userData.userinfo.User_NameEN);
+      $("#LastNameEN").val(userData.userinfo.User_LastNameEN);
+      $("#NameTH").val(userData.userinfo.User_NameTH);
+      $("#LastNameTH").val(userData.userinfo.User_LastNameTH);
+      $("#Email").val(userData.userinfo.User_Email);
+      $("#Phone").val(userData.userinfo.User_Phone);
+      $("#SipPhone").val(userData.userinfo.User_SipPhone);
+      $("#LineID").val(userData.userinfo.User_LineID);
+      $("#Hospitals").val(userData.userinfo.User_Hospitals);
+      $("#UserType").val(userData.usertypeId);
+      let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
+      $(saveButton).appendTo($("#UserRegisterInfo"));
+      $(saveButton).on('click', (evt)=>{
+        doUpdateUser(userData);
+      });
+      $('#EditUserCmd').hide();
+      doTypeChange();
     });
   }
 
-  function doUpdateUser(){
+  function doUpdateUser(userData){
     let params = doValidateForm();
-    let userId = $('#userId').val();
-    let infoId = $('#infoId').val();
     if (params) {
-      params.userId = userId;
-      params.infoId = infoId;
+      params.userId = userData.id;
+      params.infoId = userData.userinfo.id;
       $.post('/api/user/update', params, function(response){
         console.log(response);
         alert('Thank you for user update.')
