@@ -40,6 +40,28 @@ app.get('/(:userId)', (req, res) => {
   }
 });
 
+//List By Hospital
+app.post('/list/by/hospital/(:hospitalId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let hospitalId = req.params.hospitalId;
+        const orderby = [['id', 'ASC']];
+        const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
+        const users = await User.findAll({attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId}, order: orderby});
+        res.json({{status: {code: 400}, users: users});
+      } else {
+        log.info('Authorization Wrong.');
+        res.json({status: {code: 400}, error: 'Your authorization wrong'});
+      }
+    });
+  } else {
+    log.info('Empty Token.');
+    res.json({status: {code: 400}, error: 'Empty Token'});
+  }
+});
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;

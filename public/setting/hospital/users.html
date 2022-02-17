@@ -19,6 +19,8 @@
       <label>Hospital :</label>
       <select id="hospital"></select>
     </div>
+    <div id="UserListByHospital">
+    </div>
     <div id="UserRegisterAccount">
       <div class="InputField">
         <label>Username :</label>
@@ -83,14 +85,15 @@
     </div>
     <div id="BackCmdDiv">
       <input type="button" id="EditUserCmd" value="Edit"/>
-      <input type="button" id="BackCmd" value="Back"/>
     </div>
   </body>
 </html>
 <style>
   label{display: inline-block; width: 150px;}
   #radconnext-howto-div{width: 100%; text-align: center;}
-  #HospitalSelector{}
+  #HospitalSelector{display: none;}
+  #UserListByHospital{display: none;}
+
   #UserRegisterAccount{display: block;}
   #UserRegisterInfo{display: none;}
   .InputField{padding: 4px;}
@@ -252,23 +255,60 @@
         $("#LastNameTH").val('');
         $("#UserType").prop('selectedIndex', 0);
         $("#UserRegisterAccount").append("<div>Your Token is ::</div><div style='color: blue;'>" + response.token + "</div>");
-        /*
-        setTimeout(()=> {
-          $("#BackCmd").click();
-        }, 30000);
-        */
       });
     } else {
-
+      alert('Sorry!!, Can not create your request params')
     }
   }
 
-  function doBackToSettingHome(){
-    let url = '/setting/hospital/';
-    window.location.replace(url);
+  function doToggleEditUser(){
+    $('#HospitalSelector').show();
+    $('#UserListByHospital').show();
+    $('#UserRegisterAccount').hide();
+    $('#UserRegisterInfo').hide();
+    doGetApi('/api/hospital/options').then((result) => {
+      $("#hospital").empty();
+      result.Options.forEach((item, i) => {
+        $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
+      });
+    });
   }
 
-  function doEditUser(){
+  function doHospitalChange(){
+    let hosId = $("#hospital").val();
+    let callApiUrl = '/api/user/list/by/hospital/' + hosId;
+    let params = {}
+    $.post(callApiUrl, params, function(response){
+      console.log(response);
+      let users = response.users;
+      $('#UserListByHospital').empty();
+      let table = $('<table width="100%" border="1" cellspacing="2"></table>');
+      $(table).append($('<tr><td width="5%" align="center">#</td><td width="5%" align="center">userId</td><td width="20%" align="left">Username</td><td width="10%" align="center">UsertypeId</td><td width="10%" align="center">UserStatusId</td><td width="*" align="center">Command</td></tr>'));
+      for(i=0; i < users.length; i++){
+        let row = $('<tr></tr>');
+        $(table).append($(row));
+        $(row).append($('<td align="center">'+(i+1) +'</td>'));
+        $(row).append($('<td align="center">'+users[i].id +'</td>'));
+        $(row).append($('<td align="left">'+users[i].username +'</td>'));
+        $(row).append($('<td align="center">'+users[i].usertypeId + '</td>'));
+        $(row).append($('<td align="center">'+users[i].userstatusId + '</td>'));
+        let commandCol = $('<td align="center"></td>');
+        $(row).append($(commandCol));
+        let editCmd = $('<input type="button" value=" Edit "/>');
+        $(editCmd).on('click', (evt)=>{
+          doEditUser(users[i]);
+        });
+        let resetPwdCmd = $('<input type="button" value=" Reset Password "/>');
+        $(resetPwdCmd).on('click', (evt)=>{
+          doResetUserPassword(users[i]);
+        });
+        $(commandCol).append($(editCmd)).append($('<span>  </span>')).append($(resetPwdCmd));
+      }
+      $('#UserListByHospital').append($(table));
+    });
+  }
+
+  function doEditUser(userData){
     //let userEditId = 10;
     let userEditId = queryObj.userid;
     console.log(userEditId);
@@ -323,9 +363,6 @@
         $("#UserRegisterInfo").hide();
         $("SaveCmd").remove();
         $('#EditUserCmd').show();
-        setTimeout(()=> {
-          doBackToSettingHome();
-        }, 30000);
       });
     } else {
 
@@ -343,17 +380,15 @@
     }
   }
 
+  function doResetUserPassword(userData){
+
+  }
+  
   $(document).ready(function () {
     $.ajaxSetup({
       beforeSend: function(xhr) {
         xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
       }
-    });
-
-    doGetApi('/api/hospital/options').then((result) => {
-      result.Options.forEach((item, i) => {
-        $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
-      });
     });
 
     $("#username").val('');
@@ -362,8 +397,8 @@
 
     $("#RegisterAccountCmd").on('click',doVerifyUsername);
     $("#RegisterInfoCmd").on('click',doRegisterUser);
-    $("#BackCmd").on('click',doBackToSettingHome);
-    $("#EditUserCmd").on('click',doEditUser);
+    $("#EditUserCmd").on('click',doToggleEditUser);
+    $("#hospital").on('change',doHospitalChange)
     $("#UserType").on('change',doTypeChange)
 
     queryObj = urlQueryToObject(window.location.href);
