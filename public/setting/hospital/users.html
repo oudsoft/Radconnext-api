@@ -285,22 +285,24 @@
       let table = $('<table width="100%" border="1" cellspacing="2"></table>');
       $(table).append($('<tr><td width="5%" align="center">#</td><td width="5%" align="center">userId</td><td width="20%" align="left">Username</td><td width="10%" align="center">UsertypeId</td><td width="10%" align="center">UserStatusId</td><td width="*" align="center">Command</td></tr>'));
       for(i=0; i < users.length; i++){
+        let userData = users[i];userData
+        console.log(userData);
         let row = $('<tr></tr>');
         $(table).append($(row));
         $(row).append($('<td align="center">'+(i+1) +'</td>'));
-        $(row).append($('<td align="center">'+users[i].id +'</td>'));
-        $(row).append($('<td align="left">'+users[i].username +'</td>'));
-        $(row).append($('<td align="center">'+users[i].usertypeId + '</td>'));
-        $(row).append($('<td align="center">'+users[i].userstatusId + '</td>'));
+        $(row).append($('<td align="center">'+ userData.id +'</td>'));
+        $(row).append($('<td align="left">'+ userData.username +'</td>'));
+        $(row).append($('<td align="center">'+ userData.usertypeId + '</td>'));
+        $(row).append($('<td align="center">'+ userData.userstatusId + '</td>'));
         let commandCol = $('<td align="center"></td>');
         $(row).append($(commandCol));
         let editCmd = $('<input type="button" value=" Edit "/>');
         $(editCmd).on('click', (evt)=>{
-          doEditUser(users[i]);
+          doEditUser(userData);
         });
         let resetPwdCmd = $('<input type="button" value=" Reset Password "/>');
         $(resetPwdCmd).on('click', (evt)=>{
-          doResetUserPassword(users[i]);
+          doResetUserPassword(userData);
         });
         $(commandCol).append($(editCmd)).append($('<span>  </span>')).append($(resetPwdCmd));
       }
