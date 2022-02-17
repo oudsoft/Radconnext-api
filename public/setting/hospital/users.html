@@ -268,6 +268,7 @@
   function doEditUser(){
     //let userEditId = 10;
     let userEditId = queryObj.userid;
+    console.log(userEditId);
     doGetApi('/api/usertypes/options').then((typeoptions) => {
       $("#UserType").empty();
       let Options = typeoptions.Options;
