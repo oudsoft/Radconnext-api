@@ -58,7 +58,11 @@
       </div>
       <div class="InputField">
         <label>Phone :</label>
-        <input type="text" id="Phone" size="30"/>
+        <input type="number" id="Phone" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>SipPhone :</label>
+        <input type="number" id="SipPhone" size="30"/>
       </div>
       <div class="InputField">
         <label>LineID :</label>
@@ -163,6 +167,7 @@
     let LastNameTH = $("#LastNameTH").val();
     let Email = $("#Email").val();
     let Phone = $("#Phone").val();
+    let SipPhone = $("#SipPhone").val();
     let LineID = $("#LineID").val();
     let UserType = $("#UserType").val();
     let Hospital = $("#hospital").val();
@@ -178,7 +183,7 @@
                 if (LineID !== ''){
                   if (UserType == 4) {
                     if (Hospitals !== '') {
-                      let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', User_Hospitals: Hospitals, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+                      let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', User_Hospitals: Hospitals, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
                       return params;
                     } else {
                       $("#Hospitals").css({'border': '1px solid red'});
@@ -187,7 +192,7 @@
                     }
                   } else {
                     console.log('AA');
-                    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+                    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
                     return params;
                   }
                 } else {
@@ -278,6 +283,7 @@
         $("#LastNameTH").val(result.Record.info.User_LastNameTH);
         $("#Email").val(result.Record.info.User_Email);
         $("#Phone").val(result.Record.info.User_Phone);
+        $("#SipPhone").val(result.Record.info.User_SipPhone);
         $("#LineID").val(result.Record.info.User_LineID);
         $("#Hospitals").val(result.Record.info.User_Hospitals);
         $("#UserType").val(result.Record.type);

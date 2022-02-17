@@ -308,6 +308,27 @@ app.post('/email/exist', async (req, res) => {
   const profiles = await db.userinfoes.findAll({attributes: ['User_Email'], where: { User_Email: userEmail } });
   res.json({status: {code: 200}, data: profiles});
 });
+app.get('/nextsipphonenumber/(:usertypeId)', async function(req, res) {
+  const usertypeId = req.params.usertypeId;
+  const userInclude = [{model: db.userinfoes, attributes: ['User_SipPhone']}];
+  const sipPhones = await db.users.findAll({	include: userInclude, attributes: ['id', 'usertypeId'], where: {usertypeId: usertypeId}});
+
+  const sipMax = 0;
+  const promiseList = new Promise(async function(resolve, reject) {
+    sipPhones.forEach((item, i) => {
+      if (Number(item.userinfo.User_SipPhone) > sipMax){
+        sipMax = Number(item.userinfo.User_SipPhone);
+      }
+    });
+    setTimeout(()=> {
+      let sipNext = (sipMax + 1);
+      resolve(sipNext);
+    },500);
+  });
+  Promise.all([promiseList]).then((ob)=> {
+    res.json({status: {code: 200}, sipNext: ob[0]});
+  });
+});
 
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;

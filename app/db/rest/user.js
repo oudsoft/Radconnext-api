@@ -126,6 +126,7 @@ app.post('/add', (req, res) => {
                         User_LastNameTH: req.body.User_LastNameTH,
                         User_Email: req.body.User_Email,
                         User_Phone: req.body.User_Phone,
+                        User_SipPhone: req.body.User_SipPhone,
                         User_LineID: req.body.User_LineID,
                         User_Hospitals: req.body.User_Hospitals,
                         User_PathRadiant: req.body.User_PathRadiant
