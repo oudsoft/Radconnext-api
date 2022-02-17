@@ -313,7 +313,7 @@ app.get('/nextsipphonenumber/(:usertypeId)', async function(req, res) {
   const userInclude = [{model: db.userinfoes, attributes: ['User_SipPhone']}];
   const sipPhones = await db.users.findAll({	include: userInclude, attributes: ['id', 'usertypeId'], where: {usertypeId: usertypeId}});
 
-  const sipMax = 0;
+  let sipMax = 0;
   const promiseList = new Promise(async function(resolve, reject) {
     sipPhones.forEach((item, i) => {
       if (Number(item.userinfo.User_SipPhone) > sipMax){

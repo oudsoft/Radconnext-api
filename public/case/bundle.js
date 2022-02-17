@@ -6069,7 +6069,7 @@ module.exports = function ( jq ) {
 		function doGetNextSipPhone(usertypeId){
 			return new Promise(async function(resolve, reject) {
 				let rqParams = {};
-				let result = await common.doGetApi('/nextsipphonenumber/' + usertypeId, rqParams);
+				let result = await common.doGetApi('/api/users/nextsipphonenumber/' + usertypeId, rqParams);
 				if (result.status.code == 200) {
 					resolve(result);
 				} else {
