@@ -16,6 +16,7 @@
     	<img src="../../images/multy-user.png" width="50px" heigth="auto"/>
     </div>
     <div id="HospitalSelector">
+      <label>Hospital :</label
       <select id="hospital"></select>
     </div>
     <div id="UserRegisterAccount">
@@ -87,6 +88,7 @@
   </body>
 </html>
 <style>
+  label{min-width: 100px;}
   #HospitalSelector{}
   #UserRegisterAccount{display: block;}
   #UserRegisterInfo{display: none;}
@@ -352,6 +354,10 @@
         $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
       });
     });
+
+    $("#username").val('');
+    $("#password1").val('');
+    $("#password2").val('');
 
     $("#RegisterAccountCmd").on('click',doVerifyUsername);
     $("#RegisterInfoCmd").on('click',doRegisterUser);
