@@ -6083,7 +6083,7 @@ module.exports = function ( jq ) {
 		const userId = userdata.id
 
   	const spacingBox = $('<span>&nbsp;</span>');
-  	const inputStyleClass = {/*"font-family": "THSarabunNew", "font-size": "24px"*/};
+  	const inputStyleClass = {"font-family": "EkkamaiStandard", "font-size": "20px"};
 
   	$('#HistoryDialogBox').empty();
 		let newUsername = await randomUsernameReq();
@@ -6121,12 +6121,12 @@ module.exports = function ( jq ) {
 							let rqParams = {};
 							let response = await common.doGetApi(apiUrl, rqParams);
 							let options = response.Options;
-							$("#dr-owner-select").empty();
-							$("#dr-owner-select").append('<option value="-1">เลือกหมอ</option>');
+							$("#Refferal").empty();
+							$("#Refferal").append('<option value="-1">เลือกหมอ</option>');
 							options.refes.forEach((item) => {
-								$("#dr-owner-select").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+								$("#Refferal").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
 							});
-							$("#dr-owner-select").append($('<option value="0">เพิ่มหมอ</option>'));
+							$("#Refferal").append($('<option value="0">เพิ่มหมอ</option>'));
 						} else {
 							alert('ไม่สามารถบันทึกการลงทะเบียนหมอเจ้าของไข้ได้ในขณะนี้')
 						}
