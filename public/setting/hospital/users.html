@@ -310,16 +310,17 @@
 
   function doEditUser(userData){
     //let userEditId = 10;
-    let userEditId = queryObj.userid;
-    console.log(userEditId);
+    //let userEditId = queryObj.userid;
+    console.log(userData);
     doGetApi('/api/usertypes/options').then((typeoptions) => {
       $("#UserType").empty();
       let Options = typeoptions.Options;
       Options.forEach((item, i) => {
         $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
       });
-      doGetApi('/api/user/'+userEditId).then((result) => {
-        console.log(result);
+      //doGetApi('/api/user/'+userEditId).then((result) => {
+        //console.log(result);
+        /*/
         $("#hospital").val(queryObj.hosid);
         $("#NameEN").val(result.Record.info.User_NameEN);
         $("#LastNameEN").val(result.Record.info.User_LastNameEN);
@@ -345,7 +346,8 @@
         $(saveButton).on('click',doUpdateUser);
         $('#EditUserCmd').hide();
         doTypeChange();
-      });
+        */
+      //});
     });
   }
 
@@ -383,7 +385,7 @@
   function doResetUserPassword(userData){
 
   }
-  
+
   $(document).ready(function () {
     $.ajaxSetup({
       beforeSend: function(xhr) {
