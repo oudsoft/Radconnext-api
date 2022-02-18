@@ -266,6 +266,7 @@
     $('#UserListByHospital').show();
     $('#UserRegisterAccount').hide();
     $('#UserRegisterInfo').hide();
+    $('#EditUserCmd').hide();
     doGetApi('/api/hospital/options').then((result) => {
       $("#hospital").empty();
       result.Options.forEach((item, i) => {
@@ -283,7 +284,7 @@
       let users = response.users;
       $('#UserListByHospital').empty();
       let table = $('<table width="100%" border="1" cellspacing="2"></table>');
-      $(table).append($('<tr><td width="5%" align="center">#</td><td width="5%" align="center">userId</td><td width="20%" align="left">Username</td><td width="10%" align="center">UsertypeId</td><td width="10%" align="center">UserStatusId</td><td width="*" align="center">Command</td></tr>'));
+      $(table).append($('<tr style="background-color: grey; color: white; font-weight: bold;"><td width="5%" align="center">#</td><td width="5%" align="center">userId</td><td width="20%" align="center">Username</td><td width="10%" align="center">UsertypeId</td><td width="10%" align="center">UserStatusId</td><td width="*" align="center">Command</td></tr>'));
       for(i=0; i < users.length; i++){
         let userData = users[i];userData
         let row = $('<tr></tr>');
@@ -321,20 +322,21 @@
       $("#NameEN").val(userData.userinfo.User_NameEN);
       $("#LastNameEN").val(userData.userinfo.User_LastNameEN);
       $("#NameTH").val(userData.userinfo.User_NameTH);
-      $("#LastNameTH").val(userData.userinfo.User_LastNameTH);
+        $("#LastNameTH").val(userData.userinfo.User_LastNameTH);
       $("#Email").val(userData.userinfo.User_Email);
       $("#Phone").val(userData.userinfo.User_Phone);
       $("#SipPhone").val(userData.userinfo.User_SipPhone);
       $("#LineID").val(userData.userinfo.User_LineID);
       $("#Hospitals").val(userData.userinfo.User_Hospitals);
       $("#UserType").val(userData.usertypeId);
+      $('#SaveCmd').remove();
       let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
       $(saveButton).appendTo($("#UserRegisterInfo"));
       $(saveButton).on('click', (evt)=>{
         doUpdateUser(userData);
       });
       $('#UserRegisterInfo').show();
-      $('#EditUserCmd').hide();
+      $('#RegisterInfoCmd').hide();
       doTypeChange();
     });
   }
@@ -347,13 +349,14 @@
       $.post('/api/user/update', params, function(response){
         console.log(response);
         alert('Thank you for user update.')
-        $("#UserRegisterAccount").show();
+        //$("#UserRegisterAccount").show();
         $("#UserRegisterInfo").hide();
+        $('#RegisterInfoCmd').show();
         $("SaveCmd").remove();
         $('#EditUserCmd').show();
       });
     } else {
-
+      alert('ข้อมูลผู้ใช้งานไม่ถูกต้อง')
     }
   }
 
