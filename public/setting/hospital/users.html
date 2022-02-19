@@ -385,6 +385,7 @@
   }
 
   function doUpdateUser(userData){
+    console.log(userData);
     let params = doValidateForm();
     if (params) {
       params.userId = userData.id;
