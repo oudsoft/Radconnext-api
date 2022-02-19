@@ -351,6 +351,7 @@
     doGetApi('/api/usertypes/options').then(async (typeoptions) => {
       let oSaveCmd = $('#UserRegisterInfo').find('#SaveCmd');
       console.log(oSaveCmd);
+      $(oSaveCmd).remove();
       $("#UserType").empty();
       $("#UserStatus").empty();
       let Options = typeoptions.Options;
