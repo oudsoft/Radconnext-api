@@ -16066,6 +16066,7 @@ module.exports = function ( jq ) {
 				localStorage.setItem('localmessage', JSON.stringify(history));
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let audienceContact = {email: caseItem.Radiologist.email, phone: caseItem.Radiologist.phone, sipphone: caseItem.Radiologist.sipphone, lineuserId: caseItem.Radiologist.LineUserId};
+				console.log(audienceContact);
 				let simpleChatBoxOption = {
 					topicId: dicomData.caseId,
 		      topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
