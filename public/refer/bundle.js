@@ -3211,12 +3211,24 @@ module.exports = function ( jq ) {
 			});
 		}
 
+		function doGetNextSipPhone(usertypeId){
+			return new Promise(async function(resolve, reject) {
+				let rqParams = {};
+				let result = await common.doGetApi('/api/users/nextsipphonenumber/' + usertypeId, rqParams);
+				if (result.status.code == 200) {
+					resolve(result);
+				} else {
+					resolve({});
+				}
+			});
+		}
+
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
 		const userId = userdata.id
 
   	const spacingBox = $('<span>&nbsp;</span>');
-  	const inputStyleClass = {"font-family": "THSarabunNew", "font-size": "24px"};
+  	const inputStyleClass = {"font-family": "EkkamaiStandard", "font-size": "20px"};
 
   	$('#HistoryDialogBox').empty();
 		let newUsername = await randomUsernameReq();
@@ -3246,18 +3258,20 @@ module.exports = function ( jq ) {
 				$(submitActionCmd).click(async (e)=> {
 					let userParams = doValidateForm(registerForm, newUsername.username, hospitalId);
 					if (userParams){
+						let nextSipPhone = await doGetNextSipPhone(5);
+						userParams.User_SipPhone = nextSipPhone.sipNext;
 						let result = await regiternewUserReq(userParams);
 						if ((result.status) && (result.status.code == 200)) {
 							let apiUrl = '/api/cases/options/' + hospitalId;
 							let rqParams = {};
 							let response = await common.doGetApi(apiUrl, rqParams);
 							let options = response.Options;
-							$("#dr-owner-select").empty();
-							$("#dr-owner-select").append('<option value="-1">เลือกหมอ</option>');
+							$("#Refferal").empty();
+							$("#Refferal").append('<option value="-1">เลือกหมอ</option>');
 							options.refes.forEach((item) => {
-								$("#dr-owner-select").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+								$("#Refferal").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
 							});
-							$("#dr-owner-select").append($('<option value="0">เพิ่มหมอ</option>'));
+							$("#Refferal").append($('<option value="0">เพิ่มหมอ</option>'));
 						} else {
 							alert('ไม่สามารถบันทึกการลงทะเบียนหมอเจ้าของไข้ได้ในขณะนี้')
 						}
@@ -16051,6 +16065,7 @@ module.exports = function ( jq ) {
 				let history = await doSeachChatHistory(dicomData.caseId);
 				localStorage.setItem('localmessage', JSON.stringify(history));
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
+				let audienceContact = {email: caseItem.Radiologist.email, phone: caseItem.Radiologist.phone, sipphone: caseItem.Radiologist.sipphone, lineuserId: caseItem.Radiologist.LineUserId};
 				let simpleChatBoxOption = {
 					topicId: dicomData.caseId,
 		      topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
@@ -16059,8 +16074,10 @@ module.exports = function ( jq ) {
 					myId: userdata.username,
 					myName: userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH,
 		      myDisplayName: 'ฉัน',
+					myHospitalName: userdata.hospital.Hos_Name,
 					audienceId: caseItem.Radiologist.username,
 		      audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
+					audienceContact: audienceContact,
 					wantBackup: true,
 		      externalClassStyle: {},
 		      sendMessageCallback: doSendMessageCallback,
@@ -16368,17 +16385,18 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject){
 			const main = require('../main.js');
 			const wsm = main.doGetWsm();
-			let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context};
+			const userdata = main.doGetUserData();
+			let msgSend = {type: 'message', msg: msg, sendto: sendto, from: from, context: context, sendtotype: 4, fromtype: 5};
 			wsm.send(JSON.stringify(msgSend));
-			if (context.topicStatusId != 14) {
-				let newStatus = 14;
+			let newStatus = 14;
+			if (context.topicStatusId != newStatus) {
 				let newDescription = 'Case have Issue Message to Radio.';
 				let updateStatusRes = await common.doUpdateCaseStatus(context.topicId, newStatus, newDescription);
 				console.log(updateStatusRes);
 				if (updateStatusRes.status.code == 200){
 					let selector = '#'+sendto + ' .chatbox';
 					let targetChatBox = $(selector);
-					let eventData = {topicStatusId: 14};
+					let eventData = {topicStatusId: newStatus};
 					$(targetChatBox).trigger('updatetopicstatus', [eventData]);
 				} else {
 					$.notify('Now. can not update case status.', 'warn');
@@ -16416,10 +16434,10 @@ module.exports = function ( jq ) {
 		let softPhoneCmd = $(evt.currentTarget);
 		let softPhoneData = $(softPhoneCmd).data('softPhoneData');
 		console.log(softPhoneData);
-		let radioId = softPhoneData.caseData.case.Case_RadiologistId;
-		let callSocketUrl = '/api/cases/radio/socket/' + radioId;
-		let rqParams = {};
-		common.doCallApi(callSocketUrl, rqParams).then((radioSockets)=>{
+		//let radioId = softPhoneData.caseData.case.Case_RadiologistId;
+		//let callSocketUrl = '/api/cases/radio/socket/' + radioId;
+		//let rqParams = {};
+		//common.doCallApi(callSocketUrl, rqParams).then((radioSockets)=>{
 			const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
 			/*
 			let callNumber = undefined;
@@ -16455,7 +16473,7 @@ module.exports = function ( jq ) {
 			}
 			//$.notify('ฟังก์นนี้อยู่ระหว่างดำเนินการเชื่อมต่อระบบฯ', "warn");
 			$('body').loading('stop');
-		});
+		//});
 	}
 
 	const doCreateZoomCallCmd = function(caseItem, chatHandle){

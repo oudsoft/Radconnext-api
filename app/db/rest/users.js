@@ -32,8 +32,9 @@ app.get('/select/(:userId)', async (req, res) => {
 	const userId = req.params.userId;
   const userInclude = [{ model: db.hospitals, attributes: excludeColumn}, {model: db.usertypes, attributes: excludeColumn}, {model: db.userstatuses, attributes: excludeColumn}, {model: db.userinfoes, attributes: excludeColumn}];
 	try {
-		const user = await db.users.findAll({ include: userInclude, attributes: excludeColumn, where: {	id: userId}});
-		res.json({ user })
+		const users = await db.users.findAll({ include: userInclude, attributes: excludeColumn, where: {	id: userId}});
+    const radioUserLines = await db.lineusers.findAll({ attributes: ['UserId'], where: {userId: userId}});
+		res.json({user: users, lineusers: radioUserLines});
 	} catch(error) {
 		log.error(error)
 	}

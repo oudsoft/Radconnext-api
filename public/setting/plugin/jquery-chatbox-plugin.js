@@ -9,8 +9,10 @@
       myId: '',
       myName: '',
       myDisplayName: '',
+      myHospitalName: '',
       audienceId: '',
       audienceName: '',
+      audienceContact: {},
       wantBackup: false,
       externalClassStyle: {},
       sendMessageCallback: function(evt){ /* ... */},
@@ -73,7 +75,7 @@
         let userMessage = $(messageInput).val();
         if (userMessage) {
           $(messageInput).css({'border': '2px solid black'});
-          let contextData = {topicId: settings.topicId, topicName: settings.topicName, myId: settings.myId, myName: settings.myName, audienceId: settings.audienceId, audienceName: settings.audienceName, topicStatusId: settings.topicStatusId, topicType: settings.topicType};
+          let contextData = {topicId: settings.topicId, topicName: settings.topicName, myId: settings.myId, myName: settings.myName, myHospitalName: settings.myHospitalName, audienceId: settings.audienceId, audienceName: settings.audienceName, audienceContact: settings.audienceContact, topicStatusId: settings.topicStatusId, topicType: settings.topicType};
           sendMessageCallback(userMessage, settings.audienceId, settings.myId, contextData).then(function(){
             doAppendNewMessage(userMessage, 0);
             doSaveMessageToLocal(userMessage, settings.myId, settings.topicId, 'read');

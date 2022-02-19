@@ -2,6 +2,8 @@
 
 function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
+	const lineApi = require('./mod/lineapi.js')(db, log);
+	const uti = require('./mod/util.js')(db, log);
 	this.httpsServer = arg;
 	const WebSocketServer = require('ws').Server;
 	const wss = new WebSocketServer({server: this.httpsServer/*, path: '/' + roomname */});
@@ -257,9 +259,11 @@ function RadconWebSocketServer (arg, db, log) {
 						let sendto = data.sendto;
 						let from = data.from;
 						let context = data.context;
+						let sendtotype = data.sendtotype;
+						let fromtype = data.fromtype;
 						let sendDate = new Date();
-						let msgSend = {type: 'message', msg: data.msg, topicId: context.topicId, from: from, context: context, datetime: sendDate};
-						$this.sendMessage(msgSend, sendto);
+						let msgSend = {type: 'message', msg: data.msg, topicId: context.topicId, from: from, context: context, datetime: sendDate, sendtotype: sendtotype, fromtype: fromtype};
+						let sendResult = await $this.sendMessage(msgSend, sendto);
 						if (data.context.topicId) {
 							let topicId = data.context.topicId;
 							let topicType = data.context.topicType;
@@ -380,6 +384,21 @@ function RadconWebSocketServer (arg, db, log) {
 				resolve(true);
 			} else {
 				log.error('sendMessage::Can not find socket of ' + sendto);
+				if (message.sendtotype == 4){
+					/*
+					let radioUsers = await db.users.findAll({attributes: ['id'], where: {username: sendto}});
+		      let radioUserLines = await db.lineusers.findAll({ attributes: ['UserId'], where: {userId: radioUsers[0].id}});
+					let radioLineUserId = radioUserLines[0].UserId;
+					*/
+					let radioLineUserId = message.context.audienceContact.lineuserId;
+					if ((radioLineUserId) && (radioLineUserId != '')){
+						let action = 'quick';
+						let radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
+						let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+					  let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+					  await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+					}
+				}
 				resolve(false);
 			}
 		});
