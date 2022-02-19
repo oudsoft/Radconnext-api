@@ -324,7 +324,6 @@
         $(row).append($(commandCol));
         let editCmd = $('<input type="button" value=" Edit "/>');
         $(editCmd).on('click', (evt)=>{
-          $('#SaveCmd').remove();
           doEditUser(userData);
         });
         let resetPwdCmd = $('<input type="button" value=" Reset Password "/>');
@@ -350,6 +349,8 @@
   function doEditUser(userData){
     console.log(userData);
     doGetApi('/api/usertypes/options').then(async (typeoptions) => {
+      let oSaveCmd = $('#UserRegisterInfo').find('#SaveCmd');
+      console.log(oSaveCmd);
       $("#UserType").empty();
       $("#UserStatus").empty();
       let Options = typeoptions.Options;
