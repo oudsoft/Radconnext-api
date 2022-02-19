@@ -236,6 +236,8 @@ app.post('/delete', (req, res) => {
           infoId = deleteUser.infoId;
           await db.userinfoes.destroy({ where: { id: infoId } });
           await db.users.destroy({ where: { id: userId } });
+          await db.userprofiles.destroy({ where: { id: userId } });
+          await db.lineusers.destroy({ where: { id: userId } });
           res.json({Result: "OK"});
         } catch(error) {
       		log.error(error);

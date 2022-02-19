@@ -265,6 +265,7 @@ app.post('/add', (req, res) => {
       			topicStatusId: casestatusId,
       			audienceId: radioProfile.username,
       			audienceName: radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH,
+            audienceUserId: newConsult.RadiologistId
           };
           let theTask = await onNewConsultEvent(adConsult.id);
           res.json({status: {code: 200}, Setup: newConsultSetup});

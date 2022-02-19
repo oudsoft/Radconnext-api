@@ -2921,129 +2921,129 @@ module.exports = function ( jq ) {
 	}
 
   function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected){
-    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
-    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
-    let patientHistory = phrImages;
-		let scanpartItem = scanparts;
-    let studyID = defualtValue.studyID;
-    let patientSex = $('.mainfull').find('#Sex').val();
-    let patientAge = $('.mainfull').find('#Age').val();
-    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
-		let patientRights = $('.mainfull').find('#Cliameright').val();
-    let price = 0;
-    let hn = $('.mainfull').find('#HN').val();
-    let acc = $('.mainfull').find('#ACC').val();
-    let department = $('.mainfull').find('#Department').val();
-    let drOwner = $('.mainfull').find('#Refferal').val();
-    let bodyPart = $('.mainfull').find('#Bodypart').val();
-		/*
-		let bodyPart = '';
-		if (defualtValue.studyDesc) {
-			bodyPart += defualtValue.studyDesc;
-		}
-		if (defualtValue.protocalName) {
-			bodyPart += ' / ' + defualtValue.protocalName;
-		}
-		*/
-		let scanPart = $('.mainfull').find('#Scanpart').val();
-    //let drReader = $('.mainfull').find('#Radiologist').val();
-		console.log(radioSelected);
-		let drReader = radioSelected.radioId;
-    let urgentType = $('.mainfull').find('#Urgenttype').val();
+		let urgentType = $('.mainfull').find('#Urgenttype').val();
 		let urgenttypeId = defualtValue.urgent;
 		if (urgentType) {
 			urgenttypeId = urgentType;
 		}
-    let detail = $('.mainfull').find('#Detail').val();
-		let wantSaveScanpart = 0;
-		let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
-		if (saveScanpartOption) {
-			wantSaveScanpart = 1;
+		if (!urgenttypeId) {
+			alert('ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข');
+			return;
+		} else {
+	    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
+	    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
+	    let patientHistory = phrImages;
+			let scanpartItem = scanparts;
+	    let studyID = defualtValue.studyID;
+	    let patientSex = $('.mainfull').find('#Sex').val();
+	    let patientAge = $('.mainfull').find('#Age').val();
+	    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
+			let patientRights = $('.mainfull').find('#Cliameright').val();
+	    let price = 0;
+	    let hn = $('.mainfull').find('#HN').val();
+	    let acc = $('.mainfull').find('#ACC').val();
+	    let department = $('.mainfull').find('#Department').val();
+	    let drOwner = $('.mainfull').find('#Refferal').val();
+	    let bodyPart = $('.mainfull').find('#Bodypart').val();
+			let scanPart = $('.mainfull').find('#Scanpart').val();
+	    //let drReader = $('.mainfull').find('#Radiologist').val();
+			console.log(radioSelected);
+			let drReader = radioSelected.radioId;
+	    let detail = $('.mainfull').find('#Detail').val();
+			let wantSaveScanpart = 0;
+			let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
+			if (saveScanpartOption) {
+				wantSaveScanpart = 1;
+			}
+	    let mdl = defualtValue.mdl;
+	    let studyDesc = defualtValue.studyDesc;
+	    let protocalName = defualtValue.protocalName;
+	    let manufacturer = defualtValue.manufacturer;
+	    let stationName = defualtValue.stationName;
+	    let studyInstanceUID = defualtValue.studyInstanceUID;
+	    let radioId = drReader;
+			let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
+	    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
+	    return newCase;
 		}
-    let mdl = defualtValue.mdl;
-    let studyDesc = defualtValue.studyDesc;
-    let protocalName = defualtValue.protocalName;
-    let manufacturer = defualtValue.manufacturer;
-    let stationName = defualtValue.stationName;
-    let studyInstanceUID = defualtValue.studyInstanceUID;
-    let radioId = drReader;
-		let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
-    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
-    return newCase;
   }
 
 	const doSaveNewCaseStep = async function(defualtValue, options, phrImages, scanparts, radioSelected){
 		let newCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected);
-    $('body').loading('start');
-    try {
-      const userdata = JSON.parse(localStorage.getItem('userdata'));
-      const hospitalId = userdata.hospitalId;
-      const userId = userdata.id
-      let rqParams = {key: {Patient_HN: newCaseData.hn}};
-      let patientdb = await common.doCallApi('/api/patient/search', rqParams);
-      let patientId, patientRes;
-      if (patientdb.Records.length === 0) {
-        //ไม่มี hn ใน db -> add
-        let patientData = common.doPreparePatientParams(newCaseData);
-				console.log('patientData', patientData);
-        rqParams = {data: patientData, hospitalId: hospitalId};
-        patientRes = await common.doCallApi('/api/patient/add', rqParams);
-        //console.log(patientRes);
-        patientId = patientRes.Record.id;
-      } else {
-        //ถ้ามี hn ใน db -> update
-        patientId = patientdb.Records[0].id;
-        let patientData = common.doPreparePatientParams(newCaseData);
-        rqParams = {data: patientData, patientId: patientId};
-        patientRes = await common.doCallApi('/api/patient/update', rqParams);
-      }
+		if (newCaseData) {
+	    $('body').loading('start');
+	    try {
+	      const userdata = JSON.parse(localStorage.getItem('userdata'));
+	      const hospitalId = userdata.hospitalId;
+	      const userId = userdata.id
+	      let rqParams = {key: {Patient_HN: newCaseData.hn}};
+	      let patientdb = await common.doCallApi('/api/patient/search', rqParams);
+	      let patientId, patientRes;
+	      if (patientdb.Records.length === 0) {
+	        //ไม่มี hn ใน db -> add
+	        let patientData = common.doPreparePatientParams(newCaseData);
+					console.log('patientData', patientData);
+	        rqParams = {data: patientData, hospitalId: hospitalId};
+	        patientRes = await common.doCallApi('/api/patient/add', rqParams);
+	        //console.log(patientRes);
+	        patientId = patientRes.Record.id;
+	      } else {
+	        //ถ้ามี hn ใน db -> update
+	        patientId = patientdb.Records[0].id;
+	        let patientData = common.doPreparePatientParams(newCaseData);
+	        rqParams = {data: patientData, patientId: patientId};
+	        patientRes = await common.doCallApi('/api/patient/update', rqParams);
+	      }
 
-      const urgenttypeId = newCaseData.urgenttypeId;
-      const cliamerightId = newCaseData.patientRights
-      let casedata = common.doPrepareCaseParams(newCaseData);
-			console.log(casedata);
-      rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
-      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
-      if (caseRes.status.code === 200) {
-				console.log('newCase=>', caseRes.Record);
-				console.log('caseActions=>', caseRes.actions);
-				//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
-        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
-				if (userdata.usertypeId == 2) {
-					let isActive = $('#CaseMainCmd').hasClass('NavActive');
-					if (!isActive) {
-						$('#CaseMainCmd').click();
-					}
-					$('#NewStatusSubCmd').click(); // <- Tech Page
-				} else if (userdata.usertypeId == 5) {
-					$('#CaseMainCmd').click(); // <- Refer Page
-				}
-				/*
-				if (caseRes.actions.warnning) {
-					let warningContent = $('<div></div>');
-					$(warningContent).append($('<p>เคสที่สร้างใหม่อาจมีปัญหากับผลอ่านที่รังสีแพทย์ส่งกลับมา</p>'));
-					$(warningContent).append($('<p>โปรดตรวจสอบสถานะการเชื่อมต่อให้พร้อมรับผลอ่าน</p>'));
-					$(warningContent).append($('<a target="_blank" href="http://localhost:3000/api">เปิดหน้าครวจสอบ</a>'));
-					const radalertoption = {
-						title: 'WARNING',
-						msg: $(warningContent),
-						width: '610px',
-						onOk: function(evt) {
-							radAlertBox.closeAlert();
+	      const urgenttypeId = newCaseData.urgenttypeId;
+	      const cliamerightId = newCaseData.patientRights
+	      let casedata = common.doPrepareCaseParams(newCaseData);
+				console.log(casedata);
+	      rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
+	      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
+	      if (caseRes.status.code === 200) {
+					console.log('newCase=>', caseRes.Record);
+					console.log('caseActions=>', caseRes.actions);
+					//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
+	        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
+					if (userdata.usertypeId == 2) {
+						let isActive = $('#CaseMainCmd').hasClass('NavActive');
+						if (!isActive) {
+							$('#CaseMainCmd').click();
 						}
+						$('#NewStatusSubCmd').click(); // <- Tech Page
+					} else if (userdata.usertypeId == 5) {
+						$('#CaseMainCmd').click(); // <- Refer Page
 					}
-					let radAlertBox = $('body').radalert(radalertoption);
-					$(radAlertBox.cancelCmd).hide();
-				}
-				*/
-      } else {
-        $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
-      }
-	    $('body').loading('stop');
-    } catch(e) {
-      console.log('Unexpected error occurred =>', e);
-      $('body').loading('stop');
-    }
+					/*
+					if (caseRes.actions.warnning) {
+						let warningContent = $('<div></div>');
+						$(warningContent).append($('<p>เคสที่สร้างใหม่อาจมีปัญหากับผลอ่านที่รังสีแพทย์ส่งกลับมา</p>'));
+						$(warningContent).append($('<p>โปรดตรวจสอบสถานะการเชื่อมต่อให้พร้อมรับผลอ่าน</p>'));
+						$(warningContent).append($('<a target="_blank" href="http://localhost:3000/api">เปิดหน้าครวจสอบ</a>'));
+						const radalertoption = {
+							title: 'WARNING',
+							msg: $(warningContent),
+							width: '610px',
+							onOk: function(evt) {
+								radAlertBox.closeAlert();
+							}
+						}
+						let radAlertBox = $('body').radalert(radalertoption);
+						$(radAlertBox.cancelCmd).hide();
+					}
+					*/
+	      } else {
+	        $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
+	      }
+		    $('body').loading('stop');
+	    } catch(e) {
+	      console.log('Unexpected error occurred =>', e);
+	      $('body').loading('stop');
+	    }
+		} else {
+			$.notify("ข้อมูลเคสที่คุณสร้างใหม่มีความผิดพลาด", "error");
+		}
 	}
 
 	const doSaveUpdateCaseStep = async function (defualtValue, options, phrImages, scanparts, radioSelected){
@@ -3097,6 +3097,8 @@ module.exports = function ( jq ) {
 				$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขเคสได้ในขณะนี้", "error");
 			}
 			$('body').loading('stop');
+		} else {
+			$.notify("ข้อมูลเคสที่คุณสร้างใหม่มีความผิดพลาด", "error");
 		}
 	}
 
@@ -15982,7 +15984,7 @@ module.exports = function ( jq ) {
 	const createnewcase = require('../../case/mod/createnewcase.js')($);
 	const ai = require('../../radio/mod/ai-lib.js')($);
 
-	const backwardCaseStatus = [5, 6, 10, 11, 12, 13, 14];
+	const backwardCaseStatus = [1, 2, 5, 6, 10, 11, 12, 13, 14];
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 
@@ -16066,7 +16068,7 @@ module.exports = function ( jq ) {
 				localStorage.setItem('localmessage', JSON.stringify(history));
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let audienceContact = {email: caseItem.Radiologist.email, phone: caseItem.Radiologist.phone, sipphone: caseItem.Radiologist.sipphone, lineuserId: caseItem.Radiologist.LineUserId};
-				console.log(audienceContact);
+				//console.log(audienceContact);
 				let simpleChatBoxOption = {
 					topicId: dicomData.caseId,
 		      topicName: patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart,
@@ -16078,6 +16080,7 @@ module.exports = function ( jq ) {
 					myHospitalName: userdata.hospital.Hos_Name,
 					audienceId: caseItem.Radiologist.username,
 		      audienceName: caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH,
+					audienceUserId: caseItem.Radiologist.id,
 					audienceContact: audienceContact,
 					wantBackup: true,
 		      externalClassStyle: {},
@@ -16659,10 +16662,16 @@ module.exports = function ( jq ) {
 					let dicomCmdBox = doCreateDicomCmdBox(backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, casedate, backward.hospitalId);
 					//let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
 					let responseBackwardBox = undefined;
-					if ((backward.caseresponses) && (backward.caseresponses.length > 0)) {
-						responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_HTML, patientFullName, casedate);
+					const caseSuccessStatusIds = [5, 6, 10, 11, 12, 13, 14];
+					let hadSuccess = util.contains.call(caseSuccessStatusIds, backward.casestatusId);
+					if (hadSuccess) {
+						if ((backward.caseresponses) && (backward.caseresponses.length > 0)) {
+								responseBackwardBox = doCreateResponseBackwardBox(backward.id, backward.caseresponses[0].Response_HTML, patientFullName, casedate);
+						} else {
+							responseBackwardBox = $('<div style="text-align: center">ไมพบผลอ่าน</div>');
+						}
 					} else {
-						responseBackwardBox = $('<span>-</span>');
+						responseBackwardBox = $('<div style="text-align: center">เคสยังไม่มีผลอ่าน</div>');
 					}
 
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));

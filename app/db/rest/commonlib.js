@@ -643,7 +643,7 @@ const doFilterPatient = function(filterParams){
     const limit = filterParams.limit;
 
     const caseInclude = [{model: db.caseresponses, attributes: ['id', 'Response_HTML', 'Response_Text']}];
-    const whereClous = {patientId: patientId, hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId}, id: { [db.Op.ne]: currentCaseId} };
+    const whereClous = {patientId: patientId, hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId}/*, id: { [db.Op.ne]: currentCaseId} */};
     const orderby = [['id', 'DESC']];
     let query = undefined;
     if ((limit) && (limit > 0)) {

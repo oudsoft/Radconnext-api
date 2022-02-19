@@ -375,28 +375,57 @@ function RadconWebSocketServer (arg, db, log) {
 
 	this.sendMessage = function(message, sendto) {
 		return new Promise(async function(resolve, reject) {
+			let action = 'quick';
+			let radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
+			let radioActiveLineNotify, radioLockLineNotify, radioOfflineLineNotify;
+			let radioId = message.context.audienceUserId;
+			if (radioId) {
+				let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
+				if (radioUserProfiles.length > 0) {
+					radioActiveLineNotify = radioUserProfiles[0].Profile.activeState.lineNotify;
+					radioLockLineNotify = radioUserProfiles[0].Profile.lockState.lineNotify;
+					radioOfflineLineNotify = radioUserProfiles[0].Profile.offlineState.lineNotify;
+				}
+			}
 			let userSockets = await $this.filterUserSocket(sendto);
 			if (userSockets.length > 0) {
 				await userSockets.forEach((socket, i) => {
 					socket.send(JSON.stringify(message));
 					socket.counterping = 0;
 				});
+				if (message.sendtotype == 4){
+					let radioScreenState = userSockets[0].screenstate;
+					if (radioScreenState == 0) {
+						if ((radioActiveLineNotify) && (radioActiveLineNotify == 1)) {
+							let radioLineUserId = message.context.audienceContact.lineuserId;
+							if ((radioLineUserId) && (radioLineUserId != '')){
+								let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+								let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+								await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+							}
+						}
+					} else if (radioScreenState == 1) {
+						if ((radioLockLineNotify) && (radioLockLineNotify == 1)) {
+							let radioLineUserId = message.context.audienceContact.lineuserId;
+							if ((radioLineUserId) && (radioLineUserId != '')){
+								let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+								let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+								await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+							}
+						}
+					}
+				}
 				resolve(true);
 			} else {
 				log.error('sendMessage::Can not find socket of ' + sendto);
 				if (message.sendtotype == 4){
-					/*
-					let radioUsers = await db.users.findAll({attributes: ['id'], where: {username: sendto}});
-		      let radioUserLines = await db.lineusers.findAll({ attributes: ['UserId'], where: {userId: radioUsers[0].id}});
-					let radioLineUserId = radioUserLines[0].UserId;
-					*/
-					let radioLineUserId = message.context.audienceContact.lineuserId;
-					if ((radioLineUserId) && (radioLineUserId != '')){
-						let action = 'quick';
-						let radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
-						let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
-					  let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
-					  await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+					if ((radioOfflineLineNotify) && (radioOfflineLineNotify == 1)) {
+						let radioLineUserId = message.context.audienceContact.lineuserId;
+						if ((radioLineUserId) && (radioLineUserId != '')){
+							let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+						  let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+						  await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+						}
 					}
 				}
 				resolve(false);
@@ -451,7 +480,7 @@ function RadconWebSocketServer (arg, db, log) {
 	this.getScreenState = function(username){
 		return new Promise(async function(resolve, reject) {
 			let userScreenState = await $this.filterUserSocket(username);
-			log.info('filterUserSocket=> ' + username + ' => userScreenState=>' + JSON.stringify(userScreenState));
+			//log.info('filterUserSocket=> ' + username + ' => userScreenState=>' + JSON.stringify(userScreenState));
 			if (userScreenState.length > 0) {
 				resolve(userScreenState[0].screenstate);
 			} else {
@@ -465,7 +494,7 @@ function RadconWebSocketServer (arg, db, log) {
 		return new Promise(async function(resolve, reject) {
 			let userScreenStates = await $this.filterUserSocket(username);
 			if (userScreenStates.length > 0) {
-				let result = $this.sendMessage(JSON.stringify({type: 'unlockscreen'}), userScreenStates[0].id);
+				let result = await $this.sendMessage(JSON.stringify({type: 'unlockscreen'}), userScreenStates[0].id);
 				resolve(result);
 			} else {
 				log.error('getScreenState::Can not find socket of ' + username);
