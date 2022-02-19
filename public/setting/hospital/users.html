@@ -324,6 +324,7 @@
         $(row).append($(commandCol));
         let editCmd = $('<input type="button" value=" Edit "/>');
         $(editCmd).on('click', (evt)=>{
+          $('#SaveCmd').remove();
           doEditUser(userData);
         });
         let resetPwdCmd = $('<input type="button" value=" Reset Password "/>');
@@ -372,7 +373,6 @@
       $("#Hospitals").val(userData.userinfo.User_Hospitals);
       $("#UserStatus").val(userData.userstatusId);
       $("#UserType").val(userData.usertypeId);
-
       let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
       $(saveButton).appendTo($(".SubmitField"));
       $(saveButton).on('click', (evt)=>{
