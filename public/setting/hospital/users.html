@@ -372,11 +372,12 @@
       $("#Hospitals").val(userData.userinfo.User_Hospitals);
       $("#UserStatus").val(userData.userstatusId);
       $("#UserType").val(userData.usertypeId);
-      $('#SaveCmd').remove();
+
       let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
       $(saveButton).appendTo($(".SubmitField"));
       $(saveButton).on('click', (evt)=>{
         doUpdateUser(userData);
+        $(saveButton).remove();
       });
       $('#UserRegisterInfo').show();
       $('#RegisterInfoCmd').hide();
