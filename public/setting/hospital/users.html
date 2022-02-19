@@ -8,6 +8,7 @@
   	<script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
   	<script type="text/javascript" src="../../lib/jquery.loading.min.js"></script>
     <script type="text/javascript" src="../../lib/notify.min.js"></script>
+    <script type="text/javascript" src="../../setting/plugin/jquery-radutil-plugin.js"></script>
     <link rel='stylesheet' href='../../lib/jquery-ui.min.css' />
     <link rel='stylesheet' href='../../stylesheets/style.css' />
   </head>
@@ -22,6 +23,10 @@
     <div id="UserListByHospital">
     </div>
     <div id="UserRegisterAccount">
+      <div class="InputField">
+        <label>Hospital :</label>
+        <select id="newuserhospital"></select>
+      </div>
       <div class="InputField">
         <label>Username :</label>
         <input type="text" id="username" size="30"/>
@@ -102,8 +107,8 @@
   #UserRegisterInfo{display: none;}
   .InputField{padding: 4px;}
   .SubmitField{padding: 4px; text-align: center;}
-  #BackCmdDiv{padding: 4px; text-align: center;}
-  #EditUserCmd{display: block;}
+  #BackCmdDiv{width: 98.5%; padding: 4px; text-align: center; border: 1px solid grey;}
+#EditUserCmd{/* display: block; */}
   #UserHospitals{display: none;}
 </style>
 <script type="text/javascript">
@@ -139,6 +144,15 @@
     });
   }
 
+  function doCreateNewuserHospitalOption(){
+    doGetApi('/api/hospital/options').then((result) => {
+      $("#newuserhospital").empty();
+      result.Options.forEach((item, i) => {
+        $("#newuserhospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
+      });
+    });
+  }
+
   function doVerifyUsername(){
     let username = $("#username").val();
     if (username) {
@@ -148,13 +162,18 @@
           let password1 = $("#password1").val();
           let password2 = $("#password2").val();
           if (password1 === password2) {
-            doGetApi('/api/usertypes/options').then((typeoptions) => {
+            doGetApi('/api/usertypes/options').then(async (typeoptions) => {
               $("#UserRegisterAccount").hide();
               $("#UserRegisterInfo").show();
               $("#UserType").empty();
               let Options = typeoptions.Options;
               Options.forEach((item, i) => {
                 $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
+              });
+              let statusoptions = await doGetApi('/api/userstatuses/options');
+              Options = statusoptions.Options;
+              Options.forEach((item, i) => {
+                $("#UserStatus").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
               });
             });
           } else {
@@ -239,6 +258,7 @@
   function doRegisterUser(){
     let params = doValidateForm();
     if (params) {
+      params.hospitalId = $("#newuserhospital").val();
       $.post('/api/user/add', params, function(response){
         console.log(response);
         if (response.token) {
@@ -252,7 +272,7 @@
         $("#password1").val('');
         $("#password2").val('');
 
-        $("#Hospital").val('');
+        //$("#Hospital").val('');
         $("#Hospitals").hide();
         $("#NameEN").val('');
         $("#LastNameEN").val('');
@@ -277,6 +297,7 @@
       result.Options.forEach((item, i) => {
         $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
       });
+      doHospitalChange();
     });
   }
 
@@ -374,7 +395,8 @@
         $("#UserRegisterInfo").hide();
         $('#RegisterInfoCmd').show();
         $("SaveCmd").remove();
-        $('#EditUserCmd').show();
+        //$('#EditUserCmd').show();
+        doHospitalChange();
       });
     } else {
       alert('ข้อมูลผู้ใช้งานไม่ถูกต้อง')
@@ -393,15 +415,113 @@
   }
 
   function doResetUserPassword(userData){
-
+    let passwordInput1 = $('<input type="password" id="PasswordInput1" size="40"/>');
+    let passwordInput2 = $('<input type="password" id="PasswordInput2" size="40"/>');
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).append($('<label for="PasswordInput1">New Password :</label>'));
+    $(radAlertMsg).append($(passwordInput1));
+    $(radAlertMsg).append($('<label for="PasswordInput2">Retry Password :</label>'));
+    $(radAlertMsg).append($(passwordInput2));
+    const radconfirmoption = {
+      title: 'Reset Password',
+      msg: $(radAlertMsg),
+      width: '420px',
+      onOk: function(evt) {
+        let password1 = $(passwordInput1).val();
+        let password2 = $(passwordInput2).val();
+        if (password1 === password2) {
+          $(passwordInput1).css({'border': ''});
+          $(passwordInput2).css({'border': ''});
+          let reqParams = {userId: userData.id, password: password1};
+          $.post('/api/users/resetpassword', reqParams, function(response){
+            console.log(response);
+            if (response.status.code == 200) {
+              alert('Reset Password สำเร็จ');
+              radConfirmBox.closeAlert();
+            } else {
+              $(passwordInput1).css({'border': '1px solid red'});
+              $(passwordInput2).css({'border': '1px solid red'});
+              alert('Reset Password ไม่สำเร็จ โปรดลองใหม่อีกครั้ง');
+            }
+          });
+        } else {
+          $(passwordInput1).css({'border': '1px solid red'});
+          $(passwordInput2).css({'border': '1px solid red'});
+        }
+      },
+      onCancel: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
   }
 
   function doChangeUsername(userData){
-
+    let newUsernameInput = $('<input type="text" id="NewUsernameInput" size="40"/>');
+    let verifyNewUsernameCmd = $('<input type="button" id="VerifyNewUsernameCmd" value=" Verify "/>');
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).append($('<label for="NewUsernameInput">New Username :</label>'));
+    $(radAlertMsg).append($(newUsernameInput));
+    $(radAlertMsg).append($(verifyNewUsernameCmd));
+    $(verifyNewUsernameCmd).on('click', (evt)=>{
+      let newUsername = $(newUsernameInput).val();
+      if (newUsername) {
+        $(newUsernameInput).css({'border': ''});
+        $.get('/api/users/searchusername/' + newUsername, {}, function(response){
+          console.log(response);
+          if((response.status.code === 200) && (response.result === true)) {
+            $(newUsernameInput).css({'border': '1px solid green'});
+          } else {
+            $(newUsernameInput).css({'border': '1px solid red'});
+          }
+        });
+      } else {
+        $(newUsernameInput).css({'border': '1px solid red'});
+      }
+    });
+    const radconfirmoption = {
+      title: 'เปลี่ยน Username ของผู้ใช้',
+      msg: $(radAlertMsg),
+      width: '420px',
+      onOk: function(evt) {
+        let newUsername = $(newUsernameInput).val();
+        if (newUsername) {
+          $(newUsernameInput).css({'border': ''});
+          $.get('/api/users/searchusername/' + newUsername, {}, function(response){
+            console.log(response);
+            if((response.status.code === 200) && (response.result === true)) {
+              let params = {username: newUsername};
+              $.ajax({
+                type: 'PUT',
+                url: '/api/users/' + userData.id,
+                contentType: 'application/json',
+                data: JSON.stringify(params), // access in body
+              }).done(function () {
+                console.log('SUCCESS');
+                alert('เปลี่ยน Username สำเร็จ');
+                radConfirmBox.closeAlert();
+                doHospitalChange();
+              }).fail(function (msg) {
+                console.log('FAIL');
+                alert('มีข้อผิดพลาดที่ API')
+              });
+            } else {
+              $(newUsernameInput).css({'border': '1px solid red'});
+            }
+          });
+        } else {
+          $(newUsernameInput).css({'border': '1px solid red'});
+        }
+      },
+      onCancel: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
   }
 
   function doDeleteUserCmd(userData){
-    let params = {userId: userData.id};
+    let params = {userId: userData.id, infoId: userData.userinfo.id};
     $.post('/api/user/delete', params, function(response){
       console.log(response);
       alert('Thank you for user delete command.')
@@ -419,6 +539,8 @@
         xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
       }
     });
+
+    doCreateNewuserHospitalOption();
 
     $("#username").val('');
     $("#password1").val('');
