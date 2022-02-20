@@ -108,7 +108,7 @@
   .InputField{padding: 4px;}
   .SubmitField{padding: 4px; text-align: center;}
   #BackCmdDiv{width: 98.5%; padding: 4px; text-align: center; border: 1px solid grey;}
-#EditUserCmd{/* display: block; */}
+  #EditUserCmd{/* display: block; */}
   #UserHospitals{display: none;}
 </style>
 <script type="text/javascript">
@@ -287,18 +287,27 @@
   }
 
   function doToggleEditUser(){
-    $('#HospitalSelector').show();
-    $('#UserListByHospital').show();
-    $('#UserRegisterAccount').hide();
-    $('#UserRegisterInfo').hide();
-    $('#EditUserCmd').hide();
-    doGetApi('/api/hospital/options').then((result) => {
-      $("#hospital").empty();
-      result.Options.forEach((item, i) => {
-        $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
+    let mode = $('#UserRegisterAccount').css('display');
+    if (mode === 'block'){
+      $('#HospitalSelector').show();
+      $('#UserListByHospital').show();
+      $('#UserRegisterAccount').hide();
+      $('#UserRegisterInfo').hide();
+      $('#EditUserCmd').val(' New ');
+      doGetApi('/api/hospital/options').then((result) => {
+        $("#hospital").empty();
+        result.Options.forEach((item, i) => {
+          $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
+        });
+        doHospitalChange();
       });
-      doHospitalChange();
-    });
+    } else {
+      $('#HospitalSelector').hide();
+      $('#UserListByHospital').hide();
+      $('#UserRegisterAccount').show();
+      $('#UserRegisterInfo').show();
+      $('#EditUserCmd').val(' Edit ');
+    }
   }
 
   function doHospitalChange(){
@@ -398,7 +407,6 @@
         $("#UserRegisterInfo").hide();
         $('#RegisterInfoCmd').show();
         $("SaveCmd").remove();
-        //$('#EditUserCmd').show();
         doHospitalChange();
       });
     } else {
@@ -532,7 +540,6 @@
       $("#UserRegisterInfo").hide();
       $('#RegisterInfoCmd').show();
       $("SaveCmd").remove();
-      //$('#EditUserCmd').hide();
     });
   }
 
