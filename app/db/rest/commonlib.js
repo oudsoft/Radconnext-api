@@ -819,7 +819,9 @@ const doConvertPatientHistoryImage2Dicom = function(studyID, hospitalId, hostNam
       let studyTime = orthancRes.MainDicomTags.StudyTime;
       let flgTemps = studyTime.split('.');
       studyTime = flgTemps[0];
-      archiveFileName = uti.fmtStr('%s_%s-%s-%s.zip', patientNameEN, patientLastNameEN, studyDate, studyTime);
+      let currentTime = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+      currentTime = currentTime.split(':').join('');
+      archiveFileName = uti.fmtStr('%s_%s-%s-%s-%s.zip', patientNameEN, patientLastNameEN, studyDate, studyTime, currentTime);
       archiveFilePath = usrArchiveDir + '/' + archiveFileName;
 
       let isExist = fs.existsSync(archiveFilePath);

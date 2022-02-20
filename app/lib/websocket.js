@@ -378,7 +378,8 @@ function RadconWebSocketServer (arg, db, log) {
 			let action = 'quick';
 			let radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
 			let radioActiveLineNotify, radioLockLineNotify, radioOfflineLineNotify;
-			if (message.context){
+			log.info('message will be send => ' + JSON.stringify(message));
+			if ((message.context) && (message.context.audienceUserId)) {
 				let radioId = message.context.audienceUserId;
 				if (radioId) {
 					let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
