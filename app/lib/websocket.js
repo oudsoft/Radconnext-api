@@ -375,64 +375,19 @@ function RadconWebSocketServer (arg, db, log) {
 
 	this.sendMessage = function(message, sendto) {
 		return new Promise(async function(resolve, reject) {
-			let action = 'quick';
-			let radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
-			let radioActiveLineNotify, radioLockLineNotify, radioOfflineLineNotify;
-			log.info('message will be send => ' + JSON.stringify(message));
-			if ((message.context) && (message.context.audienceUserId)) {
-				let radioId = message.context.audienceUserId;
-				if (radioId) {
-					let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
-					if (radioUserProfiles.length > 0) {
-						radioActiveLineNotify = radioUserProfiles[0].Profile.activeState.lineNotify;
-						radioLockLineNotify = radioUserProfiles[0].Profile.lockState.lineNotify;
-						radioOfflineLineNotify = radioUserProfiles[0].Profile.offlineState.lineNotify;
-					}
-				}
-			}
 			let userSockets = await $this.filterUserSocket(sendto);
+			let radioScreenState = undefined;
+			let canSend = false;
 			if (userSockets.length > 0) {
 				await userSockets.forEach((socket, i) => {
 					socket.send(JSON.stringify(message));
 					socket.counterping = 0;
 				});
-				if (message.sendtotype == 4){
-					let radioScreenState = userSockets[0].screenstate;
-					if (radioScreenState == 0) {
-						if ((radioActiveLineNotify) && (radioActiveLineNotify == 1)) {
-							let radioLineUserId = message.context.audienceContact.lineuserId;
-							if ((radioLineUserId) && (radioLineUserId != '')){
-								let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
-								let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
-								await lineApi.pushConnect(radioLineUserId, menuQuickReply);
-							}
-						}
-					} else if (radioScreenState == 1) {
-						if ((radioLockLineNotify) && (radioLockLineNotify == 1)) {
-							let radioLineUserId = message.context.audienceContact.lineuserId;
-							if ((radioLineUserId) && (radioLineUserId != '')){
-								let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
-								let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
-								await lineApi.pushConnect(radioLineUserId, menuQuickReply);
-							}
-						}
-					}
-				}
-				resolve(true);
-			} else {
-				log.error('sendMessage::Can not find socket of ' + sendto);
-				if (message.sendtotype == 4){
-					if ((radioOfflineLineNotify) && (radioOfflineLineNotify == 1)) {
-						let radioLineUserId = message.context.audienceContact.lineuserId;
-						if ((radioLineUserId) && (radioLineUserId != '')){
-							let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
-						  let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
-						  await lineApi.pushConnect(radioLineUserId, menuQuickReply);
-						}
-					}
-				}
-				resolve(false);
+				radioScreenState = userSockets[0].screenstate;
+				canSend = true;
 			}
+			await $this.doSendNotifyOnNewMessage(message, sendto, radioState);
+			resolve(canSend);
 		});
 	}
 
@@ -573,6 +528,79 @@ function RadconWebSocketServer (arg, db, log) {
 			});
 			$this.clients = anotherActiveSockets;
 			resolve($this.clients);
+		});
+	}
+
+	this.doSendNotifyOnNewMessage = function(message, sendto, radioState){
+		return new Promise(async function(resolve, reject) {
+			if ((message.sendtotype) && (message.sendtotype == 4)) {
+				if ((message.context) && (message.context.audienceUserId)) {
+					let radioId = message.context.audienceUserId;
+					if (radioId) {
+						let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioId}});
+						if (radioUserProfiles.length > 0) {
+							const action = 'quick';
+							const radioMsgFmt = 'มีข้อความใหม่ส่งมาจาก %s\n\n%s\n\nในห้องสนทนาของตุณ';
+
+							let radioActiveLineNotify = radioUserProfiles[0].Profile.activeState.lineNotify;
+							let radioLockLineNotify = radioUserProfiles[0].Profile.lockState.lineNotify;
+							let radioOfflineLineNotify = radioUserProfiles[0].Profile.offlineState.lineNotify;
+
+							if (radioScreenState == 0) {
+								if ((radioActiveLineNotify) && (radioActiveLineNotify == 1)) {
+									let radioLineUserId = message.context.audienceContact.lineuserId;
+									if ((radioLineUserId) && (radioLineUserId != '')){
+										let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+										let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+										let botResponse = await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+										resolve(botResponse);
+									} else {
+										resolve();
+									}
+								} else {
+									resolve();
+								}
+							} else if (radioScreenState == 1) {
+								if ((radioLockLineNotify) && (radioLockLineNotify == 1)) {
+									let radioLineUserId = message.context.audienceContact.lineuserId;
+									if ((radioLineUserId) && (radioLineUserId != '')){
+										let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+										let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+										let botResponse = await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+										resolve(botResponse);
+									} else {
+										resolve();
+									}
+								} else {
+									resolve();
+								}
+							} else {
+								if ((radioOfflineLineNotify) && (radioOfflineLineNotify == 1)) {
+									let radioLineUserId = message.context.audienceContact.lineuserId;
+									if ((radioLineUserId) && (radioLineUserId != '')){
+										let lineCaseMsg = uti.fmtStr(radioMsgFmt, message.context.myName, message.msg);
+										let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+										let botResponse = await lineApi.pushConnect(radioLineUserId, menuQuickReply);
+										resolve(botResponse);
+									} else {
+										resolve();
+									}
+								} else {
+									resolve();
+								}
+							}
+						} else {
+							resolve();
+						}
+					} else {
+						resolve();
+					}
+				} else {
+					resolve();
+				}
+			} else {
+				resolve();
+			}
 		});
 	}
 
