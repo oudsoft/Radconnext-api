@@ -386,7 +386,7 @@ function RadconWebSocketServer (arg, db, log) {
 				radioScreenState = userSockets[0].screenstate;
 				canSend = true;
 			}
-			await $this.doSendNotifyOnNewMessage(message, sendto, radioState);
+			await $this.doSendNotifyOnNewMessage(message, sendto, radioScreenState);
 			resolve(canSend);
 		});
 	}
