@@ -612,7 +612,12 @@ const doSelectCaseById = function(caseId){
         const radUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RadiologistId}});
         const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH', 'User_Email', 'User_Phone', 'User_SipPhone'], where: {id: radUser[0].userinfoId}});
         const radioUserLines = await db.lineusers.findAll({ attributes: ['UserId'], where: {userId: item.Case_RadiologistId}});
-        const radioData = {id: rades[0].id, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH, username: radUser[0].username, email: rades[0].User_Email, phone: rades[0].User_Phone, sipphone: rades[0].User_SipPhone, LineUserId: radioUserLines[0].UserId};
+        let radioData = undefined;
+        if (radioUserLines.length > 0){
+          radioData = {id: rades[0].id, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH, username: radUser[0].username, email: rades[0].User_Email, phone: rades[0].User_Phone, sipphone: rades[0].User_SipPhone, LineUserId: radioUserLines[0].UserId};
+        } else {
+          radioData = {id: rades[0].id, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH, username: radUser[0].username, email: rades[0].User_Email, phone: rades[0].User_Phone, sipphone: rades[0].User_SipPhone};
+        }
         const refUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RefferalId}});
         const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
         const referData = {id: refes[0].id, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH, username: refUser[0].username};
