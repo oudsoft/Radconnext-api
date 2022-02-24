@@ -16375,7 +16375,7 @@ module.exports = function ( jq ) {
 					const radConfirmOption = {
 			      title: 'ยืนยันการสร้างเคสใหม่',
 			      msg: $(radConfirmBox),
-			      width: '520px',
+			      width: '500px',
 			      onOk: function(evt) {
 							radConfirm.closeAlert();
 							if (okCallback){

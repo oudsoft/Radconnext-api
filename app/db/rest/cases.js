@@ -475,6 +475,9 @@ app.post('/add', (req, res) => {
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
           await adCase.setCasestatus(newcaseStatus[0]);
 
+          let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'Create New Case Success'};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
+
           const optionScanPartSave = req.body.option.scanpart.save;
           if (optionScanPartSave == 1){
             let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName,Scanparts: newCase.Case_ScanPart};
@@ -495,7 +498,6 @@ app.post('/add', (req, res) => {
           let notifyMsg = 'Your request new case can success create advance dicom zip file.'
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
-
         });
       } else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});
