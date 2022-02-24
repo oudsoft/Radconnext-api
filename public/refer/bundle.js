@@ -16361,28 +16361,57 @@ module.exports = function ( jq ) {
 			let patientName = defualtValue.patient.name;
 			let allSeries = dicomSeries.length;
 			if (dicomData.caseId) {
-	      if ((dicomData.casestatusId == 1) || (dicomData.casestatusId == 2) || (dicomData.casestatusId == 8) || (dicomData.casestatusId == 9)) {
-					let yourConfirm = confirm('รายการ dicom นี้ได้ถูกส่งไปหารังสีแพทย์แล้วและอยู่ระหว่างรอผลอ่าน\nโปรดยืนโดยการคลิกปุ่ม OK หรือ ตกลง ว่าคุณต้องการสร้างเคสใหม่จาก dicom รายการนี้อีกหนึ่งเคส?');
-					if (yourConfirm == true){
+				const newCaseStatusIds = [1, 2, 8, 9];
+				const failCaseStatusIds = [3, 4, 7]
+				const successCaseStatusIds = [5, 6, 10, 11, 12, 13, 14];
+				let isNewCase = util.contains.call(newCaseStatusIds, dicomData.casestatusId);
+				let hadFail = util.contains.call(failCaseStatusIds, dicomData.casestatusId);
+				let hadSuccess = util.contains.call(successCaseStatusIds, dicomData.casestatusId);
+				const doShowRadConfirm = function(okCallback, cancelCallback){
+					let radConfirmBox = $('<div></div>');
+					$(radConfirmBox).append($('<p>รายการภาพชุดนี้ได้ถูกส่งไปหารังสีแพทย์แล้ว และอยู่ระหว่างรอผลอ่าน</p>'));
+					$(radConfirmBox).append($('<p>โปรดยืนโดยการคลิกปุ่ม<b>ตกลง</b> เพื่อยืนยันว่าคุณต้องการสร้างเคสใหม่จากภาพชุดนี้อีกหนึ่งเคส</p>'));
+					$(radConfirmBox).append($('<p>หรือคลิกปุ่ม<b>ยกเลิก</b> เพื่อยกเลิกการสร้างเคสใหม</p>'));
+					const radConfirmOption = {
+			      title: 'ยืนยันการสร้างเคสใหม่',
+			      msg: $(radConfirmBox),
+			      width: '520px',
+			      onOk: function(evt) {
+							radConfirm.closeAlert();
+							if (okCallback){
+								okCallback();
+							}
+			      },
+			      onCancel: function(evt) {
+			        radConfirm.closeAlert();
+							if (cancelCallback){
+								cancelCallback();
+							}
+			      }
+			    }
+			    let radConfirm = $('body').radalert(radConfirmOption);
+				}
+
+	      if (isNewCase) {
+					doShowRadConfirm(async()=>{
 						let allImageInstances = await createnewcase.doCallCountInstanceImage(dicomSeries, patientName);
 						createnewcase.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
 						resolve();
-					} else {
+					}, ()=>{
 						resolve();
-					}
-				} else if ((dicomData.casestatusId == 3) || (dicomData.casestatusId == 4) || (dicomData.casestatusId == 7)) {
+					});
+				} else if (hadFail) {
 					let allImageInstances = await createnewcase.doCallCountInstanceImage(dicomSeries, patientName);
 					createnewcase.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
 					resolve();
-	      } else if ((dicomData.casestatusId == 5) || (dicomData.casestatusId == 6) || (dicomData.casestatusId == 10) || (dicomData.casestatusId == 11) || (dicomData.casestatusId == 12) || (dicomData.casestatusId == 13) || (dicomData.casestatusId == 14)) {
-					let yourConfirm = confirm('รายการ dicom นี้ได้ถูกส่งไปหารังสีแพทย์แล้วและได้ผลอ่านกลับมาแล้ว\nโปรดยืนโดยการคลิกปุ่ม OK หรือ ตกลง ว่าคุณต้องการสร้างเคสใหม่จาก dicom รายการนี้อีกหนึ่งเคส?');
-					if (yourConfirm == true){
+	      } else if (hadSuccess) {
+					doShowRadConfirm(async()=>{
 						let allImageInstances = await createnewcase.doCallCountInstanceImage(dicomSeries, patientName);
 						createnewcase.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
 						resolve();
-					} else {
+					}, ()=>{
 						resolve();
-					}
+					});
 				}
 			} else {
 				let allImageInstances = await createnewcase.doCallCountInstanceImage(dicomSeries, patientName);
