@@ -3024,7 +3024,7 @@ module.exports = function ( jq ) {
 						}
 						$('#NewStatusSubCmd').click(); // <- Tech Page
 					} else if (userdata.usertypeId == 5) {
-						$('#CaseMainCmd').click(); // <- Refer Page
+						$('#HomeMainCmd').click(); // <- Refer Page
 					}
 					/*
 					if (caseRes.actions.warnning) {
