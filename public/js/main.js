@@ -69,3 +69,14 @@ $.getScript( "https://radconnext.info/js/main.js", function( code, textStatus, j
 });
 
 */
+
+/*
+(function() {
+	var po = document.createElement('script');
+	po.type = 'text/javascript';
+	po.async = true;
+	po.src = 'https://radconnext.info/lib/jquery.js';
+	var s = document.getElementsByTagName('script')[0];
+	s.parentNode.insertBefore(po, s);
+})();
+*/

@@ -8,6 +8,7 @@
   	<script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
   	<script type="text/javascript" src="../../lib/jquery.loading.min.js"></script>
     <script type="text/javascript" src="../../lib/notify.min.js"></script>
+    <script type="text/javascript" src="../setting/plugin/jquery-radutil-plugin.js"></script>
     <link rel='stylesheet' href='../../lib/jquery-ui.min.css' />
     <link rel='stylesheet' href='../../stylesheets/style.css' />
   </head>
@@ -155,6 +156,34 @@
     });
   }
 
+  const doOpenCaseLog = function(caseId){
+    let openUrl = '/api/keeplog/select/' + caseId;
+    let params = {};
+    $.post(openUrl, params).then((response) => {
+      let keeplogs = response.Logs;
+      doShowKeepLogs(keeplogs);
+    });
+  }
+
+  const doShowKeepLogs = function(keeplogs){
+    let radAlertInfo = $('<div></div>');
+    for (let i=0; i<keeplogs.length; i++){
+      let logItem = $('<div></div>');
+      $(logItem).text(JSON.stringify(keeplogs[i]));
+      $(radAlertInfo).append($(logItem))
+    }
+    const radAlertOption = {
+      title: 'บันทึกการเปลี่ยนสถานะเคส',
+      msg: $(radAlertInfo),
+      width: '620px',
+      onOk: function(evt) {
+        radInfoBox.closeAlert();
+      },
+    }
+    let radInfoBox = $('body').radalert(radAlertOption);
+    $(radInfoBox.cancelCmd).hide();
+  }
+
   const doLoadLast20Cases = function(evt){
     let limit = $('#Limit').val();
     let hospitalId = $('#HospitalID').val();
@@ -210,9 +239,15 @@
             $(openResultCmd).on('click', (evt)=>{
               doOpenResult(cases[i].id);
             });
+            let openCaseLogCmd = $('<input type="button" value="Log"/>');
+            $(openCaseLogCmd).on('click', (evt)=>{
+              doOpenCaseLog(cases[i].id);
+            });
             $(cmdCol).append($(openResultCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(reSubmitCmd));
+            $(cmdCol).append($('<span>  </span>'));
+            $(cmdCol).append($(openCaseLogCmd));
           } else {
             let reZipCmd = $('<input type="button" value="Re-Zip"/>');
             $(reZipCmd).on('click', (evt)=>{
