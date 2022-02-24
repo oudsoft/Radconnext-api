@@ -16269,9 +16269,10 @@ module.exports = function ( jq ) {
 			let commandBox = $('<div style="display: table-row; width: 100%;"></div>');
 			$(commandBox).appendTo($(commandView));
 			let aiCmdBox = $('<div style="display: table-cell; text-align: center; width: 30%;"></div>');
-			//$(aiCmdBox).appendTo($(commandBox));
-			let aiCmd = $('<input type="button" value=" AI "/>');
-			//$(aiCmd).appendTo($(aiCmdBox));
+			$(aiCmdBox).appendTo($(commandBox));
+			//let aiCmd = $('<input type="button" value=" AI "/>');
+			let aiCmd = $('<span></span>');
+			$(aiCmd).appendTo($(aiCmdBox));
 			$(aiCmd).on('click', async(evt)=>{
 				let aiResultLogRes = await common.doCallAIResultLog(dicomData.dicomID);
 				if (aiResultLogRes.Log) {

@@ -12,8 +12,9 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 var db, log, auth;
 
 app.post('/select/(:caseId)', async (req, res) => {
+  const orderby = [['id', 'ASC']];
   let caseId = req.params.caseId;
-  let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: caseId}});
+  let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: caseId}, order: orderby});
   res.json({status: {code: 200}, Logs: keepLogs});
 });
 
