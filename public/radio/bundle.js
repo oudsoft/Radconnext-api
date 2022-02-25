@@ -3336,6 +3336,7 @@ function doAutoAcceptCase(){
   const autoAcc = userdata.userprofiles[0].Profile.activeState.autoAcc;
   if (autoAcc == 1){
     newcase.doCallMyNewCase().then(async (myNewCase)=>{
+      console.log(myNewCase);
       if (myNewCase.status.code == 200){
         let caseLists = myNewCase.Records;
         for (let i=0; i < caseLists.length; i++) {
@@ -3349,6 +3350,8 @@ function doAutoAcceptCase(){
         }
       }
     });
+  } else {
+    doLoadDefualtPage();
   }
 }
 
