@@ -9135,7 +9135,7 @@ module.exports = function ( jq ) {
 				newConsult = [];
 
 				//dicomzipsync = [];
-				console.log(myList);
+
 				await myList.newList.Records.forEach((item, i) => {
 					newstatusCases.push(Number(item.id));
 				});
