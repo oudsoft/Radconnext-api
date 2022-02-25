@@ -2771,7 +2771,6 @@ $( document ).ready(function() {
     			  doLoadMainPage();
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
-            doAutoAcceptCase();
             if (userdata.userinfo.User_SipPhone){
                sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
                sipUA.start();
@@ -3098,7 +3097,7 @@ function doLoadMainPage(){
 
 			doUseFullPage();
 			//doLoadDefualtPage();
-
+      doAutoAcceptCase();
 
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);

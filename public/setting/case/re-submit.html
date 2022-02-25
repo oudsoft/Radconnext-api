@@ -213,6 +213,11 @@
       $(caseTable).append($(headerRow));
       let promiseList = new Promise(async function(resolve2, reject2) {
         for (let i=0; i < cases.length; i++){
+          let openCaseLogCmd = $('<input type="button" value="Log"/>');
+          $(openCaseLogCmd).on('click', (evt)=>{
+            doOpenCaseLog(cases[i].id);
+          });
+
           let itemRow = $('<tr></tr>');
           $(itemRow).appendTo($(caseTable));
           $(itemRow).append($('<td align="center">' + (i+1) + '</td>'));
@@ -250,10 +255,6 @@
             $(openResultCmd).on('click', (evt)=>{
               doOpenResult(cases[i].id);
             });
-            let openCaseLogCmd = $('<input type="button" value="Log"/>');
-            $(openCaseLogCmd).on('click', (evt)=>{
-              doOpenCaseLog(cases[i].id);
-            });
             $(cmdCol).append($(openResultCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(reSubmitCmd));
@@ -271,6 +272,8 @@
               doReDicomLog(cases[i].hospitalId, cases[i].Case_OrthancStudyID);
             });
             $(cmdCol).append($(reDicomCmd));
+            $(cmdCol).append($('<span>  </span>'));
+            $(cmdCol).append($(openCaseLogCmd));            
           }
         }
         setTimeout(()=> {
