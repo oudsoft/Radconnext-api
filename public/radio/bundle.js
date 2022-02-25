@@ -3348,11 +3348,13 @@ function doAutoAcceptCase(){
           $('#AcceptedCaseCmd').click();
         } else {
           doLoadDefualtPage();
+          util.doResetPingCounter();
         }
       }
     });
   } else {
     doLoadDefualtPage();
+    util.doResetPingCounter();
   }
 }
 
