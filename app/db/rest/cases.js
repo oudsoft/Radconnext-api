@@ -219,33 +219,6 @@ app.post('/select/(:caseId)', (req, res) => {
           let caseId = req.params.caseId;
           let selectedCase = await common.doSelectCaseById(caseId);
           res.json({status: {code: 200}, Records: selectedCase.Records});
-          /*
-          const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
-          const cases = await Case.findAll({include: caseInclude, where: {id: caseId}});
-          const casesFormat = [];
-          const promiseList = new Promise(async function(resolve, reject) {
-            cases.forEach(async (item, i) => {
-              const radUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RadiologistId}});
-              const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
-              const radioData = {id: rades[0].id, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH, username: radUser[0].username};
-              const refUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RefferalId}});
-              const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
-              const referData = {id: refes[0].id, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH, username: refUser[0].username};
-              const ownerUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.userId}});
-              const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
-              const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, username: ownerUser[0].username};
-              casesFormat.push({case: item, Radiologist: radioData, Refferal: referData, Owner: ownerData});
-            });
-            setTimeout(()=> {
-              resolve(casesFormat);
-            },500);
-          });
-          Promise.all([promiseList]).then((ob)=> {
-            res.json({status: {code: 200}, Records: ob[0]});
-          }).catch((err)=>{
-            reject(err);
-          });
-          */
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -929,8 +902,18 @@ app.get('/status/by/dicom/(:dicomId)', async (req, res) => {
       if (ur.length > 0){
         const dicomId = req.params.dicomId;
         const caseInclude = [{model: db.casestatuses, attributes: ['CS_Name_EN']}];
-        const youCcases = await Case.findAll({attributes:['id', 'casestatusId'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
-        res.json({status: {code: 200}, Records: youCcases});
+        const youCcases = await Case.findAll({attributes:['id', 'casestatusId', 'urgenttypeId', 'createdAt'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
+        if (youCcases.length > 0){
+          let dicomCase = {id: youCcases[0].id, casestatusId: youCcases[0].casestatusId, urgenttypeId: youCcases[0].urgenttypeId, createdAt: youCcases[0].createdAt, casestatus: youCcases[0].casestatus};
+          let hadOnProcess = uti.contains.call([1, 2, 8, 9], dicomCase.casestatusId);
+          if (hadOnProcess) {
+            const yourUrgents = await db.urgenttypes.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].urgenttypeId}});
+            dicomCase.urgent = yourUrgents[0];
+          }
+          res.json({status: {code: 200}, Records: [dicomCase]});
+        } else {
+          res.json({status: {code: 200}, Records: []});
+        }
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});

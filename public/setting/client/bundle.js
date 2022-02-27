@@ -102,10 +102,9 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doCallApiDirect = function (apiname, params) {
+	const doCallApiDirect = function (apiUrl, params) {
 		return new Promise(function(resolve, reject) {
-			var realUrl = '../api' + '/' + apiname + apiExt;
-			$.post(realUrl, params, function(data){
+			$.post(apiUrl, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
 				reject(error);
@@ -267,8 +266,8 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
-      doCallApi(orthancProxyEndPoint, params).then((data)=>{
-  		//$.post(orthancProxyEndPoint, params, function(data){
+      //doCallApi(orthancProxyEndPoint, params).then((data)=>{
+  		$.post(orthancProxyEndPoint, params, function(data){
 				resolve(data);
 			});
   	});
@@ -657,21 +656,21 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let patientHNInput = $('<input type="text" value="*" size="15"/>');
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="12"/>');
 		$(patientHNInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let patientNameInput = $('<input type="text" value="*" size="18"/>');
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="15"/>');
 		$(patientNameInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let modalityInput = $('<input type="text" value="*" size="4"/>');
+		let modalityInput = $('<input type="text" value="*" id="ModalityInput" size="4"/>');
 		$(modalityInput).on('keypress', function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
@@ -813,7 +812,7 @@ module.exports = function ( jq ) {
 					}
 					setTimeout(()=>{
 						resolve2(logicAns);
-					}, 110);
+					}, 10);
 				});
 				Promise.all([promiseList]).then((ob)=>{
 					resolve(ob[0]);
@@ -926,6 +925,7 @@ module.exports = function ( jq ) {
 	  }
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
+		localStorage.removeItem('masternotify');
 		//localStorage.removeItem('dicomfilter');
 	  let url = '/index.html';
 	  window.location.replace(url);
@@ -1343,7 +1343,8 @@ module.exports = function ( jq ) {
 			let rqParams = {patientId: patientId};
 			let apiUrl = '/api/patient/fullname/en/' + patientId;
 			try {
-				let response = await doCallApi(apiUrl, rqParams);
+				//let response = await doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
 				resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -1966,13 +1967,13 @@ module.exports = function ( jq ) {
 		//console.log(usertype);
 
 		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
-			const wsmMessageHospital = require('./websocketmessage.js')($);
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
-			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($);
+			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
 			wsm.onmessage = wsmMessageRedio.onMessageRadio;
 		} else if (usertype == 5) {
-			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($);
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($, wsm);
 			wsm.onmessage = wsmMessageRefer.onMessageRefer;
 		}
 
@@ -2030,26 +2031,13 @@ module.exports = function ( jq ) {
 	}
 
 	const doConnectWebsocketLocal = function(username){
-		return new Promise(function(resolve, reject) {
-
-		  let wsUrl = 'wss://localhost:3000/api/' + username + '?type=test';
-			try {
-				wsl = new WebSocket(wsUrl);
-				wsl.onopen = wslOnOpen;
-
-				wsl.onmessage = wslOnMessage;
-
-			  wsl.onclose = wslOnClose;
-
-				wsl.onerror = wslOnError;
-
-				resolve(wsl);
-
-			} catch(error) {
-				reject(error);
-			}
-
-		});
+	  let wsUrl = 'ws://localhost:3000/api/' + username + '?type=local';
+		wsl = new WebSocket(wsUrl);
+		wsl.onopen = wslOnOpen;
+		wsl.onmessage = wslOnMessage;
+	  wsl.onclose = wslOnClose;
+		wsl.onerror = wslOnError;
+		return wsl;
 	}
 
 	const isMobileDeviceCheck = function(){
@@ -2124,6 +2112,23 @@ module.exports = function ( jq ) {
 		return $(myLogBox);
 	}
 
+	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
+	dicomZipSyncWorker.addEventListener("message", async function(event) {
+	  let evtData = event.data;
+	  //{studyID,fileEntryURL}
+		if (evtData.fileEntryURL){
+		  let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
+		  await dicomzipsync.forEach((dicom, i) => {
+		    if (dicom.studyID == evtData.studyID) {
+		      dicom.fileEntryURL = evtData.fileEntryURL;
+		    }
+		  });
+		  localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
+		} else if (evtData.error){
+			$.notify("Your Sync Dicom in Background Error", "error");
+		}
+	});
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -2158,6 +2163,7 @@ module.exports = function ( jq ) {
 		XLSX_FILE_TYPE,
 		doCreateDownloadXLSX,
 		doShowLogWindow,
+		dicomZipSyncWorker,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -2165,12 +2171,11 @@ module.exports = function ( jq ) {
 
 },{"../../radio/mod/websocketmessage.js":8,"../../refer/mod/websocketmessage.js":9,"./websocketmessage.js":4}],4:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq ) {
+module.exports = function ( jq, wsm ) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
-		console.log(data.type == 'reportlogreturn');
     if (data.type !== 'test') {
       let masterNotify = localStorage.getItem('masternotify');
       let MasterNotify = JSON.parse(masterNotify);
@@ -2184,6 +2189,11 @@ module.exports = function ( jq ) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
     } else if (data.type == 'trigger') {
 			/*************************/
 			/*
@@ -2281,7 +2291,13 @@ module.exports = function ( jq ) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
-    }
+		} else if (data.type == 'clientreconnect') {
+			let eventName = 'clientreconnecttrigger';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+    } else {
+			console.log('Nothing Else');
+		}
   };
 
 	const doSaveMessageToLocal = function(msg ,from, topicId, status){
@@ -2365,13 +2381,29 @@ $( document ).ready(function() {
     document.addEventListener("logreturn", client.onClientLogReturn);
     document.addEventListener("echoreturn", client.onClientEchoReturn);
 
-    let remoteBox = client.doOpenRemoteRun();
+    let remoteBox = undefined;
+    let urlQuery = urlQueryToObject();
+    if ((urlQuery) && (urlQuery.hospitalId)){
+      remoteBox = client.doOpenRemoteRun(urlQuery.hospitalId);
+    } else {
+      remoteBox = client.doOpenRemoteRun();
+    }
+
     $('#app').append($(remoteBox));
 	};
 
 	initPage();
 });
 
+const urlQueryToObject = function(url) {
+  let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+        return paramPair.split(/=(.+)?/).slice(0, 2);
+    }).reduce(function (obj, pairArray) {
+        obj[pairArray[0]] = pairArray[1];
+        return obj;
+    }, {});
+  return result;
+}
 
 module.exports = {
 
@@ -2387,7 +2419,7 @@ module.exports = function ( jq ) {
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 
 
-  const doOpenRemoteRun = function(){
+  const doOpenRemoteRun = function(hospitalId){
 
 
     let hospitalIdBox = $('<div style="display: table-row; width: 100%;"></div>');
@@ -2439,7 +2471,11 @@ module.exports = function ( jq ) {
 		$(exampleCommandBox).append($('<p>curl --list-only --user radconnext:A4AYitoDUB -T C:\\RadConnext\\Radconnext-win32-x64\\resources\\app\\http\\log\\log.log ftp://119.59.125.63/domains/radconnext.com/private_html/radconnext/inc_files/</p>'));
 		$(exampleCommandBox).append($('<p>D:/Radconnext/restart.bat</p>'));
     const userdata = JSON.parse(localStorage.getItem('userdata'));
-    $(hospitalInput).val(userdata.hospitalId);
+		if (hospitalId){
+			$(hospitalInput).val(hospitalId);
+		} else {
+			$(hospitalInput).val(userdata.hospitalId);
+		}
 
     const wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
     /*
@@ -13441,7 +13477,7 @@ return jQuery;
 
 },{}],8:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq ) {
+module.exports = function ( jq, wsm) {
 	const $ = jq;
 
   const onMessageRadio = function (msgEvt) {
@@ -13461,6 +13497,11 @@ module.exports = function ( jq ) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
@@ -13479,7 +13520,9 @@ module.exports = function ( jq ) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
+			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -13491,6 +13534,14 @@ module.exports = function ( jq ) {
 	      let evtData = {};
 	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 	      document.dispatchEvent(event);
+			}
+			if (minuteLogout > 0){
+				if (data.counterping == minuteLogout) {
+					let eventName = 'autologout';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -13552,7 +13603,7 @@ module.exports = function ( jq ) {
 
 },{}],9:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq ) {
+module.exports = function ( jq, wsm ) {
 	const $ = jq;
 
   const onMessageRefer = function (msgEvt) {
@@ -13571,6 +13622,11 @@ module.exports = function ( jq ) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId};

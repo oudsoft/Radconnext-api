@@ -656,14 +656,14 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="15"/>');
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="12"/>');
 		$(patientHNInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="18"/>');
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="15"/>');
 		$(patientNameInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
@@ -2973,8 +2973,9 @@ function doLoadMainPage(){
       });
       $(document).on('opensearchcase', async (evt, data)=>{
         $('body').loading('start');
-        let toDayFormat = util.getYesterdayDevFormat();
-        let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
+        let yesterDayFormat = util.getYesterdayDevFormat();
+        let toDayFormat = util.getTodayDevFormat();
+        let defaultSearchKey = {fromDateKeyValue: yesterDayFormat, toDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
         let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
         let searchTitlePage = searchcase.doCreateSearchTitlePage();
 
@@ -7981,7 +7982,7 @@ module.exports = function ( jq ) {
     return new Promise(async function(resolve, reject) {
       /*  Concept */
       /*
-      1. ส่งรายการ case ตามจำนวนรายการ ในเงื่อนของ Navigator ไปสร้าง View
+      1. ส่งรายการ case ตามจำนวนรายการ ในเงื่อนไขของ Navigator ไปสร้าง View
       2. รับ view ที่จกข้อ 1 มา append ต่อจาก titlepage
       3. ตรวจสอบจำนวน case ในข้อ 1 ว่ามีกี่รายการ
         - มากกว่า 0 ให้แสดง Navigator

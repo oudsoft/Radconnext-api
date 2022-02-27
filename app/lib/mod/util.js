@@ -65,7 +65,7 @@ const doLoadOrthancTarget = function(hospitalId, hostname){
 	return new Promise(async function(resolve, reject) {
 		//log.info('hostname => ' + hostname);
 		if ((hostname === 'localhost') || (hostname.indexOf('192.168') >= 0)){
-			const myCloud = {os: "docker-linux", ip: "150.95.31.162", httpport: "8042", user: "demo", pass: "demo", portex : "9046", ipex: "150.95.31.162", dicomportex : "9245", dbname: 'orthancvirach'};
+			const myCloud = {os: "docker-linux", ip: "150.95.26.106", httpport: "8042", user: "demo", pass: "demo", portex : "9046", ipex: "150.95.26.106", dicomportex : "9245", dbname: 'orthancvirach'};
 			if (hospitalId == 2) {
 				myCloud.httpport = "8043";
 				myCloud.portex = "8043";

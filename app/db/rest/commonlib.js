@@ -652,9 +652,9 @@ const doFilterPatient = function(filterParams){
     const orderby = [['id', 'DESC']];
     let query = undefined;
     if ((limit) && (limit > 0)) {
-      query = {limit: limit, attributes: ['id', 'createdAt', 'Case_BodyPart', 'Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_PatientHRLink', 'hospitalId'], include: caseInclude, where: whereClous, order: orderby};
+      query = {limit: limit, attributes: ['id', 'createdAt', 'Case_BodyPart', 'Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_PatientHRLink', 'hospitalId', 'Case_RadiologistId'], include: caseInclude, where: whereClous, order: orderby};
     } else {
-      query = {attributes: ['id', 'createdAt', 'Case_BodyPart', 'Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_PatientHRLink', 'hospitalId'], include: caseInclude, where: whereClous, order: orderby};
+      query = {attributes: ['id', 'createdAt', 'Case_BodyPart', 'Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_PatientHRLink', 'hospitalId', 'Case_RadiologistId'], include: caseInclude, where: whereClous, order: orderby};
     }
     const patientCases = await db.cases.findAll(query);
     //res.json({status: {code: 200}, Records: patientCases});
