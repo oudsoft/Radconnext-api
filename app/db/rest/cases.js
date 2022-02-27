@@ -902,7 +902,7 @@ app.get('/status/by/dicom/(:dicomId)', async (req, res) => {
       if (ur.length > 0){
         const dicomId = req.params.dicomId;
         const caseInclude = [{model: db.casestatuses, attributes: ['CS_Name_EN']}];
-        const youCcases = await Case.findAll({attributes:['id', 'casestatusId', 'urgenttypeId', 'createdAt'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
+        const youCcases = await Case.findAll({attributes:['id', 'casestatusId', 'urgenttypeId', 'createdAt', 'Case_StudyInstanceUID'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
         if (youCcases.length > 0){
           let dicomCase = {id: youCcases[0].id, casestatusId: youCcases[0].casestatusId, urgenttypeId: youCcases[0].urgenttypeId, createdAt: youCcases[0].createdAt, casestatus: youCcases[0].casestatus};
           let hadOnProcess = uti.contains.call([1, 2, 8, 9], dicomCase.casestatusId);
