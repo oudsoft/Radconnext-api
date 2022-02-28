@@ -11284,8 +11284,8 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
-      doCallApi(orthancProxyEndPoint, params).then((data)=>{
-  		//$.post(orthancProxyEndPoint, params, function(data){
+      //doCallApi(orthancProxyEndPoint, params).then((data)=>{
+  		$.post(orthancProxyEndPoint, params, function(data){
 				resolve(data);
 			});
   	});
@@ -11677,6 +11677,25 @@ module.exports = function ( jq ) {
     let date = new Date(d);
     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + (date.getFullYear() + 543);
   }
+
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
 
   function fmtReportNumber(x) {
     return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -12080,6 +12099,7 @@ module.exports = function ( jq ) {
 	        for (let j=0; j < scanParts.length; j++){
 	          let itemRow = $(contentRow);
 	          let fmtDate = fmtReportDate(item.createdAt);
+						let isOutTime = doCheckOutTime(item.createdAt);
 						let fmtPrice = undefined;
 						if (scanParts[j].PR) {
 	          	fmtPrice = fmtReportNumber(Number(scanParts[j].PR));
@@ -12097,6 +12117,9 @@ module.exports = function ( jq ) {
 						$(itemRow).append('<td align="left">' + item.radio.User_NameTH + ' ' + item.radio.User_LastNameTH + '</td>');
 	          $(itemRow).append('<td align="left">' + scanParts[j].Code + '</td>');
 	          $(itemRow).append('<td align="right">' + fmtPrice + '</td>');
+						if (isOutTime) {
+							$(itemRow).css({'background-color': 'grey', 'color': 'white'});
+						}
 	          $(contentTable).append($(itemRow));
 	          itemNo += 1;
 	        }
@@ -12281,14 +12304,14 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="15"/>');
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="12"/>');
 		$(patientHNInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="18"/>');
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="15"/>');
 		$(patientNameInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
@@ -12550,6 +12573,7 @@ module.exports = function ( jq ) {
 	  }
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
+		localStorage.removeItem('masternotify');
 		//localStorage.removeItem('dicomfilter');
 	  let url = '/index.html';
 	  window.location.replace(url);
@@ -12967,7 +12991,8 @@ module.exports = function ( jq ) {
 			let rqParams = {patientId: patientId};
 			let apiUrl = '/api/patient/fullname/en/' + patientId;
 			try {
-				let response = await doCallApi(apiUrl, rqParams);
+				//let response = await doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
 				resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -13830,26 +13855,13 @@ module.exports = function ( jq ) {
 	}
 
 	const doConnectWebsocketLocal = function(username){
-		return new Promise(function(resolve, reject) {
-
-		  let wsUrl = 'ws://localhost:3000/api/' + username + '?type=local';
-			try {
-				wsl = new WebSocket(wsUrl);
-				wsl.onopen = wslOnOpen;
-
-				wsl.onmessage = wslOnMessage;
-
-			  wsl.onclose = wslOnClose;
-
-				wsl.onerror = wslOnError;
-
-				resolve(wsl);
-
-			} catch(error) {
-				reject(error);
-			}
-
-		});
+	  let wsUrl = 'ws://localhost:3000/api/' + username + '?type=local';
+		wsl = new WebSocket(wsUrl);
+		wsl.onopen = wslOnOpen;
+		wsl.onmessage = wslOnMessage;
+	  wsl.onclose = wslOnClose;
+		wsl.onerror = wslOnError;
+		return wsl;
 	}
 
 	const isMobileDeviceCheck = function(){
@@ -14103,6 +14115,10 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'clientreconnect') {
+			let eventName = 'clientreconnecttrigger';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
 		}
@@ -14170,7 +14186,9 @@ module.exports = function ( jq, wsm) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
+			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -14182,6 +14200,14 @@ module.exports = function ( jq, wsm) {
 	      let evtData = {};
 	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 	      document.dispatchEvent(event);
+			}
+			if (minuteLogout > 0){
+				if (data.counterping == minuteLogout) {
+					let eventName = 'autologout';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';

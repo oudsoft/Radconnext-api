@@ -107,7 +107,8 @@
             let clientMonitorCmd = $('<input type="button" value="Monitor"/>');
             $(clientMonitorCmd).on('click', async (evt)=>{
               let newWindowUrl = '/setting/client/index.html?hospitalId=' + sockets[i].hospitalId;
-              window.open(newWindowUrl, '_blank').focus();
+              //window.open(newWindowUrl, '_blank').focus();
+              window.open(newWindowUrl);
             });
             $(cmdCol).append($(clientMonitorCmd));
           }
