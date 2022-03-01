@@ -730,6 +730,7 @@ app.post('/search/key', async (req, res) => {
         if (((key.fromDateKeyValue) && (key.fromDateKeyValue !== '')) && ((key.toDateKeyValue) && (key.toDateKeyValue !== ''))) {
           let fromDateWithZ = new Date(key.fromDateKeyValue);
           let toDateWithZ = new Date(key.toDateKeyValue);
+          toDateWithZ.setDate(toDateWithZ.getDate() + 1);
           casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
         } else {
           if ((key.fromDateKeyValue) && (key.fromDateKeyValue !== '')) {
@@ -738,6 +739,7 @@ app.post('/search/key', async (req, res) => {
           }
           if ((key.toDateKeyValue) && (key.toDateKeyValue !== '')) {
             let toDateWithZ = new Date(key.toDateKeyValue);
+            toDateWithZ.setDate(toDateWithZ.getDate() + 1);
             casewhereClous.createdAt = { [db.Op.gte]: new Date(toDateWithZ)};
           }
         }
