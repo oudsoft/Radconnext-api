@@ -846,7 +846,7 @@ const doConvertPatientHistoryImage2Dicom = function(studyID, hospitalId, hostNam
             let bmpFileName = uti.fmtStr('%s.%s', imageCode, 'bmp');
             let dcmFileName = uti.fmtStr('%s.%s', imageCode, 'dcm');
             let command = uti.fmtStr('convert -verbose -density 150 -trim %s/%s', usrUploadDir, imageFileName);
-            command += ' -define bmp:format=BMP3 -quality 100 -flatten -sharpen 0x1.0 ';
+            command += ' -define bmp:format=BMP4 -quality 100 -flatten -sharpen 1.0x1.0 ';
             command += uti.fmtStr(' %s/%s', usrUploadDir, bmpFileName);
 
             command += uti.fmtStr(' && img2dcm -i BMP %s/%s %s/%s', usrUploadDir, bmpFileName, usrUploadDir, dcmFileName);
