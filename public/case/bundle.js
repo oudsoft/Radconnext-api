@@ -497,9 +497,14 @@ const onClientReconnectTrigger = function(evt){
 
 const onClientResult = async function(evt){
   let clientData = evt.detail.data;
-  console.log(clientData);
-  //let clientDataObject = JSON.parse(clientData);
-  let clientDataObject = clientData;
+  console.log(typeof clientData);
+  let clientDataObject = undefined;
+  if ((typeof clientData) == 'string'){
+    clientDataObject = JSON.parse(clientData);
+  } else if ((typeof clientData) == 'object') {
+    clientDataObject = clientData;
+  }
+  console.log(clientDataObject);
   let parentResources = clientDataObject.hasOwnProperty('ParentResources');
   let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
   let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
