@@ -497,21 +497,21 @@ const onClientReconnectTrigger = function(evt){
 
 const onClientResult = async function(evt){
   let clientData = evt.detail.data;
-  console.log(typeof clientData);
   let clientDataObject = undefined;
   if ((typeof clientData) == 'string'){
     clientDataObject = JSON.parse(clientData);
   } else if ((typeof clientData) == 'object') {
     clientDataObject = clientData;
   }
-  console.log(clientDataObject);
   let parentResources = clientDataObject.hasOwnProperty('ParentResources');
   let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
   let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
   //if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
   if ((parentResources) && (failedInstancesCount) && (instancesCount)){
     let studyID = parentResources[0];
+    console.log(studyID);
     let clientHospitalId = evt.detail.hospitalId;
+    console.log(clientHospitalId);
     let studyTags = await common.doCallLoadStudyTags(clientHospitalId, studyID);
     console.log(studyTags);
     let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
