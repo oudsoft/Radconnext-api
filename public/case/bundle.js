@@ -143,6 +143,7 @@ function doLoadMainPage(){
   document.addEventListener("triggerconsultcounter", casecounter.onConsultChangeStatusTrigger);
   document.addEventListener("triggernewdicom", onNewDicomTransferTrigger);
   document.addEventListener("clientreconnecttrigger", onClientReconnectTrigger);
+  document.addEventListener("clientresult", onClientResult);
 
   let userdata = JSON.parse(doGetUserData());
 
@@ -492,6 +493,25 @@ const onClientReconnectTrigger = function(evt){
     wsl.send(JSON.stringify({type: 'client-reconnect'}));
     localStorage.removeItem('masternotify');
   },2100);
+}
+
+const onClientResult = async function(evt){
+  let clientData = evt.detail.data;
+  let clientDataObject = JSON.parse(clientData);
+  let parentResources = clientDataObject.hasOwnProperty('ParentResources');
+  let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
+  let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
+  if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
+    let studyID = parentResources[0];
+    let clientHospitalId = evt.detail.hospitalId;
+    let studyTags = await common.doCallLoadStudyTags(clientHospitalId, studyID);
+    console.log(studyTags);
+    let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
+    console.log(reStudyRes);
+    alert('ดำเนินการส่งภาพเข้าระบบสำเร็จ');
+    $('body').loading('stop');
+  }
+
 }
 
 function doGetToken(){
@@ -2565,14 +2585,14 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="15"/>');
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="12"/>');
 		$(patientHNInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
 			};
 		});
 
-		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="18"/>');
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="15"/>');
 		$(patientNameInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
 				doVerifyForm();
@@ -3472,6 +3492,28 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const doCallLoadStudyTags = function(hospitalId, studyId){
+		return new Promise(async function(resolve, reject) {
+			let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/studies/' + studyId;
+			let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+			let callLoadUrl = '/api/orthancproxy/find'
+			$.post(callLoadUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
+	const doReStructureDicom = function(hospitalId, studyId, dicom){
+		return new Promise(async function(resolve, reject) {
+			let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+			let restudyUrl = '/api/dicomtransferlog/add';
+			$.post(restudyUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -3532,7 +3574,9 @@ module.exports = function ( jq ) {
 		doShowStudyDescriptionLegentCmdClick,
 		doScrollTopPage,
 		genUniqueID,
-		onSimpleEditorPaste
+		onSimpleEditorPaste,
+		doCallLoadStudyTags,
+		doReStructureDicom
 	}
 }
 
@@ -4839,7 +4883,19 @@ module.exports = function ( jq ) {
 			$(popupDicomSummary).append($('<span><b>Name:</b>  </span>'));
 			$(popupDicomSummary).append($('<span>' + name + ' </span>'));
 			$(popupDicomSummary).append($('<span><b>Acc. No.:</b>  </span>'));
-			$(popupDicomSummary).append($('<span>' + defualtValue.acc + '</span>'));
+			let accNoElem = $('<span>' + defualtValue.acc + '</span>');
+			$(accNoElem).on('click', (evt)=>{
+				$('body').loading('start');
+				const main = require('../main.js');
+				let myWsm = main.doGetWsm();
+				let userdata = JSON.parse(localStorage.getItem('userdata'));
+				let hospitalId = userdata.hospitalId;
+				let myname = userdata.username;
+				let command = 'curl -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + defualtValue.studyID;
+				let lines = [command];
+				myWsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: myname, sendto: 'orthanc'}));
+			});
+			$(popupDicomSummary).append($(accNoElem));
 
 			let popupCmdBar = $('<div style="position: relative; min-height: 50px; padding: 5px; text-align: center;"></div>');
 			$(popupCmdBar).append($(previewCmd));
@@ -5888,7 +5944,7 @@ module.exports = function ( jq ) {
 						}
 						$('#NewStatusSubCmd').click(); // <- Tech Page
 					} else if (userdata.usertypeId == 5) {
-						$('#CaseMainCmd').click(); // <- Refer Page
+						$('#HomeMainCmd').click(); // <- Refer Page
 					}
 					/*
 					if (caseRes.actions.warnning) {
@@ -6003,7 +6059,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/ai-lib.js":19,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":16}],8:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":19,"../main.js":1,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":16}],8:[function(require,module,exports){
 /*createnewrefferal.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8015,6 +8071,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
@@ -8088,7 +8145,7 @@ module.exports = function ( jq, wsm ) {
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
-      $("#RemoteDicom").trigger('runresult', [evtData]);
+      $('body').trigger('runresult', [evtData]);
     } else if (data.type == 'refresh') {
       let event = new CustomEvent(data.section, {"detail": {eventname: data.section, stausId: data.statusId, caseId: data.caseId}});
       document.dispatchEvent(event);
