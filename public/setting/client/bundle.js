@@ -2296,8 +2296,9 @@ module.exports = function ( jq, wsm ) {
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'clientresult') {
+			console.log(data);
 			let eventName = 'clientresult';
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result, hospitalId: data.hospitalId, owner: data.owner}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'logreturn') {
 			let eventName = 'logreturn';
@@ -2590,8 +2591,8 @@ module.exports = function ( jq ) {
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
 		let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
-		if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
-			let studyID = parentResources[0];
+		if ((parentResources) && (failedInstancesCount) && (instancesCount)){
+			let studyID = clientDataObject.ParentResources[0];
 			let studyTags = await common.doCallLoadStudyTags(clientHospitalId, studyID);
 			console.log(studyTags);
 			let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
