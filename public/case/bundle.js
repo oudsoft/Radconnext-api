@@ -510,9 +510,7 @@ const onClientResult = async function(evt){
   //if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
   if ((parentResources) && (failedInstancesCount) && (instancesCount)){
     let studyID = clientDataObject.ParentResources[0];
-    console.log(studyID);
     let clientHospitalId = evt.detail.hospitalId;
-    console.log(clientHospitalId);
     let studyTags = await common.doCallLoadStudyTags(clientHospitalId, studyID);
     console.log(studyTags);
     let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
@@ -4904,6 +4902,7 @@ module.exports = function ( jq ) {
 				let lines = [command];
 				let runCommand = {type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: myname, sendto: 'orthanc'};
 				myWsm.send(JSON.stringify(runCommand));
+				$(closePopupCmd).click();
 			});
 			$(popupDicomSummary).append($(accNoElem));
 
