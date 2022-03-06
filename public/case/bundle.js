@@ -496,6 +496,7 @@ const onClientReconnectTrigger = function(evt){
 }
 
 const onClientResult = async function(evt){
+  console.log(evt.detail);
   let clientData = evt.detail.data;
   let clientDataObject = undefined;
   if ((typeof clientData) == 'string'){
