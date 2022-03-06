@@ -509,7 +509,7 @@ const onClientResult = async function(evt){
   let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
   //if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
   if ((parentResources) && (failedInstancesCount) && (instancesCount)){
-    let studyID = parentResources[0];
+    let studyID = clientDataObject.ParentResources[0];
     console.log(studyID);
     let clientHospitalId = evt.detail.hospitalId;
     console.log(clientHospitalId);
@@ -4903,7 +4903,6 @@ module.exports = function ( jq ) {
 				let command = 'curl -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + defualtValue.studyID;
 				let lines = [command];
 				let runCommand = {type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: myname, sendto: 'orthanc'};
-				console.log(runCommand);
 				myWsm.send(JSON.stringify(runCommand));
 			});
 			$(popupDicomSummary).append($(accNoElem));

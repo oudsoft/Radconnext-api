@@ -145,7 +145,7 @@ function RadconWebSocketServer (arg, db, log) {
 							let localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
 							if (localSocket) {
 								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
-									localSocket.send(JSON.stringify({type: 'run', commands: data.commands, sender: data.sender}));
+									localSocket.send(JSON.stringify({type: 'run', commands: data.commands, sender: data.sender, hospitalId: data.hospitalId}));
 									ws.send(JSON.stringify({type: 'notify', message: 'your command will process.'}));
 								} else {
 									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
