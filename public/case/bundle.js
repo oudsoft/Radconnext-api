@@ -507,7 +507,6 @@ const onClientResult = async function(evt){
   let parentResources = clientDataObject.hasOwnProperty('ParentResources');
   let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
   let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
-  //if ((parentResources.length == 1) && (failedInstancesCount == 0) && (instancesCount > 0)){
   if ((parentResources) && (failedInstancesCount) && (instancesCount)){
     let studyID = clientDataObject.ParentResources[0];
     let clientHospitalId = evt.detail.hospitalId;
@@ -515,7 +514,20 @@ const onClientResult = async function(evt){
     console.log(studyTags);
     let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
     console.log(reStudyRes);
-    alert('ดำเนินการส่งภาพเข้าระบบสำเร็จ');
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).append($('<p>ดำเนินการส่งภาพจำนวน ' + clientDataObject.InstancesCount + ' ภาพ</p>'));
+    $(radAlertMsg).append($('<p>เข้าระบบอีกครั้งสำเร็จ</p>'));
+    const radalertoption = {
+      title: 'ผลการส่งภาพเข้าระบบ',
+      msg: $(radAlertMsg),
+      width: '420px',
+      onOk: function(evt) {
+        radAlertBox.closeAlert();
+      }
+    }
+    let radAlertBox = $('body').radalert(radalertoption);
+    $(radAlertBox.cancelCmd).hide();
+
     $('body').loading('stop');
   }
 
