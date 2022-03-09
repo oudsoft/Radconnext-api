@@ -20624,8 +20624,8 @@ module.exports = function ( jq ) {
 				console.log(radioSockets);
 				let caseRadio = await radioSockets.find((item)=>{
 					console.log(item.user.id);
-					console.log(caseData.Radiologist.id);
-					if (item.user.id == caseData.Radiologist.id){
+					console.log(caseData.case.Case_RadiologistId);
+					if (item.user.id == caseData.case.Case_RadiologistId){
 						return item;
 					}
 				});
