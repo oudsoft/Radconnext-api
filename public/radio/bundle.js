@@ -1563,6 +1563,28 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const doCallLoadStudyTags = function(hospitalId, studyId){
+		return new Promise(async function(resolve, reject) {
+			let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/studies/' + studyId;
+			let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+			let callLoadUrl = '/api/orthancproxy/find'
+			$.post(callLoadUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
+	const doReStructureDicom = function(hospitalId, studyId, dicom){
+		return new Promise(async function(resolve, reject) {
+			let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+			let restudyUrl = '/api/dicomtransferlog/add';
+			$.post(restudyUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -1623,7 +1645,9 @@ module.exports = function ( jq ) {
 		doShowStudyDescriptionLegentCmdClick,
 		doScrollTopPage,
 		genUniqueID,
-		onSimpleEditorPaste
+		onSimpleEditorPaste,
+		doCallLoadStudyTags,
+		doReStructureDicom
 	}
 }
 
@@ -2584,6 +2608,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
@@ -2657,7 +2682,7 @@ module.exports = function ( jq, wsm ) {
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
-      $("#RemoteDicom").trigger('runresult', [evtData]);
+      $('body').trigger('runresult', [evtData]);
     } else if (data.type == 'refresh') {
       let event = new CustomEvent(data.section, {"detail": {eventname: data.section, stausId: data.statusId, caseId: data.caseId}});
       document.dispatchEvent(event);
@@ -2681,8 +2706,9 @@ module.exports = function ( jq, wsm ) {
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'clientresult') {
+			console.log(data);
 			let eventName = 'clientresult';
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result, hospitalId: data.hospitalId, owner: data.owner}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'logreturn') {
 			let eventName = 'logreturn';

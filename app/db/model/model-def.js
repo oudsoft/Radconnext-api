@@ -76,6 +76,9 @@ const RadUserInfoDef = {
 			User_SipPhone :  {
 				type: Sequelize.STRING(10),
 			},
+			User_SipSecret :  {
+				type: Sequelize.STRING(50),
+			}
 		};
 
 //User_ID
