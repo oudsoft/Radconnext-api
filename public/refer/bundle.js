@@ -20623,10 +20623,13 @@ module.exports = function ( jq ) {
 				console.log(caseData);
 				console.log(radioSockets);
 				let caseRadio = await radioSockets.find((item)=>{
+					console.log(item.user.id);
+					console.log(caseData.Radiologist.id);
 					if (item.user.id == caseData.Radiologist.id){
 						return item;
 					}
 				});
+				console.log(caseRadio);
 				let radioFN = caseRadio.user.userinfo.User_NameTH + ' ' + caseRadio.user.userinfo.User_LastNameTH;
 				let contactRadioCmd = $('<span>' + radioFN + '</span>');
 				$(contactRadioCmd).css(commandButtonStyle);
