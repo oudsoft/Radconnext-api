@@ -20623,7 +20623,7 @@ module.exports = function ( jq ) {
 				console.log(caseData);
 				console.log(radioSockets);
 				let caseRadio = await radioSockets.find((item)=>{
-					if (item.user.id == caseData.Case_RadiologistId){
+					if (item.user.id == caseData.Radiologist.id){
 						return item;
 					}
 				});
