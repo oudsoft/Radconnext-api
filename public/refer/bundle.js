@@ -20528,11 +20528,6 @@ module.exports = function ( jq ) {
 					let radioBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
 					$(radioBackwardCell).append($(radioBackwardBox));
 
-					/*
-					let loadUrl = '/api/cases/radio/socket/' + radioId;
-					let radioSockets = await common.doCallApi(loadUrl, {});
-					*/
-
 					let radioId = backward.Case_RadiologistId;
 					let caseRadio = await radioSockets.find((item)=>{
 						if (item.user.id == radioId){
@@ -20615,21 +20610,11 @@ module.exports = function ( jq ) {
 			const caseData = loadRes.Records[0];
 			let hadSuccess = util.contains.call(caseSuccessStatusIds, backwardCasestatusId);
 			if (hadSuccess) {
-				/*
-				let loadUrl = '/api/users/select/' + backwardRadioId;
-				let loadRes = await common.doGetApi(loadUrl, {});
-				let radioUsername = loadRes.user[0].username;
-				*/
-				console.log(caseData);
-				console.log(radioSockets);
 				let caseRadio = await radioSockets.find((item)=>{
-					console.log(item.user.id);
-					console.log(caseData.case.Case_RadiologistId);
 					if (item.user.id == caseData.case.Case_RadiologistId){
 						return item;
 					}
 				});
-				console.log(caseRadio);
 				let radioFN = caseRadio.user.userinfo.User_NameTH + ' ' + caseRadio.user.userinfo.User_LastNameTH;
 				let contactRadioCmd = $('<span>' + radioFN + '</span>');
 				$(contactRadioCmd).css(commandButtonStyle);
