@@ -20620,6 +20620,7 @@ module.exports = function ( jq ) {
 				let loadRes = await common.doGetApi(loadUrl, {});
 				let radioUsername = loadRes.user[0].username;
 				*/
+				console.log(caseData);
 				console.log(radioSockets);
 				let caseRadio = await radioSockets.find((item)=>{
 					if (item.user.id == caseData.Case_RadiologistId){
