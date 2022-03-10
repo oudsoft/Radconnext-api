@@ -19778,6 +19778,8 @@ module.exports = function ( jq ) {
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 
+	const backwardBoxHeight = '210px';
+
 	const doOpenCaseView = function(dicomData, defualtValue, dicomSeries){
     return new Promise(async function(resolve, reject){
       $('body').loading('start');
@@ -19841,7 +19843,7 @@ module.exports = function ( jq ) {
 				let patientId = caseItem.case.patientId;
 				let patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
 				let backwardView = await doCallCreatePatientBackward(patientId, patentFullName, caseId);
-				$(backwardView).css({'height': '210px', 'overflow-y': 'scroll', 'overflow-x': 'hidden'});
+				$(backwardView).css({'height': backwardBoxHeight, 'overflow-y': 'scroll', 'overflow-x': 'hidden'});
 				$(caseView).append($(backwardView));
 			}
 
@@ -20472,15 +20474,15 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateMinMaxCmd = function(){
-		let toggleMinMaxCmd = $('<span style="float: right; cursor: pointer;">ขยาย</span>');
+		let toggleMinMaxCmd = $('<span style="float: right; cursor: pointer; margin-right: 15px;">ขยาย</span>');
 		$(toggleMinMaxCmd).on('click', function(evt){
 			let backWardBox = $(".mainfull").find('#BackWardBox');
 			let state = $(backWardBox).css('height');
-			if (state === '210px') {
+			if (state === backwardBoxHeight) {
 				$(backWardBox).css({'height': '100%'});
 				$(toggleMinMaxCmd).text('ย่อ');
 			} else {
-				$(backWardBox).css({'height': '210px'});
+				$(backWardBox).css({'height': backwardBoxHeight});
 				$(toggleMinMaxCmd).text('ขยาย');
 			}
 		});
