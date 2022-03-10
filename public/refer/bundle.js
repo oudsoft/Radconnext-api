@@ -19841,7 +19841,8 @@ module.exports = function ( jq ) {
 				let patientId = caseItem.case.patientId;
 				let patentFullName = caseItem.case.patient.Patient_NameEN + ' ' + caseItem.case.patient.Patient_LastNameEN;
 				let backwardView = await doCallCreatePatientBackward(patientId, patentFullName, caseId);
-				$(backwardView).appendTo($(caseView));
+				$(backwardView).css({'height': '210px', 'overflow-y': 'scroll', 'overflow-x': 'hidden'});
+				$(caseView).append($(backwardView));
 			}
 
 			let caseResultInfoBox = await doCreateResulteSection(dicomData, caseItem);
@@ -20393,13 +20394,14 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let hospitalId = userdata.hospitalId;
-			let limit = 2;
-			let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId, limit);
+			//let limit = 2;
+			//let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId, limit);
+			let patientBackward = await doLoadPatientBackward(hospitalId, patientId, backwardCaseStatus, currentCaseId);
 			let patientBackwardView = undefined;
 			if (patientBackward.Records.length > 0) {
 				patientBackwardView = await doCreatePatientBackward(patientBackward.Records, patientFullName, patientId, currentCaseId);
 			} else {
-				patientBackwardView = $('<div style="100%"><div><span><b>ประวัติการตรวจ</b></span></div><span>ไม่พบประวัติการตรวจ</span></div>');
+				patientBackwardView = $('<div id="BackWardBox" style="width: 100%;"><div><span><b>ประวัติการตรวจ</b></span></div><span>ไม่พบประวัติการตรวจ</span></div>');
 			}
 			resolve($(patientBackwardView));
 		});
@@ -20423,8 +20425,8 @@ module.exports = function ( jq ) {
 
 	const doCreatePatientBackward = function(backwards, patientFullName, patientId, currentCaseId) {
 		return new Promise(async function(resolve, reject) {
-			let backwardBox = $('<div style="100%"></div>');
-			let titleBox = $('<div style="100%"></div>');
+			let backwardBox = $('<div id="BackWardBox" style="width: 100%;"></div>');
+			let titleBox = $('<div style="width: 100%;"></div>');
 			$(titleBox).appendTo($(backwardBox));
 			let titleText = $('<span><b>ประวัติการตรวจ</b></span>');
 			$(titleText).appendTo($(titleBox));
@@ -20432,7 +20434,8 @@ module.exports = function ( jq ) {
 			let backwardView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			$(backwardView).appendTo($(backwardBox));
 
-			let limitToggle = doCreateToggleSwitch(patientFullName, patientId, backwardView, currentCaseId);
+			//let limitToggle = doCreateToggleSwitch(patientFullName, patientId, backwardView, currentCaseId);
+			let limitToggle = doCreateMinMaxCmd();
 			$(limitToggle).appendTo($(titleBox));
 			$(limitToggle).css({'display': 'inline-block', 'float': 'right'});
 
@@ -20468,6 +20471,22 @@ module.exports = function ( jq ) {
 		return $(switchBox);
 	}
 
+	const doCreateMinMaxCmd = function(){
+		let backWardBox = $(".mainfull").find('#BackWardBox');
+		let toggleMinMaxCmd = $('<span style="float: right; cursor: pointer;">ขยาย</span>');
+		$(toggleMinMaxCmd).on('click', function(evt){
+			let state = $(resultView).css('overflow-y');
+			if (state === 'scroll') {
+				$(backWardBox).css({'overflow-y': 'auto'});
+				$(toggleMinMaxCmd).text('ย่อ');
+			} else {
+				$(backWardBox).css({'overflow-y': 'scroll'});
+				$(toggleMinMaxCmd).text('ขยาย');
+			}
+		});
+		return $(toggleMinMaxCmd);
+	}
+
 	const doCreateBackwardItem = function(patientFullName, backwards, backwardView) {
 		return new Promise(async function(resolve, reject) {
 			let callUserOnlineStateUrl = '/api/radiologist/state/current';
@@ -20493,12 +20512,12 @@ module.exports = function ( jq ) {
 					let casedateSegment = casedatetime[0].split('-');
 					casedateSegment = casedateSegment.join('');
 					let casedate = casedateSegment;
-					let caseDateFmt = util.formatStudyDate(casedate);
-					let dicomCmdBox = doCreateDicomCmdBox(backwardRow, backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID);
-					//let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
 					casedateSegment = casedatetime[1].split(':');
 					casedateSegment = casedateSegment.join('');
 					let casetime = casedateSegment;
+					let caseDateFmt = util.formatStudyDate(casedate);
+					let dicomCmdBox = doCreateDicomCmdBox(backwardRow, backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, patientFullName, casedate, casetime);
+					//let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
 					let responseBackwardBox = undefined;
 					const caseSuccessStatusIds = [5, 6, 10, 11, 12, 13, 14];
 					let hadSuccess = util.contains.call(caseSuccessStatusIds, backward.casestatusId);
@@ -20512,8 +20531,6 @@ module.exports = function ( jq ) {
 						responseBackwardBox = $('<div style="text-align: center">เคสยังไม่มีผลอ่าน</div>');
 					}
 
-					let radioBackwardBox = await doCreateRadioStatusCell(backwardRow, backward.id, radioSockets, backward.casestatusId, backward.Case_OrthancStudyID);
-
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; padding: 4px; vertical-align: middle;">' + caseDateFmt + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; vertical-align: middle;">' + backward.Case_BodyPart + '</span>'));
@@ -20526,6 +20543,7 @@ module.exports = function ( jq ) {
 					$(backwardRow).append($(responseBackwardCell));
 
 					let radioBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					let radioBackwardBox = await doCreateRadioStatusCell(backwardRow, backward, radioSockets, backward.casestatusId, backward.Case_OrthancStudyID);
 					$(radioBackwardCell).append($(radioBackwardBox));
 
 					let radioId = backward.Case_RadiologistId;
@@ -20541,6 +20559,8 @@ module.exports = function ( jq ) {
 					} else {
 						radioStateBox = doCreateRadioStateBox('red');
 					}
+
+					// let radioStateBox = doCreateRadioStateBox('red');
 					$(radioBackwardCell).append($(radioStateBox));
 
 					$(backwardRow).append($(radioBackwardCell));
@@ -20561,22 +20581,25 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreateDicomCmdBox = function(backwardRow, orthancStudyID, studyInstanceUID){
+	const doCreateDicomCmdBox = function(backwardRow, orthancStudyID, studyInstanceUID, patientFullName, casedate, casetime){
 		let dicomCmdBox = $('<div></div>');
-		let openViewerCmd = $('<span>เปิดภาพ</span>');
+		let openViewerCmd = $('<span>ดาวน์โหลด</span>');
 		$(openViewerCmd).appendTo($(dicomCmdBox));
 		$(openViewerCmd).css(commandButtonStyle);
 		$(openViewerCmd).on('click', async (evt)=>{
 			$('.row-selected').removeClass('row-selected');
 			$(backwardRow).addClass('row-selected');
-			common.doOpenStoneWebViewer(studyInstanceUID);
+			//common.doOpenStoneWebViewer(studyInstanceUID);
+			let fileExt = 'zip';
+			let dicomZipFilename = (patientFullName.split(' ').join('_')) + '-' + casedate + '-' + casetime + '.' + fileExt;
+			common.doDownloadDicom(orthancStudyID, dicomZipFilename);
 		});
 		return $(dicomCmdBox);
 	}
 
 	const doCreateResponseBackwardBox = function(backwardRow, backwardCaseId, caseresponseId, patientFullName, casedate, casetime){
 		let responseBackwarBox = $('<div></div>');
-		let downloadCmd = $('<span>Download</span>');
+		let downloadCmd = $('<span>เปิดผลอ่าน</span>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(responseBackwarBox));
 		$(downloadCmd).on('click', async (evt)=>{
@@ -20590,28 +20613,31 @@ module.exports = function ( jq ) {
 			let fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '-' + casetime + '.' + fileExt;
       let params = {caseId: backwardCaseId, hospitalId: caseHospitalId, responseId: caseresponseId, userId: userdata.id, pdfFileName: fileName};
 			let reportPdf = await $.post(reportCreateCallerEndPoint, params);
+			/*
 			var pom = document.createElement('a');
 			pom.setAttribute('href', reportPdf.reportLink);
 			pom.setAttribute('download', fileName);
 			pom.click();
+			*/
+
+			let embetObject = $('<object data="' + reportPdf.reportLink + '" type="application/pdf" width="100%" height="480"></object>');
+			let resultBox = $(".mainfull").find('#ResultBox');
+			$(resultBox).empty().append($(embetObject));
 			$('body').loading('stop');
 		});
 		return $(responseBackwarBox);
 	}
 
-	const doCreateRadioStatusCell = function(backwardRow, backwardCaseId, radioSockets, backwardCasestatusId, backwardCaseOrthancStudyID){
+	const doCreateRadioStatusCell = function(backwardRow, backwardItem, radioSockets, backwardCasestatusId, backwardCaseOrthancStudyID){
 		return new Promise(async function(resolve, reject) {
 			const caseSuccessStatusIds = [5, 6, 10, 11, 12, 13, 14];
 			let loadUrl = '/api/cases/status/by/dicom/' + backwardCaseOrthancStudyID;
-			let loadRes = await common.doGetApi(loadUrl, {});
-			const dicomData = {caseId: loadRes.Records[0].id, casestatusId: loadRes.Records[0].casestatusId, dicomID: backwardCaseOrthancStudyID, studyInstanceUID: loadRes.Records[0].Case_StudyInstanceUID}
-			loadUrl = '/api/cases/select/'+ dicomData.caseId;
-			loadRes = await apiconnector.doCallApi(loadUrl, {});
-			const caseData = loadRes.Records[0];
+			let loadRes = await apiconnector.doGetApi(loadUrl, {});
+			const dicomData = {caseId: loadRes.Records[0].id, casestatusId: loadRes.Records[0].casestatusId, dicomID: backwardCaseOrthancStudyID, studyInstanceUID: loadRes.Records[0].Case_StudyInstanceUID};
 			let hadSuccess = util.contains.call(caseSuccessStatusIds, backwardCasestatusId);
 			if (hadSuccess) {
 				let caseRadio = await radioSockets.find((item)=>{
-					if (item.user.id == caseData.case.Case_RadiologistId){
+					if (item.user.id == backwardItem.Case_RadiologistId){
 						return item;
 					}
 				});
@@ -20621,7 +20647,7 @@ module.exports = function ( jq ) {
 				$(contactRadioCmd).on('click', async(evt)=>{
 					$('.row-selected').removeClass('row-selected');
 					$(backwardRow).addClass('row-selected');
-					doContactRadioCmdClick(dicomData, caseData);
+					doContactRadioCmdClick(dicomData, backwardItem);
 				});
 				resolve($(contactRadioCmd));
 			} else {
