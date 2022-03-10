@@ -20562,12 +20562,15 @@ module.exports = function ( jq ) {
 						radioStateBox = doCreateRadioStateBox('red');
 					}
 
-					// let radioStateBox = doCreateRadioStateBox('red');
 					$(radioBackwardCell).append($(radioStateBox));
 
 					$(backwardRow).append($(radioBackwardCell));
 
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">-</span>'));
+
+					$(backwardRow).on('dblclick', (evt)=>{
+						common.doOpenStoneWebViewer(backward.Case_StudyInstanceUID);
+					});
 					if (i == 0){
 						$(backwardRow).addClass('row-selected');
 					}
