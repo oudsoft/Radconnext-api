@@ -20472,15 +20472,15 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateMinMaxCmd = function(){
-		let backWardBox = $(".mainfull").find('#BackWardBox');
 		let toggleMinMaxCmd = $('<span style="float: right; cursor: pointer;">ขยาย</span>');
 		$(toggleMinMaxCmd).on('click', function(evt){
-			let state = $(resultView).css('overflow-y');
-			if (state === 'scroll') {
-				$(backWardBox).css({'overflow-y': 'auto'});
+			let backWardBox = $(".mainfull").find('#BackWardBox');
+			let state = $(backWardBox).css('height');
+			if (state === '210px') {
+				$(backWardBox).css({'height': '100%'});
 				$(toggleMinMaxCmd).text('ย่อ');
 			} else {
-				$(backWardBox).css({'overflow-y': 'scroll'});
+				$(backWardBox).css({'height': '210px'});
 				$(toggleMinMaxCmd).text('ขยาย');
 			}
 		});
