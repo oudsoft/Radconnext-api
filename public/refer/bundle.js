@@ -20570,6 +20570,8 @@ module.exports = function ( jq ) {
 
 					$(backwardRow).on('dblclick', (evt)=>{
 						common.doOpenStoneWebViewer(backward.Case_StudyInstanceUID);
+						$('.row-selected').removeClass('row-selected');
+						$(backwardRow).addClass('row-selected');						
 					});
 					if (i == 0){
 						$(backwardRow).addClass('row-selected');
