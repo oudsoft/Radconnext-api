@@ -837,86 +837,89 @@ const doConvertPatientHistoryImage2Dicom = function(studyID, hospitalId, hostNam
 
       let convertItems = [];
       const promiseList = new Promise(async function(resolve2, reject2) {
+        if (newImages.length > 0) {
+          await newImages.forEach(async(image, i) => {
+            if (!image.instanceId) {
+              let imagePaths = image.link.split('/');
+              let imageFileName = imagePaths[imagePaths.length-1];
+              let imageCode = imageFileName.split('.')[0];
+              let bmpFileName = uti.fmtStr('%s.%s', imageCode, 'bmp');
+              let dcmFileName = uti.fmtStr('%s.%s', imageCode, 'dcm');
+              let command = uti.fmtStr('convert -verbose -density 150 -trim %s/%s', usrUploadDir, imageFileName);
+              command += ' -define bmp:format=BMP3 -quality 100 -flatten -sharpen 0x1.0 ';
+              command += uti.fmtStr(' %s/%s', usrUploadDir, bmpFileName);
 
-        await newImages.forEach(async(image, i) => {
-          if (!image.instanceId) {
-            let imagePaths = image.link.split('/');
-            let imageFileName = imagePaths[imagePaths.length-1];
-            let imageCode = imageFileName.split('.')[0];
-            let bmpFileName = uti.fmtStr('%s.%s', imageCode, 'bmp');
-            let dcmFileName = uti.fmtStr('%s.%s', imageCode, 'dcm');
-            let command = uti.fmtStr('convert -verbose -density 150 -trim %s/%s', usrUploadDir, imageFileName);
-            command += ' -define bmp:format=BMP3 -quality 100 -flatten -sharpen 0x1.0 ';
-            command += uti.fmtStr(' %s/%s', usrUploadDir, bmpFileName);
+              command += uti.fmtStr(' && img2dcm -i BMP %s/%s %s/%s', usrUploadDir, bmpFileName, usrUploadDir, dcmFileName);
 
-            command += uti.fmtStr(' && img2dcm -i BMP %s/%s %s/%s', usrUploadDir, bmpFileName, usrUploadDir, dcmFileName);
+              await mainDicomTags.forEach((tag, i) => {
+                let dcmKeyValue = Object.values(orthancRes.MainDicomTags)[i];
+                dcmKeyValue = dcmKeyValue.replace(/["']/g, "");
+          			command += uti.fmtStr(' -k "%s=%s"', tag, dcmKeyValue);
+          		});
+          		await patientMainTags.forEach((tag, i) => {
+          			if (tag !== 'OtherPatientIDs')	{
+          				command += uti.fmtStr(' -k "%s=%s"', tag, Object.values(orthancRes.PatientMainDicomTags)[i]);
+          			}
+          		});
 
-            await mainDicomTags.forEach((tag, i) => {
-              let dcmKeyValue = Object.values(orthancRes.MainDicomTags)[i];
-              dcmKeyValue = dcmKeyValue.replace(/["']/g, "");
-        			command += uti.fmtStr(' -k "%s=%s"', tag, dcmKeyValue);
-        		});
-        		await patientMainTags.forEach((tag, i) => {
-        			if (tag !== 'OtherPatientIDs')	{
-        				command += uti.fmtStr(' -k "%s=%s"', tag, Object.values(orthancRes.PatientMainDicomTags)[i]);
-        			}
-        		});
+          		command += uti.fmtStr(' -k "Modality=%s" -v', modality);
 
-        		command += uti.fmtStr(' -k "Modality=%s" -v', modality);
+              /*
+          		command += ' && storescu';
+          		command += uti.fmtStr(' %s %s', cloud.ip, cloud.dicomport);
+          		command += uti.fmtStr(' %s/%s', usrUploadDir, dcmFileName);
+          		command +=  ' -v';
+              */
 
-            /*
-        		command += ' && storescu';
-        		command += uti.fmtStr(' %s %s', cloud.ip, cloud.dicomport);
-        		command += uti.fmtStr(' %s/%s', usrUploadDir, dcmFileName);
-        		command +=  ' -v';
-            */
+          		let stdout = await uti.runcommand(command);
+              command = uti.fmtStr('curl -X POST --user %s:%s %s/instances --data-binary @%s/%s', cloud.user, cloud.pass, orthancUrl, usrUploadDir, dcmFileName);
+              stdout = await uti.runcommand(command);
+              let newDicomProp = JSON.parse(stdout);
+              log.info('newDicomProp=>' + JSON.stringify(newDicomProp));
 
-        		let stdout = await uti.runcommand(command);
-            command = uti.fmtStr('curl -X POST --user %s:%s %s/instances --data-binary @%s/%s', cloud.user, cloud.pass, orthancUrl, usrUploadDir, dcmFileName);
-            stdout = await uti.runcommand(command);
-            let newDicomProp = JSON.parse(stdout);
-            log.info('newDicomProp=>' + JSON.stringify(newDicomProp));
+              let hrRevise = {link: image.link, instanceId: newDicomProp.ID};
+              convertItems.push(hrRevise);
 
-            let hrRevise = {link: image.link, instanceId: newDicomProp.ID};
-            convertItems.push(hrRevise);
-
-            uti.removeArchiveScheduleTask(usrUploadDir + '/' + bmpFileName);
-            uti.removeArchiveScheduleTask(usrUploadDir + '/' + dcmFileName);
-          } else {
-            convertItems.push(image);
-          }
-        });
-
-        log.info('newImages=>' + JSON.stringify(convertItems));
-        log.info('oldImages=>' + JSON.stringify(oldImages));
-        if (oldImages) {
-          let resultImages = [];
-          await oldImages.forEach(async (dcm, i) => {
-
-            let oldFoundItems = await convertItems.filter((item, index)=>{
-              if (item.link === dcm.link) {
-                return item;
-              }
-            });
-
-            log.info('oldFoundItems=>' + JSON.stringify(oldFoundItems));
-
-            if (oldFoundItems.length == 0) {
-              resultImages.push(dcm);
+              uti.removeArchiveScheduleTask(usrUploadDir + '/' + bmpFileName);
+              uti.removeArchiveScheduleTask(usrUploadDir + '/' + dcmFileName);
+            } else {
+              convertItems.push(image);
             }
           });
-          log.info('resultImages=>' + JSON.stringify(resultImages));
-          if (resultImages.length > 0) {
-            await resultImages.forEach(async (item, i) => {
-              command = uti.fmtStr('curl -X DELETE --user %s:%s -H "user:%s" %s/instances/%s', cloud.user, cloud.pass, cloud.user, orthancUrl, item.instanceId);
-              await uti.runcommand(command);
-            });
-          }
-        }
 
-        setTimeout(()=> {
+          log.info('newImages=>' + JSON.stringify(convertItems));
+          log.info('oldImages=>' + JSON.stringify(oldImages));
+          if (oldImages) {
+            let resultImages = [];
+            await oldImages.forEach(async (dcm, i) => {
+
+              let oldFoundItems = await convertItems.filter((item, index)=>{
+                if (item.link === dcm.link) {
+                  return item;
+                }
+              });
+
+              log.info('oldFoundItems=>' + JSON.stringify(oldFoundItems));
+
+              if (oldFoundItems.length == 0) {
+                resultImages.push(dcm);
+              }
+            });
+            log.info('resultImages=>' + JSON.stringify(resultImages));
+            if (resultImages.length > 0) {
+              await resultImages.forEach(async (item, i) => {
+                command = uti.fmtStr('curl -X DELETE --user %s:%s -H "user:%s" %s/instances/%s', cloud.user, cloud.pass, cloud.user, orthancUrl, item.instanceId);
+                await uti.runcommand(command);
+              });
+            }
+          }
+
+          setTimeout(()=> {
+            resolve2(convertItems);
+          }, 4800);
+        } else {
           resolve2(convertItems);
-        },4800);
+        }
       });
 
       Promise.all([promiseList]).then(async(ob)=> {
