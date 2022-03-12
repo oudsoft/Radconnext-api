@@ -138,6 +138,14 @@ app.get('/warning/list', (req, res) => {
   });
 });
 
+app.get('/select/(:caseId)', (req, res) => {
+  let caseId = req.params.caseId;
+  Task.selectTaskByCaseId(caseId).then((thatCase)=>{
+    //log.info('ThatTask=>' + JSON.stringify(thatCase));
+    res.status(200).send({status: {code: 200}, Records: [thatCase]});
+  });
+});
+
 module.exports = ( taskCase, taskWarning, dbconn, monitor ) => {
   db = dbconn;
   log = monitor;

@@ -251,8 +251,10 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospital
       voipTriggerParam = {dd: 0, hh: 0, mn: 2};
       voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
     }
-    let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-    let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
+    if ((radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '') && (radioProfile.radioPhoneNo !== '0999999999')) {
+      let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
+      let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
+    }
     resolve(theVoipTask);
   });
 }

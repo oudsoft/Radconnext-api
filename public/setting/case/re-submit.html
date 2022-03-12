@@ -194,6 +194,68 @@
     $(radInfoBox.cancelCmd).hide();
   }
 
+  const doOpenTask = function(caseId){
+    let openUrl = '/api/tasks/select/' + caseId;
+    let params = {};
+    $.get(openUrl, params).then((response) => {
+      let tasks = response.Records;
+      doShowTask(tasks);
+    });
+  }
+
+  const doShowTask = function(tasks){
+    const formatDateStr = function(d) {
+  		var yy, mm, dd, hh, mn;
+  		yy = d.getFullYear();
+  		if (d.getMonth() + 1 < 10) {
+  			mm = '0' + (d.getMonth() + 1);
+  		} else {
+  			mm = '' + (d.getMonth() + 1);
+  		}
+  		if (d.getDate() < 10) {
+  			dd = '0' + d.getDate();
+  		} else {
+  			dd = '' + d.getDate();
+  		}
+      if (d.getHours() < 10) {
+        hh = '0' + d.getHours();
+      } else {
+        hh = '' + d.getHours();
+      }
+      if (d.getMinutes() < 10){
+        mn = '0' + d.getMinutes();
+      } else {
+        mn = '' + d.getMinutes();
+      }
+  		var td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
+  		return td;
+  	}
+
+    let radAlertInfo = $('<div></div>');
+    //{"status":{"code":200},"Records":[{"caseId":2837,"username":"demo","radioUsername":"test0003","triggerAt":"2022-03-12T07:50:05.348Z"}]}
+    console.log(tasks);
+    if ((tasks.length > 0) && (tasks[0])) {
+      tasks.forEach((item, i) => {
+        let d = new Date(item.triggerAt);
+        let dt = formatDateStr(d);
+        $(radAlertInfo).append($('<span>กำหนดหมดเวลาที่ : ' + dt + '</span>'));
+      });
+    } else {
+      $(radAlertInfo).append($('<span>ไม่พบนาฬิกากำหนดเลา</span>'));
+    }
+    //$(radAlertInfo).text(JSON.stringify(tasks));
+    const radAlertOption = {
+      title: 'กำหนดเวลาตอบรับ/ส่งผลอ่าน',
+      msg: $(radAlertInfo),
+      width: '380px',
+      onOk: function(evt) {
+        radTaskBox.closeAlert();
+      },
+    }
+    let radTaskBox = $('body').radalert(radAlertOption);
+    $(radTaskBox.cancelCmd).hide();
+  }
+
   const doLoadLast20Cases = function(evt){
     let limit = $('#Limit').val();
     let hospitalId = $('#HospitalID').val();
@@ -273,7 +335,16 @@
             });
             $(cmdCol).append($(reDicomCmd));
             $(cmdCol).append($('<span>  </span>'));
-            $(cmdCol).append($(openCaseLogCmd));            
+            $(cmdCol).append($(openCaseLogCmd));
+          }
+          let isAliveResponse = contains.call([1, 2], cases[i].casestatusId);
+          if (isAliveResponse){
+            let showTaskCmd = $('<input type="button" value="Task"/>');
+            $(showTaskCmd).on('click', (evt)=>{
+              doOpenTask(cases[i].id);
+            });
+            $(cmdCol).append($('<span>  </span>'));
+            $(cmdCol).append($(showTaskCmd));
           }
         }
         setTimeout(()=> {
