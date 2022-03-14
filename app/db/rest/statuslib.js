@@ -232,30 +232,32 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
 
 const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, casestatusId){
   return new Promise(async function(resolve, reject) {
-    let voiceTransactionId = uti.doCreateVoiceTranctionId();
-    let voipTriggerParam = undefined;
-    let voiceUrgent = undefined;
-    let triggerAt = totalMinut - triggerMinut;
-    if (triggerAt > 0){
-      let delta = triggerAt;
-      let dd = Math.floor(delta / 1440);
-      delta -= dd * 1440;
-      let hh = Math.floor(delta / 60) % 24;
-      delta -= hh * 60;
-      let mn = delta;
-      voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-      log.info('totalMinut=>' + totalMinut);
-      voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
-      log.info('voiceUrgent=>' + voiceUrgent);
-    } else {
-      voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-      voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
-    }
     if ((radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '') && (radioProfile.radioPhoneNo !== '0999999999')) {
+      let voiceTransactionId = uti.doCreateVoiceTranctionId();
+      let voipTriggerParam = undefined;
+      let voiceUrgent = undefined;
+      let triggerAt = totalMinut - triggerMinut;
+      if (triggerAt > 0){
+        let delta = triggerAt;
+        let dd = Math.floor(delta / 1440);
+        delta -= dd * 1440;
+        let hh = Math.floor(delta / 60) % 24;
+        delta -= hh * 60;
+        let mn = delta;
+        voipTriggerParam = {dd: dd, hh: hh, mn: mn};
+        log.info('totalMinut=>' + totalMinut);
+        voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
+        log.info('voiceUrgent=>' + voiceUrgent);
+      } else {
+        voipTriggerParam = {dd: 0, hh: 0, mn: 2};
+        voiceUrgent = uti.doCalUrgentVoiceCall(totalMinut);
+      }
       let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
       let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
+      resolve(theVoipTask);
+    } else {
+      resolve();
     }
-    resolve(theVoipTask);
   });
 }
 
