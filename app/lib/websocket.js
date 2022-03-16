@@ -438,7 +438,7 @@ function RadconWebSocketServer (arg, db, log) {
 	this.getScreenState = function(username){
 		return new Promise(async function(resolve, reject) {
 			let userScreenState = await $this.filterUserSocket(username);
-			//log.info('filterUserSocket=> ' + username + ' => userScreenState=>' + JSON.stringify(userScreenState));
+			log.info('filterUserSocket=> ' + username + ' => userScreenState=>' + JSON.stringify(userScreenState));
 			if (userScreenState.length > 0) {
 				resolve(userScreenState[0].screenstate);
 			} else {
