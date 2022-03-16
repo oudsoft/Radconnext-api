@@ -328,21 +328,35 @@ const onNewCaseEvent = function(caseId, options){
         }
       }
     } else if (radioProfile.autoacc == 1) {
-      let radioSocketState = socket.getScreenState(radioProfile.username);
-      log.info('radioSocketState=>' + JSON.stringify(radioSocketState));
-      if (radioSocketState == 0){
-        let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-        let acceptedCaseStatusId = acceptedCaseStatus[0].id;
-        let currentStatusId = newCase.casestatusId;
-        let remark = 'Change case status to accapted by auto Accept of Radio Profile';
-        let radioId = newCase.Case_RadiologistId
-        let changeResult = await doChangeCaseStatus(currentStatusId, acceptedCaseStatusId, caseId, radioId, remark)
-
-        if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-          let action = 'quick';
-          let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, changeResult.triggerDate);
-          let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
-          await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+      //let radioSocketState = socket.getScreenState(radioProfile.username);
+      let radioSocket = await socket.findUserSocket(radioProfile.username);
+      if (radioSocket){
+        log.info('radioSocketState=>' + radioSocket.screenstate);
+        if (radioSocket.screenstate == 0) {
+          let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
+          let acceptedCaseStatusId = acceptedCaseStatus[0].id;
+          let currentStatusId = newCase.casestatusId;
+          let remark = 'Change case status to accapted by auto Accept of Radio Profile';
+          let radioId = newCase.Case_RadiologistId
+          let changeResult = await doChangeCaseStatus(currentStatusId, acceptedCaseStatusId, caseId, radioId, remark)
+          if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+            let action = 'quick';
+            let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, changeResult.triggerDate);
+            let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
+            await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+          }
+        } else {
+          let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+          let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+          if (radioProfile.radioAutoCall == 1) {
+            let totalMinut = (Number(triggerPara.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
+            log.info('totalMinut=>' + totalMinut);
+            let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
+            log.info('triggerMinut=>' + triggerMinut);
+            if ((triggerMinut) && (triggerMinut > 0)) {
+              let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
+            }
+          }          
         }
       } else {
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
