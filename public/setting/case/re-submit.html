@@ -337,7 +337,7 @@
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openCaseLogCmd));
           }
-          let isAliveResponse = contains.call([1, 2], cases[i].casestatusId);
+          let isAliveResponse = contains.call([1, 2, 8, 9], cases[i].casestatusId);
           if (isAliveResponse){
             let showTaskCmd = $('<input type="button" value="Task"/>');
             $(showTaskCmd).on('click', (evt)=>{
