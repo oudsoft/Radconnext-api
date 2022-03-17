@@ -3360,7 +3360,7 @@ function doSetupAutoReadyAfterLogin(){
 function doAutoAcceptCase(){
   const userdata = JSON.parse(localStorage.getItem('userdata'));
   const autoAcc = userdata.userprofiles[0].Profile.activeState.autoAcc;
-  console.log(autoAcc);
+  //console.log(autoAcc);
   if (autoAcc == 1){
     newcase.doCallMyNewCase().then(async (myNewCase)=>{
       console.log(myNewCase);
@@ -8928,8 +8928,8 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
-			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
+			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
