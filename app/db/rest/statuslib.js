@@ -349,14 +349,14 @@ const onNewCaseEvent = function(caseId, options){
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
           if (radioProfile.radioAutoCall == 1) {
-            let totalMinut = (Number(triggerPara.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
+            let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
             log.info('totalMinut=>' + totalMinut);
             let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
             log.info('triggerMinut=>' + triggerMinut);
             if ((triggerMinut) && (triggerMinut > 0)) {
               let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
             }
-          }          
+          }
         }
       } else {
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
