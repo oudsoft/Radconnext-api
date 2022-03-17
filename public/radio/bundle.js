@@ -8904,11 +8904,6 @@ module.exports = function ( jq, wsm) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
-		} else if (data.type == 'ping') {
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
@@ -8931,8 +8926,6 @@ module.exports = function ( jq, wsm) {
 			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
 			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			console.log(data.counterping);
-			console.log(minuteLockScreen);
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
 	      let evtData = {};
@@ -8951,6 +8944,10 @@ module.exports = function ( jq, wsm) {
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
+			}
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
