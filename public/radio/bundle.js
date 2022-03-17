@@ -3370,12 +3370,15 @@ function doAutoAcceptCase(){
           let caseItem = caseLists[i];
           await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
         }
+        /*
         if (caseLists.length > 0){
           $('#AcceptedCaseCmd').click();
         } else {
           doLoadDefualtPage();
         }
+        */
       }
+      $('#AcceptedCaseCmd').click();
     });
   } else {
     doLoadDefualtPage();

@@ -192,42 +192,45 @@ const doActionAfterChange = function(fromStatus, onStatus, caseId) {
 }
 
 const doCalTriggerMinut = function(totalMinut, radioProfile){
-  let triggerMinut = undefined;
-  if (socket.getScreenState(radioProfile.username) == 0){
-    //Active State
-    if (totalMinut <= 60){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case1H;
-    } else if ((totalMinut > 60) && (totalMinut <= 240)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case4H;
-    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
-    } else if (totalMinut > 1440){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
+  return new Promise(async function(resolve, reject) {
+    let triggerMinut = undefined;
+    let radioSocket = await socket.findUserSocket(radioProfile.username);
+    if ((radioSocket) && (radioSocket.screenstate == 0)) {
+      //Active State
+      if (totalMinut <= 60){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case1H;
+      } else if ((totalMinut > 60) && (totalMinut <= 240)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case4H;
+      } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+      } else if (totalMinut > 1440){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
+      }
+    } else if ((radioSocket) && (radioSocket.screenstate == 1)) {
+      //lock State
+      if (totalMinut <= 60){
+        triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case1H;
+      } else if ((totalMinut > 60) && (totalMinut <= 240)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case4H;
+      } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+      } else if (totalMinut > 1440){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
+      }
+    } else {
+      //offline State
+      if (totalMinut <= 60){
+        triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case1H;
+      } else if ((totalMinut > 60) && (totalMinut <= 240)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case4H;
+      } else if ((totalMinut > 240) && (totalMinut <= 1440)){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
+      } else if (totalMinut > 1440){
+        triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
+      }
     }
-  } else if (socket.getScreenState(radioProfile.username) == 1){
-    //lock State
-    if (totalMinut <= 60){
-      triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case1H;
-    } else if ((totalMinut > 60) && (totalMinut <= 240)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.lockState.optionCaseControl.case4H;
-    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
-    } else if (totalMinut > 1440){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
-    }
-  } else {
-    //offline State
-    if (totalMinut <= 60){
-      triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case1H;
-    } else if ((totalMinut > 60) && (totalMinut <= 240)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.offlineState.optionCaseControl.case4H;
-    } else if ((totalMinut > 240) && (totalMinut <= 1440)){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HL;
-    } else if (totalMinut > 1440){
-      triggerMinut = radioProfile.radioPhoneCallOptions.activeState.optionCaseControl.case24HU;
-    }
-  }
-  return triggerMinut;
+    resolve(triggerMinut);
+  });
 }
 
 const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, casestatusId){
@@ -315,20 +318,20 @@ const onNewCaseEvent = function(caseId, options){
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.urgenttypeId}});
     log.info('radioProfile=>' + JSON.stringify(radioProfile));
     if ((radioProfile.autoacc == 0) || (!radioProfile.autoacc)) {
-      //Create Task Schedule
+      log.info('== When autoacc of Radio Profile is undefined or OFF ==');
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
       let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
       if (radioProfile.radioAutoCall == 1) {
         let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
         log.info('totalMinut=>' + totalMinut);
-        let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
+        let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
         log.info('triggerMinut=>' + triggerMinut);
         if ((triggerMinut) && (triggerMinut > 0)) {
           let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
         }
       }
     } else if (radioProfile.autoacc == 1) {
-      //let radioSocketState = socket.getScreenState(radioProfile.username);
+      log.info('== When autoacc of Radio Profile is ON ==');
       let radioSocket = await socket.findUserSocket(radioProfile.username);
       if (radioSocket){
         log.info('radioSocketState=>' + radioSocket.screenstate);
@@ -346,12 +349,13 @@ const onNewCaseEvent = function(caseId, options){
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
         } else {
+          log.info('== But Radio Lock Screen ==');
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
           if (radioProfile.radioAutoCall == 1) {
             let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
             log.info('totalMinut=>' + totalMinut);
-            let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
+            let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
             log.info('triggerMinut=>' + triggerMinut);
             if ((triggerMinut) && (triggerMinut > 0)) {
               let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
@@ -359,12 +363,13 @@ const onNewCaseEvent = function(caseId, options){
           }
         }
       } else {
+        log.info('== When Radio Offline ==');
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
         if (radioProfile.radioAutoCall == 1) {
           let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
           log.info('totalMinut=>' + totalMinut);
-          let triggerMinut = doCalTriggerMinut(totalMinut, radioProfile);
+          let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
           log.info('triggerMinut=>' + triggerMinut);
           if ((triggerMinut) && (triggerMinut > 0)) {
             let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
