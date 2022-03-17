@@ -8931,6 +8931,8 @@ module.exports = function ( jq, wsm) {
 			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
 			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+			console.log(data.counterping);
+			console.log(minuteLockScreen);
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
 	      let evtData = {};
