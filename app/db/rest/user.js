@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, User, log, auth;
+var db, User, log, auth, common;
 
 const excludeColumn = { exclude: [ 'updatedAt', 'createdAt'] };
 
@@ -162,6 +162,11 @@ app.post('/add', (req, res) => {
                       adUser.setUsertype(usertypes[0]);
                       adUser.setUserstatus(userstatuses[0]);
                       adUser.setUserinfo(adUserinfo);
+                      if (usertypeId == 4){
+                        let newUserProfile = {Profile: common.defaultRadioProfileV2};
+                        let adUserProfile = await UserProfile.create(newUserProfile);
+                        await UserProfile.update({userId: userId}, { where: { id: adUser.id } });
+                      }
                       const yourToken = auth.doEncodeToken(newUsername);
                       res.json({status: {code: 200}, token: yourToken });
                     });
@@ -256,10 +261,11 @@ app.post('/delete', (req, res) => {
   }
 });
 
-module.exports = ( dbconn, monitor ) => {
+module.exports = ( dbconn, monitor, casetask) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
+  common = require('./commonlib.js')(db, log, casetask);
   User = db.users;
   return app;
 }

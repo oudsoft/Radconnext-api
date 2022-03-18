@@ -115,14 +115,16 @@ app.post('/radio/saveresult', (req, res) => {
         try {
           if ((req.body.caseId) && (Number(req.body.caseId) > 0)) {
       			let hostname = req.hostname;
-            let addNewResResult = await statusControl.doControlAddNewResponse(req.body);
+            let reqData = req.body;
+            log.info('Radio Save Result with reqData => ' + JSON.stringify(reqData));
+            let addNewResResult = await statusControl.doControlAddNewResponse(reqData);
             log.info('Control-addNewResponse=> ' + JSON.stringify(addNewResResult));
             if (addNewResResult.status.code == 200){
-              let caseId = req.body.caseId;
-              let userId = req.body.userId;
-              let hospitalId = req.body.hospitalId;
-      				let pdfFileName = req.body.pdfFileName;
-              let responseId = req.body.responseId;
+              let caseId = reqData.caseId;
+              let userId = reqData.userId;
+              let hospitalId = reqData.hospitalId;
+      				let pdfFileName = reqData.pdfFileName;
+              let responseId = reqData.responseId;
               if (!responseId){
                 responseId = addNewResResult.result.responseId
               }

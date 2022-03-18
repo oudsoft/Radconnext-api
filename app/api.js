@@ -78,7 +78,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const voipTaskApp = require('./lib/voiptaskapp.js')( voipTask, db, log);
 
 	const users = require('./db/rest/users.js')(db, log);
-	const user = require('./db/rest/user.js')(db, log);
+	const user = require('./db/rest/user.js')(db, log, taskCase);
 	const usertypes = require('./db/rest/usertypes.js')(db, log);
 	const userstatuses = require('./db/rest/userstatuses.js')(db, log);
 	const userprofile = require('./db/rest/userprofile.js')(db, log);

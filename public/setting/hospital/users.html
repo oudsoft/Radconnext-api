@@ -73,6 +73,10 @@
         <input type="number" id="SipPhone" size="30"/>
       </div>
       <div class="InputField">
+        <label>SipSecret :</label>
+        <input type="text" id="SipSecret" size="30"/>
+      </div>
+      <div class="InputField">
         <label>LineID :</label>
         <input type="text" id="LineID" size="30"/>
       </div>
@@ -158,7 +162,7 @@
   function doBackHome(){
     window.location.replace('/staff.html');
   }
-  
+
   function doVerifyUsername(){
     let username = $("#username").val();
     if (username) {
@@ -203,6 +207,7 @@
     let Email = $("#Email").val();
     let Phone = $("#Phone").val();
     let SipPhone = $("#SipPhone").val();
+    let SipSecret = $("#SipSecret").val();
     let LineID = $("#LineID").val();
     let UserStatus = $("#UserStatus").val();
     let UserType = $("#UserType").val();
@@ -219,7 +224,7 @@
                 if (LineID !== ''){
                   if (UserType == 4) {
                     if (Hospitals !== '') {
-                      let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', User_Hospitals: Hospitals, userstatusId: UserStatus, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+                      let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_SipSecret: SipSecret, User_LineID: LineID, User_PathRadiant: '/path/to/khow', User_Hospitals: Hospitals, userstatusId: UserStatus, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
                       return params;
                     } else {
                       $("#Hospitals").css({'border': '1px solid red'});
@@ -228,7 +233,7 @@
                     }
                   } else {
                     console.log('AA');
-                    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', userstatusId: UserStatus, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+                    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_SipPhone: SipPhone, User_SipSecret: SipSecret, User_LineID: LineID, User_PathRadiant: '/path/to/khow', userstatusId: UserStatus, usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
                     return params;
                   }
                 } else {
@@ -385,6 +390,7 @@
       $("#Email").val(userData.userinfo.User_Email);
       $("#Phone").val(userData.userinfo.User_Phone);
       $("#SipPhone").val(userData.userinfo.User_SipPhone);
+      $("#SipSecret").val(userData.userinfo.User_SipSecret);
       $("#LineID").val(userData.userinfo.User_LineID);
       $("#Hospitals").val(userData.userinfo.User_Hospitals);
       $("#UserStatus").val(userData.userstatusId);
