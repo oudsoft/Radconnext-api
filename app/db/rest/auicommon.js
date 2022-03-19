@@ -146,7 +146,7 @@ app.post('/radio/saveresult', (req, res) => {
 
               //res.json({ status: {code: 200}, result: callResponse});
             } else if (addNewResResult.status.code == 203){
-              //Cannot chang status
+              //Can not change status
               res.json(addNewResResult);
             } else {
               //error
@@ -193,15 +193,15 @@ app.post('/radio/submitresult', (req, res) => {
 
           let responseType = 'normal';
           let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
-          let remark = 'Radio Save new normal Response success.';
+          let remark = 'Radio Submit Result Success.';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});
-          log.info('nowStatusId para => ' + nowStatusId);
-          log.info('nextStatus para => ' + nextStatus);
-          log.info('caseId para => ' + caseId);
-          log.info('userId para => ' + userId);
-          log.info('remark para => ' + remark);
-          log.info('onSubmitResult=> ' + JSON.stringify(changeResult));
+          log.info('nowStatusId param => ' + nowStatusId);
+          log.info('nextStatus param => ' + nextStatus);
+          log.info('caseId param => ' + caseId);
+          log.info('userId param => ' + userId);
+          log.info('remark param => ' + remark);
+          log.info('case change status Result => ' + JSON.stringify(changeResult));
           res.json(submitRes);
         } catch(error) {
           log.error(error);
