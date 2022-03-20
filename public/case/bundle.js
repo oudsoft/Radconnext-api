@@ -6785,8 +6785,11 @@ module.exports = function ( jq ) {
 	  rtcSession.on("ended",function(e){
 	    // the call has ended
 	    console.log('onended', e);
+			/*
 	    var remoteAudio = document.getElementById('RemoteAudio');
 	    doClearTracks(remoteAudio);
+			*/
+			doHangup(e);
 	  });
 	  rtcSession.on("failed",function(e){
 	    // unable to establish the call
