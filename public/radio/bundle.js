@@ -1683,7 +1683,7 @@ module.exports = function ( jq ) {
     sessionTimersExpires: 7200
   };
 
-  const doRegisterSoftphone = function(softNumber){
+  const doRegisterSoftphone = function(softNumber, secret){
 		let socket = new JsSIP.WebSocketInterface(wsUrl);
 		socket.onmessage = function(msgEvt){
 	    let data = JSON.parse(msgEvt.data);
@@ -1695,7 +1695,7 @@ module.exports = function ( jq ) {
       sockets: [ socket ],
       authorization_user: softNumber,
       uri: sipUri,
-      password: 'qwerty' + softNumber,
+      password: secret,
       ws_servers: wsUrl,
       realm: realm,
       display_name: softNumber,
@@ -2798,13 +2798,16 @@ $( document ).ready(function() {
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             if (userdata.userinfo.User_SipPhone){
-               sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
-               sipUA.start();
-               let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
-               let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
-               $(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
-               let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
-               $('body').append($(mySipPhoneIncomeBox));
+              let sipPhoneNumber = userdata.userinfo.User_SipPhone;
+              let sipPhoneSecret = userdata.userinfo.User_SipSecret;
+              sipUA = softphone.doRegisterSoftphone(sipPhoneNumber, sipPhoneSecret);
+
+              sipUA.start();
+              let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
+              let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
+              $(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
+              let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
+              $('body').append($(mySipPhoneIncomeBox));
             }
           } else {
             //$.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');

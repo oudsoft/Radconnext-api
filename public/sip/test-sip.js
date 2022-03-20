@@ -25,7 +25,7 @@ var configuration = {
   sockets  : [ socket ],
   authorization_user: '4000',
   uri      : 'sip:4000@202.28.68.6',
-  password : 'drinking4000',
+  password : '03666bea7ac9',
   ws_servers        : 'wss://202.28.68.6:8089/ws',
   realm             : '202.28.68.6',
   display_name      : '4000',

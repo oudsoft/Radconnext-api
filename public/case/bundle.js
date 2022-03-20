@@ -36,7 +36,10 @@ $( document ).ready(function() {
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
              if (userdata.userinfo.User_SipPhone){
-                sipUA = softphone.doRegisterSoftphone(userdata.userinfo.User_SipPhone);
+                let sipPhoneNumber = userdata.userinfo.User_SipPhone;
+                let sipPhoneSecret = userdata.userinfo.User_SipSecret;
+                sipUA = softphone.doRegisterSoftphone(sipPhoneNumber, sipPhoneSecret);
+
                 sipUA.start();
                 let sipPhoneOptions = {onRejectCallCallback: softphone.doRejectCall, onAcceptCallCallback: softphone.doAcceptCall, onEndCallCallback: softphone.doEndCall};
                 let mySipPhoneIncomeBox = $('<div id="SipPhoneIncomeBox" tabindex="1"></div>');
@@ -527,7 +530,6 @@ const onClientResult = async function(evt){
     }
     let radAlertBox = $('body').radalert(radalertoption);
     $(radAlertBox.cancelCmd).hide();
-
     $('body').loading('stop');
   }
 
@@ -6695,7 +6697,7 @@ module.exports = function ( jq ) {
     sessionTimersExpires: 7200
   };
 
-  const doRegisterSoftphone = function(softNumber){
+  const doRegisterSoftphone = function(softNumber, secret){
 		let socket = new JsSIP.WebSocketInterface(wsUrl);
 		socket.onmessage = function(msgEvt){
 	    let data = JSON.parse(msgEvt.data);
@@ -6707,7 +6709,7 @@ module.exports = function ( jq ) {
       sockets: [ socket ],
       authorization_user: softNumber,
       uri: sipUri,
-      password: 'qwerty' + softNumber,
+      password: secret,
       ws_servers: wsUrl,
       realm: realm,
       display_name: softNumber,
@@ -19423,11 +19425,6 @@ module.exports = function ( jq, wsm) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
-		} else if (data.type == 'ping') {
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
@@ -19447,8 +19444,8 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
-			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
+			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -19468,6 +19465,10 @@ module.exports = function ( jq, wsm) {
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
+			}
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
