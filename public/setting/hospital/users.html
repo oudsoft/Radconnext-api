@@ -75,6 +75,7 @@
       <div class="InputField">
         <label>SipSecret :</label>
         <input type="text" id="SipSecret" size="30"/>
+        <input type="button" id="SecretGenCmd" value=" Gen. "/>
       </div>
       <div class="InputField">
         <label>LineID :</label>
@@ -114,6 +115,7 @@
   .SubmitField{padding: 4px; text-align: center;}
   #BackCmdDiv{width: 98.5%; padding: 4px; text-align: center; border: 1px solid grey;}
   #BackHomeCmd {margin-left: 10px;}
+  #SecretGenCmd {margin-left: 10px;}
   #EditUserCmd{/* display: block; */}
   #UserHospitals{display: none;}
 </style>
@@ -142,6 +144,13 @@
   	return result;
   }
 
+  function genUniqueID() {
+  	function s4() {
+  		return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  	}
+  	return s4() + s4() + s4();
+  }
+
   function doGetApi(url) {
     return new Promise(function(resolve, reject) {
       $.get(url, {test: 'test foo'}, function(response){
@@ -161,6 +170,13 @@
 
   function doBackHome(){
     window.location.replace('/staff.html');
+  }
+
+
+  function doSecretCodeGen(){
+    $('#SipSecret').val('');
+    let newCode = genUniqueID();
+    $('#SipSecret').val(newCode);
   }
 
   function doVerifyUsername(){
@@ -574,6 +590,7 @@
     $("#hospital").on('change',doHospitalChange)
     $("#UserType").on('change',doTypeChange)
     $('#BackHomeCmd').on('click',doBackHome);
+    $('SecretGenCmd').on('click',doSecretCodeGen);
 
     queryObj = urlQueryToObject(window.location.href);
     if (queryObj.userid) {
