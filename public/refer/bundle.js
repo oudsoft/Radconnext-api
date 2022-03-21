@@ -20228,6 +20228,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doContactRadioCmdClick = function(dicomData, caseData){
+		console.log(caseData);
 		let contactToolsBox = $('#ContactTools');
 		let patentFullName = caseData.case.patient.Patient_NameEN + ' ' + caseData.case.patient.Patient_LastNameEN;
 		let patientHN = caseData.case.patient.Patient_HN;
@@ -20579,7 +20580,7 @@ module.exports = function ( jq ) {
 					$(backwardRow).on('dblclick', (evt)=>{
 						common.doOpenStoneWebViewer(backward.Case_StudyInstanceUID);
 						$('.row-selected').removeClass('row-selected');
-						$(backwardRow).addClass('row-selected');						
+						$(backwardRow).addClass('row-selected');
 					});
 					if (i == 0){
 						$(backwardRow).addClass('row-selected');
