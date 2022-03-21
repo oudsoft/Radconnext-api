@@ -6753,9 +6753,7 @@ module.exports = function ( jq ) {
           ringAudio.pause();
           let remoteAudio = document.getElementById('RemoteAudio');
 					doClearTracks(remoteAudio);
-          $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
-          $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
-          $('#SipPhoneIncomeBox').css({'top': '-65px'});
+					doHiddenSoftPhoneBox();
         });
       }
     });
@@ -6787,12 +6785,14 @@ module.exports = function ( jq ) {
 	    console.log('onended', e);
 	    var remoteAudio = document.getElementById('RemoteAudio');
 	    doClearTracks(remoteAudio);
+			doHiddenSoftPhoneBox();
 	  });
 	  rtcSession.on("failed",function(e){
 	    // unable to establish the call
 	    console.log('onfailed', e);
 			var remoteAudio = document.getElementById('RemoteAudio');
 	    doClearTracks(remoteAudio);
+			doHiddenSoftPhoneBox();
 	  });
 
 	  // Answer call
@@ -6827,10 +6827,14 @@ module.exports = function ( jq ) {
 	    sipSession.terminate();
 	    let remoteAudio = document.getElementById('RemoteAudio');
 			doClearTracks(remoteAudio);
-	    $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
-	    $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
-	    $('#SipPhoneIncomeBox').css({'top': '-65px'});
+			doHiddenSoftPhoneBox();
 	  }
+	}
+
+	const doHiddenSoftPhoneBox = function(){
+		$('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'block'});
+		$('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'none'});
+		$('#SipPhoneIncomeBox').css({'top': '-65px'});
 	}
 
   return {
