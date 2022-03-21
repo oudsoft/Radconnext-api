@@ -20236,7 +20236,11 @@ module.exports = function ( jq ) {
 		let topicName = patientHN + ' ' + patentFullName + ' ' + patientSA + ' ' + caseBodypart;
 		doCreateSimpleChatBox(dicomData, caseData, topicName).then((simpleChatBox)=>{
 			$(contactToolsBox).empty().append($(simpleChatBox));
-			$(contactToolsBox).slideToggle();
+			let isExpand = $(contactToolsBox).css('display');
+			console.log(isExpand);
+			if (isExpand == 'none'){
+				$(contactToolsBox).slideToggle();
+			}
 		});
 	}
 
