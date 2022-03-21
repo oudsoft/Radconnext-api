@@ -431,29 +431,9 @@
 
   function doChangeRefer(caseData){
     let newReferIdInput = $('<input type="text" id="NewReferIdInput" size="15"/>');
-    //let saveNewReferIdCmd = $('<input type="button" id="SaveNewReferIdCmd" value=" Save "/>');
     let radAlertMsg = $('<div></div>');
     $(radAlertMsg).append($('<label for="NewReferIdInput">New Refferal Id :</label>'));
     $(radAlertMsg).append($(newReferIdInput));
-    /*
-    $(radAlertMsg).append($(saveNewReferIdCmd));
-    $(saveNewReferIdCmd).on('click', (evt)=>{
-      let newReferId = $(newReferIdInput).val();
-      if (newReferId) {
-        $(newReferIdInput).css({'border': ''});
-        $.get('/api/users/searchusername/' + newUsername, {}, function(response){
-          console.log(response);
-          if((response.status.code === 200) && (response.result === true)) {
-            $(newUsernameInput).css({'border': '1px solid green'});
-          } else {
-            $(newUsernameInput).css({'border': '1px solid red'});
-          }
-        });
-      } else {
-        $(newReferIdInput).css({'border': '1px solid red'});
-      }
-    });
-    */
     const radconfirmoption = {
       title: 'เปลี่ยนไอดีหมอเจ้าของไข้',
       msg: $(radAlertMsg),
