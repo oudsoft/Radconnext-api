@@ -1009,6 +1009,13 @@ app.get('/rezip/(:caseId)', async (req, res) => {
   }
 });
 
+app.get('/reset/refer/(:caseId)/(:referId)', async (req, res) => {
+  const caseId = req.params.caseId;
+  const referId = req.params.referId;
+  await Case.update({Case_RefferalId: referId}, { where: { id: caseId } });
+  res.json({status: {code: 200}, result: 'Success.'});
+});
+
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {
   db = dbconn;
   tasks = caseTask;
