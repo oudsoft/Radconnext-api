@@ -6503,12 +6503,12 @@ module.exports = function ( jq ) {
 			//console.log(caseOpen);
 
 			let createNewResponseCmd = $('<input type="button" value=" ส่งผลอ่าน " class="action-btn"/>');
-			let createNewResponseData = {caseId: selectedCase.case.id, hospitalId: caseHospitalId, patientFullName: patientFullName, casedate: casedate, casetime: casetime, reporttype: caseOpen.reportType, resultFormat: caseOpen.resultFormat, previewOption: caseOpen.previewOption};
+			let createNewResponseData = {caseId: caseId, hospitalId: caseHospitalId, patientFullName: patientFullName, casedate: casedate, casetime: casetime, reporttype: caseOpen.reportType, resultFormat: caseOpen.resultFormat, previewOption: caseOpen.previewOption};
 			$(createNewResponseCmd).data('createNewResponseData', createNewResponseData);
 			$(createNewResponseCmd).on('click', onCreateNewResponseCmdClick);
 
 			let saveDraftResponseCmd = $('<input type="button" class="none-action-btn" value=" Draft "/>');
-			let saveDraftResponseData = {caseId: selectedCase.case.id, patientFullName: patientFullName, casedate: casedate, type: 'draft'};
+			let saveDraftResponseData = {caseId: caseId, patientFullName: patientFullName, casedate: casedate, type: 'draft'};
 			if (caseResponseId) {
 				saveDraftResponseData.caseResponseId = caseResponseId;
 			}
