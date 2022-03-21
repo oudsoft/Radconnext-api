@@ -20662,9 +20662,9 @@ module.exports = function ( jq ) {
 				$(contactRadioCmd).on('click', async(evt)=>{
 					loadUrl = '/api/cases/select/'+ dicomData.caseId;
 					loadRes = await apiconnector.doCallApi(loadUrl, {});
-					console.log(caseRes);
-					if (caseRes.status.code == 200){
-		        let caseBackwardItem = caseRes.Records[0];
+					console.log(loadRes);
+					if (loadRes.status.code == 200){
+		        let caseBackwardItem = loadRes.Records[0];
 						$('.row-selected').removeClass('row-selected');
 						$(backwardRow).addClass('row-selected');
 						doContactRadioCmdClick(dicomData, caseBackwardItem);
