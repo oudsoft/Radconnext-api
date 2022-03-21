@@ -11,6 +11,7 @@
     <script type="text/javascript" src="../plugin/jquery-radutil-plugin.js"></script>
     <link rel='stylesheet' href='../../lib/jquery-ui.min.css' />
     <link rel='stylesheet' href='../../stylesheets/style.css' />
+    <link rel='stylesheet' href='../../case/css/style.css' />
   </head>
   <body>
     <div id="ShowCaseList">
@@ -293,7 +294,7 @@
           $(itemRow).append($('<td align="left">' + casedate + ' : ' + casetime + '</td>'));
           $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + '</td>'));
           let radioCol = $('<td align="center"></td>');
-          let radioIdCell = $('<span data-toggle="tooltip">' + cases[i].Case_RadiologistId + '</span>');
+          let radioIdCell = $('<span class="tooltiptext">' + cases[i].Case_RadiologistId + '</span>');
           $(radioIdCell).on('mouseover', (evt)=>{
             doLoadRadioFullName(cases[i].Case_RadiologistId).then((callRes)=>{
               console.log(callRes.user[0]);
