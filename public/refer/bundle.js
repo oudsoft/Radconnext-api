@@ -20228,7 +20228,6 @@ module.exports = function ( jq ) {
 	}
 
 	const doContactRadioCmdClick = function(dicomData, caseData){
-		console.log(caseData);
 		let contactToolsBox = $('#ContactTools');
 		let patentFullName = caseData.case.patient.Patient_NameEN + ' ' + caseData.case.patient.Patient_LastNameEN;
 		let patientHN = caseData.case.patient.Patient_HN;
@@ -20661,9 +20660,17 @@ module.exports = function ( jq ) {
 				let contactRadioCmd = $('<span>' + radioFN + '</span>');
 				$(contactRadioCmd).css(commandButtonStyle);
 				$(contactRadioCmd).on('click', async(evt)=>{
-					$('.row-selected').removeClass('row-selected');
-					$(backwardRow).addClass('row-selected');
-					doContactRadioCmdClick(dicomData, backwardItem);
+					loadUrl = '/api/cases/select/'+ dicomData.caseId;
+					loadRes = await apiconnector.doCallApi(loadUrl, {});
+					console.log(caseRes);
+					if (caseRes.status.code == 200){
+		        let caseBackwardItem = caseRes.Records[0];
+						$('.row-selected').removeClass('row-selected');
+						$(backwardRow).addClass('row-selected');
+						doContactRadioCmdClick(dicomData, caseBackwardItem);
+					} else {
+						$.notify('Your request case not found.', 'error');
+					}
 				});
 				resolve($(contactRadioCmd));
 			} else {
