@@ -498,7 +498,7 @@
   function doChangeUsername(userData){
     let newUsernameInput = $('<input type="text" id="NewUsernameInput" size="40"/>');
     let verifyNewUsernameCmd = $('<input type="button" id="VerifyNewUsernameCmd" value=" Verify "/>');
-    let radAlertMsg = $('<div></div>');
+    let radAlertMsg = $('<div style="margin-top: 10px;"></div>');
     $(radAlertMsg).append($('<label for="NewUsernameInput">New Username :</label>'));
     $(radAlertMsg).append($(newUsernameInput));
     $(radAlertMsg).append($(verifyNewUsernameCmd));

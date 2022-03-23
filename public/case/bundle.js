@@ -962,6 +962,28 @@ module.exports = function ( jq ) {
   	});
   }
 
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
   /* Zoom API Connection */
 
   const zoomUserId = 'vwrjK4N4Tt284J2xw-V1ew';
@@ -1120,6 +1142,8 @@ module.exports = function ( jq ) {
     doDownloadResult,
     doConvertPdfToDicom,
     doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
     doGetZoomMeeting
 	}
 }
@@ -5325,6 +5349,21 @@ module.exports = function ( jq ) {
 			$(tableCell).append(allSeries + ' / ' + allImageInstances);
 			$(tableCell).append('<span>   </span>');
 			$(tableCell).append($(previewCmd));
+
+			let reStructDicomCmd = $('<img data-toggle="tooltip" src="../images/refresh-icon.png" title="ปรับปรุงจำนวนซีรีส์และภาพใหม่" width="32" height="auto"/>');
+			$(reStructDicomCmd).on('click', async function(evt){
+				let userdata = JSON.parse(localStorage.getItem('userdata'));
+				let hospitalId = userdata.hospitalId;
+				let studyId = defualtValue.studyID;
+				let studyTags = await apiconnector.doCallLoadStudyTags(hospitalId, studyId);
+				console.log(studyTags);
+				let reStudyRes = await apiconnector.doReStructureDicom(hospitalId, studyId, studyTags);
+				console.log(reStudyRes);
+				$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
+			});
+			$(tableCell).append('<span>   </span>');
+			$(tableCell).append($(reStructDicomCmd));
+
 			$(tableCell).appendTo($(tableRow));
 			$(tableRow).appendTo($(table));
 
