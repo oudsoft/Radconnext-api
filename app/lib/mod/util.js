@@ -102,7 +102,7 @@ const doMyLoadOrthanc = function(myOrthancId, hostname){
 	return new Promise(async function(resolve, reject) {
 		log.info('myOrthancId=> ' + myOrthancId);
 		if ((hostname === 'localhost') || (hostname.indexOf('192.168') >= 0)){
-			const myCloud = {os: "docker-linux", ip: "119.59.98.111", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042", ipex: "119.59.98.111"};
+			const myCloud = {os: "docker-linux", ip: "150.95.26.106", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042", ipex: "119.59.98.111"};
 			if (myOrthancId == 2) {
 				myCloud.httpport = "8043";
 				myCloud.portex = "8043";
