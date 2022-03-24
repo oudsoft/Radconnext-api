@@ -5346,7 +5346,7 @@ module.exports = function ( jq ) {
 				openStoneWebViewerCounter += 1;
 				common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
 			});
-			let sumSeriesImages = $('<span id="sumSeriesImages">' + allSeries + ' / ' + allImageInstances +'</span>');
+			let sumSeriesImages = $('<span id="SumSeriesImages">' + allSeries + ' / ' + allImageInstances +'</span>');
 			$(tableCell).append($(sumSeriesImages));
 			$(tableCell).append('<span>   </span>');
 			$(tableCell).append($(previewCmd));
@@ -5362,11 +5362,12 @@ module.exports = function ( jq ) {
 				let reStudyRes = await apiconnector.doReStructureDicom(hospitalId, studyId, studyTags);
 				console.log(reStudyRes);
 				let updateDicom = reStudyRes.Record.StudyTags;
-				let patientName = defualtValue.patient.name;
-				let allSeries = updateDicom.Series.length;
-				let allImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientName);
-				sumSeriesImages = $('<span id="sumSeriesImages">' + allSeries + ' / ' + allImageInstances +'</span>');
-				$(sumSeriesImages).empty().append($(sumSeriesImages));
+				let patientTargetName = defualtValue.patient.name;
+				let allNewSeries = updateDicom.Series.length;
+				let allNewImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientTargetName);
+				let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
+				console.log(allNewSum);
+				$('#SumSeriesImages').text(allNewSum);
 				$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
 			});
 			$(tableCell).append('<span>   </span>');
