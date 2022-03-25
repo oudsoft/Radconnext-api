@@ -264,11 +264,18 @@ module.exports = function ( jq ) {
 
 	const doCallDownloadDicom = function(studyID, hospitalId){
 		return new Promise(function(resolve, reject) {
+      const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $(progBar.progressValueBox).remove();
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
       //doCallApi(orthancProxyEndPoint, params).then((data)=>{
   		$.post(orthancProxyEndPoint, params, function(data){
+        progBar.doCloseProgress();
 				resolve(data);
+      }).fail(function(error) {
+        progBar.doCloseProgress();
+				reject(error);
 			});
   	});
 	}
@@ -370,6 +377,28 @@ module.exports = function ( jq ) {
         reject(err);
   		})
   	});
+  }
+
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
   }
 
   /* Zoom API Connection */
@@ -530,6 +559,8 @@ module.exports = function ( jq ) {
     doDownloadResult,
     doConvertPdfToDicom,
     doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
     doGetZoomMeeting
 	}
 }
@@ -5431,6 +5462,17 @@ module.exports = function ( jq ) {
 	let downloadDicomList = [];
 	let syncTimer = undefined;
 
+	const doesFileExist = function(urlToFile) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('HEAD', urlToFile, false);
+    xhr.send();
+    if (xhr.status == "404") {
+      return false;
+    } else {
+      return true;
+    }
+	}
+
 	const doDownloadDicom = function(studyID, hospitalId, casedate, casetime) {
 		return new Promise(async function(resolve, reject) {
 			let fullNameENRes = await common.getPatientFullNameEN(casePatientId);
@@ -5438,57 +5480,17 @@ module.exports = function ( jq ) {
 			let frags = patientFullNameEN.split(' ');
 			patientFullNameEN = frags.join('_');
 			patientFullNameEN = patientFullNameEN.trim();
-			let dicomFilename = patientFullNameEN + '-' + casedate + '-' + casetime + '.zip';
-
-			/*
-			let errorHandler = function(err){
-	      console.log('dicomzipsync err', err);
-	    }
-
-			let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
-			let foundDicomZipSync = await dicomzipsync.find((dicom)=>{
-				if (dicom.studyID == studyID){
-					return dicom;
-				}
-			});
-			if ((foundDicomZipSync) && (foundDicomZipSync.fileEntryURL)) {
-				window.resolveLocalFileSystemURL = window.resolveLocalFileSystemURL ||  window.webkitResolveLocalFileSystemURL;
-				var dwnUrl = foundDicomZipSync.fileEntryURL;
-				window.resolveLocalFileSystemURL(dwnUrl, function(fileEntry) {
-					console.log(fileEntry);
-					fileEntry.file(function(file) {
-	           let reader = new FileReader();
-	           reader.onloadend = async function(e) {
-	             console.log(this.result);
-	             let pom = document.createElement('a');
-	             pom.download = dicomFilename;
-	             pom.href = URL.createObjectURL(file);
-	             pom.addEventListener('click', (e) => {
-	               setTimeout(() => URL.revokeObjectURL(pom.href), 30 * 1000);
-	             });
-	             pom.click();
-							 downloadDicomList.push(dicomFilename);
-							 resolve(foundDicomZipSync);
-	           };
-	           reader.readAsArrayBuffer(file);
-	        }, errorHandler);
-				});
-			} else {
-			*/
-
-				apiconnector.doCallDownloadDicom(studyID, hospitalId).then(async (response) => {
-					let pom = document.createElement('a');
-					pom.setAttribute('href', response.link);
-					pom.setAttribute('download', dicomFilename);
-					pom.click();
-					downloadDicomList.push(dicomFilename);
-					resolve(response);
-		  	});
-
-			/*
-			}
-			*/
-
+			let currentTime = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+			currentTime = currentTime.split(':').join('');
+			let dicomFilename = patientFullNameEN + '-' + casedate + '-' + casetime + '-' + currentTime + '.zip';
+			apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
+				let pom = document.createElement('a');
+				pom.setAttribute('href', response.link);
+				pom.setAttribute('download', dicomFilename);
+				pom.click();
+				downloadDicomList.push(dicomFilename);
+				resolve(response);
+	  	});
 		});
 	}
 
@@ -5496,20 +5498,35 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 	    const downloadCmd = $(evt.currentTarget);
+			/*
+			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
+      $(downloadCmd).data('downloadData', downloadData);
+			*/
 	    const downloadData = $(downloadCmd).data('downloadData');
 			const dicomzipfilename = downloadData.dicomzipfilename;
 			const dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
-
-			let pom = document.createElement('a');
-			pom.setAttribute('href', dicomzipfilepath);
-			pom.setAttribute('download', dicomzipfilename);
-			pom.click();
-			downloadDicomList.push(dicomzipfilename);
-
-
-			//let downloadRes = await doDownloadDicom(downloadData.studyID, downloadData.hospitalId, downloadData.casedate, downloadData.casetime);
-			//resolve(downloadRes);
-			resolve();
+			let isExistFile = doesFileExist(dicomzipfilepath);
+			console.log(isExistFile);
+			if (isExistFile){
+				let pom = document.createElement('a');
+				pom.setAttribute('href', dicomzipfilepath);
+				pom.setAttribute('download', dicomzipfilename);
+				pom.click();
+				downloadDicomList.push(dicomzipfilename);
+				resolve();
+			} else {
+				let studyID = downloadData.studyID;
+				let hospitalId = downloadData.hospitalId;
+				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
+					console.log(response);
+					let pom = document.createElement('a');
+					pom.setAttribute('href', response.link);
+					pom.setAttribute('download', dicomzipfilename);
+					pom.click();
+					downloadDicomList.push(dicomzipfilename);
+					resolve();
+				});
+			}
   	})
   }
 
@@ -5558,13 +5575,6 @@ module.exports = function ( jq ) {
   const onOpenStoneWebViewerCmdClick = function(evt) {
     const openCmd = $(evt.currentTarget);
     const openData = $(openCmd).data('openData');
-		/*
-		apiconnector.doGetOrthancPort(openData.hospitalId).then((response) => {
-			const orthancStoneWebviewer = 'http://'+ response.ip + ':' + response.port + '/stone-webviewer/index.html?study=';
-			let orthancwebapplink = orthancStoneWebviewer + openData.studyInstanceUID;
-			window.open(orthancwebapplink, '_blank');
-		});
-		*/
 		common.doOpenStoneWebViewer(openData.studyInstanceUID, openData.hospitalId);
   }
 
