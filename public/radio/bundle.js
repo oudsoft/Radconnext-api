@@ -267,6 +267,7 @@ module.exports = function ( jq ) {
       const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
       $(progBar.progressValueBox).remove();
+      $(progBar.progressBox).css({'font-size': '50px'});
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
       //doCallApi(orthancProxyEndPoint, params).then((data)=>{
@@ -5466,6 +5467,8 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
 	    let xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function() {
+				console.log(this.readyState);
+				console.log(this.status);
 		    if (this.readyState == 4 && this.status == 200) {
 					resolve(true);
 		    } else {
