@@ -5528,7 +5528,7 @@ module.exports = function ( jq ) {
 			console.log(isExistDicomFile);
 			console.log(isExistOrthancFile);
 			//let pom = document.createElement('a');
-			pom.setAttribute('download', dicomzipfilename);
+			//pom.setAttribute('download', dicomzipfilename);
 			if (isExistDicomFile){
 				console.log('ok 1');
 				//pom.setAttribute('href', dicomzipfilepath);
@@ -5549,9 +5549,10 @@ module.exports = function ( jq ) {
 				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 					console.log(response);
 					//let pom = document.createElement('a');
-					pom.setAttribute('href', response.link);
+					//pom.setAttribute('href', response.link);
 					//pom.setAttribute('download', dicomzipfilename);
-					pom.click();
+					//pom.click();
+					doDownloadZipBlob(response.link, dicomzipfilename);
 					downloadDicomList.push(dicomzipfilename);
 					resolve();
 				});
