@@ -5529,9 +5529,9 @@ module.exports = function ( jq ) {
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
-			let isExistDicomFile = checkFileExistence(dicomzipfilepath);
+			//let isExistDicomFile = checkFileExistence(dicomzipfilepath);
 			//let isExistOrthancFile = doesFileExist(orthanczipfilepath);
-			console.log(isExistDicomFile);
+			//console.log(isExistDicomFile);
 			//console.log(isExistOrthancFile);
 			let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
