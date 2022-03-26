@@ -5532,19 +5532,24 @@ module.exports = function ( jq ) {
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
-			let isExistDicomFile = doesFileExist(dicomzipfilepath);
-			let isExistOrthancFile = doesFileExist(orthanczipfilepath);
-			console.log(isExistDicomFile);
-			console.log(isExistOrthancFile);
+			//let isExistDicomFile = doesFileExist(dicomzipfilepath);
+			//let isExistOrthancFile = doesFileExist(orthanczipfilepath);
+			//console.log(isExistDicomFile);
+			//console.log(isExistOrthancFile);
 			let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
 			pom.setAttribute('target', "_blank");
+
+			pom.click();
+			downloadDicomList.push(dicomzipfilename);
+			resolve();
+
+			/*
 			if (isExistDicomFile){
 				console.log('ok 1');
 				pom.setAttribute('href', dicomzipfilepath);
 				setTimeout(()=>{
 					pom.click();
-					//doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
 					downloadDicomList.push(dicomzipfilename);
 					resolve();
 				}, 2000);
@@ -5553,7 +5558,6 @@ module.exports = function ( jq ) {
 				pom.setAttribute('href', orthanczipfilepath);
 				setTimeout(()=>{
 					pom.click();
-					//doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
 					downloadDicomList.push(dicomzipfilename);
 					resolve();
 				}, 2000);
@@ -5562,18 +5566,16 @@ module.exports = function ( jq ) {
 				let hospitalId = downloadData.hospitalId;
 				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 					console.log(response);
-					//let pom = document.createElement('a');
-					//pom.setAttribute('download', dicomzipfilename);
 					pom.setAttribute('href', response.link);
 					setTimeout(()=>{
 						pom.click();
-						//doDownloadZipBlob(response.link, dicomzipfilename);
 						downloadDicomList.push(dicomzipfilename);
 						resolve();
 					}, 3500);
 				});
 			}
-  	})
+			*/
+  	});
   }
 
 	const doCreateResultPDFDialog = function(caseId, pdfReportLink, createNewResultData, okCmdClickCallback){
