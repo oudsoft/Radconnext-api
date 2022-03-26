@@ -5463,19 +5463,16 @@ module.exports = function ( jq ) {
 	let downloadDicomList = [];
 	let syncTimer = undefined;
 
-	const doesFileExist = function(urlToFile) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('HEAD', urlToFile, false);
-    xhr.send();
-		let result = undefined;
-		console.log(xhr.status);
-    if (xhr.status == "404") {
-			result = false;
-    } else {
-			result = true;
-    }
-		xhr = null;
-		return result;
+	const checkFileExistence = function(fileUrl){
+    result=false;
+    jQuery.ajaxSetup({async: false});
+    $.get(fileUrl).done(function() {
+      result = true;
+    }).fail(function() {
+      result = false;
+    });
+    jQuery.ajaxSetup({async: true});
+    return(result);
 	}
 
 	const doDownloadZipBlob = function(link, outputFilename){
@@ -5532,9 +5529,9 @@ module.exports = function ( jq ) {
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
-			//let isExistDicomFile = doesFileExist(dicomzipfilepath);
+			let isExistDicomFile = checkFileExistence(dicomzipfilepath);
 			//let isExistOrthancFile = doesFileExist(orthanczipfilepath);
-			//console.log(isExistDicomFile);
+			console.log(isExistDicomFile);
 			//console.log(isExistOrthancFile);
 			let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
