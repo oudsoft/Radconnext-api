@@ -5540,6 +5540,7 @@ module.exports = function ( jq ) {
 			pom.setAttribute('download', dicomzipfilename);
 			pom.setAttribute('target', "_blank");
 
+			pom.setAttribute('href', dicomzipfilepath);
 			pom.click();
 			downloadDicomList.push(dicomzipfilename);
 			resolve();
