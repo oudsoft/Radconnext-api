@@ -5527,20 +5527,21 @@ module.exports = function ( jq ) {
 			let isExistOrthancFile = doesFileExist(orthanczipfilepath);
 			console.log(isExistDicomFile);
 			console.log(isExistOrthancFile);
-			//let pom = document.createElement('a');
-			//pom.setAttribute('download', dicomzipfilename);
+			let pom = document.createElement('a');
+			pom.setAttribute('download', dicomzipfilename);
+			pom.setAttribute('target', "_blank");
 			if (isExistDicomFile){
 				console.log('ok 1');
-				//pom.setAttribute('href', dicomzipfilepath);
-				//pom.click();
-				doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
+				pom.setAttribute('href', dicomzipfilepath);
+				pom.click();
+				//doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
 			} else if (isExistOrthancFile){
 				console.log('ok 2');
-				//pom.setAttribute('href', orthanczipfilepath);
-				//pom.click();
-				doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
+				pom.setAttribute('href', orthanczipfilepath);
+				pom.click();
+				//doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
 			} else {
@@ -5549,10 +5550,10 @@ module.exports = function ( jq ) {
 				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 					console.log(response);
 					//let pom = document.createElement('a');
-					//pom.setAttribute('href', response.link);
 					//pom.setAttribute('download', dicomzipfilename);
-					//pom.click();
-					doDownloadZipBlob(response.link, dicomzipfilename);
+					pom.setAttribute('href', response.link);
+					pom.click();
+					//doDownloadZipBlob(response.link, dicomzipfilename);
 					downloadDicomList.push(dicomzipfilename);
 					resolve();
 				});
