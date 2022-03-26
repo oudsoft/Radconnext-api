@@ -649,12 +649,13 @@ app.post('/loadarchive/(:studyID)', function(req, res) {
     	let hospitalId = req.body.hospitalId;
     	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
     		var username = req.body.username;
-    		var archiveFileName = studyID + '.zip';
+    		var archiveFileName = fileName;
     		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
     		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
     		var command = 'curl --user ' + cloud.user + ':' + cloud.pass + ' -H "user: ' + cloud.user + '" ' + orthancUrl + '/studies/' + studyID + '/archive > ' + usrArchiveDir + '/' + archiveFileName;
-    		log.info('Download Dicom achive with command >>', command);
+    		log.info('Download Dicom archive with command >>', command);
     		runcommand(command).then((stdout) => {
+          log.info('Dicom archive result => ' + stdout)
     			let link = process.env.USRARCHIVE_PATH + '/' + archiveFileName;
     			res.status(200).send({link: link});
     		});

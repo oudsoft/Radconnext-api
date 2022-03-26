@@ -5463,17 +5463,18 @@ module.exports = function ( jq ) {
 	let syncTimer = undefined;
 
 	const doesFileExist = function(urlToFile) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('HEAD', urlToFile, false);
-    xhr.send();
-		let result = undefined;
-    if (xhr.status == "404") {
-			result = false;
-    } else {
-			result = true;
-    }
-		xhr = null;
-		return result;
+		return new Promise(function(resolve, reject) {
+	    let xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+		    if (this.readyState == 4 && this.status == 200) {
+					resolve(true);
+		    } else {
+					resolve(false);
+				}
+		  };
+	    xhr.open('HEAD', urlToFile, false);
+	    xhr.send();
+		});
 	}
 
 	const doDownloadZipBlob = function(link, outputFilename){
@@ -5530,8 +5531,8 @@ module.exports = function ( jq ) {
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
-			let isExistDicomFile = doesFileExist(dicomzipfilepath);
-			let isExistOrthancFile = doesFileExist(orthanczipfilepath);
+			let isExistDicomFile = await doesFileExist(dicomzipfilepath);
+			let isExistOrthancFile = await doesFileExist(orthanczipfilepath);
 			console.log(isExistDicomFile);
 			console.log(isExistOrthancFile);
 			let pom = document.createElement('a');
