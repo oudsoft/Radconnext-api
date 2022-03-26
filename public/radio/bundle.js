@@ -5473,6 +5473,22 @@ module.exports = function ( jq ) {
     }
 	}
 
+	const doDownloadZipBlob = function(link, outputFilename){
+		var pom = document.createElement('a');
+		$.ajax({
+			url: link,
+			xhrFields:{
+				responseType: 'blob'
+			},
+			success: function(data){
+				let stremLink = URL.createObjectURL(new Blob([data], {type: 'octet/stream'}));
+				pom.setAttribute('href', stremLink);
+				pom.setAttribute('download', outputFilename);
+				pom.click();
+			}
+		});
+	}
+
 	const doDownloadDicom = function(studyID, hospitalId, casedate, casetime) {
 		return new Promise(async function(resolve, reject) {
 			let fullNameENRes = await common.getPatientFullNameEN(casePatientId);
@@ -5511,18 +5527,20 @@ module.exports = function ( jq ) {
 			let isExistOrthancFile = doesFileExist(orthanczipfilepath);
 			console.log(isExistDicomFile);
 			console.log(isExistOrthancFile);
-			let pom = document.createElement('a');
+			//let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
 			if (isExistDicomFile){
 				console.log('ok 1');
-				pom.setAttribute('href', dicomzipfilepath);
-				pom.click();
+				//pom.setAttribute('href', dicomzipfilepath);
+				//pom.click();
+				doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
 			} else if (isExistOrthancFile){
 				console.log('ok 2');
-				pom.setAttribute('href', orthanczipfilepath);
-				pom.click();
+				//pom.setAttribute('href', orthanczipfilepath);
+				//pom.click();
+				doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
 			} else {
