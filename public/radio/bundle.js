@@ -5500,7 +5500,9 @@ module.exports = function ( jq ) {
 			currentTime = currentTime.split(':').join('');
 			let dicomFilename = patientFullNameEN + '-' + casedate + '-' + casetime + '-' + currentTime + '.zip';
 			apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
+				console.log(response);
 				let pom = document.createElement('a');
+				pom.setAttribute('target', "_blank");
 				pom.setAttribute('href', response.link);
 				pom.setAttribute('download', dicomFilename);
 				pom.click();
