@@ -5464,7 +5464,7 @@ module.exports = function ( jq ) {
 
 	const doesFileExist = function(urlToFile) {
     var xhr = new XMLHttpRequest();
-    xhr.open('HEAD', urlToFile, false);
+    xhr.open('HEAD', urlToFile, true);
     xhr.send();
     if (xhr.status == "404") {
       return false;
@@ -5505,9 +5505,11 @@ module.exports = function ( jq ) {
 				pom.setAttribute('target', "_blank");
 				pom.setAttribute('href', response.link);
 				pom.setAttribute('download', dicomFilename);
-				pom.click();
-				downloadDicomList.push(dicomFilename);
-				resolve(response);
+				setTimeout(()=>{
+					pom.click();
+					downloadDicomList.push(dicomFilename);
+					resolve(response);
+				}, 3000);
 	  	});
 		});
 	}
@@ -5535,17 +5537,21 @@ module.exports = function ( jq ) {
 			if (isExistDicomFile){
 				console.log('ok 1');
 				pom.setAttribute('href', dicomzipfilepath);
-				pom.click();
-				//doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
-				downloadDicomList.push(dicomzipfilename);
-				resolve();
+				setTimeout(()=>{
+					pom.click();
+					//doDownloadZipBlob(dicomzipfilepath, dicomzipfilename);
+					downloadDicomList.push(dicomzipfilename);
+					resolve();
+				}, 2000);
 			} else if (isExistOrthancFile){
 				console.log('ok 2');
 				pom.setAttribute('href', orthanczipfilepath);
-				pom.click();
-				//doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
-				downloadDicomList.push(dicomzipfilename);
-				resolve();
+				setTimeout(()=>{
+					pom.click();
+					//doDownloadZipBlob(orthanczipfilepath, dicomzipfilename);
+					downloadDicomList.push(dicomzipfilename);
+					resolve();
+				}, 2000);
 			} else {
 				let studyID = downloadData.studyID;
 				let hospitalId = downloadData.hospitalId;
@@ -5554,10 +5560,12 @@ module.exports = function ( jq ) {
 					//let pom = document.createElement('a');
 					//pom.setAttribute('download', dicomzipfilename);
 					pom.setAttribute('href', response.link);
-					pom.click();
-					//doDownloadZipBlob(response.link, dicomzipfilename);
-					downloadDicomList.push(dicomzipfilename);
-					resolve();
+					setTimeout(()=>{
+						pom.click();
+						//doDownloadZipBlob(response.link, dicomzipfilename);
+						downloadDicomList.push(dicomzipfilename);
+						resolve();
+					}, 3500);
 				});
 			}
   	})
