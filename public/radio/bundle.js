@@ -5498,19 +5498,30 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 	    const downloadCmd = $(evt.currentTarget);
+	    const downloadData = $(downloadCmd).data('downloadData');
 			/*
 			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
       $(downloadCmd).data('downloadData', downloadData);
 			*/
-	    const downloadData = $(downloadCmd).data('downloadData');
-			const dicomzipfilename = downloadData.dicomzipfilename;
-			const dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
-			let isExistFile = doesFileExist(dicomzipfilepath);
-			console.log(isExistFile);
-			if (isExistFile){
-				let pom = document.createElement('a');
+			let dicomzipfilename = downloadData.dicomzipfilename;
+			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
+			let orthanczipfilename = downloadData.studyID + '.zip';
+			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
+			let isExistDicomFile = doesFileExist(dicomzipfilepath);
+			let isExistOrthancFile = doesFileExist(orthanczipfilepath);
+			console.log(isExistDicomFile);
+			console.log(isExistOrthancFile);
+			let pom = document.createElement('a');
+			pom.setAttribute('download', dicomzipfilename);
+			if (isExistDicomFile){
+				console.log('ok 1');
 				pom.setAttribute('href', dicomzipfilepath);
-				pom.setAttribute('download', dicomzipfilename);
+				pom.click();
+				downloadDicomList.push(dicomzipfilename);
+				resolve();
+			} else if (isExistOrthancFile){
+				console.log('ok 2');
+				pom.setAttribute('href', orthanczipfilepath);
 				pom.click();
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
@@ -5519,9 +5530,9 @@ module.exports = function ( jq ) {
 				let hospitalId = downloadData.hospitalId;
 				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 					console.log(response);
-					let pom = document.createElement('a');
+					//let pom = document.createElement('a');
 					pom.setAttribute('href', response.link);
-					pom.setAttribute('download', dicomzipfilename);
+					//pom.setAttribute('download', dicomzipfilename);
 					pom.click();
 					downloadDicomList.push(dicomzipfilename);
 					resolve();
@@ -6280,7 +6291,7 @@ module.exports = function ( jq ) {
 					let backwardRow = $('<div style="display: table-row; width: 100%;"></div>');
 					let backward = backwards[i];
 					let caseCreateAt = util.formatDateTimeStr(backward.createdAt);
-					console.log(caseCreateAt);
+					//console.log(caseCreateAt);
 					let casedatetime = caseCreateAt.split('T');
 					let casedateSegment = casedatetime[0].split('-');
 					casedateSegment = casedateSegment.join('');
@@ -6289,7 +6300,7 @@ module.exports = function ( jq ) {
 					let casetime = casedateSegment.join('');
 
 					let casedateDisplay = util.formatStudyDate(casedate);
-					console.log(casedateDisplay);
+					//console.log(casedateDisplay);
 					let dicomCmdBox = doCreateDicomCmdBox(backward.Case_OrthancStudyID, backward.Case_StudyInstanceUID, casedate, casetime, backward.hospitalId);
 					let patientHRBackwardBox = await doCreateHRBackwardBox(patientFullName, backward.Case_PatientHRLink, casedate);
 					let responseBackwardBox = undefined;
