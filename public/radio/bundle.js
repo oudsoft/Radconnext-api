@@ -5463,14 +5463,17 @@ module.exports = function ( jq ) {
 	let syncTimer = undefined;
 
 	const doesFileExist = function(urlToFile) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('HEAD', urlToFile, true);
+    let xhr = new XMLHttpRequest();
+    xhr.open('HEAD', urlToFile, false);
     xhr.send();
+		let result = undefined;
     if (xhr.status == "404") {
-      return false;
+			result = false;
     } else {
-      return true;
+			result = true;
     }
+		xhr = null;
+		return result;
 	}
 
 	const doDownloadZipBlob = function(link, outputFilename){
