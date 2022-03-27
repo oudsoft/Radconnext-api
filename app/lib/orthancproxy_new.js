@@ -732,6 +732,18 @@ app.get('/orthancexternalport', function(req, res) {
 	});
 });
 
+app.post('/archivefile/exist', function(req, res) {
+  let fileName = req.body.filename;
+  let existPath = usrArchiveDir + '/' + fileName;
+  let isExist = fs.existsSync(existPath);
+  if (isExist) {
+    let link = process.env.USRARCHIVE_PATH + '/' + fileName;
+    res.status(200).send({link: link});
+  } else {
+    res.status(200).send({});
+  }
+});
+
 module.exports = ( dbconn, monitor, websocket ) => {
   db = dbconn;
   log = monitor;

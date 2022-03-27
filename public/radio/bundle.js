@@ -332,6 +332,16 @@ module.exports = function ( jq ) {
     });
   }
 
+  const doCallDicomArchiveExist = function(archiveFilename){
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/archivefile/exist';
+      let params = {filename: archiveFilename};
+      $.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
   const doConvertPageToPdf = function(pageUrl){
     return new Promise(function(resolve, reject) {
       let convertorEndPoint = proxyRootUri + "/convertfromurl";;
@@ -556,6 +566,7 @@ module.exports = function ( jq ) {
 		doCallTransferHistory,
 		doCallDeleteDicom,
     doGetOrthancPort,
+    doCallDicomArchiveExist,
     doConvertPageToPdf,
     doDownloadResult,
     doConvertPdfToDicom,
@@ -5463,18 +5474,6 @@ module.exports = function ( jq ) {
 	let downloadDicomList = [];
 	let syncTimer = undefined;
 
-	const checkFileExistence = function(fileUrl){
-    result=false;
-    jQuery.ajaxSetup({async: false});
-    $.get(fileUrl).done(function() {
-      result = true;
-    }).fail(function() {
-      result = false;
-    });
-    jQuery.ajaxSetup({async: true});
-    return(result);
-	}
-
 	const doDownloadZipBlob = function(link, outputFilename){
 		var pom = document.createElement('a');
 		$.ajax({
@@ -5529,50 +5528,40 @@ module.exports = function ( jq ) {
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
-			//let isExistDicomFile = checkFileExistence(dicomzipfilepath);
-			//let isExistOrthancFile = doesFileExist(orthanczipfilepath);
-			//console.log(isExistDicomFile);
-			//console.log(isExistOrthancFile);
+
+			let existDicomFileRes = await apiconnector.doCallDicomArchiveExist(dicomzipfilepath);
+			console.log(existDicomFileRes);
 			let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
 			pom.setAttribute('target', "_blank");
 
-			pom.setAttribute('href', dicomzipfilepath);
-			pom.click();
-			downloadDicomList.push(dicomzipfilename);
-			resolve();
-
-			/*
-			if (isExistDicomFile){
-				console.log('ok 1');
+			if (existDicomFileRes.link){
 				pom.setAttribute('href', dicomzipfilepath);
-				setTimeout(()=>{
-					pom.click();
-					downloadDicomList.push(dicomzipfilename);
-					resolve();
-				}, 2000);
-			} else if (isExistOrthancFile){
-				console.log('ok 2');
-				pom.setAttribute('href', orthanczipfilepath);
-				setTimeout(()=>{
-					pom.click();
-					downloadDicomList.push(dicomzipfilename);
-					resolve();
-				}, 2000);
+				pom.click();
+				downloadDicomList.push(dicomzipfilename);
+				resolve();
 			} else {
-				let studyID = downloadData.studyID;
-				let hospitalId = downloadData.hospitalId;
-				apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
-					console.log(response);
-					pom.setAttribute('href', response.link);
-					setTimeout(()=>{
-						pom.click();
-						downloadDicomList.push(dicomzipfilename);
-						resolve();
-					}, 3500);
-				});
+				let existOrthancFileRes = await apiconnector.doCallDicomArchiveExist(orthanczipfilepath);
+				console.log(existOrthancFileRes);
+				if (existOrthancFileRes.link){
+					pom.setAttribute('href', orthanczipfilepath);
+					pom.click();
+					downloadDicomList.push(dicomzipfilename);
+					resolve();
+				} else {
+					let studyID = downloadData.studyID;
+					let hospitalId = downloadData.hospitalId;
+					apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
+						console.log(response);
+						pom.setAttribute('href', response.link);
+						setTimeout(()=>{
+							pom.click();
+							downloadDicomList.push(dicomzipfilename);
+							resolve();
+						}, 3500);
+					});
+				}
 			}
-			*/
   	});
   }
 
