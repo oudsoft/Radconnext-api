@@ -149,6 +149,7 @@ app.post('/add', (req, res) => {
                         User_Email: req.body.User_Email,
                         User_Phone: req.body.User_Phone,
                         User_SipPhone: req.body.User_SipPhone,
+                        User_SipSecret: req.body.User_SipSecret,
                         User_LineID: req.body.User_LineID,
                         User_Hospitals: req.body.User_Hospitals,
                         User_PathRadiant: req.body.User_PathRadiant
@@ -165,7 +166,7 @@ app.post('/add', (req, res) => {
                       if (usertypeId == 4){
                         let newUserProfile = {Profile: common.defaultRadioProfileV2};
                         let adUserProfile = await UserProfile.create(newUserProfile);
-                        await UserProfile.update({userId: userId}, { where: { id: adUser.id } });
+                        await UserProfile.update({userId: adUser.id}, { where: { id: adUserProfile.id } });
                       }
                       const yourToken = auth.doEncodeToken(newUsername);
                       res.json({status: {code: 200}, token: yourToken });
