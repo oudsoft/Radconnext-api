@@ -5773,25 +5773,29 @@ module.exports = function ( jq ) {
 				}
 			} else {
 				//Save without Radio Preview PDF
-				if (!caseResponseId){
-					let saveDraftResponseData = {type: 'draft', caseId: caseId};
-					saveDraftRes = await doSaveDraft(saveDraftResponseData);
-					console.log(saveDraftRes);
-					caseResponseId = saveDraftRes.result.responseId;
+				if (params.caseId){
+					if (!caseResponseId){
+						let saveDraftResponseData = {type: 'draft', caseId: caseId};
+						saveDraftRes = await doSaveDraft(saveDraftResponseData);
+						console.log(saveDraftRes);
+						caseResponseId = saveDraftRes.result.responseId;
+						params.responseId = caseResponseId;
+					}
+
+					saveNewResponseData.responseid = caseResponseId;
+					saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
+
+					doCreateResultManagementDialog(saveNewResponseData);
+					//let saveResponseRes = doCallSaveResult(params);
+					//->ตรงนี้คืออะไร
+					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf
+					var saveResultApiRRL = '/api/uicommon/radio/saveresult';
+					$.post(saveResultApiRRL, params, function(saveResponseRes){
+						console.log(saveResponseRes);
+					});
+				} else {
+					alert('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง');
 				}
-
-				saveNewResponseData.responseid = caseResponseId;
-				saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
-
-				doCreateResultManagementDialog(saveNewResponseData);
-				//let saveResponseRes = doCallSaveResult(params);
-				//->ตรงนี้คืออะไร
-				//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf
-				var saveResultApiRRL = '/api/uicommon/radio/saveresult';
-				$.post(saveResultApiRRL, params, function(saveResponseRes){
-					console.log(saveResponseRes);
-				});
-
 			}
 		} else {
 			$.notify("ผลอ่านว่างเปล่า ไม่สามารถบันทึกได้", "warn");
