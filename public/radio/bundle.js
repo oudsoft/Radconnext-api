@@ -5773,7 +5773,7 @@ module.exports = function ( jq ) {
 				}
 			} else {
 				//Save without Radio Preview PDF
-				if ((params.caseId) && (Nunber(params.caseId) > 0)) {
+				if ((params.caseId) && (Number(params.caseId) > 0)) {
 					if (!caseResponseId){
 						let saveDraftResponseData = {type: 'draft', caseId: caseId};
 						saveDraftRes = await doSaveDraft(saveDraftResponseData);
