@@ -5773,7 +5773,7 @@ module.exports = function ( jq ) {
 				}
 			} else {
 				//Save without Radio Preview PDF
-				if (params.caseId){
+				if ((params.caseId) && (Nunber(params.caseId) > 0)) {
 					if (!caseResponseId){
 						let saveDraftResponseData = {type: 'draft', caseId: caseId};
 						saveDraftRes = await doSaveDraft(saveDraftResponseData);
@@ -5789,12 +5789,15 @@ module.exports = function ( jq ) {
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf
-					var saveResultApiRRL = '/api/uicommon/radio/saveresult';
-					$.post(saveResultApiRRL, params, function(saveResponseRes){
+					let saveResultApiURL = '/api/uicommon/radio/saveresult';
+					$.post(saveResultApiURL, params, function(saveResponseRes){
 						console.log(saveResponseRes);
+					}).catch((err) => {
+						console.log(err);
+						$.notify("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ โปรดแจ้งผู้ดูแลระบบ", "error");
 					});
 				} else {
-					alert('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง');
+					alert('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง ไม่พบหมายเลขเคสของคุณ');
 				}
 			}
 		} else {
@@ -6606,8 +6609,8 @@ module.exports = function ( jq ) {
 							let cloudUpdatedAt = new Date(draftResponseRes.Record[0].updatedAt);
 							if ((draftBackup) && (draftBackup.content !== '')) {
 								let localUpdateAt = new Date(draftBackup.backupAt);
-								console.log(cloudUpdatedAt);
-								console.log(localUpdateAt);
+								//console.log(cloudUpdatedAt);
+								//console.log(localUpdateAt);
 								if (localUpdateAt.getTime() > cloudUpdatedAt.getTime()) {
 									doConfirmUpdateFromCache(summary, draftBackup.content);
 								} else {

@@ -113,9 +113,9 @@ app.post('/radio/saveresult', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          if ((req.body.caseId) && (Number(req.body.caseId) > 0)) {
+          let reqData = req.body;
+          if ((reqData.caseId) && (Number(reqData.caseId) > 0)) {
       			let hostname = req.hostname;
-            let reqData = req.body;
             log.info('Radio Save Result with reqData => ' + JSON.stringify(reqData));
             let addNewResResult = await statusControl.doControlAddNewResponse(reqData);
             log.info('Control-addNewResponse=> ' + JSON.stringify(addNewResResult));
