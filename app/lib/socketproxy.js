@@ -22,8 +22,8 @@ client.on('connect', function(connection) {
   });
 
   connection.on('message', async function(message) {
-    log.info(message)
+    log.info('message => ' + message)
   });
 });
 
-client.connect('ws://202.28.68.6:8088/ws');
+client.connect('wss://radconnext.me/ws');

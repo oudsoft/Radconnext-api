@@ -510,8 +510,8 @@ const onExpiredCaseEvent = function(caseId) {
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
-
-    const closeAutoReadyStatus = [/*2, 8,*/ 9];
+    /*
+    const closeAutoReadyStatus = [2, 8, 9];
     const nowStatusId = targetCase.casestatusId;
     let isCloseAutoReady = uti.contains.call(closeAutoReadyStatus, nowStatusId);
     if (isCloseAutoReady) {
@@ -522,7 +522,7 @@ const onExpiredCaseEvent = function(caseId) {
       radioProfile.readyBy = 'System';
       await db.userprofiles.update({Profile: radioProfile}, { where: { userId: radioId } });
     }
-
+    */
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
     /*

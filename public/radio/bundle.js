@@ -1701,8 +1701,11 @@ module.exports = function ( jq ) {
   let sipSession = undefined;
   let rtcSession = undefined;
 
-  const realm = '202.28.68.6';
-  const wsUrl = 'wss://' + realm + ':8089/ws';
+  //const realm = '202.28.68.6';
+  //const wsUrl = 'wss://' + realm + ':8089/ws';
+
+	const realm = 'radconnext.me';
+  const wsUrl = 'wss://' + realm + '/ws';
 
 	const eventHandlers = {
 	  'progress': function(e) {
