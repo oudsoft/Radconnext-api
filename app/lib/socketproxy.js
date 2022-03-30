@@ -1,15 +1,29 @@
-var express = require('express');
-var app = express();
-var http = require('http');
-var httpProxy = require('http-proxy');
+const log = require('electron-log');
+log.transports.console.level = 'info';
+log.transports.file.level = 'info';
+log.transports.file.file = __dirname + '/../..' + '/log/wsclientlog.log';
+log.info('Start WS Proxy...');
 
-app.use(function (req, res, next) {
-  httpProxy.createServer({
-    target: 'ws://202.28.68.6:8088/ws',
-    ws: true
-  }).listen(8088);
+const webSocketClient = require('websocket').client;
+
+const client = new webSocketClient();
+
+client.on('connectFailed', function(error) {
+  log.info('Connect Error: ' + error.toString());
 });
 
-http.createServer(app).listen(8080, function(){
-    console.log('App running on port: 8080');
+client.on('connect', function(connection) {
+  connection.on('error', function(error) {
+    log.error("WebSocket Client Connection Error: " + error.toString());
+  });
+
+  connection.on('close', function() {
+
+  });
+
+  connection.on('message', async function(message) {
+    log.info(message)
+  });
 });
+
+client.connect('ws://202.28.68.6:8088/ws');

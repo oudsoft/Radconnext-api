@@ -5526,10 +5526,12 @@ module.exports = function ( jq ) {
 			*/
 			let dicomzipfilename = downloadData.dicomzipfilename;
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
+			//console.log(dicomzipfilepath);
 			let orthanczipfilename = downloadData.studyID + '.zip';
 			let orthanczipfilepath = '/img/usr/zip/' + orthanczipfilename;
+			//console.log(orthanczipfilepath);
 
-			let existDicomFileRes = await apiconnector.doCallDicomArchiveExist(dicomzipfilepath);
+			let existDicomFileRes = await apiconnector.doCallDicomArchiveExist(dicomzipfilename);
 			console.log(existDicomFileRes);
 			let pom = document.createElement('a');
 			pom.setAttribute('download', dicomzipfilename);
@@ -5541,7 +5543,7 @@ module.exports = function ( jq ) {
 				downloadDicomList.push(dicomzipfilename);
 				resolve();
 			} else {
-				let existOrthancFileRes = await apiconnector.doCallDicomArchiveExist(orthanczipfilepath);
+				let existOrthancFileRes = await apiconnector.doCallDicomArchiveExist(orthanczipfilename);
 				console.log(existOrthancFileRes);
 				if (existOrthancFileRes.link){
 					pom.setAttribute('href', orthanczipfilepath);

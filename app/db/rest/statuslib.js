@@ -511,6 +511,18 @@ const onExpiredCaseEvent = function(caseId) {
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
 
+    const closeAutoReadyStatus = [/*2, 8,*/ 9];
+    const nowStatusId = targetCase.casestatusId;
+    let isCloseAutoReady = uti.contains.call(closeAutoReadyStatus, nowStatusId);
+    if (isCloseAutoReady) {
+      let radioId = targetCase.Case_RefferalId;
+      let radioProfiles = await db.userprofiles.findAll({attributes: ['Profile'], where: {userId: radioId}});
+      let radioProfile = radioProfiles[0];
+      radioProfile.readyState = 0;
+      radioProfile.readyBy = 'System';
+      await db.userprofiles.update({Profile: radioProfile}, { where: { userId: radioId } });
+    }
+
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
     /*
