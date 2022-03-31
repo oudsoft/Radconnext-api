@@ -15,8 +15,9 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
       let updateResults = [];
       const promiseList = new Promise(function(resolve2, reject2) {
         radioProfiles.forEach(async (row, i) => {
-          log.info('lastreadyState => ' + row.readyState);
-          if (row.readyState == 0) {
+          log.info('row => ' + JSON.stringify(row));
+          log.info('lastreadyState => ' + row.Profile.readyState);
+          if (row.Profile.readyState == 0) {
             let lastUpdate = new Date(row.updatedAt);
             log.info('lastUpdate => ' + lastUpdate);
             let lastUpdateTime = lastUpdate.getTime();
