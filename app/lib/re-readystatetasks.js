@@ -11,7 +11,9 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
     return new Promise(async function(resolve, reject) {
       const limitHourTime = 8 * 60 * 60 * 1000;
       const orderby = [['id', 'ASC']];
-      let radioProfiles = await db.userprofiles.findAll({attributes: ['id', 'Profile', 'updatedAt'], order: orderby});
+      const whereClous = {Profile: {readyState: 0}};
+      let radioProfiles = await db.userprofiles.findAll({attributes: ['id', 'Profile', 'updatedAt'], where: whereClous, order: orderby});
+      log.info('radioProfiles Found => ' + JSON.stringify(radioProfiles));
       let updateResults = [];
       const promiseList = new Promise(function(resolve2, reject2) {
         radioProfiles.forEach(async (row, i) => {
