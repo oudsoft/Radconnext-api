@@ -6,30 +6,24 @@ JsSIP.debug.disable('JsSIP:*');
 var session = undefined;
 var rtcSession = undefined;
 
-//var remoteAudio = document.getElementById('RemoteAudio');
+var username = '4000';
+var usersecret = '03666bea7ac9';
+var domainname = '202.28.68.6';
+//var domainname = 'radconnext.me';
+var userUri = username + '@' + domainname;
+var socketUrl = 'wss://' + domainname + ':8089/ws';
+//var socketUrl = 'wss://' + domainname + '/ws';
 
-var socket = new JsSIP.WebSocketInterface('wss://202.28.68.6:8089/ws');
-/*
+var socket = new JsSIP.WebSocketInterface(socketUrl);
 var configuration = {
   sockets  : [ socket ],
-  authorization_user: '3000',
-  uri      : 'sip:3000@202.28.68.6',
-  password : 'qwerty3000',
-  ws_servers        : 'wss://202.28.68.6:8089/ws',
-  realm             : '202.28.68.6',
-  display_name      : '3000',
-  contact_uri       : 'sip:3000@202.28.68.6'
-};
-*/
-var configuration = {
-  sockets  : [ socket ],
-  authorization_user: '4000',
-  uri      : 'sip:4000@202.28.68.6',
-  password : '03666bea7ac9',
-  ws_servers        : 'wss://202.28.68.6:8089/ws',
-  realm             : '202.28.68.6',
-  display_name      : '4000',
-  contact_uri       : 'sip:4000@202.28.68.6'
+  authorization_user: username,
+  uri      : 'sip:' + userUri,
+  password : usersecret,
+  ws_servers        : socketUrl,
+  realm             : domainname,
+  display_name      : username,
+  contact_uri       : 'sip:' + userUri
 };
 
 socket.onmessage = function(msgEvt){

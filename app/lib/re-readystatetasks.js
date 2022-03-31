@@ -17,10 +17,14 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
         radioProfiles.forEach(async (row, i) => {
           if (row.readyState == 0) {
             let lastUpdate = new Date(row.updatedAt);
+            log.info('lastUpdate => ' + lastUpdate);
             let lastUpdateTime = lastUpdate.getTime();
             let now = new Date();
+            log.info('now => ' + now);
             let nowTime = now.getTime();
             let diffTime = nowTime - lastUpdateTime;
+            log.info('diffTime => ' + diffTime);
+            log.info('limitHourTime => ' + limitHourTime);
             if (diffTime >= limitHourTime) {
               let updateProfile = row.Profile;
               updateProfile.readyState = 1;
