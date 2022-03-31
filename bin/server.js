@@ -87,6 +87,11 @@ reCaseTaskApp.doRun().then((alives)=>{
 	log.info('alives=>' + JSON.stringify(alives));
 });
 
+const reReadyStateTaskApp = require(__dirname + '/../app/lib/re-readystatetasks.js')( db, log, webSocketServer);
+reReadyStateTaskApp.doRun().then((result)=>{
+	log.info('updateReadyState Result => ' + JSON.stringify(result));
+});
+
 //const util = require(__dirname + '/../app/lib/mod/util.js')(log);
 //mainApp.use('/app', app);
 mainApp.get('/', (req, res) => {
