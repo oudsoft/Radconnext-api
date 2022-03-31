@@ -26,6 +26,7 @@
       <div id="AudioControl">
         <audio id="RemoteAudio" controls></audio>
       </div>
+      <input type="button" id="TestSendMessageCmd" value=" Test Send "/>
     </div>
   </body>
 </html>
@@ -62,6 +63,9 @@
         doCall(evt);
       };
     });
+    $('#TestSendMessageCmd').on('click', (evt)=>{
+      doTestSendMessage(evt);
+    });
 
     let sipPhoneOptions = {onRejectCallCallback: doRejectCall, onAcceptCallCallback: doAcceptCall, onEndCallCallback: doEndCall};
 
@@ -69,5 +73,6 @@
 		$(mySipPhoneIncomeBox).css({'position': 'absolute', 'width': '98%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '1px solid #888',  'z-index': '192', 'top': '-65px'});
 		let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
 		$('body').append($(mySipPhoneIncomeBox));
+
   });
 </script>

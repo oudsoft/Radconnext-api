@@ -15,6 +15,7 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
       let updateResults = [];
       const promiseList = new Promise(function(resolve2, reject2) {
         radioProfiles.forEach(async (row, i) => {
+          log.info('lastreadyState => ' + row.readyState);
           if (row.readyState == 0) {
             let lastUpdate = new Date(row.updatedAt);
             log.info('lastUpdate => ' + lastUpdate);
@@ -46,7 +47,8 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
   const doRun = function(){
     return new Promise(function(resolve, reject) {
       //let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
-      let scheduleTrigger = '0 0 */1 * * *';
+      //let scheduleTrigger = '0 0 */1 * * *';
+      let scheduleTrigger = '0 */10 * * * *';
       log.info('scheduleTrigger => ' + scheduleTrigger);
   		cron.schedule(scheduleTrigger, async function(){
         let result = await doUpdateReadyState();

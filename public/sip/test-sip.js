@@ -12,9 +12,14 @@ var domainname = '202.28.68.6';
 //var domainname = 'radconnext.me';
 var userUri = username + '@' + domainname;
 var socketUrl = 'wss://' + domainname + ':8089/ws';
-//var socketUrl = 'wss://' + domainname + '/ws';
+//var socketUrl = 'wss://' + domainname + ':8089/ws';
 
 var socket = new JsSIP.WebSocketInterface(socketUrl);
+socket.onmessage = function(msgEvt){
+  let data = JSON.parse(msgEvt.data);
+  console.log(data);
+}
+
 var configuration = {
   sockets  : [ socket ],
   authorization_user: username,
@@ -25,11 +30,6 @@ var configuration = {
   display_name      : username,
   contact_uri       : 'sip:' + userUri
 };
-
-socket.onmessage = function(msgEvt){
-  let data = JSON.parse(msgEvt.data);
-  console.log(data);
-}
 
 var ua = new JsSIP.UA(configuration);
 
@@ -163,7 +163,7 @@ function doCall(evt){
 function doInputErrorHandle(){
   $('#Msisdn').css('border', '');
   $('#Msisdn').css('border', '1px solid red');
-  aler('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx');
+  alert('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx');
   return;
 }
 
@@ -256,6 +256,23 @@ const doAcceptCall = function(evt){
       $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
     }, 500);
   });
+}
+
+function doTestSendMessage(evt) {
+  let text = 'Hello Bob!';
+  console.log(text);
+  let sendMessageEventHandlers = {
+    'succeeded': function(evt){ console.log(evt); },
+    'failed':    function(evt){ console.log(evt); }
+  };
+
+  let sendMessageOptions = {
+    'eventHandlers': sendMessageEventHandlers
+  };
+
+  //let toUserUri = 'sip:2000@' + domainname;
+  let toUserUri = '0835077746';
+  ua.sendMessage(toUserUri, text, sendMessageOptions);
 }
 
 const doPlayRingIncomeCall = function(audioElem){
