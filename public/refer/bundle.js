@@ -854,11 +854,19 @@ module.exports = function ( jq ) {
 
 	const doCallDownloadDicom = function(studyID, hospitalId){
 		return new Promise(function(resolve, reject) {
+      const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $(progBar.progressValueBox).remove();
+      $(progBar.progressBox).css({'font-size': '50px'});
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
       //doCallApi(orthancProxyEndPoint, params).then((data)=>{
   		$.post(orthancProxyEndPoint, params, function(data){
+        progBar.doCloseProgress();
 				resolve(data);
+      }).fail(function(error) {
+        progBar.doCloseProgress();
+				reject(error);
 			});
   	});
 	}
@@ -914,6 +922,16 @@ module.exports = function ( jq ) {
     });
   }
 
+  const doCallDicomArchiveExist = function(archiveFilename){
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/archivefile/exist';
+      let params = {filename: archiveFilename};
+      $.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
   const doConvertPageToPdf = function(pageUrl){
     return new Promise(function(resolve, reject) {
       let convertorEndPoint = proxyRootUri + "/convertfromurl";;
@@ -960,6 +978,28 @@ module.exports = function ( jq ) {
         reject(err);
   		})
   	});
+  }
+
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
   }
 
   /* Zoom API Connection */
@@ -1116,10 +1156,13 @@ module.exports = function ( jq ) {
 		doCallTransferHistory,
 		doCallDeleteDicom,
     doGetOrthancPort,
+    doCallDicomArchiveExist,
     doConvertPageToPdf,
     doDownloadResult,
     doConvertPdfToDicom,
     doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
     doGetZoomMeeting
 	}
 }
@@ -5322,9 +5365,33 @@ module.exports = function ( jq ) {
 				openStoneWebViewerCounter += 1;
 				common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
 			});
-			$(tableCell).append(allSeries + ' / ' + allImageInstances);
+			let sumSeriesImages = $('<span id="SumSeriesImages">' + allSeries + ' / ' + allImageInstances +'</span>');
+			$(tableCell).append($(sumSeriesImages));
 			$(tableCell).append('<span>   </span>');
 			$(tableCell).append($(previewCmd));
+
+			let reStructDicomCmd = $('<img data-toggle="tooltip" src="../images/refresh-icon.png" title="ปรับปรุงจำนวนซีรีส์และภาพใหม่" width="22" height="auto"/>');
+			$(reStructDicomCmd).css({'cursor': 'pointer', 'margin-bottom': '-8px'});
+			$(reStructDicomCmd).on('click', async function(evt){
+				let userdata = JSON.parse(localStorage.getItem('userdata'));
+				let hospitalId = userdata.hospitalId;
+				let studyId = defualtValue.studyID;
+				let studyTags = await apiconnector.doCallLoadStudyTags(hospitalId, studyId);
+				console.log(studyTags);
+				let reStudyRes = await apiconnector.doReStructureDicom(hospitalId, studyId, studyTags);
+				console.log(reStudyRes);
+				let updateDicom = reStudyRes.Record.StudyTags;
+				let patientTargetName = defualtValue.patient.name;
+				let allNewSeries = updateDicom.Series.length;
+				let allNewImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientTargetName);
+				let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
+				console.log(allNewSum);
+				$('#SumSeriesImages').text(allNewSum);
+				$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
+			});
+			$(tableCell).append('<span>   </span>');
+			$(tableCell).append($(reStructDicomCmd));
+
 			$(tableCell).appendTo($(tableRow));
 			$(tableRow).appendTo($(table));
 
@@ -6674,6 +6741,9 @@ module.exports = function ( jq ) {
 
   const realm = '202.28.68.6';
   const wsUrl = 'wss://' + realm + ':8089/ws';
+
+	//const realm = 'radconnext.me';
+  //const wsUrl = 'wss://' + realm + '/ws';
 
 	const eventHandlers = {
 	  'progress': function(e) {
