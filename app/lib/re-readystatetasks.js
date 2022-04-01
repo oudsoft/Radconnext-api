@@ -13,7 +13,7 @@ module.exports = (  dbconn, monitor, webSocketServer ) => {
       const orderby = [['id', 'ASC']];
       const whereClous = {Profile: {readyState: 0}};
       let radioProfiles = await db.userprofiles.findAll({attributes: ['id', 'Profile', 'updatedAt'], where: whereClous, order: orderby});
-      log.info('radioProfiles Found => ' + JSON.stringify(radioProfiles));
+      //log.info('radioProfiles Found => ' + JSON.stringify(radioProfiles));
       let updateResults = [];
       const promiseList = new Promise(function(resolve2, reject2) {
         radioProfiles.forEach(async (row, i) => {
