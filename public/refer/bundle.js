@@ -20631,12 +20631,13 @@ module.exports = function ( jq ) {
 					$(radioBackwardCell).append($(radioBackwardBox));
 
 					let radioId = backward.Case_RadiologistId;
+					console.log(radioSockets);
 					let caseRadio = await radioSockets.find((item)=>{
 						if (item.user.id == radioId){
 							return item;
 						}
 					});
-
+					console.log(caseRadio);
 					let radioStateBox = undefined
 					if (caseRadio.currentState.online == 1) {
 						radioStateBox = doCreateRadioStateBox('green');
