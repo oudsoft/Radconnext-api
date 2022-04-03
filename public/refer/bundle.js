@@ -20778,7 +20778,8 @@ module.exports = function ( jq ) {
 					});
 				}
 			}
-			let cloudLog = await apiconnector.doGetApi('/api/chatlog/select/case/' + topicId, {});
+			//let cloudLog = await apiconnector.doGetApi('/api/chatlog/select/case/' + topicId, {});
+			let cloudLog = await apiconnector.doCallApi('/api/chatlog/select', {topicType: 'case', topicId: topicId});
 			if (cloudLog) {
 				cloudHistory = await cloudLog.Log.filter((item)=>{
 					if (item.topicId == topicId) {

@@ -1035,7 +1035,6 @@ const doChangeConsultStatus = function(from, next, consultId, userId){
 
 const doControlAddNewResponse = function(reqData) {
   return new Promise(async function(resolve, reject) {
-    log.info('reqData on doControlAddNewResponse => ' + JSON.stringify(reqData));
     const caseId = reqData.caseId;
     const userId = reqData.userId;
     const reportType = reqData.reporttype;

@@ -26,6 +26,21 @@ app.get('/select/(:topicType)/(:topicId)', async (req, res) => {
   }
 });
 
+app.post('/select', async (req, res) => {
+  let topicType = req.body.topicType;
+  let topicId = req.body.topicId;
+  let whereCondition = {
+    caseId: topicId,
+    topicType: topicType
+  }
+  let chatLog = await db.radchatlogs.findAll({ attributes: ['Log'], where: whereCondition});
+  if (chatLog.length > 0){
+    res.json({status: {code: 200}, Log: chatLog[0].Log});
+  } else {
+    res.json({status: {code: 200}, Log: []});
+  }
+});
+
 /*
   when
   /add api

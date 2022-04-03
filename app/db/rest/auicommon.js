@@ -116,7 +116,7 @@ app.post('/radio/saveresult', (req, res) => {
           let reqData = req.body;
           if ((reqData.caseId) && (Number(reqData.caseId) > 0)) {
       			let hostname = req.hostname;
-            log.info('Radio Save Result with reqData => ' + JSON.stringify(reqData));
+            //log.info('Radio Save Result with reqData => ' + JSON.stringify(reqData));
             let addNewResResult = await statusControl.doControlAddNewResponse(reqData);
             log.info('Control-addNewResponse=> ' + JSON.stringify(addNewResResult));
             if (addNewResResult.status.code == 200){
