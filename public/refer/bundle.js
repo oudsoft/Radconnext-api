@@ -20439,10 +20439,17 @@ module.exports = function ( jq ) {
 			let contextData = {topicId: zoomData.caseData.case.id, topicName: zoomMeeting.topic, myId: userdata.username, myName: myInfo, audienceId: zoomData.caseData.Radiologist.username, audienceName: audienceInfo};
 			await doSendMessageCallback(chatMsg, zoomData.caseData.Radiologist.username, userdata.username, contextData);
 
+			/*
 			chatHandle.sendMessage(linkMsg);
 			chatHandle.sendMessage(pwdMsg);
 			chatHandle.sendMessage(topicMsg);
+			*/
 
+			/*
+			let eventData = {msg: data.msg, from: data.from, context: data.context};
+      $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+			*/
+			
 			window.open(zoomMeeting.start_url, '_blank');
 			$('body').loading('stop');
 		} else {
