@@ -11282,11 +11282,19 @@ module.exports = function ( jq ) {
 
 	const doCallDownloadDicom = function(studyID, hospitalId){
 		return new Promise(function(resolve, reject) {
+      const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $(progBar.progressValueBox).remove();
+      $(progBar.progressBox).css({'font-size': '50px'});
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
       //doCallApi(orthancProxyEndPoint, params).then((data)=>{
   		$.post(orthancProxyEndPoint, params, function(data){
+        progBar.doCloseProgress();
 				resolve(data);
+      }).fail(function(error) {
+        progBar.doCloseProgress();
+				reject(error);
 			});
   	});
 	}
@@ -11342,6 +11350,16 @@ module.exports = function ( jq ) {
     });
   }
 
+  const doCallDicomArchiveExist = function(archiveFilename){
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/archivefile/exist';
+      let params = {filename: archiveFilename};
+      $.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
   const doConvertPageToPdf = function(pageUrl){
     return new Promise(function(resolve, reject) {
       let convertorEndPoint = proxyRootUri + "/convertfromurl";;
@@ -11388,6 +11406,28 @@ module.exports = function ( jq ) {
         reject(err);
   		})
   	});
+  }
+
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
   }
 
   /* Zoom API Connection */
@@ -11544,10 +11584,13 @@ module.exports = function ( jq ) {
 		doCallTransferHistory,
 		doCallDeleteDicom,
     doGetOrthancPort,
+    doCallDicomArchiveExist,
     doConvertPageToPdf,
     doDownloadResult,
     doConvertPdfToDicom,
     doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
     doGetZoomMeeting
 	}
 }
@@ -11676,6 +11719,23 @@ module.exports = function ( jq ) {
   const fmtReportDate = function(d){
     let date = new Date(d);
     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + (date.getFullYear() + 543);
+  }
+
+	const fmtReportTime = function(d){
+    let date = new Date(d);
+		let hh = date.getHours();
+		if (hh < 10) {
+			hh = '0' + hh;
+		} else {
+			hh = '' + hh;
+		}
+		let mn = date.getMinutes();
+		if (mn < 10){
+			mn = '0' + mn;
+		} else {
+			mn = '' + mn;
+		}
+    return hh + '.' + mn;
   }
 
 	const doCheckOutTime = function(d){
@@ -12063,8 +12123,8 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
 	    const contentRow = '<tr></tr>';
-	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 7}, {name: 'วันเดือนปี', width: 10}, {name: 'HN', width: 10}, {name: 'ชื่อ-สกุล', width: 20}, {name: 'รายการ', width: 20}, {name: 'รังสีแพทย์', width: 13}, {name: 'รหัส', width: 10}, {name: 'ราคาที่', width: 10}];
-	    const lowerHeaderFeilds = ['', 'ที่รับบริการ', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
+	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 7}, {name: 'วันเดือนปี', width: 10}, {name: 'เวลา', width: 8}, {name: 'HN', width: 10}, {name: 'ชื่อ-สกุล', width: 20}, {name: 'รายการ', width: 20}, {name: 'รังสีแพทย์', width: 13}, {name: 'รหัส', width: 10}, {name: 'ราคาที่', width: 10}];
+	    const lowerHeaderFeilds = ['', 'ที่รับบริการ', '', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
 	      let upperHeaderRow = $(contentRow);
@@ -12098,8 +12158,13 @@ module.exports = function ( jq ) {
 	        let scanParts = item.Case_ScanPart;
 	        for (let j=0; j < scanParts.length; j++){
 	          let itemRow = $(contentRow);
+						/*
 	          let fmtDate = fmtReportDate(item.createdAt);
 						let isOutTime = doCheckOutTime(item.createdAt);
+						*/
+						let fmtDate = fmtReportDate(item.casereport.createdAt);
+						let fmtTime = fmtReportTime(item.casereport.createdAt);
+						let isOutTime = doCheckOutTime(item.casereport.createdAt);
 						let fmtPrice = undefined;
 						if (scanParts[j].PR) {
 	          	fmtPrice = fmtReportNumber(Number(scanParts[j].PR));
@@ -12111,6 +12176,7 @@ module.exports = function ( jq ) {
 						}
 	          $(itemRow).append('<td align="center">' + itemNo + '</td>');
 	          $(itemRow).append('<td align="left">' + fmtDate + '</td>');
+						$(itemRow).append('<td align="left">' + fmtTime + '</td>');
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_HN + '</td>');
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_NameTH + ' ' + item.patient.Patient_LastNameTH + '</td>');
 	          $(itemRow).append('<td align="left">' + scanParts[j].Name + '</td>');
@@ -13211,6 +13277,28 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const doCallLoadStudyTags = function(hospitalId, studyId){
+		return new Promise(async function(resolve, reject) {
+			let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/studies/' + studyId;
+			let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+			let callLoadUrl = '/api/orthancproxy/find'
+			$.post(callLoadUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
+	const doReStructureDicom = function(hospitalId, studyId, dicom){
+		return new Promise(async function(resolve, reject) {
+			let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+			let restudyUrl = '/api/dicomtransferlog/add';
+			$.post(restudyUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -13271,7 +13359,9 @@ module.exports = function ( jq ) {
 		doShowStudyDescriptionLegentCmdClick,
 		doScrollTopPage,
 		genUniqueID,
-		onSimpleEditorPaste
+		onSimpleEditorPaste,
+		doCallLoadStudyTags,
+		doReStructureDicom
 	}
 }
 
@@ -13998,6 +14088,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
@@ -14071,7 +14162,7 @@ module.exports = function ( jq, wsm ) {
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
-      $("#RemoteDicom").trigger('runresult', [evtData]);
+      $('body').trigger('runresult', [evtData]);
     } else if (data.type == 'refresh') {
       let event = new CustomEvent(data.section, {"detail": {eventname: data.section, stausId: data.statusId, caseId: data.caseId}});
       document.dispatchEvent(event);
@@ -14095,8 +14186,9 @@ module.exports = function ( jq, wsm ) {
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'clientresult') {
+			console.log(data);
 			let eventName = 'clientresult';
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result, hospitalId: data.hospitalId, owner: data.owner}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'logreturn') {
 			let eventName = 'logreturn';
@@ -14163,11 +14255,6 @@ module.exports = function ( jq, wsm) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
-		} else if (data.type == 'ping') {
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
@@ -14187,8 +14274,8 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
-			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
+			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -14208,6 +14295,10 @@ module.exports = function ( jq, wsm) {
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
+			}
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
