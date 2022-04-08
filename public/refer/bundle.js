@@ -20429,9 +20429,9 @@ module.exports = function ( jq ) {
 			const myWsm = main.doGetWsm();
 			myWsm.send(JSON.stringify(callZoomMsg));
 
-			let linkMsg = 'ลิงค์สำหรับเข้าร่วมสนทนา\n' + zoomMeeting.join_url;
-			let pwdMsg = 'Password เข้าร่วมสนทนา\n' + zoomMeeting.password;
-			let topicMsg = 'ชื่อหัวข้อสนทนา\n' + zoomMeeting.topic;
+			let linkMsg = '<p>ลิงค์สำหรับเข้าร่วมสนทนา</p><p><a href="' + zoomMeeting.join_url + '" target="_blank">' + zoomMeeting.join_url + '</a>';
+			let pwdMsg = '<p>Password เข้าร่วมสนทนา</p><p>' + zoomMeeting.password + '</p>';
+			let topicMsg = '<p>ชื่อหัวข้อสนทนา</p><p>' + zoomMeeting.topic + '</p>';
 
 			let chatMsg = linkMsg + pwdMsg + topicMsg;
 			let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
@@ -20446,10 +20446,13 @@ module.exports = function ( jq ) {
 			*/
 
 			/*
-			let eventData = {msg: data.msg, from: data.from, context: data.context};
+			let eventData = {msg: chatMsg, from: userdata.username, context: contextData};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
 			*/
-			
+
+			let messageBox = $('#SimpleChatBox').find('#MessageBoard');
+			$(messageBox).append($(chatMsg));
+
 			window.open(zoomMeeting.start_url, '_blank');
 			$('body').loading('stop');
 		} else {
