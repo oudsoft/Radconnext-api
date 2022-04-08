@@ -98,7 +98,14 @@
       let messageFrag = $('<div style="position: relative; width: 100%; margin-top: 5px; display: inline-block;"></div>');
       let messageBody = $('<div style="position: relative; padding: 4px; display: inline-block; border-radius: 8px;"></div>');
       $(messageBody).appendTo($(messageFrag));
-      $(messageBody).text(msgData.msg);
+      let msg = msgData.msg;
+      let isHttpLink = msg.includes('http://');
+      let isHttpsLink = msg.includes('https://');
+      if ((isHttpLink) || (isHttpsLink)){
+        $(messageBody).append($('<a href="' + msg + '" target="_blank">' + msg + '</a>'));
+      } else {
+        $(messageBody).text(msg);
+      }
       let messageInfo = $('<div style="position: relative; font-size: 14px;"></div>');
       $(messageInfo).appendTo($(messageFrag));
       let ownerInfo = $('<span></span>');

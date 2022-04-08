@@ -20429,15 +20429,20 @@ module.exports = function ( jq ) {
 			const myWsm = main.doGetWsm();
 			myWsm.send(JSON.stringify(callZoomMsg));
 
-			let linkMsg = '<p>ลิงค์สำหรับเข้าร่วมสนทนา</p><p><a href="' + zoomMeeting.join_url + '" target="_blank">' + zoomMeeting.join_url + '</a>';
-			let pwdMsg = '<p>Password เข้าร่วมสนทนา</p><p>' + zoomMeeting.password + '</p>';
-			let topicMsg = '<p>ชื่อหัวข้อสนทนา</p><p>' + zoomMeeting.topic + '</p>';
+			let linkMsg = '<p>ลิงค์สำหรับเข้าร่วมสนทนา</p><p><b><a href="' + zoomMeeting.join_url + '" target="_blank">' + zoomMeeting.join_url + '</a></b>';
+			let pwdMsg = '<p>Password เข้าร่วมสนทนา</p><p><b>' + zoomMeeting.password + '</b></p>';
+			let topicMsg = '<p>ชื่อหัวข้อสนทนา</p><p><b>' + zoomMeeting.topic + '</b></p>';
 
 			let chatMsg = linkMsg + pwdMsg + topicMsg;
 			let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let audienceInfo = zoomData.caseData.Radiologist.User_NameTH + ' ' + zoomData.caseData.Radiologist.User_LastNameTH;
 			let contextData = {topicId: zoomData.caseData.case.id, topicName: zoomMeeting.topic, myId: userdata.username, myName: myInfo, audienceId: zoomData.caseData.Radiologist.username, audienceName: audienceInfo};
-			await doSendMessageCallback(chatMsg, zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback('ลิงค์สำหรับเข้าร่วมสนทนา', zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback(zoomMeeting.join_url, zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback('Password เข้าร่วมสนทนา', zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback(zoomMeeting.password, zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback('ชื่อหัวข้อสนทนา', zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback(zoomMeeting.topic, zoomData.caseData.Radiologist.username, userdata.username, contextData);
 
 			/*
 			chatHandle.sendMessage(linkMsg);
