@@ -20430,7 +20430,7 @@ module.exports = function ( jq ) {
 			const myWsm = main.doGetWsm();
 			myWsm.send(JSON.stringify(callZoomMsg));
 
-			let linkMsg = '<p>ลิงค์สำหรับเข้าร่วมสนทนา</p><p><b><a href="' + zoomMeeting.join_url + '" target="_blank">' + zoomMeeting.join_url + '</a></b>';
+			let linkMsg = '<p>ลิงค์สำหรับเข้าร่วมสนทนา</p><p><b><a href="' + zoomMeeting.join_url + '" target="_blank">' + zoomMeeting.join_url + '</a></b></p>';
 			let pwdMsg = '<p>Password เข้าร่วมสนทนา</p><p><b>' + zoomMeeting.password + '</b></p>';
 			let topicMsg = '<p>ชื่อหัวข้อสนทนา</p><p><b>' + zoomMeeting.topic + '</b></p>';
 
