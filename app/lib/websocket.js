@@ -546,7 +546,7 @@ function RadconWebSocketServer (arg, db, log) {
 							let radioLockLineNotify = radioUserProfiles[0].Profile.lockState.lineNotify;
 							let radioOfflineLineNotify = radioUserProfiles[0].Profile.offlineState.lineNotify;
 
-							if (radioScreenState == 0) {
+							if (radioState == 0) {
 								if ((radioActiveLineNotify) && (radioActiveLineNotify == 1)) {
 									let radioLineUserId = message.context.audienceContact.lineuserId;
 									if ((radioLineUserId) && (radioLineUserId != '')){
@@ -560,7 +560,7 @@ function RadconWebSocketServer (arg, db, log) {
 								} else {
 									resolve();
 								}
-							} else if (radioScreenState == 1) {
+							} else if (radioState == 1) {
 								if ((radioLockLineNotify) && (radioLockLineNotify == 1)) {
 									let radioLineUserId = message.context.audienceContact.lineuserId;
 									if ((radioLineUserId) && (radioLineUserId != '')){

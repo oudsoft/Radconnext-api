@@ -23,12 +23,12 @@ const casestatusFlowTable = [
     {now: 3, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
     {now: 4, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
     {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR']},
-    {now: 6, next: [12], actions: ['printH', 'editR']},
+    {now: 6, next: [12, 14], actions: ['printH', 'editR']},
     {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH']},
     {now: 8, next: [4, 9, 5, 13], actions: ['draftR', 'replyR']}, // <- Open
     {now: 9, next: [9, 5, 13], actions: ['replyR', 'editR']}, // <- Draft
-    {now: 10, next: [11], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR']}, // <- Owner Case View
-    {now: 11, next: [6, 12], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH']},
+    {now: 10, next: [11, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR']}, // <- Owner Case View
+    {now: 11, next: [6, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH']},
     {now: 12, next: [6, 10, 11, 13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH']},
     {now: 13, next: [6, 10, 11, 12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH']},
     {now: 14, next: [6, 10, 11, 12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'closeH']}
@@ -50,6 +50,7 @@ const casestatusRightAccessTable = [
     {now: 5, next: 12, changeBy: 4},
     {now: 5, next: 14, changeBy: 4},
     {now: 6, next: 12, changeBy: 4},
+    {now: 6, next: 14, changeBy: 5},
     {now: 7, next: 1, changeBy: 2},
     {now: 8, next: 9, changeBy: 4},
     {now: 8, next: 5, changeBy: 4},
@@ -58,8 +59,10 @@ const casestatusRightAccessTable = [
     {now: 9, next: 5, changeBy: 4},
     {now: 9, next: 13, changeBy: 4},
     {now: 10, next: 11, changeBy: 4},
+    {now: 10, next: 14, changeBy: 5},
     {now: 11, next: 6, changeBy: 2},
     {now: 11, next: 12, changeBy: 4},
+    {now: 11, next: 14, changeBy: 5},
     {now: 12, next: 12, changeBy: 4},
     {now: 12, next: 10, changeBy: 2},
     {now: 12, next: 11, changeBy: 2},
