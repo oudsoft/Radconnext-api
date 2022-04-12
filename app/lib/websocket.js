@@ -278,7 +278,7 @@ function RadconWebSocketServer (arg, db, log) {
 						}
 					break;
 					case "closetopic":
-						await $this.closeTopic(data.topicId){
+						await $this.closeTopic(data.topicId);
 					break;
 					case "logout":
 						let socketUsername = data.username;
