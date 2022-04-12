@@ -78,7 +78,8 @@
           $(messageInput).css({'border': '2px solid black'});
           let contextData = {topicId: settings.topicId, topicName: settings.topicName, myId: settings.myId, myName: settings.myName, myHospitalName: settings.myHospitalName, audienceId: settings.audienceId, audienceName: settings.audienceName, audienceUserId: settings.audienceUserId, audienceContact: settings.audienceContact, topicStatusId: settings.topicStatusId, topicType: settings.topicType};
           sendMessageCallback(userMessage, settings.audienceId, settings.myId, contextData).then(function(){
-            doAppendNewMessage(userMessage, 0);
+            let msgTime = new Date();
+            doAppendNewMessage(userMessage, 0, msgTime, 'text');
             doSaveMessageToLocal(userMessage, settings.myId, settings.topicId, 'read');
             $(messageInput).val('');
           });
@@ -99,10 +100,10 @@
       let messageBody = $('<div style="position: relative; padding: 4px; display: inline-block; border-radius: 8px;"></div>');
       $(messageBody).appendTo($(messageFrag));
       let msg = msgData.msg;
-      let httpLinkIndex = msg.indexOf('http://');
-      let httpsLinkIndex = msg.indexOf('https://');
-      if ((httpLinkIndex == 0) || (httpsLinkIndex == 0)){
-        $(messageBody).append($('<a href="' + msg + '" target="_blank">' + msg + '</a>'));
+      if (msgData.type == 'text'){
+        $(messageBody).text(msg);
+      } else if (msgData.type == 'html') {
+        $(messageBody).append($(msg));
       } else {
         $(messageBody).text(msg);
       }
@@ -132,7 +133,7 @@
       return $(messageFrag);
     }
     /* Mechanimst */
-    const doAppendNewMessage = function(msg, who, time){
+    const doAppendNewMessage = function(msg, who, time, type){
       let msgData = {msg: msg, owner: who}
       if (who == 1){
         msgData.ownerName = settings.audienceName;
@@ -143,6 +144,11 @@
         msgData.time = new Date(time);
       } else {
         msgData.time = new Date();
+      }
+      if (type){
+        msgData.type = type;
+      } else {
+        msgData.type = 'text';
       }
       let messageFrag = doCreateMessageFragBox(msgData);
       $(messageBoxHandle).append($(messageFrag));
@@ -155,14 +161,14 @@
         $(messageBoxHandle).animate({ scrollTop:  messageBoxHeight}, 400);
       }
     }
-    const onReceiveMessage = function(msg, from, topicId, time){
+    const onReceiveMessage = function(msg, from, topicId, time, type){
       let chatboxVisible = $(chatBox).css('display');
       if ((chatboxVisible === '') || (chatboxVisible === 'block')) {
         if (topicId == settings.topicId) {
           if (from == settings.audienceId) {
-            doAppendNewMessage(msg, 1, time);
+            doAppendNewMessage(msg, 1, time, type);
           } else if (from === settings.myId) {
-            doAppendNewMessage(msg, 0, time);
+            doAppendNewMessage(msg, 0, time, type);
           }
           return true;
         } else {
@@ -205,15 +211,16 @@
               }
               let msg = msgJson.msg;
               let time = msgJson.datetime;
+              let type = msgJson.context.type;
               if (topicId == settings.topicId) {
                 if (from === settings.audienceId) {
-                  let isSuccess = onReceiveMessage(msg, from, topicId, time);
+                  let isSuccess = onReceiveMessage(msg, from, topicId, time, type);
                   if (isSuccess) {
                     doDecreaseReddotEvent();
                     msgJson.status = 'read';
                   }
                 } else if (from === settings.myId) {
-                  onReceiveMessage(msg, settings.myId, topicId, time);
+                  onReceiveMessage(msg, settings.myId, topicId, time, type);
                 }
               }
             }
@@ -298,7 +305,8 @@
       let msg = data.msg;
       let from = data.from;
       let topicId = data.context.topicId;
-      let showSuccess = onReceiveMessage(msg, from, topicId);
+      let type = data.context.type;
+      let showSuccess = onReceiveMessage(msg, from, topicId, type);
       if (!showSuccess) {
         doIncreaseReddotEvent();
       }
