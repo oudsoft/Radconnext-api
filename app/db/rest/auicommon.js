@@ -202,6 +202,9 @@ app.post('/radio/submitresult', (req, res) => {
           log.info('userId param => ' + userId);
           log.info('remark param => ' + remark);
           log.info('case change status Result => ' + JSON.stringify(changeResult));
+          if (nowStatusId == 14){
+            db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
+          }
           res.json(submitRes);
         } catch(error) {
           log.error(error);

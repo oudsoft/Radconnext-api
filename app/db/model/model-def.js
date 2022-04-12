@@ -533,6 +533,14 @@ const RadChatLogDef = {
 			},
 			topicType : {
 				type: Sequelize.STRING(20)
+			},
+			topicStatus : {
+				type: Sequelize.INTEGER,
+				/*
+					0 = close
+					1 = open
+				*/
+				defaultValue: 1
 			}
 		};
 

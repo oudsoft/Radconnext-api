@@ -4263,23 +4263,23 @@ module.exports = function ( jq ) {
       if (!chatBoxTarget){
         let newAudience = {Id: Id, Name: Name, topicId: topicId, topicName: topicName};
         contactLists.push(newAudience);
-        let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
+        let contactIcon = doCreateContactIcon(Id, Name, topicId, onContactIconClickCallback, onCloseContactClickCallback);
         resolve($(contactIcon));
       } else {
 				//let contactIcon = chatBoxTarget.contact[0];
-				//let contactIcon = doCreateContactIcon(Id, Name, onContactIconClickCallback, onCloseContactClickCallback);
+				//let contactIcon = doCreateContactIcon(Id, Name, topicId, onContactIconClickCallback, onCloseContactClickCallback);
         //resolve($(contactIcon));
 				resolve();
       }
     });
   }
 
-  const doCreateContactIcon = function(Id, Name, onContactIconClickCallback, onCloseContactClickCallback) {
+  const doCreateContactIcon = function(Id, Name, topicId, onContactIconClickCallback, onCloseContactClickCallback) {
     let contactBox = $('<div class="contact" style="position: relative; display: inline-block; text-align: center; margin-right: 2px;"></div>');
     let contactIcon = $('<img style="postion: relative; width: 40px; height: auto; cursor: pointer;"/>');
     $(contactIcon).attr('src', contactIconUrl);
-    //let closeContactIcon = $('<img style="position: absolute; width: 20px; height: 20px; cursor: pointer; margin-left: 20px; margin-top: -70px;"/>');
-    //$(closeContactIcon).attr('src', closeContactIconUrl);
+    let closeContactIcon = $('<img style="position: absolute; width: 20px; height: 20px; cursor: pointer; margin-left: 20px; margin-top: -70px;"/>');
+    $(closeContactIcon).attr('src', closeContactIconUrl);
 		//$(closeContactIcon).css('display', 'none');
 		//$(contactIcon).hover((evt) =>{$(closeContactIcon).toggle()});
     let contactName = $('<div style="position: relative; font-size: 16px; color: auto;"></div>');
@@ -4288,11 +4288,9 @@ module.exports = function ( jq ) {
     $(contactBox).on('click', async (evt)=>{
       await onContactIconClickCallback(Id);
     });
-		/*
     $(closeContactIcon).on('click', async (evt)=>{
-      await onCloseContactClickCallback(Id, contactBox);
+      await onCloseContactClickCallback(Id, topicId, contactBox);
     });
-		*/
 		$(contactBox).attr('id', Id);
     return $(contactBox).append($(contactIcon)).append($(contactName)).append($(closeContactIcon)).append($(reddot));
   }
@@ -4333,7 +4331,7 @@ module.exports = function ( jq ) {
 		}
   }
 
-  const onCloseContactClickCallback = function(Id, contactBox) {
+  const onCloseContactClickCallback = function(Id, topicId, contactBox) {
     return new Promise(async function(resolve, reject) {
       let indexAt = undefined;
       let chatBoxTarget = await contactLists.find((item, index)=>{
@@ -4348,6 +4346,9 @@ module.exports = function ( jq ) {
 				$(targetChatBox).remove();
 				$(contactBox).remove();
         contactLists.splice(indexAt, 1);
+				const main = require('../main.js');
+				const myWsm = main.doGetWsm();
+		    myWsm.send(JSON.stringify({type: 'closetopic', topicId: topicId}));
       }
     });
   }

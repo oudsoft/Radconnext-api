@@ -267,8 +267,18 @@ function RadconWebSocketServer (arg, db, log) {
 						if (data.context.topicId) {
 							let topicId = data.context.topicId;
 							let topicType = data.context.topicType;
-							$this.saveChatLog(topicId, topicType, msgSend);
+							let saveResult = await $this.saveChatLog(topicId, topicType, msgSend);
+							if (saveResult.currentStatus == 0){
+								let userSockets = await $this.filterUserSocket(sendto);
+								if (userSockets.length > 0){
+									let radioScreenState = userSockets[0].screenstate;
+									await $this.doSendNotifyOnNewMessage(msgSend, sendto, radioScreenState);
+								}
+							}
 						}
+					break;
+					case "closetopic":
+						await $this.closeTopic(data.topicId){
 					break;
 					case "logout":
 						let socketUsername = data.username;
@@ -376,17 +386,14 @@ function RadconWebSocketServer (arg, db, log) {
 	this.sendMessage = function(message, sendto) {
 		return new Promise(async function(resolve, reject) {
 			let userSockets = await $this.filterUserSocket(sendto);
-			let radioScreenState = undefined;
 			let canSend = false;
 			if (userSockets.length > 0) {
 				await userSockets.forEach((socket, i) => {
 					socket.send(JSON.stringify(message));
 					socket.counterping = 0;
 				});
-				radioScreenState = userSockets[0].screenstate;
 				canSend = true;
 			}
-			await $this.doSendNotifyOnNewMessage(message, sendto, radioScreenState);
 			resolve(canSend);
 		});
 	}
@@ -460,29 +467,43 @@ function RadconWebSocketServer (arg, db, log) {
 			}
 		});
 	}
-	//$this.db.radkeeplogs
+	//$this.db.radchatlogs
 	this.saveChatLog = function(topicId, topicType, msgSend){
 		return new Promise(async function(resolve, reject) {
-			$this.db.radchatlogs.findAll({ attributes: ['Log'],
+			$this.db.radchatlogs.findAll({ attributes: ['Log', 'topicStatus'],
 				where: {caseId: topicId, topicType: topicType}
 			}).then(async (caseLog)=>{
 				if (caseLog.length > 0) {
+					let currentStatus = caseLog[0].topicStatus;
 					let newCaseLog = caseLog[0].Log;
 					newCaseLog.push(msgSend);
 					$this.db.radchatlogs.update({
-				    Log: newCaseLog
+				    Log: newCaseLog,
+						topicStatus: 1
 				  },{
 				    where: {
 				      caseId: topicId
 				    }
-				  }).then((caseLog) => resolve(caseLog));
+				  }).then((caseLog) => resolve({currentStatus: currentStatus}));
 				} else {
 					let newCaseLog = [msgSend];
 					let newLog = await $this.db.radchatlogs.create({Log: newCaseLog});
-					$this.db.radchatlogs.update({caseId: topicId, topicType: topicType}, {where: {id: newLog.id}});
-					resolve(newLog);
+					$this.db.radchatlogs.update({caseId: topicId, topicType: topicType, topicStatus: 1}, {where: {id: newLog.id}});
+					resolve({currentStatus: 0);
 				}
 			});
+		});
+	}
+
+	this.closeTopic = function(topicId){
+		return new Promise(async function(resolve, reject) {
+			$this.db.radchatlogs.update({
+				topicStatus: 0
+			},{
+				where: {
+					caseId: topicId
+				}
+			}).then((updateRes) => resolve(updateRes));
 		});
 	}
 

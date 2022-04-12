@@ -99,9 +99,9 @@
       let messageBody = $('<div style="position: relative; padding: 4px; display: inline-block; border-radius: 8px;"></div>');
       $(messageBody).appendTo($(messageFrag));
       let msg = msgData.msg;
-      let isHttpLink = msg.includes('http://');
-      let isHttpsLink = msg.includes('https://');
-      if ((isHttpLink) || (isHttpsLink)){
+      let httpLinkIndex = msg.indexOf('http://');
+      let httpsLinkIndex = msg.indexOf('https://');
+      if ((httpLinkIndex == 0) || (httpsLinkIndex == 0)){
         $(messageBody).append($('<a href="' + msg + '" target="_blank">' + msg + '</a>'));
       } else {
         $(messageBody).text(msg);
@@ -152,7 +152,7 @@
       let messageBoard = document.getElementById('MessageBoard');
       if (messageBoard) {
         let messageBoxHeight = messageBoard.scrollHeight;
-        $(messageBoxHandle).animate({ scrollTop:  messageBoxHeight}, 1000);
+        $(messageBoxHandle).animate({ scrollTop:  messageBoxHeight}, 400);
       }
     }
     const onReceiveMessage = function(msg, from, topicId, time){
