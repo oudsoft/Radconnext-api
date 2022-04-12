@@ -489,7 +489,7 @@ function RadconWebSocketServer (arg, db, log) {
 					let newCaseLog = [msgSend];
 					let newLog = await $this.db.radchatlogs.create({Log: newCaseLog});
 					$this.db.radchatlogs.update({caseId: topicId, topicType: topicType, topicStatus: 1}, {where: {id: newLog.id}});
-					resolve({currentStatus: 0);
+					resolve({currentStatus: 0});
 				}
 			});
 		});
