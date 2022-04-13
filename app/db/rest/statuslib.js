@@ -381,18 +381,6 @@ const onNewCaseEvent = function(caseId, options){
     let yourLocalSocket = await socket.findOrthancLocalSocket(hospitalId);
     if (!yourLocalSocket) {
       let techUsernames = await common.doFindTechHospitalUsername(hospitalId);
-      /*
-      let allSockets = await socket.listClient();
-      let reportAt = uti.formatDateTimeStr(new Date());
-      let subject = uti.fmtStr('WARNING\nClient Websocket of %s loss connection.', hospitalName + '[' + hospitalId + ']');
-      let msgHtml = '<h2>' + hospitalName + '</h2>' + '<p>Please Contact your client for Re-Connect Socket.</p><p>Please No-Reply This Email.</p>';
-      msgHtml += '<p>Event at ' + reportAt + '</p>';
-      msgHtml += '<p>All Sockets List => ' + JSON.stringify(allSockets) + '</p>';
-      msgHtml += '<p>Please Re-Connect by click on below link.</p>';
-      msgHtml += uti.fmtStr('<a href="https://radconnext.info/api/dicomtransferlog/socket/client/%s" target="_blank">https://radconnext.info/api/dicomtransferlog/socket/client/%s</a>', ,);
-      let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
-      actions.warnning = 'Client Websocket loss connection!'
-      */
       await techUsernames.forEach(async (techName) => {
         let techSocket = await socket.findUserSocket(techName);
         if (techSocket){

@@ -451,9 +451,10 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         // doCallToRadioPhone
-
+        /*
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+        */
       }
     });
     let endTime = newTask.triggerAt;
