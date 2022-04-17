@@ -1049,12 +1049,16 @@ module.exports = function ( jq ) {
             reqParams.meetingId = item.id;
             let meetingRes = await doCallApi(reqUrl, reqParams);
             console.log(meetingRes);
-            if (meetingRes.response.status === 'waiting') {
-              readyMeetings.push(item);
+            if (meetingRes.response.status){
+              if (meetingRes.response.status === 'waiting') {
+                readyMeetings.push(item);
+                return;
+              } else if (meetingRes.response.status === 'end') {
+                reqUrl = '/api/zoom/deletemeeting';
+                meetingRes = await doCallApi(reqUrl, reqParams);
+              }
+            } else {
               return;
-            } else if (meetingRes.response.status === 'end') {
-              reqUrl = '/api/zoom/deletemeeting';
-              meetingRes = await doCallApi(reqUrl, reqParams);
             }
           });
           setTimeout(()=> {
