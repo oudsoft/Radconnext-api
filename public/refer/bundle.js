@@ -20441,7 +20441,7 @@ module.exports = function ( jq ) {
 			let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let audienceInfo = zoomData.caseData.Radiologist.User_NameTH + ' ' + zoomData.caseData.Radiologist.User_LastNameTH;
 			let contextData = {topicId: zoomData.caseData.case.id, topicName: zoomMeeting.topic, myId: userdata.username, myName: myInfo, audienceId: zoomData.caseData.Radiologist.username, audienceName: audienceInfo, type: 'html'};
-			await doSendMessageCallback(chatMsgHtml, zoomData.caseData.Radiologist.username, userdata.username, contextData);
+			await doSendMessageCallback(blockMsgs, zoomData.caseData.Radiologist.username, userdata.username, contextData);
 
 			let eventData = {msg: blockMsgs, from: userdata.username, context: contextData};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
