@@ -103,7 +103,15 @@
       if (msgData.type == 'text'){
         $(messageBody).text(msg);
       } else if (msgData.type == 'html') {
-        $(messageBody).append($(msg));
+        let chatMsg = $('<div></div>');
+        for (let i=0; i < msg.length; i++) {
+          if (msg[i].type == 'text') {
+            $(chatMsg).append($('<p>' + msg[i].msg + '</p>'));
+          } else if (msg[i].type == 'link') {
+  			    $(chatMsg).append($('<p><a href="' + msg[i].msg + ' target="_blank">' + msg[i].msg + '</a></p>'));
+          }
+        }
+        $(messageBody).append($(chatMsg));
       } else {
         $(messageBody).text(msg);
       }
@@ -117,7 +125,12 @@
 
       let timeInfo = $('<span></span>');
       $(timeInfo).appendTo($(messageInfo));
-      let msgDate = new Date(msgData.time);
+      let msgDate = undefined;
+      if (msgData.time) {
+        msgDate = new Date(msgData.time);
+      } else {
+        msgDate = new Date();
+      }
       let msgDateFmt = formatDateStr(msgDate)
       $(timeInfo).text(msgDateFmt);
 
@@ -306,7 +319,8 @@
       let from = data.from;
       let topicId = data.context.topicId;
       let type = data.context.type;
-      let showSuccess = onReceiveMessage(msg, from, topicId, type);
+      let time = new Date();
+      let showSuccess = onReceiveMessage(msg, from, topicId, time, type);
       if (!showSuccess) {
         doIncreaseReddotEvent();
       }

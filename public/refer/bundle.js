@@ -20432,18 +20432,14 @@ module.exports = function ( jq ) {
 			const myWsm = main.doGetWsm();
 			myWsm.send(JSON.stringify(callZoomMsg));
 
-			let chatMsg = $('<div></div>');
-			$(chatMsg).append($('<p>' + zoomMeeting.topic + '</p>'));
-			$(chatMsg).append($('<p>' + caseBodypart + ' ' + startMeetingTime + '</p>'));
-			$(chatMsg).append($('<p><a href="' + zoomMeeting.join_url + ' target="_blank">' + zoomMeeting.join_url + '</a></p>'));
-			$(chatMsg).append($('<p>pass: ' + zoomMeeting.password + '</p>'));
-			let chatMsgHtml = $(chatMsg).html();
+			let line2 = caseBodypart + ' ' + startMeetingTime;
+			let blockMsgs = [{msg: zoomMeeting.topic, type: 'text'}, {msg: line2, type: 'text'}, {msg: zoomMeeting.join_url, type: 'link'}, {msg: zoomMeeting.password, type: 'text'}];
 			let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let audienceInfo = zoomData.caseData.Radiologist.User_NameTH + ' ' + zoomData.caseData.Radiologist.User_LastNameTH;
 			let contextData = {topicId: zoomData.caseData.case.id, topicName: zoomMeeting.topic, myId: userdata.username, myName: myInfo, audienceId: zoomData.caseData.Radiologist.username, audienceName: audienceInfo, type: 'html'};
 			await doSendMessageCallback(chatMsgHtml, zoomData.caseData.Radiologist.username, userdata.username, contextData);
 
-			let eventData = {msg: chatMsgHtml, from: userdata.username, context: contextData};
+			let eventData = {msg: blockMsgs, from: userdata.username, context: contextData};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
 
 			/*
