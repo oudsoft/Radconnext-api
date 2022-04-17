@@ -1073,7 +1073,7 @@ module.exports = function ( jq ) {
             console.log('readyMeeting =>', readyMeeting);
             console.log('case dtail =>', incident);
             //update meeting for user
-            let joinTopic = 'โรงพยาบาล' + hospitalName + ' ' + patientFullNameEN + ' HN: ' + patientHN;
+            let joinTopic = 'โรงพยาบาล' + hospitalName + '  ' + patientFullNameEN + '  HN: ' + patientHN;
             let startTime = startMeetingTime;
             let zoomParams = {
               topic: joinTopic,
@@ -7881,6 +7881,17 @@ module.exports = function ( jq ) {
 		return formatDateTimeStr(d);
 	}
 
+	const formatFullDateStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		return `${dtStrings[0]}`;;
+	}
+
+	const formatTimeHHMNStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		let ts = dtStrings[1].split(':');
+		return `${ts[0]}:${ts[1]}`;;
+	}
+
 	const invokeGetDisplayMedia = function(success) {
 		if(navigator.mediaDevices.getDisplayMedia) {
 	    navigator.mediaDevices.getDisplayMedia(videoConstraints).then(success).catch(doGetScreenSignalError);
@@ -8148,6 +8159,8 @@ module.exports = function ( jq ) {
 		formatDateDev,
 		formatDateTimeStr,
 		formatStartTimeStr,
+		formatFullDateStr,
+		formatTimeHHMNStr,
 		invokeGetDisplayMedia,
 		addStreamStopListener,
 		base64ToBlob,
@@ -20313,7 +20326,6 @@ module.exports = function ( jq ) {
 		doCreateSimpleChatBox(dicomData, caseData, topicName).then((simpleChatBox)=>{
 			$(contactToolsBox).empty().append($(simpleChatBox));
 			let isExpand = $(contactToolsBox).css('display');
-			console.log(isExpand);
 			if (isExpand == 'none'){
 				$(contactToolsBox).slideToggle();
 			}
@@ -20436,8 +20448,9 @@ module.exports = function ( jq ) {
 			const myWsm = main.doGetWsm();
 			myWsm.send(JSON.stringify(callZoomMsg));
 
-			let line2 = caseBodypart + ' ' + startMeetingTime;
-			let blockMsgs = [{msg: zoomMeeting.topic, type: 'text'}, {msg: line2, type: 'text'}, {msg: zoomMeeting.join_url, type: 'link'}, {msg: zoomMeeting.password, type: 'text'}];
+			let line2 = caseBodypart + '   ' + util.formatFullDateStr(startMeetingTime) + ' ' + util.formatTimeHHMNStr(startMeetingTime);
+			let line4 = 'pass: ' + zoomMeeting.password;
+			let blockMsgs = [{msg: zoomMeeting.topic, type: 'text'}, {msg: line2, type: 'text'}, {msg: zoomMeeting.join_url, type: 'link'}, {msg: line4, type: 'text'}];
 			let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let audienceInfo = zoomData.caseData.Radiologist.User_NameTH + ' ' + zoomData.caseData.Radiologist.User_LastNameTH;
 			let contextData = {topicId: zoomData.caseData.case.id, topicName: zoomMeeting.topic, myId: userdata.username, myName: myInfo, audienceId: zoomData.caseData.Radiologist.username, audienceName: audienceInfo, type: 'html'};
