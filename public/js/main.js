@@ -22,7 +22,7 @@ setTimeout(()=>{
 
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');
-		$(myPBox).css({'position': 'absolute', 'width': '50%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '100px'});
+		$(myPBox).css({'position': 'absolute', 'width': '45%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '100px'});
 		let myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330});
 		$('body').append($(myPBox));
 
@@ -31,6 +31,9 @@ setTimeout(()=>{
 			stop: function(evt) {
 				$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
 			}
+		});
+		$(myPBox).on('click', (evt)=>{
+			$(myPBox).focus();
 		});
 		$(myPBox).on('keydown', (evt)=>{
 			//console.log(evt.keyCode);
