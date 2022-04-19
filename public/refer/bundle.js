@@ -21162,6 +21162,7 @@ module.exports = function ( jq ) {
       caseview.doOpenCaseView(dicomData, defualtValue, dicomSeries)
     });
 		$(tableRow).on('dblclick', (evt)=>{
+			common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
 			$(tableRow).click();
     });
 
