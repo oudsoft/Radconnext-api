@@ -79,8 +79,8 @@
       const cellCallBtnNo8 = $('<td></td>').append($(callBtnNo8));
       const cellCallBtnNo9 = $('<td></td>').append($(callBtnNo9));
       const cellCallBtnNo0 = $('<td></td>').append($(callBtnNo0));
-      const cellCallBtnTELCmd = $('<td></td>').append($(callBtnNo1));
-      const cellCallBtnDELCmd = $('<td></td>').append($(callBtnNo1));
+      const cellCallBtnTELCmd = $('<td></td>').append($(callBtnTELCmd));
+      const cellCallBtnDELCmd = $('<td></td>').append($(callBtnDELCmd));
       const rowFrame1 =$('<tr></tr>').append($(cellCallDisplay));
       const rowFrame2 =$('<tr></tr>').append($(cellCallBtnNo1)).append($(cellCallBtnNo2)).append($(cellCallBtnNo3));
       const rowFrame3 =$('<tr></tr>').append($(cellCallBtnNo4)).append($(cellCallBtnNo5)).append($(cellCallBtnNo6));
