@@ -87,6 +87,9 @@
   				}
           window.location.replace('/refer/index.html');
         break;
+        case 8:
+          window.location.replace('/sip/dialcall.html');
+        break;
       }
     }
 
