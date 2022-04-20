@@ -61,7 +61,7 @@
       const callBtnNo8 = $('<input type="button" id="CallBtnNo8" value="8"></input>').css(btnStyle);
       $(callBtnNo8).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnNo9 = $('<input type="button" id="CallBtnNo9" value="9"></input>').css(btnStyle);
-      $(callBtnNo0).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
+      $(callBtnNo9).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnNo0 = $('<input type="button" id="CallBtnNo0" value="0"></input>').css(btnStyle);
       $(callBtnNo0).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value="TEL."></input>').css(btnStyle);
