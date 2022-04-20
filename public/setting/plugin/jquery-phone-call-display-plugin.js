@@ -64,7 +64,8 @@
       $(callBtnNo9).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnNo0 = $('<input type="button" id="CallBtnNo0" value="0"></input>').css(btnStyle);
       $(callBtnNo0).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
-      const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value="TEL."></input>').css(btnStyle);
+      const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value=""></input>').css(btnStyle);
+      $(callBtnTELCmd).css({'background':'url(/images/phone-call-icon.png) no-repeat', 'background-size': '20% 20%'});
       $(callBtnTELCmd).on('click', (evt)=>{onBtnTELCmdClick(evt, callDisplay)});
       const callBtnDELCmd = $('<input type="button" id="CallBtnDELCmd" value="DEL."></input>').css(btnStyle);
       $(callBtnDELCmd).on('click', (evt)=>{onBtnDELCmdClick(evt, callDisplay)});
