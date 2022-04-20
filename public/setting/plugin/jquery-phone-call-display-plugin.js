@@ -66,7 +66,7 @@
       $(callBtnNo0).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value="TEL."></input>').css(btnStyle);
       $(callBtnTELCmd).on('click', (evt)=>{onBtnTELCmdClick(evt, callDisplay)});
-      const callBtnDELcmd = $('<input type="button" id="CallBtnDELCmd" value="DEL."></input>').css(btnStyle);
+      const callBtnDELCmd = $('<input type="button" id="CallBtnDELCmd" value="DEL."></input>').css(btnStyle);
       $(callBtnDELCmd).on('click', (evt)=>{onBtnDELCmdClick(evt, callDisplay)});
       const cellCallDisplay = $('<td colspan="3"></td>').append($(callDisplay));
       const cellCallBtnNo1 = $('<td></td>').append($(callBtnNo1));
