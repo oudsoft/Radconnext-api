@@ -67,7 +67,7 @@
       const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value=""></input>').css(btnStyle);
       $(callBtnTELCmd).css({'background':'url(/images/phone-call-icon.png) no-repeat', 'background-size': '100% 100%'});
       $(callBtnTELCmd).on('click', (evt)=>{onBtnTELCmdClick(evt, callDisplay)});
-      const callBtnDELCmd = $('<input type="button" id="CallBtnDELCmd" value="DEL."></input>').css(btnStyle);
+      const callBtnDELCmd = $('<input type="button" id="CallBtnDELCmd" value=""></input>').css(btnStyle);
       $(callBtnDELCmd).css({'background':'url(/images/back-slash-icon.png) no-repeat', 'background-size': '100% 100%'});
       $(callBtnDELCmd).on('click', (evt)=>{onBtnDELCmdClick(evt, callDisplay)});
       const cellCallDisplay = $('<td colspan="3" aling="center"></td>').append($(callDisplay));
