@@ -154,5 +154,67 @@ const doEndCall = function(evt){
 }
 
 const doAcceptCall = function(evt){
+  rtcSession.on("accepted",function(e){
+    console.log('onaccept', e);
+  });
+  rtcSession.on("confirmed",function(e){
+    console.log('onconfirm', e);
+  });
+  rtcSession.on("ended",function(e){
+    console.log('onended', e);
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'none';
+  });
+  rtcSession.on("failed",function(e){
+    // unable to establish the call
+    console.log('onfailed', e);
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'none';
+    doClearTracks();
+  });
 
+  // Answer call
+  //rtcSession.answer(callOptions);
+  rtcSession.answer(options);
+
+  rtcSession.connection.addEventListener('addstream', function (e) {
+    var remoteAudio = document.getElementById("RemoteAudio");
+    remoteAudio.srcObject = e.stream;
+    var audioControl = document.getElementById('AudioControl');
+    audioControl.style.display = 'block';
+    setTimeout(() => {
+      remoteAudio.play();
+      $('#SipPhoneIncomeBox').find('#IncomeBox').css({'display': 'none'});
+      $('#SipPhoneIncomeBox').find('#AnswerBox').css({'display': 'block'});
+    }, 500);
+  });
+}
+
+
+
+
+const doPlayRingIncomeCall = function(audioElem){
+  audioElem.removeAttribute('src');
+  audioElem.src = '/mp3/telephone-ring-04.mp3';
+  audioElem.load();
+  audioElem.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+  }, false);
+  setTimeout(() => {
+    audioElem.play();
+  }, 500);
+}
+
+const doClearTracks = function(){
+  var remoteAudio = document.getElementById("RemoteAudio");
+  var stream = remoteAudio.srcObject;
+  if (stream){
+    var tracks = stream.getTracks();
+    if (tracks){
+      tracks.forEach(function(track) {
+        track.stop();
+      });
+    }
+  }
 }
