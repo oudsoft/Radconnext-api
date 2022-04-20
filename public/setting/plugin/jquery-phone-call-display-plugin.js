@@ -10,7 +10,7 @@
     var $this = this;
 
     const btnStyle = {'font-size': '200%', 'width': '80px', 'height': '80px', 'font' : 'normal 40pt Tahoma', 'border-radius':'5pt'};
-    const displayStyle = {'font-size': '60px', 'width': '330px', 'height': '80px', 'text-align': 'right', 'border-radius': '5pt', 'color': 'black'};
+    const displayStyle = {'font-size': '60px', 'width': '300px', 'height': '80px', 'text-align': 'right', 'border-radius': '5pt', 'color': 'black'};
 
     const onBtnNoClick = function(evt, display){
       let evtVal = $(evt.currentTarget).val();
