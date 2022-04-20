@@ -32,7 +32,7 @@
         doInputErrorHandle(display);
       } else {
         $(display).css('border', '');
-        settings.callHandle(msisdn);
+        settings.startCallHandle(msisdn);
       }
     }
 
