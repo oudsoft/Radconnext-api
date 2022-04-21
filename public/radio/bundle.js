@@ -4248,7 +4248,7 @@ module.exports = function ( jq ) {
 							$(chatBoxContainer).css('display', 'block');
 							$(simpleChat.chatBox).css('display', 'block');
 							$(simpleChat.chatBox).appendTo($(chatBoxContainer));
-							simpleChat.handle.restoreLocal();
+							await simpleChat.handle.restoreLocal();
 							simpleChat.handle.scrollDown();
 							let chatBoxTarget = contactLists.find((item)=>{
 								if (item.Id == audienceId) { return item}
@@ -4451,8 +4451,8 @@ module.exports = function ( jq ) {
 					}
 				});
 			}
-			console.log(localHistory);
-			console.log(cloudHistory);
+			//console.log(localHistory);
+			//console.log(cloudHistory);
 			if ((localHistory) && (localHistory.length > 0)) {
 				if ((cloudHistory) && (cloudHistory.length > 0)) {
 					if (localHistory.length > 0) {
