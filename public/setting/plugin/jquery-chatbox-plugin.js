@@ -203,71 +203,79 @@
   		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
   	}
     const doRestoreFromLocal = function(){
-      let dfd = $.Deferred();
-      let localMsgStorage = localStorage.getItem('localmessage');
-      if ((localMsgStorage) && (localMsgStorage !== '')) {
-        let localMessageJson = JSON.parse(localMsgStorage);
-        //let localMessage = localMessageJson;
-        //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
-        //$('.footer').simplelog({test: JSON.stringify(localMessage)})
-        doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
-          //console.log(localMessage);
-    			if ((localMessage) && (localMessage.length > 0)) {
-            for (let i=0; i < localMessage.length; i++) {
-              let msgJson = localMessage[i];
-              let from = msgJson.from;
-              let topicId = undefined;
-              if (msgJson.topicId) {
-                topicId = msgJson.topicId;
-              } else if (msgJson.context.topicId) {
-                topicId = msgJson.context.topicId;
-              }
-              let msg = msgJson.msg;
-              let time = msgJson.datetime;
-              let type = msgJson.context.type;
-              if (topicId == settings.topicId) {
-                if (from === settings.audienceId) {
-                  let isSuccess = onReceiveMessage(msg, from, topicId, time, type);
-                  if (isSuccess) {
-                    doDecreaseReddotEvent();
-                    msgJson.status = 'read';
+      //let dfd = $.Deferred();
+      return new Promise(function(resolve, reject){
+        let localMsgStorage = localStorage.getItem('localmessage');
+        if ((localMsgStorage) && (localMsgStorage !== '')) {
+          let localMessageJson = JSON.parse(localMsgStorage);
+          //let localMessage = localMessageJson;
+          //$('.footer').simplelog({myId: settings.myId, audienceId: settings.audienceId});
+          //$('.footer').simplelog({test: JSON.stringify(localMessage)})
+          doFindMessageOfTopic(localMessageJson, settings.topicId).then(function(localMessage){
+            //console.log(localMessage);
+      			if ((localMessage) && (localMessage.length > 0)) {
+              for (let i=0; i < localMessage.length; i++) {
+                let msgJson = localMessage[i];
+                let from = msgJson.from;
+                let topicId = undefined;
+                if (msgJson.topicId) {
+                  topicId = msgJson.topicId;
+                } else if (msgJson.context.topicId) {
+                  topicId = msgJson.context.topicId;
+                }
+                let msg = msgJson.msg;
+                let time = msgJson.datetime;
+                let type = msgJson.context.type;
+                if (topicId == settings.topicId) {
+                  if (from === settings.audienceId) {
+                    let isSuccess = onReceiveMessage(msg, from, topicId, time, type);
+                    if (isSuccess) {
+                      doDecreaseReddotEvent();
+                      msgJson.status = 'read';
+                    }
+                  } else if (from === settings.myId) {
+                    onReceiveMessage(msg, settings.myId, topicId, time, type);
                   }
-                } else if (from === settings.myId) {
-                  onReceiveMessage(msg, settings.myId, topicId, time, type);
                 }
               }
+              localStorage.setItem('localmessage', JSON.stringify(localMessage));
+              setTimeout(function(){
+                //dfd.resolve();
+                resolve();
+              }, 2300)
+            } else {
+              //dfd.resolve();
+              resolve();
             }
-            localStorage.setItem('localmessage', JSON.stringify(localMessage));
-            setTimeout(function(){
-              dfd.resolve();
-            }, 2300)
-          } else {
-            dfd.resolve();
-          }
-        });
-      } else {
-        dfd.resolve();
-      }
-      return dfd.promise();
+          });
+        } else {
+          //dfd.resolve();
+          resolve();
+        }
+      });
+      //return dfd.promise();
     }
     const doFindMessageOfTopic = function(orgMessage, topicId){
-      //console.log(orgMessage);
-      var dfd = $.Deferred();
-      if (orgMessage && (orgMessage.length > 0)) {
-        let history = orgMessage.filter(function(item){
-  				if ((item.context) && (item.context.topicId == topicId)) {
-  					return item;
-  				} else {
-            if (item.topicId == topicId) {
-              return item;
+      //var dfd = $.Deferred();
+      return new Promise(function(resolve, reject){
+        if (orgMessage && (orgMessage.length > 0)) {
+          let history = orgMessage.filter(function(item){
+    				if ((item.context) && (item.context.topicId == topicId)) {
+    					return item;
+    				} else {
+              if (item.topicId == topicId) {
+                return item;
+              }
             }
-          }
-  			});
-        dfd.resolve(history);
-      } else {
-        dfd.resolve([]);
-      }
-      return dfd.promise();
+    			});
+          //dfd.resolve(history);
+          resolve(history);
+        } else {
+          //dfd.resolve([]);
+          resolve([]);
+        }
+      });
+      //return dfd.promise();
     }
     const doIncreaseReddotEvent = function(){
       settings.resetUnReadMessageCallback(settings.audienceId, 1);
