@@ -20810,8 +20810,8 @@ module.exports = function ( jq ) {
 			}
 			console.log(localHistory);
 			console.log(cloudHistory);
-			if (localHistory) {
-				if (cloudHistory) {
+			if ((localHistory) && (localHistory.length > 0)) {
+				if ((cloudHistory) && (cloudHistory.length > 0)) {
 					if (localHistory.length > 0) {
 						if (cloudHistory.length > 0) {
 							let localLastMsg = localHistory[localHistory.length-1];
