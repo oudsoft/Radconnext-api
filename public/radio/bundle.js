@@ -4451,8 +4451,8 @@ module.exports = function ( jq ) {
 					}
 				});
 			}
-			//console.log(localHistory);
-			//console.log(cloudHistory);
+			console.log(localHistory);
+			console.log(cloudHistory);
 			if ((localHistory) && (localHistory.length > 0)) {
 				if ((cloudHistory) && (cloudHistory.length > 0)) {
 					if (localHistory.length > 0) {
