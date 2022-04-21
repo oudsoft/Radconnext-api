@@ -27,6 +27,7 @@ app.get('/select/(:topicType)/(:topicId)', async (req, res) => {
 });
 
 app.post('/select', async (req, res) => {
+  log.info('reqBody=>' + JSON.stringify(req.body));
   let topicType = req.body.topicType;
   let topicId = req.body.topicId;
   let whereCondition = {
