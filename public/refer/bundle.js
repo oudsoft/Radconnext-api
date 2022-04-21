@@ -20808,7 +20808,8 @@ module.exports = function ( jq ) {
 					}
 				});
 			}
-
+			console.log(localHistory);
+			console.log(cloudHistory);
 			if (localHistory) {
 				if (cloudHistory) {
 					if (localHistory.length > 0) {
