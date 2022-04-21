@@ -225,7 +225,7 @@
                 }
                 let msg = msgJson.msg;
                 let time = msgJson.datetime;
-                let type = msgJson.context.type;
+                let type = msgJson.type;
                 if (topicId == settings.topicId) {
                   if (from === settings.audienceId) {
                     let isSuccess = onReceiveMessage(msg, from, topicId, time, type);
