@@ -4200,7 +4200,7 @@ module.exports = function ( jq ) {
 					let simpleChat = doCreateSimpleChatBox(data.topicId, data.topicName, data.topicType, data.audienceId, data.audienceName, data.topicStatusId);
 					$(simpleChat.chatBox).css('display', 'none');
 					$(simpleChat.chatBox).appendTo($(chatBoxContainer));
-					simpleChat.handle.restoreLocal();
+					await simpleChat.handle.restoreLocal();
 					let chatBoxTarget = contactLists.find((item)=>{
 						if (item.Id == data.audienceId) { return item}
 					});
