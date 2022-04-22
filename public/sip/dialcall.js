@@ -5,7 +5,7 @@ var rtcSession = undefined;
 var phoneCallHandle = undefined;
 
 var userdata = JSON.parse(localStorage.getItem('userdata'));
-if (!(userdata)){
+if (!(userdata) || !(userdata.userinfo)){
   window.location.replace('/');
 }
 
