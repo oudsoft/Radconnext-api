@@ -9,6 +9,7 @@
     }, options );
 
     var $this = this;
+    var callingNo = undefined;
 
     const btnStyle = {'font-size': '200%', 'width': '80px', 'height': '80px', 'font' : 'normal 40pt Tahoma', 'border-radius':'5pt'};
     const displayStyle = {'font-size': '60px', 'width': '260px', 'height': '80px', 'text-align': 'right', 'border-radius': '5pt', 'color': 'black', 'background-color': '#EAEDED'};
@@ -33,6 +34,7 @@
         doInputErrorHandle(display);
       } else {
         $(display).css('border', '');
+        doSetCallingNo(msisdn);
         settings.startCallHandle(msisdn);
       }
     }
@@ -135,13 +137,22 @@
       $this.append($(phoneCallDisplay));
     }
 
+    const doSetCallingNo = function(value){
+      callingNo = value;
+    }
+
+    const doGetCallingNo = function(){
+      return callingNo;
+    }
+
     let phoneCallDisplay = init();
     this.append($(phoneCallDisplay));
 
     /* public method of plugin */
     let output = {
       changeProgress: doChangeProgeesDisplay,
-      changeStart: doChangeStartDisplay
+      changeStart: doChangeStartDisplay,
+      getCallingNo: doGetCallingNo
     }
 
     return output;

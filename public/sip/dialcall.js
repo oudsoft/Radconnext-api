@@ -82,23 +82,15 @@ if ((username) && (usersecret)) {
 var eventHandlers = {
   'progress': function(e) {
     console.log('call is in progress ...');
-    phoneCallHandle.changeProgress();
+    let callingNo = getCallingNo
+    phoneCallHandle.changeProgress(callingNo);
   },
   'failed': function(e) {
     console.log('call failed with cause: ', e/*.data.cause*/);
   },
   'ended': function(e) {
     console.log('call ended with cause: ', e/*.data.cause*/);
-    var remoteAudio = document.getElementById('RemoteAudio');
-    var stream = remoteAudio.srcObject;
-    if (stream){
-      var tracks = stream.getTracks();
-      if (tracks){
-        tracks.forEach(function(track) {
-          track.stop();
-        });
-      }
-    }
+    doClearTracks();
     var audioControl = document.getElementById('AudioControl');
     audioControl.style.display = 'none';
   },
