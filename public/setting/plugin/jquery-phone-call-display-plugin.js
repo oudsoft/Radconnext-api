@@ -123,13 +123,13 @@
     const doChangeProgeesDisplay = function(callNo){
       $this.empty();
       let phoneProgressDisplay = onCallProgressDisplay(callNo);
-      this.append($(phoneProgressDisplay));
+      $this.append($(phoneProgressDisplay));
     }
 
     const doChangeStartDisplay = function(){
       $this.empty();
       let phoneCallDisplay = onStartCallDisplay();
-      this.append($(phoneCallDisplay));
+      $this.append($(phoneCallDisplay));
     }
 
     let phoneCallDisplay = init();
