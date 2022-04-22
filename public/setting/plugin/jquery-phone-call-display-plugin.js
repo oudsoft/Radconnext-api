@@ -5,7 +5,8 @@
 
     var settings = $.extend({
       startCallHandle: undefined,
-      endCallHandle: undefined
+      endCallHandle: undefined,
+      keyPressSoundUrl: '/mp3/button-35.mp3'
     }, options );
 
     var $this = this;
@@ -14,8 +15,19 @@
     const btnStyle = {'font-size': '200%', 'width': '80px', 'height': '80px', 'font' : 'normal 40pt Tahoma', 'border-radius':'5pt'};
     const displayStyle = {'font-size': '60px', 'width': '260px', 'height': '80px', 'text-align': 'right', 'border-radius': '5pt', 'color': 'black', 'background-color': '#EAEDED'};
 
+    const doPlaySoundButtonKeyPress = function(){
+      $('#RingAudio').remove();
+      ringAudio = new Audio(settings.keyPressSoundUrl);
+      ringAudio.id = 'RingAudio';
+      $this.append($(ringAudio));
+      ringAudio.load();
+      setTimeout(() => {
+        ringAudio.play();
+      }, 500);
+    }
+
     const onBtnNoClick = function(evt, display){
-      settings.keyPressHandle();
+      doPlaySoundButtonKeyPress();
       let evtVal = $(evt.currentTarget).val();
       let currentVal = $(display).val();
       $(display).val(currentVal + evtVal);

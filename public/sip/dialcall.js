@@ -191,32 +191,6 @@ const doAcceptCall = function(evt){
 }
 
 
-const doPlaySoundButtonKeyPress = function(audioElem){
-  if (audioElem.src) {
-    audioElem.removeAttribute('src');
-  }
-  audioElem.src = '/mp3/button-35.mp3';
-  audioElem.load();
-  setTimeout(() => {
-    audioElem.play();
-  }, 500);
-}
-
-const doPlayRingIncomeCall = function(audioElem){
-  if (audioElem.src) {
-    audioElem.removeAttribute('src');
-  }
-  audioElem.src = '/mp3/telephone-ring-04.mp3';
-  audioElem.load();
-  audioElem.addEventListener('ended', function() {
-    this.currentTime = 0;
-    this.play();
-  }, false);
-  setTimeout(() => {
-    audioElem.play();
-  }, 500);
-}
-
 const doClearTracks = function(){
   var remoteAudio = document.getElementById("RemoteAudio");
   var stream = remoteAudio.srcObject;
