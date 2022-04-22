@@ -192,7 +192,9 @@ const doAcceptCall = function(evt){
 
 
 const doPlaySoundButtonKeyPress = function(audioElem){
-  audioElem.removeAttribute('src');
+  if (audioElem.src) {
+    audioElem.removeAttribute('src');
+  }
   audioElem.src = '/mp3/button-35.mp3';
   audioElem.load();
   setTimeout(() => {
@@ -201,7 +203,9 @@ const doPlaySoundButtonKeyPress = function(audioElem){
 }
 
 const doPlayRingIncomeCall = function(audioElem){
-  audioElem.removeAttribute('src');
+  if (audioElem.src) {
+    audioElem.removeAttribute('src');
+  }
   audioElem.src = '/mp3/telephone-ring-04.mp3';
   audioElem.load();
   audioElem.addEventListener('ended', function() {
