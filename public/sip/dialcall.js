@@ -8,6 +8,10 @@ var userdata = JSON.parse(localStorage.getItem('userdata'));
 var username = userdata.userinfo.User_SipPhone;
 var usersecret = userdata.userinfo.User_SipSecret;
 
+if (!(username) && !(usersecret)){
+  window.location.replace('/');
+}
+
 var domainname = '202.28.68.6';
 //var domainname = 'radconnext.me';
 var userUri = username + '@' + domainname;
