@@ -40,7 +40,7 @@
 <script type="text/javascript">
   $( document ).ready(function() {
     let phoneOption = {startCallHandle: doStartCallBack, endCallHabdle: doEndCallBack};
-    let phoneCall = $('#DialControl').phonecalldisplay(phoneOption);
+    let phoneCallHandle = $('#DialControl').phonecalldisplay(phoneOption);
 
     let sipPhoneOptions = {onRejectCallCallback: doRejectCall, onAcceptCallCallback: doAcceptCall, onEndCallCallback: doEndCall};
 

@@ -77,6 +77,7 @@ if ((username) && (usersecret)) {
 var eventHandlers = {
   'progress': function(e) {
     console.log('call is in progress ...');
+    phoneCallHandle.changeProgress();
   },
   'failed': function(e) {
     console.log('call failed with cause: ', e/*.data.cause*/);

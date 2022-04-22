@@ -4,7 +4,8 @@
   $.fn.phonecalldisplay = function( options ) {
 
     var settings = $.extend({
-      callHandle: undefined
+      startCallHandle: undefined,
+      endCallHandle: undefined
     }, options );
 
     var $this = this;
@@ -42,7 +43,30 @@
       return;
     }
 
-    const init = function() {
+    const onEndCallBtnCmdClick = function(evt, callDisplay){
+      let msisdn = $(callDisplay).val();
+      settings.endCallHandle(msisdn);
+    }
+
+    const onCallProgressDisplay = function(callNo){
+      const callDisplay = $('<input type="text" id="CallDisplay" disabled></input>').css(displayStyle);
+      $(callDisplay).val(callNo);
+      const endCallBtnCmd = $('<input type="button" id="EndCallBtnCmd" value=""></input>').css(btnStyle);
+      $(endCallBtnCmd).css({'background':'url(/images/phone-call-icon-3.png) no-repeat', 'background-size': '100% 100%'});
+      $(endCallBtnCmd).on('click', (evt)=>{onEndCallBtnCmdClick(evt, callDisplay)});
+      const avatarImageBox = $('<div style="width: 240px; height: auto;"></div>');
+      $(avatarImageBox).css({'background':'url(/images/user-account.png) no-repeat', 'background-size': '100% 100%'});
+      const cellCallDisplay = $('<td aling="center"></td>').append($(callDisplay));
+      const cellAvatarImage = $('<td aling="center"></td>').append($(avatarImageBox));
+      const cellEndCallBtnCmd = $('<td aling="center"></td>').append($(endCallBtnCmd));
+      const rowFrame1 =$('<tr></tr>').append($(cellCallDisplay));
+      const rowFrame2 =$('<tr></tr>').append($(cellAvatarImage));
+      const rowFrame3 =$('<tr></tr>').append($(cellEndCallBtnCmd));
+      const mainFrame = $('<table></table>');
+      return $(mainFrame).append($(rowFrame1)).append($(rowFrame2)).append($(rowFrame3));
+    }
+
+    const onStartCallDisplay = function(){
       const callDisplay = $('<input type="text" id="CallDisplay" disabled></input>').css(displayStyle);
       const callBtnNo1 = $('<input type="button" id="CallBtnNo1" value="1"></input>').css(btnStyle);
       $(callBtnNo1).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
@@ -65,7 +89,7 @@
       const callBtnNo0 = $('<input type="button" id="CallBtnNo0" value="0"></input>').css(btnStyle);
       $(callBtnNo0).on('click', (evt)=>{onBtnNoClick(evt, callDisplay)});
       const callBtnTELCmd = $('<input type="button" id="CallBtnTELCmd" value=""></input>').css(btnStyle);
-      $(callBtnTELCmd).css({'background':'url(/images/phone-call-icon.png) no-repeat', 'background-size': '100% 100%'});
+      $(callBtnTELCmd).css({'background':'url(/images/phone-call-icon-1.png) no-repeat', 'background-size': '100% 100%'});
       $(callBtnTELCmd).on('click', (evt)=>{onBtnTELCmdClick(evt, callDisplay)});
       const callBtnDELCmd = $('<input type="button" id="CallBtnDELCmd" value=""></input>').css(btnStyle);
       $(callBtnDELCmd).css({'background':'url(/images/back-slash-icon.png) no-repeat', 'background-size': '100% 100%'});
@@ -92,12 +116,29 @@
       return $(mainFrame).append($(rowFrame1)).append($(rowFrame2)).append($(rowFrame3)).append($(rowFrame4)).append($(rowFrame5));
     }
 
+    const init = function() {
+      return onStartCallDisplay();
+    }
+
+    const doChangeProgeesDisplay = function(callNo){
+      $this.empty();
+      let phoneProgressDisplay = onCallProgressDisplay(callNo);
+      this.append($(phoneProgressDisplay));
+    }
+
+    const doChangeStartDisplay = function(){
+      $this.empty();
+      let phoneCallDisplay = onStartCallDisplay();
+      this.append($(phoneCallDisplay));
+    }
+
     let phoneCallDisplay = init();
     this.append($(phoneCallDisplay));
 
     /* public method of plugin */
     let output = {
-
+      changeProgress: doChangeProgeesDisplay,
+      changeStart: doChangeStartDisplay
     }
 
     return output;
