@@ -23,7 +23,7 @@
       ringAudio.load();
       setTimeout(() => {
         ringAudio.play();
-      }, 500);
+      }, 100);
     }
 
     const onBtnNoClick = function(evt, display){
