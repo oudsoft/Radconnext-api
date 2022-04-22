@@ -39,7 +39,7 @@
 
 <script type="text/javascript">
   $( document ).ready(function() {
-    let phoneOption = {startCallHandle: doStartCallBack, endCallHandle: doEndCallBack};
+    let phoneOption = {startCallHandle: doStartCallBack, endCallHandle: doEndCallBack, keyPressHandle: doPlayRingIncomeCall};
 
     phoneCallHandle = $('#DialControl').phonecalldisplay(phoneOption);
 

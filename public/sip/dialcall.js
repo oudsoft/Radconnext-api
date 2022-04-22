@@ -190,7 +190,14 @@ const doAcceptCall = function(evt){
 }
 
 
-
+const doPlaySoundButtonKeyPress = function(audioElem){
+  audioElem.removeAttribute('src');
+  audioElem.src = '/mp3/button-35.mp3';
+  audioElem.load();
+  setTimeout(() => {
+    audioElem.play();
+  }, 500);
+}
 
 const doPlayRingIncomeCall = function(audioElem){
   audioElem.removeAttribute('src');

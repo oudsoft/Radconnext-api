@@ -15,6 +15,7 @@
     const displayStyle = {'font-size': '60px', 'width': '260px', 'height': '80px', 'text-align': 'right', 'border-radius': '5pt', 'color': 'black', 'background-color': '#EAEDED'};
 
     const onBtnNoClick = function(evt, display){
+      settings.keyPressHandle();
       let evtVal = $(evt.currentTarget).val();
       let currentVal = $(display).val();
       $(display).val(currentVal + evtVal);
@@ -59,8 +60,8 @@
       const endCallBtnCmd = $('<input type="button" id="EndCallBtnCmd" value=""></input>').css(btnStyle);
       $(endCallBtnCmd).css({'background':'url(/images/phone-call-icon-3.png) no-repeat', 'background-size': '100% 100%'});
       $(endCallBtnCmd).on('click', (evt)=>{onEndCallBtnCmdClick(evt, callDisplay)});
-      const avatarImageBox = $('<div style="width: 240px; height: auto;"></div>');
-      $(avatarImageBox).append($('<img src="/images/user-account.png" width="100%" height="auto"/>'));
+      const avatarImageBox = $('<div style="width: 240px; height: auto; text-align: center;"></div>');
+      $(avatarImageBox).append($('<img src="/images/user-account.png" width="80%" height="auto"/>'));
       const cellCallDisplay = $('<td aling="center"></td>').append($(callDisplay));
       const cellAvatarImage = $('<td aling="center"></td>').append($(avatarImageBox));
       const cellEndCallBtnCmd = $('<td aling="center"></td>').append($(endCallBtnCmd));
