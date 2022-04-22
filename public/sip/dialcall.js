@@ -5,12 +5,12 @@ var rtcSession = undefined;
 var phoneCallHandle = undefined;
 
 var userdata = JSON.parse(localStorage.getItem('userdata'));
-var username = userdata.userinfo.User_SipPhone;
-var usersecret = userdata.userinfo.User_SipSecret;
-
-if (!(username) && !(usersecret)){
+if (!(userdata)){
   window.location.replace('/');
 }
+
+var username = userdata.userinfo.User_SipPhone;
+var usersecret = userdata.userinfo.User_SipSecret;
 
 var domainname = '202.28.68.6';
 //var domainname = 'radconnext.me';
