@@ -74,6 +74,9 @@ if ((username) && (usersecret)) {
   ua.start();
 }
 
+let phoneOption = {startCallHandle: doStartCallBack, endCallHabdle: doEndCallBack};
+let phoneCallHandle = $('#DialControl').phonecalldisplay(phoneOption);
+
 var eventHandlers = {
   'progress': function(e) {
     console.log('call is in progress ...');
