@@ -94,6 +94,7 @@ var eventHandlers = {
     doClearTracks();
     var audioControl = document.getElementById('AudioControl');
     audioControl.style.display = 'none';
+    phoneCallHandle.changeStart();
   },
   'confirmed': function(e) {
     console.log('call confirmed ...', e);
