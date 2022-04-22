@@ -55,7 +55,8 @@
       $(endCallBtnCmd).css({'background':'url(/images/phone-call-icon-3.png) no-repeat', 'background-size': '100% 100%'});
       $(endCallBtnCmd).on('click', (evt)=>{onEndCallBtnCmdClick(evt, callDisplay)});
       const avatarImageBox = $('<div style="width: 240px; height: auto;"></div>');
-      $(avatarImageBox).css({'background':'url(/images/user-account.png) no-repeat', 'background-size': '100% 100%'});
+      //$(avatarImageBox).css({'background':'url(/images/user-account.png) no-repeat', 'background-size': '100% 100%'});
+      $(avatarImageBox).append($('<img src="/images/phone-call-icon-3.png" width="100%" height="auto"/>'));
       const cellCallDisplay = $('<td aling="center"></td>').append($(callDisplay));
       const cellAvatarImage = $('<td aling="center"></td>').append($(avatarImageBox));
       const cellEndCallBtnCmd = $('<td aling="center"></td>').append($(endCallBtnCmd));
