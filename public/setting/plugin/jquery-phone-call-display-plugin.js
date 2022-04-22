@@ -125,9 +125,10 @@
       return onStartCallDisplay();
     }
 
-    const doChangeProgeesDisplay = function(callNo){
+    const doChangeProgeesDisplay = function(){
       $this.empty();
-      let phoneProgressDisplay = onCallProgressDisplay(callNo);
+      console.log(callingNo);
+      let phoneProgressDisplay = onCallProgressDisplay(callingNo);
       $this.append($(phoneProgressDisplay));
     }
 

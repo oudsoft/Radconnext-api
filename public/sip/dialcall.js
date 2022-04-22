@@ -82,8 +82,9 @@ if ((username) && (usersecret)) {
 var eventHandlers = {
   'progress': function(e) {
     console.log('call is in progress ...');
-    let callingNo = getCallingNo
-    phoneCallHandle.changeProgress(callingNo);
+    //let callingNo = phoneCallHandle.getCallingNo();
+    //phoneCallHandle.changeProgress(callingNo);
+    phoneCallHandle.changeProgress();
   },
   'failed': function(e) {
     console.log('call failed with cause: ', e/*.data.cause*/);
