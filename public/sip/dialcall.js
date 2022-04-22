@@ -2,6 +2,7 @@ JsSIP.debug.disable('JsSIP:*');
 
 var session = undefined;
 var rtcSession = undefined;
+var phoneCallHandle = undefined;
 
 var userdata = JSON.parse(localStorage.getItem('userdata'));
 var username = userdata.userinfo.User_SipPhone;
@@ -219,7 +220,3 @@ const doClearTracks = function(){
     }
   }
 }
-
-
-let phoneOption = {startCallHandle: doStartCallBack, endCallHabdle: doEndCallBack};
-let phoneCallHandle = $('#DialControl').phonecalldisplay(phoneOption);
