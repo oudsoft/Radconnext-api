@@ -2646,7 +2646,7 @@ module.exports = function ( jq ) {
     $(remoteRunBox).append($(hospitalIdBox)).append($(monitorBox)).append($(commandsListBox)).append($(executeCmdBox));
 		let remoteBox = $('<div style="position: relative; width: 100%;"></div>');
 		let backCmdBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
-		$(backCmdBox).append($(backCmd)).append($('<span>  </span>')).append($(testCmd));
+		$(backCmdBox).append($(backCmd)).append($(testCmd));
 		return $(remoteBox).append($(remoteRunBox)).append($(exampleCommandBox)).append($(backCmdBox));
   }
 
