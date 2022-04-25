@@ -264,11 +264,19 @@ module.exports = function ( jq ) {
 
 	const doCallDownloadDicom = function(studyID, hospitalId){
 		return new Promise(function(resolve, reject) {
+      const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $(progBar.progressValueBox).remove();
+      $(progBar.progressBox).css({'font-size': '50px'});
   		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
   		let params = {hospitalId: hospitalId};
       //doCallApi(orthancProxyEndPoint, params).then((data)=>{
   		$.post(orthancProxyEndPoint, params, function(data){
+        progBar.doCloseProgress();
 				resolve(data);
+      }).fail(function(error) {
+        progBar.doCloseProgress();
+				reject(error);
 			});
   	});
 	}
@@ -324,6 +332,16 @@ module.exports = function ( jq ) {
     });
   }
 
+  const doCallDicomArchiveExist = function(archiveFilename){
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/archivefile/exist';
+      let params = {filename: archiveFilename};
+      $.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
   const doConvertPageToPdf = function(pageUrl){
     return new Promise(function(resolve, reject) {
       let convertorEndPoint = proxyRootUri + "/convertfromurl";;
@@ -372,6 +390,28 @@ module.exports = function ( jq ) {
   	});
   }
 
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
   /* Zoom API Connection */
 
   const zoomUserId = 'vwrjK4N4Tt284J2xw-V1ew';
@@ -418,12 +458,17 @@ module.exports = function ( jq ) {
           await meetings.forEach(async (item, i) => {
             reqParams.meetingId = item.id;
             let meetingRes = await doCallApi(reqUrl, reqParams);
-            if (meetingRes.response.status === 'waiting') {
-              readyMeetings.push(item);
+            console.log(meetingRes);
+            if ((meetingRes.response) && (meetingRes.response.status)){
+              if (meetingRes.response.status === 'waiting') {
+                readyMeetings.push(item);
+                return;
+              } else if (meetingRes.response.status === 'end') {
+                reqUrl = '/api/zoom/deletemeeting';
+                meetingRes = await doCallApi(reqUrl, reqParams);
+              }
+            } else {
               return;
-            } else if (meetingRes.response.status === 'end') {
-              reqUrl = '/api/zoom/deletemeeting';
-              meetingRes = await doCallApi(reqUrl, reqParams);
             }
           });
           setTimeout(()=> {
@@ -432,12 +477,13 @@ module.exports = function ( jq ) {
         });
         Promise.all([promiseList]).then(async (ob)=>{
           let patientFullNameEN = incident.case.patient.Patient_NameEN + ' ' + incident.case.patient.Patient_LastNameEN;
+          let patientHN = incident.case.patient.Patient_HN;
           if (ob[0].length >= 1) {
             let readyMeeting = ob[0][0];
             console.log('readyMeeting =>', readyMeeting);
             console.log('case dtail =>', incident);
             //update meeting for user
-            let joinTopic = 'โรงพยาบาล' + hospitalName + ' ผู้ป่วยชื่อ ' + patientFullNameEN;
+            let joinTopic = 'โรงพยาบาล' + hospitalName + '  ' + patientFullNameEN + '  HN: ' + patientHN;
             let startTime = startMeetingTime;
             let zoomParams = {
               topic: joinTopic,
@@ -462,7 +508,7 @@ module.exports = function ( jq ) {
             //create new meeting
             reqUrl = '/api/zoom/createmeeting';
             reqParams.zoomUserId = zoomUserId;
-            let joinTopic =  'โรงพยาบาล' + hospitalName + ' ผู้ป่วยชื่อ ' + patientFullNameEN;
+            let joinTopic =  'โรงพยาบาล' + hospitalName + ' ' + patientFullNameEN + ' HN: ' + patientHN;
             let startTime = startMeetingTime;
             let zoomParams = {
               topic: joinTopic,
@@ -526,10 +572,13 @@ module.exports = function ( jq ) {
 		doCallTransferHistory,
 		doCallDeleteDicom,
     doGetOrthancPort,
+    doCallDicomArchiveExist,
     doConvertPageToPdf,
     doDownloadResult,
     doConvertPdfToDicom,
     doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
     doGetZoomMeeting
 	}
 }
@@ -1905,6 +1954,17 @@ module.exports = function ( jq ) {
 		return formatDateTimeStr(d);
 	}
 
+	const formatFullDateStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		return `${dtStrings[0]}`;;
+	}
+
+	const formatTimeHHMNStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		let ts = dtStrings[1].split(':');
+		return `${ts[0]}:${ts[1]}`;;
+	}
+
 	const invokeGetDisplayMedia = function(success) {
 		if(navigator.mediaDevices.getDisplayMedia) {
 	    navigator.mediaDevices.getDisplayMedia(videoConstraints).then(success).catch(doGetScreenSignalError);
@@ -2172,6 +2232,8 @@ module.exports = function ( jq ) {
 		formatDateDev,
 		formatDateTimeStr,
 		formatStartTimeStr,
+		formatFullDateStr,
+		formatTimeHHMNStr,
 		invokeGetDisplayMedia,
 		addStreamStopListener,
 		base64ToBlob,
@@ -2478,6 +2540,7 @@ module.exports = function ( jq ) {
 		let dicomLogFileCmdCmd = $('<input type="button" value=" Dicom Log File " style="margin-left: 20px;"/>');
 		let restartServiceCmdCmd = $('<input type="button" value=" Restart Service " style="margin-left: 20px;"/>');
 		let backCmd = $('<input type="button" value=" Back " style="margin-left: 20px;"/>');
+		let testCmd = $('<input type="button" value=" Test " style="margin-left: 20px;"/>');
     $(executeCmdValueCell).append($(executeCmdCmd)).append($(echoCmdCmd)).append($(logFileCmdCmd)).append($(reportLogFileCmdCmd)).append($(dicomLogFileCmdCmd)).append($(restartServiceCmdCmd));
     $(executeCmdBox).append($(executeCmdLabelCell)).append($(executeCmdValueCell));
 
@@ -2563,11 +2626,27 @@ module.exports = function ( jq ) {
 			window.location.replace('/staff.html');
 		});
 
+		$(testCmd).on('click', (evt)=>{
+			let loadModalityCommand = 'curl --user demo:demo http://localhost:8042/modalities?expand';
+			let lines = [loadModalityCommand];
+			let userdata = doGetUserData();
+			userdata = JSON.parse(userdata);
+			let username = userdata.username;
+			let hospitalId = userdata.hospitalId;
+			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+			setTimeout(()=>{
+				let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
+				lines = [reSendStudyCommand];
+				wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+				$.notify("ระบบกำลังจัดส่งภาพเข้าระบบด้วยเส้นทางใหม่ โปรดรอสักครู่", "info");
+			}, 5000);
+		});
+
     let remoteRunBox = $('<div id ="RemoteRunBox" style="display: table; width: 100%; border-collapse: collapse;"></div>');
     $(remoteRunBox).append($(hospitalIdBox)).append($(monitorBox)).append($(commandsListBox)).append($(executeCmdBox));
 		let remoteBox = $('<div style="position: relative; width: 100%;"></div>');
 		let backCmdBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
-		$(backCmdBox).append($(backCmd));
+		$(backCmdBox).append($(backCmd)).append($('<span>  </span>')).append($(testCmd));
 		return $(remoteBox).append($(remoteRunBox)).append($(exampleCommandBox)).append($(backCmdBox));
   }
 
@@ -2597,6 +2676,37 @@ module.exports = function ( jq ) {
 			console.log(studyTags);
 			let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
 			console.log(reStudyRes);
+		} else {
+			let cloudModality = clientDataObject.hasOwnProperty('cloud');
+	    if (cloudModality) {
+	      let cloudHost = cloudModality.Host;
+	      let newCloudHost = undefined;
+	      if (cloudHost == '150.95.26.106'){
+	        newCloudHost = '202.28.68.28';
+	      } else {
+	        newCloudHost = '150.95.26.106'
+	      }
+	      let cloudAET = cloudModality.AET;
+	      let cloudPort = cloudModality.Port;
+	      let newModalityValue = {
+	        "AET": cloudAET,
+	        "Host": newCloudHost,
+	        "Port": cloudPort
+	      };
+	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "' + JSON.stringify(newModalityValue) + '"';
+	      let lines = [changeCloudCommand];
+	      let userdata = doGetUserData();
+	      userdata = JSON.parse(userdata);
+	      let username = userdata.username;
+	      let hospitalId = userdata.hospitalId;
+	      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+	      $('body').loading('stop');
+	    } else {
+	      if ((instancesCount > 0) && (failedInstancesCount == 0)) {
+
+	        $('body').loading('stop');
+	      }
+	    }
 		}
 	}
 
@@ -13544,11 +13654,6 @@ module.exports = function ( jq, wsm) {
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
-		} else if (data.type == 'ping') {
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-			}
 		} else if (data.type == 'refresh') {
 			let eventName = 'triggercounter'
 			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
@@ -13568,8 +13673,8 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = userdata.userprofiles[0].Profile.lockState.autoLockScreen;
-			let minuteLogout = userdata.userprofiles[0].Profile.offlineState.autoLogout;
+			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
 			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
 			if (data.counterping == minuteLockScreen) {
 				let eventName = 'lockscreen';
@@ -13589,6 +13694,10 @@ module.exports = function ( jq, wsm) {
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
+			}
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
