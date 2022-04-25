@@ -2501,7 +2501,8 @@ module.exports = {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-  const util = require('../../case/mod/utilmod.js')($);
+  //const util = require('../../case/mod/utilmod.js')($);
+	const {ConnectWebsocketMaster} = require('../../case/mod/utilmod.js')($);
   const common = require('../../case/mod/commonlib.js')($);
 
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
@@ -2566,7 +2567,8 @@ module.exports = function ( jq ) {
 			$(hospitalInput).val(userdata.hospitalId);
 		}
 
-    const wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+    //const wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+		const wsm = ConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
     /*
     let extOnMsg = $.extend({
         onmessage : function(evt){
