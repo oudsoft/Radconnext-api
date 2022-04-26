@@ -2635,6 +2635,7 @@ module.exports = function ( jq ) {
 			let hospitalId = userdata.hospitalId;
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 			setTimeout(()=>{
+				let studyId = '8f9ae609-159bcd19-4bf10609-c9b27f9f-d7b748f1';
 				let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
 				lines = [reSendStudyCommand];
 				wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
