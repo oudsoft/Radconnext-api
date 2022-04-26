@@ -2680,6 +2680,7 @@ module.exports = function ( jq ) {
 			console.log(reStudyRes);
 		} else {
 			let cloudModality = clientDataObject.hasOwnProperty('cloud');
+			console.log(cloudModality);
 	    if (cloudModality) {
 	      let cloudHost = cloudModality.Host;
 	      let newCloudHost = undefined;
