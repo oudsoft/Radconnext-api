@@ -2672,10 +2672,18 @@ module.exports = function ( jq ) {
 
 		let clientDataObject = undefined;
 		console.log(typeof clientData);
-	  if (((typeof clientData) == 'string') && (clientData !== '')) {
-	    clientDataObject = JSON.parse(clientData);
-	  } else if (((typeof clientData) == 'object') && (clientData !== [])) {
-	    clientDataObject = clientData;
+	  if ((typeof clientData) == 'string') {
+			if (clientData !== '') {
+	    	clientDataObject = JSON.parse(clientData);
+			} else {
+				clientDataObject = {};
+			}
+	  } else if ((typeof clientData) == 'object') {
+			if (clientData !== []) {
+	    	clientDataObject = clientData;
+			} else {
+				clientDataObject = {};
+			}
 	  } else {
 	    clientDataObject = {};
 	  }
