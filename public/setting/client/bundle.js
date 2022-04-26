@@ -2687,6 +2687,8 @@ module.exports = function ( jq ) {
 	  } else {
 	    clientDataObject = {};
 	  }
+		console.log(clientDataObject);
+		
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
 		let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
