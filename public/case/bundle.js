@@ -505,10 +505,18 @@ const onClientResult = async function(evt){
   let hospitalId = userdata.hospitalId;
   let clientData = evt.detail.data;
   let clientDataObject = undefined;
-  if (((typeof clientData) == 'string') && (clientData !== '')) {
-    clientDataObject = JSON.parse(clientData);
-  } else if (((typeof clientData) == 'object') && (clientData !== [])) {
-    clientDataObject = clientData;
+  if ((typeof clientData) == 'string') {
+    if (clientData !== '') {
+      clientDataObject = JSON.parse(clientData);
+    } else {
+      clientDataObject = {};
+    }
+  } else if ((typeof clientData) == 'object') {
+    if (clientData && clientData.length > 0){
+      clientDataObject = clientData;
+    } else {
+      clientDataObject = {};
+    }
   } else {
     clientDataObject = {};
   }

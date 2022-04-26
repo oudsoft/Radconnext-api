@@ -2662,7 +2662,7 @@ module.exports = function ( jq ) {
 		let clientData = evt.detail.data;
 		let clientOwnerId = evt.detail.owner;
 		let clientHospitalId = evt.detail.hospitalId;
-		console.log(clientData);
+		//console.log(clientData);
 		//let lines = clientData.split('\n');
 		//console.log(lines);
 		let resultBox = $('<div style="position: relative; width: 100%; padding: 5px; color: white;"></div>');
@@ -2671,7 +2671,7 @@ module.exports = function ( jq ) {
 		$(monitorHandle).append($(resultBox));
 
 		let clientDataObject = undefined;
-		console.log(typeof clientData);
+		//console.log(typeof clientData);
 	  if ((typeof clientData) == 'string') {
 			if (clientData !== '') {
 	    	clientDataObject = JSON.parse(clientData);
@@ -2687,7 +2687,7 @@ module.exports = function ( jq ) {
 	  } else {
 	    clientDataObject = {};
 	  }
-		console.log(clientDataObject);
+		//console.log(clientDataObject);
 
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
