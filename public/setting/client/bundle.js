@@ -2196,6 +2196,7 @@ module.exports = function ( jq ) {
 		return $(myLogBox);
 	}
 
+	/*
 	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
 	dicomZipSyncWorker.addEventListener("message", async function(event) {
 	  let evtData = event.data;
@@ -2212,7 +2213,8 @@ module.exports = function ( jq ) {
 			$.notify("Your Sync Dicom in Background Error", "error");
 		}
 	});
-
+	*/
+	
 	return {
 		formatDateStr,
 		getTodayDevFormat,
