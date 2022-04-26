@@ -2674,7 +2674,7 @@ module.exports = function ( jq ) {
 		console.log(typeof clientData);
 	  if (((typeof clientData) == 'string') && (clientData !== '')) {
 	    clientDataObject = JSON.parse(clientData);
-	  } else if ((typeof clientData) == 'object') {
+	  } else if (((typeof clientData) == 'object') && (!clientData.length)) {
 	    clientDataObject = clientData;
 	  } else {
 	    clientDataObject = {};
