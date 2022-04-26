@@ -2699,10 +2699,8 @@ module.exports = function ( jq ) {
 	      };
 	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "' + JSON.stringify(newModalityValue) + '"';
 	      let lines = [changeCloudCommand];
-	      let userdata = doGetUserData();
-	      userdata = JSON.parse(userdata);
-	      let username = userdata.username;
-	      let hospitalId = userdata.hospitalId;
+				let username = userdata.username;
+				let hospitalId = $(hospitalInput).val();
 	      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 	      $('body').loading('stop');
 	    } else {
