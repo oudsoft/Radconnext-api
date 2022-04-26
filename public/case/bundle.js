@@ -499,7 +499,10 @@ const onClientReconnectTrigger = function(evt){
 }
 
 const onClientResult = async function(evt){
-  console.log(evt.detail);
+  //console.log(evt.detail);
+  const userdata = JSON.parse(localStorage.getItem('userdata'));
+  let username = userdata.username;
+  let hospitalId = userdata.hospitalId;
   let clientData = evt.detail.data;
   let clientDataObject = undefined;
   if ((typeof clientData) == 'string'){
@@ -531,6 +534,28 @@ const onClientResult = async function(evt){
     let radAlertBox = $('body').radalert(radalertoption);
     $(radAlertBox.cancelCmd).hide();
     $('body').loading('stop');
+  } else {
+    let cloudModality = clientDataObject.hasOwnProperty('cloud');
+    if (cloudModality) {
+      let cloudHost = clientDataObject.cloud.Host;
+      let newCloudHost = undefined;
+      if (cloudHost == '150.95.26.106'){
+        newCloudHost = '202.28.68.28';
+      } else {
+        newCloudHost = '150.95.26.106'
+      }
+      let cloudAET = clientDataObject.cloud.AET;
+      let cloudPort = clientDataObject.cloud.Port;
+      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\\"AET\\" : \\"' + cloudAET + '\\", \\"Host\\": \\"' + newCloudHost +'\\", \\"Port\\": ' + cloudPort + '}"';
+      let lines = [changeCloudCommand];
+      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+      $('body').loading('stop');
+    } else {
+      if ((instancesCount > 0) && (failedInstancesCount == 0)) {
+
+        $('body').loading('stop');
+      }
+    }
   }
 
 }
@@ -5371,7 +5396,8 @@ module.exports = function ( jq ) {
 				openStoneWebViewerCounter += 1;
 				common.doOpenStoneWebViewer(defualtValue.studyInstanceUID);
 			});
-			let sumSeriesImages = $('<span id="SumSeriesImages">' + allSeries + ' / ' + allImageInstances +'</span>');
+			let summarySeriesImages = allSeries + ' / ' + allImageInstances;
+			let sumSeriesImages = $('<span id="SumSeriesImages">' + summarySeriesImages + '</span>');
 			$(tableCell).append($(sumSeriesImages));
 			$(tableCell).append('<span>   </span>');
 			$(tableCell).append($(previewCmd));
@@ -5380,6 +5406,7 @@ module.exports = function ( jq ) {
 			$(reStructDicomCmd).css({'cursor': 'pointer', 'margin-bottom': '-8px'});
 			$(reStructDicomCmd).on('click', async function(evt){
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
+				let username = userdata.username;
 				let hospitalId = userdata.hospitalId;
 				let studyId = defualtValue.studyID;
 				let studyTags = await apiconnector.doCallLoadStudyTags(hospitalId, studyId);
@@ -5390,10 +5417,24 @@ module.exports = function ( jq ) {
 				let patientTargetName = defualtValue.patient.name;
 				let allNewSeries = updateDicom.Series.length;
 				let allNewImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientTargetName);
-				let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
-				console.log(allNewSum);
-				$('#SumSeriesImages').text(allNewSum);
-				$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
+				if (allNewSum !== summarySeriesImages){
+					let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
+					console.log(allNewSum);
+					$('#SumSeriesImages').text(allNewSum);
+					$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
+				} else {
+					let loadModalityCommand = 'curl --user demo:demo http://localhost:8042/modalities?expand';
+					let lines = [loadModalityCommand];
+					const main = require('../main.js');
+					let myWsm = main.doGetWsm();
+					myWsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+					setTimeout(()=>{
+						let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
+						lines = [reSendStudyCommand];
+						myWsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+						$.notify("ระบบกำลังจัดส่งภาพเข้าระบบด้วยเส้นทางใหม่ โปรดรอสักครู่", "info");
+					}, 5000);
+				}
 			});
 			$(tableCell).append('<span>   </span>');
 			$(tableCell).append($(reStructDicomCmd));
@@ -8123,6 +8164,7 @@ module.exports = function ( jq ) {
 		return $(myLogBox);
 	}
 
+	/*
 	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
 	dicomZipSyncWorker.addEventListener("message", async function(event) {
 	  let evtData = event.data;
@@ -8139,7 +8181,8 @@ module.exports = function ( jq ) {
 			$.notify("Your Sync Dicom in Background Error", "error");
 		}
 	});
-
+	*/
+	
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -8176,7 +8219,7 @@ module.exports = function ( jq ) {
 		XLSX_FILE_TYPE,
 		doCreateDownloadXLSX,
 		doShowLogWindow,
-		dicomZipSyncWorker,
+		//dicomZipSyncWorker,
 		/*  Web Socket Interface */
 		wsm
 	}
