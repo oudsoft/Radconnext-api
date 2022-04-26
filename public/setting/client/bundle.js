@@ -2668,6 +2668,7 @@ module.exports = function ( jq ) {
 		let monitorHandle = $('#app').find('#MonitorBox');
 		$(monitorHandle).append($(resultBox));
 		//let clientDataObject = JSON.parse(clientData);
+		let clientDataObject = clientData;
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
 		let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
