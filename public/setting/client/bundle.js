@@ -2508,7 +2508,8 @@ module.exports = function ( jq ) {
 
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 
-
+	var wsm = undefined;
+	
   const doOpenRemoteRun = function(hospitalId){
 
     let hospitalIdBox = $('<div style="display: table-row; width: 100%;"></div>');
@@ -2568,7 +2569,7 @@ module.exports = function ( jq ) {
 			$(hospitalInput).val(userdata.hospitalId);
 		}
 
-    const wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+    wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
     /*
     let extOnMsg = $.extend({
         onmessage : function(evt){
