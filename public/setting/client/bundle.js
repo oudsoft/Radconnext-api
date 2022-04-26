@@ -2699,7 +2699,7 @@ module.exports = function ( jq ) {
 	        "Host": newCloudHost,
 	        "Port": cloudPort
 	      };
-	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\"AET\" : \"' + cloudAET + '\", \"Host\": \"' + newCloudHost +'\", \"Port\": ' + cloudPort + '}"';
+	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\\"AET\\" : \\"' + cloudAET + '\\", \\"Host\\": \\"' + newCloudHost +'\\", \\"Port\\": ' + cloudPort + '}"';
 				console.log(changeCloudCommand);
 	      let lines = [changeCloudCommand];
 				let username = userdata.username;
