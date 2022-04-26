@@ -2669,8 +2669,15 @@ module.exports = function ( jq ) {
 		$(resultBox).text(clientData);
 		let monitorHandle = $('#app').find('#MonitorBox');
 		$(monitorHandle).append($(resultBox));
-		//let clientDataObject = JSON.parse(clientData);
-		let clientDataObject = clientData;
+		
+		let clientDataObject = undefined;
+	  if ((typeof clientData) == 'string'){
+	    clientDataObject = JSON.parse(clientData);
+	  } else if ((typeof clientData) == 'object') {
+	    clientDataObject = clientData;
+	  } else {
+	    clientDataObject = {};
+	  }
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
 		let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');

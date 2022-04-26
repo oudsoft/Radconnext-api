@@ -509,6 +509,8 @@ const onClientResult = async function(evt){
     clientDataObject = JSON.parse(clientData);
   } else if ((typeof clientData) == 'object') {
     clientDataObject = clientData;
+  } else {
+    clientDataObject = {};
   }
   let parentResources = clientDataObject.hasOwnProperty('ParentResources');
   let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
@@ -550,11 +552,6 @@ const onClientResult = async function(evt){
       let lines = [changeCloudCommand];
       wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
       $('body').loading('stop');
-    } else {
-      if ((instancesCount > 0) && (failedInstancesCount == 0)) {
-
-        $('body').loading('stop');
-      }
     }
   }
 
