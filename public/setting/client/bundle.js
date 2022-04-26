@@ -2679,7 +2679,7 @@ module.exports = function ( jq ) {
 				clientDataObject = {};
 			}
 	  } else if ((typeof clientData) == 'object') {
-			if (!clientData.length) {
+			if (clientData && clientData.length > 0){
 	    	clientDataObject = clientData;
 			} else {
 				clientDataObject = {};
