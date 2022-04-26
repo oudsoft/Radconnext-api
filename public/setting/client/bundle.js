@@ -2631,8 +2631,6 @@ module.exports = function ( jq ) {
 		$(testCmd).on('click', (evt)=>{
 			let loadModalityCommand = 'curl --user demo:demo http://localhost:8042/modalities?expand';
 			let lines = [loadModalityCommand];
-			let userdata = doGetUserData();
-			userdata = JSON.parse(userdata);
 			let username = userdata.username;
 			let hospitalId = userdata.hospitalId;
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
