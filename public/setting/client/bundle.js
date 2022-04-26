@@ -2543,8 +2543,8 @@ module.exports = function ( jq ) {
 		let dicomLogFileCmdCmd = $('<input type="button" value=" Dicom Log File " style="margin-left: 20px;"/>');
 		let restartServiceCmdCmd = $('<input type="button" value=" Restart Service " style="margin-left: 20px;"/>');
 		let backCmd = $('<input type="button" value=" Back " style="margin-left: 20px;"/>');
-		let testCmd = $('<input type="button" value=" Test " style="margin-left: 20px;"/>');
-    $(executeCmdValueCell).append($(executeCmdCmd)).append($(echoCmdCmd)).append($(logFileCmdCmd)).append($(reportLogFileCmdCmd)).append($(dicomLogFileCmdCmd)).append($(restartServiceCmdCmd));
+		let reSendDicomCmd = $('<input type="button" value=" Re-Send Dicom " style="margin-left: 20px;"/>');
+    $(executeCmdValueCell).append($(executeCmdCmd)).append($(echoCmdCmd)).append($(logFileCmdCmd)).append($(reportLogFileCmdCmd)).append($(dicomLogFileCmdCmd)).append($(restartServiceCmdCmd)).append($(reSendDicomCmd));
     $(executeCmdBox).append($(executeCmdLabelCell)).append($(executeCmdValueCell));
 
 		// Clear command
@@ -2629,7 +2629,7 @@ module.exports = function ( jq ) {
 			window.location.replace('/staff.html');
 		});
 
-		$(testCmd).on('click', (evt)=>{
+		$(reSendDicomCmd).on('click', (evt)=>{
 			let loadModalityCommand = 'curl --user demo:demo http://localhost:8042/modalities?expand';
 			let lines = [loadModalityCommand];
 			let username = userdata.username;
@@ -2648,7 +2648,7 @@ module.exports = function ( jq ) {
     $(remoteRunBox).append($(hospitalIdBox)).append($(monitorBox)).append($(commandsListBox)).append($(executeCmdBox));
 		let remoteBox = $('<div style="position: relative; width: 100%;"></div>');
 		let backCmdBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
-		$(backCmdBox).append($(backCmd)).append($(testCmd));
+		$(backCmdBox).append($(backCmd));
 		return $(remoteBox).append($(remoteRunBox)).append($(exampleCommandBox)).append($(backCmdBox));
   }
 
