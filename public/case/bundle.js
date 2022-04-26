@@ -505,9 +505,9 @@ const onClientResult = async function(evt){
   let hospitalId = userdata.hospitalId;
   let clientData = evt.detail.data;
   let clientDataObject = undefined;
-  if ((typeof clientData) == 'string'){
+  if (((typeof clientData) == 'string') && (clientData !== '')) {
     clientDataObject = JSON.parse(clientData);
-  } else if ((typeof clientData) == 'object') {
+  } else if (((typeof clientData) == 'object') && (clientData !== [])) {
     clientDataObject = clientData;
   } else {
     clientDataObject = {};
