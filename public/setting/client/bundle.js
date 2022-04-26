@@ -2657,6 +2657,7 @@ module.exports = function ( jq ) {
 	}
 
 	const onClientResult = async function(evt){
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		let clientData = evt.detail.data;
 		let clientOwnerId = evt.detail.owner;
 		let clientHospitalId = evt.detail.hospitalId;
