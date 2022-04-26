@@ -2509,7 +2509,7 @@ module.exports = function ( jq ) {
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
 
 	var wsm = undefined;
-	
+
   const doOpenRemoteRun = function(hospitalId){
 
     let hospitalIdBox = $('<div style="display: table-row; width: 100%;"></div>');
@@ -2700,6 +2700,7 @@ module.exports = function ( jq ) {
 	        "Port": cloudPort
 	      };
 	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "' + JSON.stringify(newModalityValue) + '"';
+				console.log(changeCloudCommand);
 	      let lines = [changeCloudCommand];
 				let username = userdata.username;
 				let hospitalId = $('#HospitalInput').val();
