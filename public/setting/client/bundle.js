@@ -2636,7 +2636,7 @@ module.exports = function ( jq ) {
 			let hospitalId = $(hospitalInput).val();
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 			setTimeout(()=>{
-				let studyId = '8f9ae609-159bcd19-4bf10609-c9b27f9f-d7b748f1';
+				let studyId = '8a30eca1-6b71a7bc-412023c6-25791425-14fd7687';
 				let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
 				lines = [reSendStudyCommand];
 				wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
@@ -2669,7 +2669,7 @@ module.exports = function ( jq ) {
 		$(resultBox).text(clientData);
 		let monitorHandle = $('#app').find('#MonitorBox');
 		$(monitorHandle).append($(resultBox));
-		
+
 		let clientDataObject = undefined;
 	  if ((typeof clientData) == 'string'){
 	    clientDataObject = JSON.parse(clientData);
