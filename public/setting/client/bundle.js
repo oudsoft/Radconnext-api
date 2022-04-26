@@ -2679,6 +2679,7 @@ module.exports = function ( jq ) {
 			let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
 			console.log(reStudyRes);
 		} else {
+			clientDataObject = JSON.parse(clientData);
 			let cloudModality = clientDataObject.hasOwnProperty('cloud');
 			console.log(cloudModality);
 	    if (cloudModality) {
