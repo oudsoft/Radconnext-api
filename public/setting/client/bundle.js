@@ -2514,7 +2514,7 @@ module.exports = function ( jq ) {
     let hospitalIdBox = $('<div style="display: table-row; width: 100%;"></div>');
     let hospitalLabelCell = $('<div style="display: table-cell; padding: 4px;">Hospital Id:</div>');
     let hospitalValueCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-    let hospitalInput = $('<input type="text"/>');
+    let hospitalInput = $('<input id="HospitalInput" type="text"/>');
     $(hospitalValueCell).append($(hospitalInput));
     $(hospitalIdBox).append($(hospitalLabelCell)).append($(hospitalValueCell));
 
@@ -2701,7 +2701,7 @@ module.exports = function ( jq ) {
 	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "' + JSON.stringify(newModalityValue) + '"';
 	      let lines = [changeCloudCommand];
 				let username = userdata.username;
-				let hospitalId = $(hospitalInput).val();
+				let hospitalId = $('#HospitalInput').val();
 	      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 	      $('body').loading('stop');
 	    } else {
