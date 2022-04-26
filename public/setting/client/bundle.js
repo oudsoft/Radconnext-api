@@ -2685,21 +2685,21 @@ module.exports = function ( jq ) {
 			let cloudModality = clientDataObject.hasOwnProperty('cloud');
 			console.log(cloudModality);
 	    if (cloudModality) {
-	      let cloudHost = cloudModality.Host;
+	      let cloudHost = clientDataObject.cloud.Host;
 	      let newCloudHost = undefined;
 	      if (cloudHost == '150.95.26.106'){
 	        newCloudHost = '202.28.68.28';
 	      } else {
 	        newCloudHost = '150.95.26.106'
 	      }
-	      let cloudAET = cloudModality.AET;
-	      let cloudPort = cloudModality.Port;
+	      let cloudAET = clientDataObject.cloud.AET;
+	      let cloudPort = clientDataObject.cloud.Port;
 	      let newModalityValue = {
 	        "AET": cloudAET,
 	        "Host": newCloudHost,
 	        "Port": cloudPort
 	      };
-	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "' + JSON.stringify(newModalityValue) + '"';
+	      let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\"AET\" : \"' + cloudAET + '\", \"Host\": \"' + newCloudHost +'\", \"Port\": ' + cloudPort + '}"';
 				console.log(changeCloudCommand);
 	      let lines = [changeCloudCommand];
 				let username = userdata.username;
