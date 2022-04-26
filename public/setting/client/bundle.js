@@ -2632,7 +2632,7 @@ module.exports = function ( jq ) {
 			let loadModalityCommand = 'curl --user demo:demo http://localhost:8042/modalities?expand';
 			let lines = [loadModalityCommand];
 			let username = userdata.username;
-			let hospitalId = userdata.hospitalId;
+			let hospitalId = $(hospitalInput).val();
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 			setTimeout(()=>{
 				let studyId = '8f9ae609-159bcd19-4bf10609-c9b27f9f-d7b748f1';
