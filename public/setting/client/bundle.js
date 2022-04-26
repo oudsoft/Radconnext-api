@@ -2529,7 +2529,7 @@ module.exports = function ( jq ) {
     let commandsListBox = $('<div style="display: table-row; width: 100%;"></div>');
     let commandsListLabelCell = $('<div style="display: table-cell; padding: 4px;">Command Script:</div>');
     let commandsListValueCell = $('<div style="display: table-cell; padding: 4px;"></div>');
-    let commandsListInput = $('<textarea cols="80" rows="10"></textarea>');
+    let commandsListInput = $('<textarea id="CommandsListInput" cols="80" rows="10"></textarea>');
     $(commandsListValueCell).append($(commandsListInput));
     $(commandsListBox).append($(commandsListLabelCell)).append($(commandsListValueCell));
 
@@ -2636,7 +2636,7 @@ module.exports = function ( jq ) {
 			let hospitalId = $(hospitalInput).val();
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 			setTimeout(()=>{
-				let studyId = '8a30eca1-6b71a7bc-412023c6-25791425-14fd7687';
+				let studyId = $(commandsListInput).val();
 				let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
 				lines = [reSendStudyCommand];
 				wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
@@ -2709,11 +2709,6 @@ module.exports = function ( jq ) {
 				let hospitalId = $('#HospitalInput').val();
 	      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 	      $('body').loading('stop');
-	    } else {
-	      if ((instancesCount > 0) && (failedInstancesCount == 0)) {
-
-	        $('body').loading('stop');
-	      }
 	    }
 		}
 	}
