@@ -2679,7 +2679,7 @@ module.exports = function ( jq ) {
 				clientDataObject = {};
 			}
 	  } else if ((typeof clientData) == 'object') {
-			if (clientData !== []) {
+			if (!clientData.length) {
 	    	clientDataObject = clientData;
 			} else {
 				clientDataObject = {};
@@ -2688,7 +2688,7 @@ module.exports = function ( jq ) {
 	    clientDataObject = {};
 	  }
 		console.log(clientDataObject);
-		
+
 		let parentResources = clientDataObject.hasOwnProperty('ParentResources');
 		let failedInstancesCount = clientDataObject.hasOwnProperty('FailedInstancesCount');
 		let instancesCount = clientDataObject.hasOwnProperty('InstancesCount');
@@ -2699,7 +2699,6 @@ module.exports = function ( jq ) {
 			let reStudyRes = await common.doReStructureDicom(clientHospitalId, studyID, studyTags);
 			console.log(reStudyRes);
 		} else {
-			clientDataObject = JSON.parse(clientData);
 			let cloudModality = clientDataObject.hasOwnProperty('cloud');
 			console.log(cloudModality);
 	    if (cloudModality) {
