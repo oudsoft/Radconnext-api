@@ -2669,7 +2669,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateDicomFilterForm = function(execCallback){
-		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 60px;"/>');
+		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 50px;"/>');
 		$(studyFromDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyFromDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -2677,7 +2677,7 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 60px;"/>');
+		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 50px;"/>');
 		$(studyToDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyToDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
