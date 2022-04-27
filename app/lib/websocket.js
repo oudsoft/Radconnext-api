@@ -497,13 +497,9 @@ function RadconWebSocketServer (arg, db, log) {
 
 	this.closeTopic = function(topicId){
 		return new Promise(async function(resolve, reject) {
-			$this.db.radchatlogs.update({
-				topicStatus: 0
-			},{
-				where: {
-					caseId: topicId
-				}
-			}).then((updateRes) => resolve(updateRes));
+			let updateTopicRes = await $this.db.radchatlogs.update({topicStatus: 0},{where: {caseId: topicId}});
+			let updateCaseRes = await $this.db.cases.update({casestatusId: 5, Case_DESC: "Radio chat succes."}, {where: {caseId: topicId}});
+			resolve(updateCaseRes);
 		});
 	}
 
