@@ -6103,6 +6103,7 @@ module.exports = function ( jq ) {
 		const hospitalId = userdata.hospitalId;
 		const userId = userdata.id
 		let newCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
+		console.log(newCaseData);
 		if (newCaseData) {
 	    $('body').loading('start');
 	    try {
