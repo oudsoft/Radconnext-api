@@ -130,7 +130,7 @@ app.get('/find', async (req, res) => {
       if (item.id === scanpartId) return item;
     });
     log.info('prTarget=>'+ JSON.stringify(prTarget));
-    let prdf = {pr: {normal: prTarget.PR}, df: {normal: prTarget.DF}}
+    let prdf = {pr: {normal: prTarget.PR}, df: {normal: prTarget.DF, night: prTarget.DF_Night}}
     res.json({status: {code: 200}, prdf: prdf});
   } else {
     res.json({status: {code: 203}});

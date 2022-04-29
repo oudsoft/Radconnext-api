@@ -689,7 +689,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateDicomFilterForm = function(execCallback){
-		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 60px;"/>');
+		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 50px;"/>');
 		$(studyFromDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyFromDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -697,7 +697,7 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 60px;"/>');
+		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 50px;"/>');
 		$(studyToDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyToDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -1413,6 +1413,9 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					if ((item.DF) && (item.DF !== '')) {
+						joinText += ' ' + item.DF + ' บ.';
+					}
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{
@@ -1634,6 +1637,37 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
+
+	const doCallPriceChart = function(hospitalId, scanpartId){
+    return new Promise(async function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      //let hospitalId = userdata.hospitalId;
+      let userId = userdata.id;
+      let rqParams = {userId: userId, hospitalId: hospitalId, scanpartId: scanpartId};
+      let apiUrl = '/api/pricechart/find';
+			let response = await doGetApi(apiUrl, rqParams);
+			resolve(response);
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -1696,7 +1730,9 @@ module.exports = function ( jq ) {
 		genUniqueID,
 		onSimpleEditorPaste,
 		doCallLoadStudyTags,
-		doReStructureDicom
+		doReStructureDicom,
+		doCheckOutTime,
+		doCallPriceChart
 	}
 }
 
@@ -2613,6 +2649,7 @@ module.exports = function ( jq ) {
 		return $(myLogBox);
 	}
 
+	/*
 	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
 	dicomZipSyncWorker.addEventListener("message", async function(event) {
 	  let evtData = event.data;
@@ -2629,7 +2666,8 @@ module.exports = function ( jq ) {
 			$.notify("Your Sync Dicom in Background Error", "error");
 		}
 	});
-
+	*/
+	
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -2666,7 +2704,7 @@ module.exports = function ( jq ) {
 		XLSX_FILE_TYPE,
 		doCreateDownloadXLSX,
 		doShowLogWindow,
-		dicomZipSyncWorker,
+		//dicomZipSyncWorker,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -3555,7 +3593,13 @@ module.exports = function ( jq ) {
     const main = require('../main.js');
     let userdata = JSON.parse(main.doGetUserData());
     let caseCmdBox = $('<div style="text-align: center; padding: 4px;"></div>');
-    let openCmd = $('<div>อ่านผล</div>');
+		let openCmdText = undefined;
+		if (caseItem.casestatusId == 14) {
+			openCmdText = 'ตอบข้อความ';
+		} else {
+			openCmdText = 'อ่านผล';
+		}
+    let openCmd = $('<div></div>').text(openCmdText);
     $(openCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '5px 12px', 'border-radius': '12px', 'cursor': 'pointer', 'color': 'white'});
 		if (caseItem.casestatusId == 2) {
 			$(openCmd).css({'background-color' : 'orange'});
@@ -4660,7 +4704,7 @@ module.exports = function ( jq ) {
 					dicomzipsync.push(newDicomZipSync);
 				}
 				localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
-				util.dicomZipSyncWorker.postMessage({studyID: newDicomZipSync.studyID, type: 'application/x-compressed'});
+				//util.dicomZipSyncWorker.postMessage({studyID: newDicomZipSync.studyID, type: 'application/x-compressed'});
 				$('#NewCaseCmd').click();
 			} else {
 				alert('เกิดข้อผิดพลาด ไม่สามารถตอบรับเคสได้ในขณะนี้');

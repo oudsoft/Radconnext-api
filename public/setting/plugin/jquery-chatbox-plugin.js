@@ -108,7 +108,7 @@
           if (msg[i].type == 'text') {
             $(chatMsg).append($('<p>' + msg[i].msg + '</p>'));
           } else if (msg[i].type == 'link') {
-  			    $(chatMsg).append($('<p><a href="' + msg[i].msg + ' target="_blank">' + msg[i].msg + '</a></p>'));
+  			    $(chatMsg).append($('<p><a href="' + msg[i].msg + '" target="_blank">' + msg[i].msg + '</a></p>'));
           }
         }
         $(messageBody).append($(chatMsg));

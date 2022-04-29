@@ -2669,7 +2669,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateDicomFilterForm = function(execCallback){
-		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 60px;"/>');
+		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 50px;"/>');
 		$(studyFromDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyFromDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -2677,7 +2677,7 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 60px;"/>');
+		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 50px;"/>');
 		$(studyToDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyToDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -3393,6 +3393,9 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					if ((item.DF) && (item.DF !== '')) {
+						joinText += ' ' + item.DF + ' บ.';
+					}
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{
@@ -3614,6 +3617,37 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
+
+	const doCallPriceChart = function(hospitalId, scanpartId){
+    return new Promise(async function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      //let hospitalId = userdata.hospitalId;
+      let userId = userdata.id;
+      let rqParams = {userId: userId, hospitalId: hospitalId, scanpartId: scanpartId};
+      let apiUrl = '/api/pricechart/find';
+			let response = await doGetApi(apiUrl, rqParams);
+			resolve(response);
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -3676,7 +3710,9 @@ module.exports = function ( jq ) {
 		genUniqueID,
 		onSimpleEditorPaste,
 		doCallLoadStudyTags,
-		doReStructureDicom
+		doReStructureDicom,
+		doCheckOutTime,
+		doCallPriceChart
 	}
 }
 
@@ -5982,7 +6018,7 @@ module.exports = function ( jq ) {
 		return customurgent;
 	}
 
-  function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected){
+  async function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
 		let urgentType = $('.mainfull').find('#Urgenttype').val();
 		let urgenttypeId = defualtValue.urgent;
 		if (urgentType) {
@@ -6006,7 +6042,18 @@ module.exports = function ( jq ) {
 	    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
 	    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
 	    let patientHistory = phrImages;
-			let scanpartItem = scanparts;
+			let scanpartItem = [];
+			let isOutTime = common.doCheckOutTime(new Date());
+			for (let i=0; i < scanparts.length; i++){
+				let thisScanPart = scanparts[i];
+				let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
+				if (isOutTime) {
+					thisScanPart.DF = dfRes.prdf.df.night;
+				} else {
+					thisScanPart.DF = dfRes.prdf.df.normal;
+				}
+				scanpartItem.push(thisScanPart);
+			}
 	    let studyID = defualtValue.studyID;
 	    let patientSex = $('.mainfull').find('#Sex').val();
 	    let patientAge = $('.mainfull').find('#Age').val();
@@ -6020,7 +6067,7 @@ module.exports = function ( jq ) {
 	    let bodyPart = $('.mainfull').find('#Bodypart').val();
 			let scanPart = $('.mainfull').find('#Scanpart').val();
 	    //let drReader = $('.mainfull').find('#Radiologist').val();
-			console.log(radioSelected);
+			//console.log(radioSelected);
 			let drReader = radioSelected.radioId;
 	    let detail = $('.mainfull').find('#Detail').val();
 			let wantSaveScanpart = 0;
@@ -6042,13 +6089,13 @@ module.exports = function ( jq ) {
   }
 
 	const doSaveNewCaseStep = async function(defualtValue, options, phrImages, scanparts, radioSelected){
-		let newCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected);
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		const hospitalId = userdata.hospitalId;
+		const userId = userdata.id
+		let newCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 		if (newCaseData) {
 	    $('body').loading('start');
 	    try {
-	      const userdata = JSON.parse(localStorage.getItem('userdata'));
-	      const hospitalId = userdata.hospitalId;
-	      const userId = userdata.id
 	      let rqParams = {key: {Patient_HN: newCaseData.hn}};
 	      let patientdb = await common.doCallApi('/api/patient/search', rqParams);
 	      let patientId, patientRes;
@@ -6120,6 +6167,9 @@ module.exports = function ( jq ) {
 	}
 
 	const doSaveUpdateCaseStep = async function (defualtValue, options, phrImages, scanparts, radioSelected){
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		const hospitalId = userdata.hospitalId;
+		const userId = userdata.id
 		const goToNextPage = function(statusId){
 			if (statusId == 1) {
 				$('#NewStatusSubCmd').click();
@@ -6131,14 +6181,10 @@ module.exports = function ( jq ) {
 				$('#NegativeStatusSubCmd').click();
 			}
 		}
-		let updateCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected);
+		let updateCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 
 		if (updateCaseData) {
 			$('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			const hospitalId = userdata.hospitalId;
-			const userId = userdata.id
-
 			let patientData =  common.doPreparePatientParams(updateCaseData);
 			let rqParams = {data: patientData, patientId: defualtValue.patientId};
 			let patientRes = await common.doCallApi('/api/patient/update', rqParams);
