@@ -6018,81 +6018,91 @@ module.exports = function ( jq ) {
 		return customurgent;
 	}
 
-  async function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
-		let urgentType = $('.mainfull').find('#Urgenttype').val();
-		let urgenttypeId = defualtValue.urgent;
-		if (urgentType) {
-			urgenttypeId = urgentType;
-		}
-		if (!urgenttypeId) {
-			let content = $('<div></div>');
-			$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
-			const radalertoption = {
-				title: 'ข้อมูลไม่ถูกต้อง',
-				msg: $(content),
-				width: '410px',
-				onOk: function(evt) {
-					radAlertBox.closeAlert();
+  function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
+		return new Promise(function(resolve, reject) {
+			let urgentType = $('.mainfull').find('#Urgenttype').val();
+			let urgenttypeId = defualtValue.urgent;
+			if (urgentType) {
+				urgenttypeId = urgentType;
+			}
+			if (!urgenttypeId) {
+				let content = $('<div></div>');
+				$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
+				const radalertoption = {
+					title: 'ข้อมูลไม่ถูกต้อง',
+					msg: $(content),
+					width: '410px',
+					onOk: function(evt) {
+						radAlertBox.closeAlert();
+					}
 				}
+				let radAlertBox = $('body').radalert(radalertoption);
+				$(radAlertBox.cancelCmd).hide();
+				resolve();
+			} else {
+		    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
+		    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
+		    let patientHistory = phrImages;
+				let scanpartItem = [];
+				let isOutTime = common.doCheckOutTime(new Date());
+				let	promiseList = new Promise(async function(resolve2, reject2){
+					for (let i=0; i < scanparts.length; i++){
+						let thisScanPart = scanparts[i];
+						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
+						if (isOutTime) {
+							thisScanPart.DF = dfRes.prdf.df.night;
+						} else {
+							thisScanPart.DF = dfRes.prdf.df.normal;
+						}
+						scanpartItem.push(thisScanPart);
+					}
+					setTimeout(()=>{
+	          resolve2($(scanpartItem));
+	        }, 100);
+				});
+				Promise.all([promiseList]).then((ob)=>{
+					scanpartItem = ob[0];
+			    let studyID = defualtValue.studyID;
+			    let patientSex = $('.mainfull').find('#Sex').val();
+			    let patientAge = $('.mainfull').find('#Age').val();
+			    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
+					let patientRights = $('.mainfull').find('#Cliameright').val();
+			    let price = 0;
+			    let hn = $('.mainfull').find('#HN').val();
+			    let acc = $('.mainfull').find('#ACC').val();
+			    let department = $('.mainfull').find('#Department').val();
+			    let drOwner = $('.mainfull').find('#Refferal').val();
+			    let bodyPart = $('.mainfull').find('#Bodypart').val();
+					let scanPart = $('.mainfull').find('#Scanpart').val();
+			    //let drReader = $('.mainfull').find('#Radiologist').val();
+					//console.log(radioSelected);
+					let drReader = radioSelected.radioId;
+			    let detail = $('.mainfull').find('#Detail').val();
+					let wantSaveScanpart = 0;
+					let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
+					if (saveScanpartOption) {
+						wantSaveScanpart = 1;
+					}
+			    let mdl = defualtValue.mdl;
+			    let studyDesc = defualtValue.studyDesc;
+			    let protocalName = defualtValue.protocalName;
+			    let manufacturer = defualtValue.manufacturer;
+			    let stationName = defualtValue.stationName;
+			    let studyInstanceUID = defualtValue.studyInstanceUID;
+			    let radioId = drReader;
+					let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
+			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
+			    resolve(newCase);
+				});
 			}
-			let radAlertBox = $('body').radalert(radalertoption);
-			$(radAlertBox.cancelCmd).hide();
-			return;
-		} else {
-	    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
-	    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
-	    let patientHistory = phrImages;
-			let scanpartItem = [];
-			let isOutTime = common.doCheckOutTime(new Date());
-			for (let i=0; i < scanparts.length; i++){
-				let thisScanPart = scanparts[i];
-				let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
-				if (isOutTime) {
-					thisScanPart.DF = dfRes.prdf.df.night;
-				} else {
-					thisScanPart.DF = dfRes.prdf.df.normal;
-				}
-				scanpartItem.push(thisScanPart);
-			}
-	    let studyID = defualtValue.studyID;
-	    let patientSex = $('.mainfull').find('#Sex').val();
-	    let patientAge = $('.mainfull').find('#Age').val();
-	    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
-			let patientRights = $('.mainfull').find('#Cliameright').val();
-	    let price = 0;
-	    let hn = $('.mainfull').find('#HN').val();
-	    let acc = $('.mainfull').find('#ACC').val();
-	    let department = $('.mainfull').find('#Department').val();
-	    let drOwner = $('.mainfull').find('#Refferal').val();
-	    let bodyPart = $('.mainfull').find('#Bodypart').val();
-			let scanPart = $('.mainfull').find('#Scanpart').val();
-	    //let drReader = $('.mainfull').find('#Radiologist').val();
-			//console.log(radioSelected);
-			let drReader = radioSelected.radioId;
-	    let detail = $('.mainfull').find('#Detail').val();
-			let wantSaveScanpart = 0;
-			let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
-			if (saveScanpartOption) {
-				wantSaveScanpart = 1;
-			}
-	    let mdl = defualtValue.mdl;
-	    let studyDesc = defualtValue.studyDesc;
-	    let protocalName = defualtValue.protocalName;
-	    let manufacturer = defualtValue.manufacturer;
-	    let stationName = defualtValue.stationName;
-	    let studyInstanceUID = defualtValue.studyInstanceUID;
-	    let radioId = drReader;
-			let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
-	    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
-	    return newCase;
-		}
+		});
   }
 
 	const doSaveNewCaseStep = async function(defualtValue, options, phrImages, scanparts, radioSelected){
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
 		const userId = userdata.id
-		let newCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
+		let newCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 		if (newCaseData) {
 	    $('body').loading('start');
 	    try {
@@ -6181,7 +6191,7 @@ module.exports = function ( jq ) {
 				$('#NegativeStatusSubCmd').click();
 			}
 		}
-		let updateCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
+		let updateCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 
 		if (updateCaseData) {
 			$('body').loading('start');
