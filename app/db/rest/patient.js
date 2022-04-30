@@ -115,6 +115,7 @@ app.post('/update', (req, res) => {
           let patientId = req.body.patientId;
           let updatePatient = req.body.data;
           await Patient.update(updatePatient, { where: { id:  patientId} });
+          log.info('Patient=>' + JSON.stringify(Patient));
           res.json({Result: "OK"});
         } catch(error) {
       		log.error(error);

@@ -6124,6 +6124,7 @@ module.exports = function ( jq ) {
 	        let patientData = common.doPreparePatientParams(newCaseData);
 	        rqParams = {data: patientData, patientId: patientId};
 	        patientRes = await common.doCallApi('/api/patient/update', rqParams);
+					console.log(patientRes);
 	      }
 
 	      const urgenttypeId = newCaseData.urgenttypeId;
