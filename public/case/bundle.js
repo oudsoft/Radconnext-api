@@ -6103,7 +6103,6 @@ module.exports = function ( jq ) {
 		const hospitalId = userdata.hospitalId;
 		const userId = userdata.id
 		let newCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
-		console.log(newCaseData);
 		if (newCaseData) {
 	    $('body').loading('start');
 	    try {
@@ -6124,17 +6123,16 @@ module.exports = function ( jq ) {
 	        let patientData = common.doPreparePatientParams(newCaseData);
 	        rqParams = {data: patientData, patientId: patientId};
 	        patientRes = await common.doCallApi('/api/patient/update', rqParams);
-					console.log(patientRes);
 	      }
 
 	      const urgenttypeId = newCaseData.urgenttypeId;
 	      const cliamerightId = newCaseData.patientRights
 	      let casedata = common.doPrepareCaseParams(newCaseData);
-				console.log(casedata);
 	      rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
+				console.log(rqParams);
 	      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
+				console.log('caseRes=>', caseRes);
 	      if (caseRes.status.code === 200) {
-					console.log('newCase=>', caseRes.Record);
 					console.log('caseActions=>', caseRes.actions);
 					//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
 	        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
