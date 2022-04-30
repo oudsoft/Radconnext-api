@@ -3059,7 +3059,7 @@ module.exports = function ( jq ) {
 		rqParams.Case_OrthancStudyID = newCaseData.studyID;
 		rqParams.Case_ACC = newCaseData.acc;
 		rqParams.Case_BodyPart = newCaseData.bodyPart;
-		rqParams.Case_ScanPart = newCaseData.scanpartItem;
+		rqParams.Case_ScanPart = newCaseData.scanpartItems;
 		rqParams.Case_Modality = newCaseData.mdl;
 		rqParams.Case_Manufacturer = newCaseData.manufacturer;
 		rqParams.Case_ProtocolName = newCaseData.protocalName;
@@ -6020,7 +6020,6 @@ module.exports = function ( jq ) {
 
   function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
 		return new Promise(function(resolve, reject) {
-			console.log(scanparts);
 			let urgentType = $('.mainfull').find('#Urgenttype').val();
 			let urgenttypeId = defualtValue.urgent;
 			if (urgentType) {
@@ -6049,6 +6048,7 @@ module.exports = function ( jq ) {
 				let	promiseList = new Promise(async function(resolve2, reject2){
 					for (let i=0; i < scanparts.length; i++){
 						let thisScanPart = scanparts[i];
+						console.log(thisScanPart);
 						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
 						if (isOutTime) {
 							thisScanPart.DF = dfRes.prdf.df.night;

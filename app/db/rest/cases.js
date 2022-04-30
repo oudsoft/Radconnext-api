@@ -428,9 +428,7 @@ app.post('/search/radio', (req, res) => {
 
 //add insert API
 app.post('/add', (req, res) => {
-  log.info('req.body=>'+JSON.stringify(req.body));
   let token = req.headers.authorization;
-  log.info('token=>'+token);
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
