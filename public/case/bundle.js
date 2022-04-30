@@ -6020,6 +6020,7 @@ module.exports = function ( jq ) {
 
   function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
 		return new Promise(function(resolve, reject) {
+			console.log(scanparts);
 			let urgentType = $('.mainfull').find('#Urgenttype').val();
 			let urgenttypeId = defualtValue.urgent;
 			if (urgentType) {
@@ -6058,10 +6059,11 @@ module.exports = function ( jq ) {
 					}
 					setTimeout(()=>{
 	          resolve2($(scanpartItem));
-	        }, 100);
+	        }, 500);
 				});
 				Promise.all([promiseList]).then((ob)=>{
-					scanpartItem = ob[0];
+					let scanpartItems = ob[0];
+					console.log(scanpartItems);
 			    let studyID = defualtValue.studyID;
 			    let patientSex = $('.mainfull').find('#Sex').val();
 			    let patientAge = $('.mainfull').find('#Age').val();
@@ -6091,7 +6093,7 @@ module.exports = function ( jq ) {
 			    let studyInstanceUID = defualtValue.studyInstanceUID;
 			    let radioId = drReader;
 					let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
-			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
+			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItems, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
 			    resolve(newCase);
 				});
 			}
