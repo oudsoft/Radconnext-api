@@ -6051,7 +6051,8 @@ module.exports = function ( jq ) {
 				let	promiseList = new Promise(async function(resolve2, reject2){
 					for (let i=0; i < scanparts.length; i++){
 						console.log(scanparts[i]);
-						let thisScanPart = Object.assign({}, scanparts[i]);
+						//let thisScanPart = Object.assign({}, scanparts[i]);
+						let thisScanPart = JSON.parse(JSON.stringify(scanparts[i]));
 						console.log(thisScanPart);
 						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
 						if (isOutTime) {
