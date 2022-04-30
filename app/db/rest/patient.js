@@ -112,9 +112,9 @@ app.post('/update', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          const id = req.body.id;
+          let patientId = req.body.patientId;
           let updatePatient = req.body.data;
-          await Patient.update(updatePatient, { where: { id: req.body.patientId } });
+          await Patient.update(updatePatient, { where: { id:  patientId} });
           res.json({Result: "OK"});
         } catch(error) {
       		log.error(error);
