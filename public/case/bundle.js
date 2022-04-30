@@ -6050,10 +6050,7 @@ module.exports = function ( jq ) {
 				let isOutTime = common.doCheckOutTime(new Date());
 				let	promiseList = new Promise(async function(resolve2, reject2){
 					for (let i=0; i < scanparts.length; i++){
-						console.log(scanparts[i]);
-						//let thisScanPart = Object.assign({}, scanparts[i]);
-						let thisScanPart = JSON.parse(JSON.stringify(scanparts[i]));
-						console.log(thisScanPart);
+						let thisScanPart = scanparts[i];
 						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
 						if (isOutTime) {
 							thisScanPart.DF = dfRes.prdf.df.night;
@@ -6069,7 +6066,6 @@ module.exports = function ( jq ) {
 				Promise.all([promiseList]).then((ob)=>{
 					let scanpartItems = JSON.parse(JSON.stringify(ob[0]));
 					//let scanpartItems = scanparts;
-					console.log(scanpartItems);
 			    let studyID = defualtValue.studyID;
 			    let patientSex = $('.mainfull').find('#Sex').val();
 			    let patientAge = $('.mainfull').find('#Age').val();
