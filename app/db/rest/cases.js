@@ -433,6 +433,7 @@ app.post('/add', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         common.doCallCaseStatusByName('New').then(async (newcaseStatus) => {
+          log.info('newcaseStatus=>'+JSON.stringify(newcaseStatus));
           const newcaseStatusId = newcaseStatus[0].id;
           const newCase = req.body.data;
           const userId = req.body.userId;
