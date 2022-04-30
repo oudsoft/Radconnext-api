@@ -673,6 +673,7 @@ module.exports = function ( jq ) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
 				resolve(response);
 			}).catch((err) => {
+				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
 			})
 		});
@@ -1079,7 +1080,7 @@ module.exports = function ( jq ) {
 		rqParams.Case_OrthancStudyID = newCaseData.studyID;
 		rqParams.Case_ACC = newCaseData.acc;
 		rqParams.Case_BodyPart = newCaseData.bodyPart;
-		rqParams.Case_ScanPart = newCaseData.scanpartItem;
+		rqParams.Case_ScanPart = newCaseData.scanpartItems;
 		rqParams.Case_Modality = newCaseData.mdl;
 		rqParams.Case_Manufacturer = newCaseData.manufacturer;
 		rqParams.Case_ProtocolName = newCaseData.protocalName;
@@ -1413,9 +1414,11 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					/*
 					if ((item.DF) && (item.DF !== '')) {
 						joinText += ' ' + item.DF + ' บ.';
 					}
+					*/
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{

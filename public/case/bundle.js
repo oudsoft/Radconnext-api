@@ -3394,9 +3394,11 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					/*
 					if ((item.DF) && (item.DF !== '')) {
 						joinText += ' ' + item.DF + ' บ.';
 					}
+					*/
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{
