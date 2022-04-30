@@ -2653,6 +2653,7 @@ module.exports = function ( jq ) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
 				resolve(response);
 			}).catch((err) => {
+				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
 			})
 		});
