@@ -430,10 +430,11 @@ app.post('/search/radio', (req, res) => {
 app.post('/add', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
+    log.info('token=>'+token);
     auth.doDecodeToken(token).then(async (ur) => {
+      log.info('ur=>'+JSON.stringify(ur));
       if (ur.length > 0){
         common.doCallCaseStatusByName('New').then(async (newcaseStatus) => {
-          log.info('newcaseStatus=>'+JSON.stringify(newcaseStatus));
           const newcaseStatusId = newcaseStatus[0].id;
           const newCase = req.body.data;
           const userId = req.body.userId;
