@@ -6067,7 +6067,7 @@ module.exports = function ( jq ) {
 	        }, 500);
 				});
 				Promise.all([promiseList]).then((ob)=>{
-					let scanpartItems = ob[0];
+					let scanpartItems = JSON.parse(JSON.stringify(ob[0]));
 					//let scanpartItems = scanparts;
 					console.log(scanpartItems);
 			    let studyID = defualtValue.studyID;
