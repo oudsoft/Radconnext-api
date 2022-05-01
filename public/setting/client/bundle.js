@@ -673,6 +673,7 @@ module.exports = function ( jq ) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
 				resolve(response);
 			}).catch((err) => {
+				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
 			})
 		});
@@ -689,7 +690,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateDicomFilterForm = function(execCallback){
-		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 60px;"/>');
+		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 50px;"/>');
 		$(studyFromDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyFromDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -697,7 +698,7 @@ module.exports = function ( jq ) {
 			};
 		});
 
-		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 60px;"/>');
+		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 50px;"/>');
 		$(studyToDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
 		$(studyToDateInput).on('keypress',function(evt) {
 			if(evt.which == 13) {
@@ -1079,7 +1080,7 @@ module.exports = function ( jq ) {
 		rqParams.Case_OrthancStudyID = newCaseData.studyID;
 		rqParams.Case_ACC = newCaseData.acc;
 		rqParams.Case_BodyPart = newCaseData.bodyPart;
-		rqParams.Case_ScanPart = newCaseData.scanpartItem;
+		rqParams.Case_ScanPart = newCaseData.scanpartItems;
 		rqParams.Case_Modality = newCaseData.mdl;
 		rqParams.Case_Manufacturer = newCaseData.manufacturer;
 		rqParams.Case_ProtocolName = newCaseData.protocalName;
@@ -1413,6 +1414,11 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					/*
+					if ((item.DF) && (item.DF !== '')) {
+						joinText += ' ' + item.DF + ' บ.';
+					}
+					*/
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{
@@ -1634,6 +1640,37 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
+
+	const doCallPriceChart = function(hospitalId, scanpartId){
+    return new Promise(async function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      //let hospitalId = userdata.hospitalId;
+      let userId = userdata.id;
+      let rqParams = {userId: userId, hospitalId: hospitalId, scanpartId: scanpartId};
+      let apiUrl = '/api/pricechart/find';
+			let response = await doGetApi(apiUrl, rqParams);
+			resolve(response);
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -1696,7 +1733,9 @@ module.exports = function ( jq ) {
 		genUniqueID,
 		onSimpleEditorPaste,
 		doCallLoadStudyTags,
-		doReStructureDicom
+		doReStructureDicom,
+		doCheckOutTime,
+		doCallPriceChart
 	}
 }
 
@@ -2543,10 +2582,10 @@ module.exports = function ( jq ) {
 		let dicomLogFileCmdCmd = $('<input type="button" value=" Dicom Log File " style="margin-left: 20px;"/>');
 		let restartServiceCmdCmd = $('<input type="button" value=" Restart Service " style="margin-left: 20px;"/>');
 		let backCmd = $('<input type="button" value=" Back " style="margin-left: 20px;"/>');
-		let reSendDicomCmd = $('<input type="button" value=" Re-Send Dicom " style="margin-left: 20px;"/>');
-    $(executeCmdValueCell).append($(executeCmdCmd)).append($(echoCmdCmd)).append($(logFileCmdCmd)).append($(reportLogFileCmdCmd)).append($(dicomLogFileCmdCmd)).append($(restartServiceCmdCmd)).append($(reSendDicomCmd));
+		let reSendDicomCmd = $('<input type="button" id="ReSendDicomCmd" value=" Re-Send Dicom " style="margin-left: 20px;"/>');
+		let compareDicomCmd = $('<input type="button" value=" Compare Dicom " style="margin-left: 20px;"/>');
+    $(executeCmdValueCell).append($(executeCmdCmd)).append($(echoCmdCmd)).append($(logFileCmdCmd)).append($(reportLogFileCmdCmd)).append($(dicomLogFileCmdCmd)).append($(restartServiceCmdCmd)).append($(reSendDicomCmd)).append($(compareDicomCmd));
     $(executeCmdBox).append($(executeCmdLabelCell)).append($(executeCmdValueCell));
-
 		// Clear command
 		// update command
 
@@ -2637,11 +2676,23 @@ module.exports = function ( jq ) {
 			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 			setTimeout(()=>{
 				let studyId = $(commandsListInput).val();
-				let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
-				lines = [reSendStudyCommand];
-				wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
-				$.notify("ระบบกำลังจัดส่งภาพเข้าระบบด้วยเส้นทางใหม่ โปรดรอสักครู่", "info");
+				if (studyId !== '') {
+					let reSendStudyCommand = 'curl -v -X POST --user demo:demo http://localhost:8042/modalities/cloud/store -d ' + studyId;
+					lines = [reSendStudyCommand];
+					wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+					$.notify("ระบบกำลังจัดส่งภาพเข้าระบบด้วยเส้นทางใหม่ โปรดรอสักครู่", "info");
+				}
 			}, 5000);
+		});
+
+		$(compareDicomCmd).on('click', (evt)=>{
+			let todayStudy = util.getToday() + '-';
+			let loadModalityCommand = 'curl --user demo:demo -X POST http://localhost:8042/tools/find -d "{\\"Level\\" : \\"Study\\",  \\"Query\\" : {\\"StudyDate\\" : \\"' + todayStudy + '\\" }}"';
+			let lines = [loadModalityCommand];
+			let username = userdata.username;
+			let hospitalId = $(hospitalInput).val();
+			wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
+			$.notify("ระบบกำลังสำรวจภาพจากในระบบกับ รพ. โปรดรอสักครู่", "info");
 		});
 
     let remoteRunBox = $('<div id ="RemoteRunBox" style="display: table; width: 100%; border-collapse: collapse;"></div>');
@@ -2718,7 +2769,28 @@ module.exports = function ( jq ) {
 				let hospitalId = $('#HospitalInput').val();
 	      wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
 	      $('body').loading('stop');
-	    }
+	    } else {
+				if (clientDataObject[0]) {
+					let localStudiesToday = clientDataObject;
+					console.log(localStudiesToday);
+					let todayStudy = util.getToday() + '-';
+					let rqParams = {};
+					let apiUrl = '/api/orthancproxy/find?hospitalId=' + clientHospitalId + '&username=demo&method=POST&uri=/tools/find -d \'{"Level" : "Study",  "Query" : {"StudyDate" : "' + todayStudy + '" }}\'';
+					let cloudStudiesToday = await common.doGetApi(apiUrl, rqParams);
+					console.log(cloudStudiesToday);
+					let diffStudiesToday = localStudiesToday.filter(x => !cloudStudiesToday.includes(x));
+					console.log(diffStudiesToday);
+					if (diffStudiesToday.length > 0){
+						diffStudiesToday.forEach((study, i) => {
+							$('#CommandsListInput').empty().val(study);
+							$('#ReSendDicomCmd').click();
+							setTimeout(()=>{
+								//
+							}, 5000);
+						});
+					}
+				}
+			}
 		}
 	}
 

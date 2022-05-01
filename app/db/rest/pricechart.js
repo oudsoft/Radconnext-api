@@ -104,7 +104,7 @@ app.post('/find', (req, res) => {
           if (item.id === scanpartId) return item;
         });
         log.info('prTarget=>'+ JSON.stringify(prTarget));
-        let prdf = {pr: {normal: prTarget.PR}, df: {normal: prTarget.DF}}
+        let prdf = {pr: {normal: prTarget.PR}, df: {normal: prTarget.DF, night: prTarget.DF_Night}}
         res.json({status: {code: 200}, prdf: prdf});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

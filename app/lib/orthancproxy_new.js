@@ -110,13 +110,19 @@ app.get('/find', function(req, res) {
 	let hospitalId = req.query.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then((orthanc) => {
 		let username = req.query.username;
+    let httpMethod = req.query.method;
 		let cloud = JSON.parse(orthanc.Orthanc_Cloud)
 		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
-		var command = 'curl -X GET --user ' + cloud.user + ':' + cloud.pass + ' -H "user:' + cloud.user + '" ' + orthancUrl + req.query.uri;
+		var command = 'curl -X ' + httpMethod + ' --user ' + cloud.user + ':' + cloud.pass + ' -H "user:' + cloud.user + '" ' + orthancUrl + req.query.uri;
 		log.info('Find Dicom with command >>', command);
 		runcommand(command).then((stdout) => {
-			let studyObj = JSON.parse(stdout);
-			res.status(200).send(studyObj);
+      log.info('Command output>>', stdout);
+      if ((stdout) && (stdout !=='')){
+  			let studyObj = JSON.parse(stdout);
+  			res.status(200).send(studyObj);
+      } else {
+        res.status(200).send({error: {data: 'empty output'}});
+      }
 		});
 	});
 });
