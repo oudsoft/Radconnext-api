@@ -6514,7 +6514,7 @@ module.exports = function ( jq ) {
 		$(summarySecondLine).append($(summarySecondArea));
 
 		let summaryDF = doCreateSummaryDF(selectedCase.case.Case_ScanPart);
-		console.log(summaryDF);
+		console.log($(summaryDF));
 		$(summarySecondAreaLeft).append($(summaryDF));
 
 		let buttonCmdArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
