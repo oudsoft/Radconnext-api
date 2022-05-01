@@ -6594,7 +6594,7 @@ module.exports = function ( jq ) {
 			let summaryFirstLine = doCreateSummaryFirstLine(selectedCase, patientFullName);
       $(summary).append($(summaryFirstLine));
 
-			let summarySecondLine = doCreateSummarySecondLine(selectedCase, patientFullName);
+			let summarySecondLine = await doCreateSummarySecondLine(selectedCase, patientFullName);
       //$(summarySecondLine).css(common.pageLineStyle);
 			console.log($(summarySecondLine));
       $(summary).append($(summarySecondLine));
