@@ -6501,7 +6501,7 @@ module.exports = function ( jq ) {
 		return $(summaryDF).append($(summaryTable));
 	}
 
-	const doCreateSummarySecondLine = function(selectedCase, patientFullName){
+	const doCreateSummarySecondLine = function(selectedCase, patientFullName, casedate, casetime){
 		return new Promise(async function(resolve, reject) {
 			let summarySecondLine = $('<div></div>');
 			let summarySecondArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
@@ -6527,14 +6527,6 @@ module.exports = function ( jq ) {
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
-
-			let caseCreateAt = util.formatDateTimeStr(selectedCase.case.createdAt);
-			let casedatetime = caseCreateAt.split('T');
-			let casedateSegment = casedatetime[0].split('-');
-			casedateSegment = casedateSegment.join('');
-			let casedate = casedateSegment;
-			casedateSegment = casedatetime[1].split(':');
-			let casetime = casedateSegment.join('');
 
 			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
 			$(downloadCmd).data('downloadData', downloadData);
@@ -6579,6 +6571,14 @@ module.exports = function ( jq ) {
 			casePatientId = selectedCase.case.patientId;
 			caseId = selectedCase.case.id;
 
+			let caseCreateAt = util.formatDateTimeStr(selectedCase.case.createdAt);
+			let casedatetime = caseCreateAt.split('T');
+			let casedateSegment = casedatetime[0].split('-');
+			casedateSegment = casedateSegment.join('');
+			let casedate = casedateSegment;
+			casedateSegment = casedatetime[1].split(':');
+			let casetime = casedateSegment.join('');
+
       const userdata = JSON.parse(localStorage.getItem('userdata'));
 			const patientFullName = selectedCase.case.patient.Patient_NameEN + ' ' + selectedCase.case.patient.Patient_LastNameEN;
 			//let limit = 2;
@@ -6595,7 +6595,7 @@ module.exports = function ( jq ) {
 			let summaryFirstLine = doCreateSummaryFirstLine(selectedCase, patientFullName);
       $(summary).append($(summaryFirstLine));
 
-			let summarySecondLine = await doCreateSummarySecondLine(selectedCase, patientFullName);
+			let summarySecondLine = await doCreateSummarySecondLine(selectedCase, patientFullName, casedate, casetime);
       //$(summarySecondLine).css(common.pageLineStyle);
 			console.log($(summarySecondLine));
       $(summary).append($(summarySecondLine));
