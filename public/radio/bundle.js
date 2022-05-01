@@ -6483,6 +6483,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSummaryDF = function(df){
+		console.log(df);
 		let summaryDF = $('<div></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
@@ -6506,8 +6507,8 @@ module.exports = function ( jq ) {
 			let summarySecondLine = $('<div></div>');
 			let summarySecondArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let summarySecondAreaRow = $('<tr></tr>');
-			let summarySecondAreaLeft = $('<td width="30%" align="left"></td>');
-			let summarySecondAreaMiddle1 = $('<td width="15" align="left"></td>');
+			let summarySecondAreaLeft = $('<td width="40%" align="left"></td>');
+			let summarySecondAreaMiddle1 = $('<td width="25" align="left"></td>');
 			let summarySecondAreaMiddle2 = $('<td width="15" align="left"></td>');
 			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaRight));
