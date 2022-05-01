@@ -6496,7 +6496,7 @@ module.exports = function ( jq ) {
 		}
 		let totalRow = $('<tr></tr>');
 		let totalNameCell = $('<td width="80%" align="left"><b>รวม</b></td>');
-		let totalPriceCell = $('<td width="20%" align="right"><b>' + tototal + '</b></td>');
+		let totalPriceCell = $('<td width="20%" align="right"><b>' + total + '</b></td>');
 		$(summaryTable).append($(totalRow));
 		return $(summaryDF);
 	}
