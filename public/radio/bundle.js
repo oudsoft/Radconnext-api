@@ -6498,7 +6498,7 @@ module.exports = function ( jq ) {
 		let totalNameCell = $('<td width="80%" align="left"><b>รวม</b></td>');
 		let totalPriceCell = $('<td width="20%" align="right"><b>' + total + '</b></td>');
 		$(summaryTable).append($(totalRow));
-		return $(summaryDF);
+		return $(summaryDF).append($(summaryTable));
 	}
 
 	const doCreateSummarySecondLine = async function(selectedCase, patientFullName){
@@ -6591,11 +6591,12 @@ module.exports = function ( jq ) {
 
       let summary = $('<div style="position: relative; width: 98%; margin-left: 2px;"></div>');
 			let summaryFirstLine = doCreateSummaryFirstLine(selectedCase, patientFullName);
-      $(summaryFirstLine).appendTo($(summary));
+      $(summary).append($(summaryFirstLine));
 
 			let summarySecondLine = doCreateSummarySecondLine(selectedCase, patientFullName);
       //$(summarySecondLine).css(common.pageLineStyle);
-      $(summarySecondLine).appendTo($(summary));
+			console.log($(summarySecondLine));
+      $(summary).append($(summarySecondLine));
 
 			let summaryThirdLine = $('<div></div>');
 			$(summaryThirdLine).append($(patientBackwardView));
