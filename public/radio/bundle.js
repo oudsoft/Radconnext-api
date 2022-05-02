@@ -6519,22 +6519,23 @@ module.exports = function ( jq ) {
 			$(summarySecondAreaLeft).append($(summaryDF));
 
 			let buttonCmdArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
-			let buttonCmdRow = $('<tr></tr>');
+			let buttonCmdRow1 = $('<tr></tr>');
+			let buttonCmdRow2 = $('<tr></tr>');
+			let buttonCmdRow3 = $('<tr></tr>');
 			let downloadCmdCell = $('<td width="30%" align="left"></td>');
-			let blankCell = $('<td width="30%" align="left"></td>');
-			let open3rdPartyCmdCell = $('<td width="30%" align="left"></td>');
-			$(buttonCmdRow).append($(downloadCmdCell)).append($(blankCell)).append($(open3rdPartyCmdCell));
-			$(buttonCmdArea).append($(buttonCmdRow));
+			let blankCell = $('<td align="left"><span> </span></td>');
+			let open3rdPartyCmdCell = $('<td align="left"></td>');
+			$(buttonCmdRow1).append($(downloadCmdCell));
+			$(buttonCmdRow2).append($(blankCell));
+			$(buttonCmdRow3).append($(open3rdPartyCmdCell));
+			$(buttonCmdArea).append($(buttonCmdRow1)).append($(buttonCmdRow2)).append($(buttonCmdRow3));
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
-
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
 
 			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', onDownloadCmdClick);
 			$(downloadCmd).appendTo($(downloadCmdCell));
-
-			$('<span> </span>').appendTo($(blankCell));
 
 			/*
 			let openStoneWebViewerCmd = $('<input type="button" value=" Open " class="action-btn" style="margin-left: 10px; cursor: pointer;"/>');
