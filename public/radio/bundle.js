@@ -6251,7 +6251,7 @@ module.exports = function ( jq ) {
 
   const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
     return new Promise(async function(resolve, reject) {
-      let hrBox = $('<div style="position: width: 100%"></div>');
+      let hrBox = $('<div style="width: 100%"></div>');
 			//$(hrBox).css({'display': 'inline-block', 'float': 'right'});
 			if ((hrlinks) && (hrlinks.length > 0)){
 	      await hrlinks.forEach((item, i) => {
@@ -6483,7 +6483,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSummaryDF = function(df){
-		let summaryDF = $('<div style="padding: 0 20px; border: 1px solid red; top: 0px;"></div>');
+		let summaryDF = $('<div style="padding: 5px; border: 1px solid red;"></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 		for (let i=0; i < df.length; i++){
