@@ -6509,7 +6509,7 @@ module.exports = function ( jq ) {
 			let summarySecondAreaRow = $('<tr></tr>');
 			let summarySecondAreaLeft = $('<td width="30%" align="left"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15" align="left"></td>');
-			let summarySecondAreaMiddle2 = $('<td width="25" align="left"></td>');
+			let summarySecondAreaMiddle2 = $('<td width="35" align="left"></td>');
 			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaRight));
 			$(summarySecondArea).append($(summarySecondAreaRow));
@@ -6523,7 +6523,7 @@ module.exports = function ( jq ) {
 			let buttonCmdRow2 = $('<tr></tr>');
 			let buttonCmdRow3 = $('<tr></tr>');
 			let downloadCmdCell = $('<td width="30%" align="left"></td>');
-			let blankCell = $('<td align="left"><span> </span></td>');
+			let blankCell = $('<td align="left"><div style="wisth: 100%; min-height: 30px;"></div></td>');
 			let open3rdPartyCmdCell = $('<td align="left"></td>');
 			$(buttonCmdRow1).append($(downloadCmdCell));
 			$(buttonCmdRow2).append($(blankCell));
@@ -6538,14 +6538,14 @@ module.exports = function ( jq ) {
 			$(downloadCmd).appendTo($(downloadCmdCell));
 
 			/*
-			let openStoneWebViewerCmd = $('<input type="button" value=" Open " class="action-btn" style="margin-left: 10px; cursor: pointer;"/>');
+			let openStoneWebViewerCmd = $('<input type="button" value=" Open " class="action-btn" style="cursor: pointer;"/>');
 			let openData = {studyInstanceUID: selectedCase.case.Case_StudyInstanceUID, hospitalId: selectedCase.case.hospitalId};
 			$(openStoneWebViewerCmd).data('openData', openData);
 			$(openStoneWebViewerCmd).on('click', onOpenStoneWebViewerCmdClick);
 			$(openStoneWebViewerCmd).appendTo($(downloadCmdCell));
 			*/
 
-			let openThirdPartyCmd = $('<input type="button" value=" Open (3rd Party) " class="action-btn" style="margin-left: 10px; cursor: pointer;"/>');
+			let openThirdPartyCmd = $('<input type="button" value=" Open (3rd Party) " class="action-btn" style="cursor: pointer;"/>');
 			$(openThirdPartyCmd).on('click', onOpenThirdPartyCmdClick);
 			$(openThirdPartyCmd).appendTo($(open3rdPartyCmdCell));
 
