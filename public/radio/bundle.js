@@ -6251,7 +6251,7 @@ module.exports = function ( jq ) {
 
   const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
     return new Promise(async function(resolve, reject) {
-      let hrBox = $('<div style="width: 100%"></div>');
+      let hrBox = $('<div style="width: 100%; padding: 5px;"></div>');
 			//$(hrBox).css({'display': 'inline-block', 'float': 'right'});
 			if ((hrlinks) && (hrlinks.length > 0)){
 	      await hrlinks.forEach((item, i) => {
@@ -6483,7 +6483,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSummaryDF = function(df){
-		let summaryDF = $('<div style="padding: 5px; border: 1px solid red;"></div>');
+		let summaryDF = $('<div style="padding: 5px;"></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 		for (let i=0; i < df.length; i++){
@@ -6518,7 +6518,8 @@ module.exports = function ( jq ) {
 			let summaryDF = doCreateSummaryDF(selectedCase.case.Case_ScanPart);
 			$(summarySecondAreaLeft).append($(summaryDF));
 
-			let buttonCmdArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
+			let buttonCmdArea = $('<div style="padding: 5px;"></div>');
+			let buttonCmdTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let buttonCmdRow1 = $('<tr></tr>');
 			let buttonCmdRow2 = $('<tr></tr>');
 			let buttonCmdRow3 = $('<tr></tr>');
@@ -6528,7 +6529,8 @@ module.exports = function ( jq ) {
 			$(buttonCmdRow1).append($(downloadCmdCell));
 			$(buttonCmdRow2).append($(blankCell));
 			$(buttonCmdRow3).append($(open3rdPartyCmdCell));
-			$(buttonCmdArea).append($(buttonCmdRow1)).append($(buttonCmdRow2)).append($(buttonCmdRow3));
+			$(buttonCmdTable).append($(buttonCmdRow1)).append($(buttonCmdRow2)).append($(buttonCmdRow3));
+			$(buttonCmdArea).append($(buttonCmdTable));
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
 
