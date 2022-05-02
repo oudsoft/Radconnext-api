@@ -6260,7 +6260,7 @@ module.exports = function ( jq ) {
 					$(clipIcon).css({"position": "relative", "display": "inline-block", "width": "25px", "height": "auto", "margin-top": "2px"});
 					$(hrBox).append($(clipIcon));
 
-					let patientHRLink = $('<span style="position: relative; display: inline-block; top: -5px; text-decoration: underline; cursor: pointer; color: blue;"></span>');
+					let patientHRLink = $('<span style="position: relative; display: inline-block; text-decoration: underline; cursor: pointer; color: blue;"></span>');
 					let filePaths = item.link.split('/');
 					let fileNames = filePaths[filePaths.length-1];
 					let fileName = fileNames.split('.');
@@ -6483,7 +6483,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSummaryDF = function(df){
-		let summaryDF = $('<div></div>');
+		let summaryDF = $('<div style="padding: 0 20px; border: 1px solid red; top: 0px;"></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 		for (let i=0; i < df.length; i++){
