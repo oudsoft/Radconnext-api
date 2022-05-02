@@ -6393,7 +6393,7 @@ module.exports = function ( jq ) {
 			$(backwardHeader).append($('<span style="display: table-cell; text-align: center;" class="header-cell">หมายเหตุ/อื่นๆ</span>'));
 			const promiseList = new Promise(async function(resolve2, reject2){
 				for (let i=0; i < backwards.length; i++) {
-					let backwardRow = $('<div style="display: table-row; width: 100%;"></div>');
+					let backwardRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
 					let backward = backwards[i];
 					let caseCreateAt = util.formatDateTimeStr(backward.createdAt);
 					//console.log(caseCreateAt);
@@ -6433,6 +6433,11 @@ module.exports = function ( jq ) {
 					$(responseBackwardCell).append($(responseBackwardBox));
 					$(backwardRow).append($(responseBackwardCell));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">-</span>'));
+					$(backwardRow).css({'cursor': 'pointer'});
+					$(backwardRow).on('dblclick', (evt)=>{
+						common.doOpenStoneWebViewer(backward.Case_StudyInstanceUID, backward.hospitalId);
+						//$(backwardRow).click();
+			    });
 					$(backwardRow).appendTo($(backwardView));
 				}
 				setTimeout(()=> {
