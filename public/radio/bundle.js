@@ -6287,7 +6287,7 @@ module.exports = function ( jq ) {
   }
 
 	const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, casetime, hospitalId){
-		let dicomCmdBox = $('<div style="width: 120px;"></div>');
+		let dicomCmdBox = $('<div style="width: 120px; text-align: center;"></div>');
 		let downloadCmd = $('<span class="action-btn">Download</span>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(dicomCmdBox));
