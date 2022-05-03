@@ -6304,7 +6304,7 @@ module.exports = function ( jq ) {
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
 		*/
-		let blankSpace = $('<span style="width: 160px;"> </span>');
+		let blankSpace = $('<div style="width: 160px; height: 30px; background-color: grey;"> </div>');
 		$(dicomCmdBox).append($(blankSpace));
 		return $(dicomCmdBox);
 	}
