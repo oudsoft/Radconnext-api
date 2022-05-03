@@ -6304,8 +6304,6 @@ module.exports = function ( jq ) {
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
 		*/
-		//let blankSpace = $('<div style="position: relative; width: 100px; height: 10px; background-color: grey; display: inline-block;"> </div>');
-		//$(dicomCmdBox).append($(blankSpace));
 		return $(dicomCmdBox);
 	}
 
@@ -6535,7 +6533,7 @@ module.exports = function ( jq ) {
 			let summarySecondLine = $('<div></div>');
 			let summarySecondArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let summarySecondAreaRow = $('<tr></tr>');
-			let summarySecondAreaLeft = $('<td width="38%" align="left" valign="top"></td>');
+			let summarySecondAreaLeft = $('<td width="35%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle2 = $('<td width="25%" align="left" valign="top"></td>');
 			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
