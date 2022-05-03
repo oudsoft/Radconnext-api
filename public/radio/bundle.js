@@ -6255,24 +6255,27 @@ module.exports = function ( jq ) {
 			//$(hrBox).css({'display': 'inline-block', 'float': 'right'});
 			if ((hrlinks) && (hrlinks.length > 0)){
 	      await hrlinks.forEach((item, i) => {
+					/*
 					let clipIcon = new Image();
 					clipIcon.src = '/images/clip-icon.png';
 					$(clipIcon).css({"position": "relative", "display": "inline-block", "width": "25px", "height": "auto", "margin-top": "2px"});
 					$(hrBox).append($(clipIcon));
-
-					let patientHRLink = $('<span style="position: relative; display: inline-block; text-decoration: underline; cursor: pointer; color: blue;"></span>');
+					*/
+					//let patientHRLink = $('<span style="position: relative; display: inline-block; text-decoration: underline; cursor: pointer; color: blue;"></span>');
 					let filePaths = item.link.split('/');
 					let fileNames = filePaths[filePaths.length-1];
 					let fileName = fileNames.split('.');
 					let fileExt = fileName[1];
 					let patientName = patientFullName.split(' ').join('_');
-					let linkText = patientName + '(' + (i+1) + ')' + '.' + fileExt;
-					$(patientHRLink).text(linkText);
+					//let linkText = patientName + '(' + (i+1) + ')' + '.' + fileExt;
+					let linkText = patientName + '(' + (i+1) + ')';
+					//$(patientHRLink).text(linkText);
+					let patientHRButton = $('<div class="action-btn" style="width: 100%; cursor: pointer;">' + linkText + '</div>');
 
-					$(patientHRLink).on("click", function(evt){
+					$(patientHRButton).on("click", function(evt){
 	          doOpenHR(item.link, patientFullName, casedate);
 	    		});
-					$(hrBox).append($(patientHRLink));
+					$(hrBox).append($(patientHRButton));
 	      });
 			}
       resolve($(hrBox));
@@ -6289,12 +6292,14 @@ module.exports = function ( jq ) {
 			let downloadRes = await doDownloadDicom(orthancStudyID, hospitalId, casedate, casetime);
 			//$('body').loading('stop');
 		});
+		/*
 		let openViewerCmd = $('<span class="action-btn">Open</span>');
 		$(openViewerCmd).appendTo($(dicomCmdBox));
 		$(openViewerCmd).css(commandButtonStyle);
 		$(openViewerCmd).on('click', async (evt)=>{
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
+		*/
 		return $(dicomCmdBox);
 	}
 
@@ -6479,8 +6484,10 @@ module.exports = function ( jq ) {
 		$(summaryFirstLine).append($('<span style="margin-left: 4px; color: black;">' + patientFullName + '</span>'));
 		$(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Age/sex:</b> </span>'));
 		$(summaryFirstLine).append($('<span style="margin-left: 4px; color: black;">' + selectedCase.case.patient.Patient_Age + '/' + selectedCase.case.patient.Patient_Sex + '</span>'));
+		/*
 		$(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>Body Part:</b> </span>'));
 		$(summaryFirstLine).append($('<span style="margin-left: 4px; color: black;">' + selectedCase.case.Case_BodyPart + '</span>'));
+		*/
 		$(summaryFirstLine).append($('<span style="margin-left: 4px;"><b>โรงพยาบาล:</b> </span>'));
 		$(summaryFirstLine).append($('<span style="margin-left: 4px; color: black;">' + selectedCase.case.hospital.Hos_Name + '</span>'));
 		$(summaryFirstLine).css(common.pageLineStyle);
@@ -6491,7 +6498,12 @@ module.exports = function ( jq ) {
 		let summaryDF = $('<div style="padding: 5px;"></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
-		for (let i=0; i < df.length; i++){
+		let headerRow = $('<tr></tr>');
+		let headerCell = $('<td colspan="2" align="left"><b>Scan Part</b></td>');
+		$(headerRow).append($(headCell));
+		$(summaryTable).append($(headerRow));
+		let i = undefined;
+		for (i=0; i < df.length; i++){
 			let row = $('<tr></tr>');
 			let nameCell = $('<td width="80%" align="left">' + df[i].Name + '</td>');
 			let priceCell = $('<td width="20%" align="right">' + df[i].DF + '</td>');
@@ -6500,8 +6512,13 @@ module.exports = function ( jq ) {
 			$(summaryTable).append($(row));
 		}
 		let totalRow = $('<tr></tr>');
-		let totalNameCell = $('<td align="left"><b>รวม</b></td>');
-		let totalPriceCell = $('<td align="right"><b>' + total + '</b></td>');
+		if (i == 1){
+			$(totalRow).css({'height': '180px'});
+		} else if (i == 2) {
+			$(totalRow).css({'height': '900px'});
+		}
+		let totalNameCell = $('<td align="left" valign="bottom"><b>รวม</b></td>');
+		let totalPriceCell = $('<td align="right" valign="bottom"><b>' + total + '</b></td>');
 		$(totalRow).append($(totalNameCell)).append($(totalPriceCell))
 		$(summaryTable).append($(totalRow));
 		return $(summaryDF).append($(summaryTable));

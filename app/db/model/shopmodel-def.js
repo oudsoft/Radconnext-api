@@ -66,23 +66,55 @@ const ShopShopDef = {
     allowNull: false
   },
   Shop_Tel : {
+    type: Sequelize.STRING(30)
+  },
+  Shop_Mail : {
     type: Sequelize.STRING(80)
   },
-  Shop_WebUrl : {
+  Shop_LogoFilename : {
     type: Sequelize.STRING(80)
   },
   Shop_VatNo : {
-    type: Sequelize.STRING
-  },
+    type: Sequelize.STRING(20)
+  }
 };
 const ShopMenuGroupDef = {
-
+  GroupName : {
+    type: Sequelize.STRING(80)
+  },
+  GroupPicture : {
+    type: Sequelize.STRING(80)
+  }
 };
 const ShopMenuItemDef = {
-
+  MenuName : {
+    type: Sequelize.STRING(80)
+  },
+  MenuPicture : {
+    type: Sequelize.STRING(80)
+  },
+  Price : {
+    type: Sequelize.STRING(10)
+  },
+  Unit : {
+    type: Sequelize.STRING(30)
+  }
 };
 const ShopCustomerDef = {
-
+  Name : {
+    type: Sequelize.STRING(150),
+    allowNull: false
+  },
+  Address : {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  Tel : {
+    type: Sequelize.STRING(30)
+  },
+  Mail : {
+    type: Sequelize.STRING(80)
+  }
 };
 const ShopOrderDef = {
 
@@ -94,7 +126,10 @@ const ShopInvoiceDef = {
 
 };
 const ShopTemplateDef = {
-
+  Content : {
+    type: Sequelize.JSON,
+    allowNull: false
+  }
 };
 
 module.exports = {
@@ -103,5 +138,12 @@ module.exports = {
   ShopUserDef
   ShopUserInfoDef
   */
-  ShopShopDef
+  ShopShopDef,
+  ShopMenuGroupDef,
+  ShopMenuItemDef,
+  ShopCustomerDef,
+  ShopOrderDef,
+  ShopBillDef,
+  ShopInvoiceDef,
+  ShopTemplateDef
 }
