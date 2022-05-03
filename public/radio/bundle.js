@@ -4228,7 +4228,7 @@ module.exports = function ( jq ) {
   const doCreateContactContainer = function(caseId, openCase){
 		contactLists = [];
     let contactContainer = $('<div id="ContactContainer" style=" position: relative; width: 100%; padding: 4px; margin-top: 10px; text-align: right;"></div>');
-		$(contactContainer).css('display', 'none');
+		$(contactContainer).parent().css('display', 'none');
 		let contactIconBar = $('<div id="ContactBar" style="position: relative; width: 100%"></div>');
 		$(contactIconBar).appendTo($(contactContainer));
 		let chatBoxContainer = $('<div id="ChatBoxContainer" style="position: relative; width: 100%;"></div>');
@@ -4240,7 +4240,7 @@ module.exports = function ( jq ) {
 			if (data.topicId == caseId){
 				let isHide = $(chatBoxContainer).css('display');
 				if (isHide === 'none') {
-					$(contactContainer).css('display', 'block');
+					$(contactContainer).parent().css('display', 'block');
 					$(chatBoxContainer).css('display', 'block');
 				}
 				let contact = await doCreateNewAudience(data.audienceId, data.audienceName, data.topicId, data.topicName);
@@ -6306,7 +6306,7 @@ module.exports = function ( jq ) {
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
 		*/
-		let blankSpace = $('<span>    </span>');
+		let blankSpace = $('<span style="width: 60px;"> </span>');
 		$(dicomCmdBox).append($(blankSpace));
 		return $(dicomCmdBox);
 	}
