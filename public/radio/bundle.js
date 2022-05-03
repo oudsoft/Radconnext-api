@@ -6304,8 +6304,8 @@ module.exports = function ( jq ) {
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
 		*/
-		let blankSpace = $('<div style="position: relative; width: 100px; height: 10px; background-color: grey; display: inline-block;"> </div>');
-		$(dicomCmdBox).append($(blankSpace));
+		//let blankSpace = $('<div style="position: relative; width: 100px; height: 10px; background-color: grey; display: inline-block;"> </div>');
+		//$(dicomCmdBox).append($(blankSpace));
 		return $(dicomCmdBox);
 	}
 
@@ -6434,7 +6434,7 @@ module.exports = function ( jq ) {
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; padding: 4px; vertical-align: middle;">' + casedateDisplay + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; vertical-align: middle;">' + backward.Case_BodyPart + '</span>'));
-					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle; width: 120px;"></span>');
 					$(dicomCmdCell).append($(dicomCmdBox));
 					$(backwardRow).append($(dicomCmdCell));
 					let hrBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
