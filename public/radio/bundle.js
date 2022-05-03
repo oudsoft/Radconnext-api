@@ -6252,7 +6252,8 @@ module.exports = function ( jq ) {
   const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
     return new Promise(async function(resolve, reject) {
       let hrBox = $('<div style="width: 100%; padding: 5px;"></div>');
-			//$(hrBox).css({'display': 'inline-block', 'float': 'right'});
+			let hrTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
+			$(hrBox).append($(hrTable));
 			if ((hrlinks) && (hrlinks.length > 0)){
 	      await hrlinks.forEach((item, i) => {
 					/*
@@ -6267,15 +6268,17 @@ module.exports = function ( jq ) {
 					let fileName = fileNames.split('.');
 					let fileExt = fileName[1];
 					let patientName = patientFullName.split(' ').join('_');
-					//let linkText = patientName + '(' + (i+1) + ')' + '.' + fileExt;
-					let linkText = patientName + '(' + (i+1) + ')';
+					let linkText = patientName + ' (' + (i+1) + ')' + '.' + fileExt;
 					//$(patientHRLink).text(linkText);
-					let patientHRButton = $('<div class="action-btn" style="width: 100%; cursor: pointer;">' + linkText + '</div>');
+					let patientHRButton = $('<div class="action-btn" style="width: 100%; cursor: pointer; text-align: center;">' + linkText + '</div>');
 
 					$(patientHRButton).on("click", function(evt){
 	          doOpenHR(item.link, patientFullName, casedate);
 	    		});
-					$(hrBox).append($(patientHRButton));
+					let hrRow = $('<tr></tr>');
+					let hrCell = $('<td width="100%" align="left"></td>');
+					$(hrRow).append($(hrCell))
+					$(hrCell).append($(patientHRButton));
 	      });
 			}
       resolve($(hrBox));
@@ -6515,7 +6518,7 @@ module.exports = function ( jq ) {
 		if (i == 1){
 			$(totalRow).css({'height': '180px'});
 		} else if (i == 2) {
-			$(totalRow).css({'height': '900px'});
+			$(totalRow).css({'height': '90px'});
 		}
 		let totalNameCell = $('<td align="left" valign="bottom"><b>รวม</b></td>');
 		let totalPriceCell = $('<td align="right" valign="bottom"><b>' + total + '</b></td>');
@@ -6531,7 +6534,7 @@ module.exports = function ( jq ) {
 			let summarySecondAreaRow = $('<tr></tr>');
 			let summarySecondAreaLeft = $('<td width="30%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15%" align="left" valign="top"></td>');
-			let summarySecondAreaMiddle2 = $('<td width="35%" align="left" valign="top"></td>');
+			let summarySecondAreaMiddle2 = $('<td width="25%" align="left" valign="top"></td>');
 			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaRight));
 			$(summarySecondArea).append($(summarySecondAreaRow));
