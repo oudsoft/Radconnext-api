@@ -6510,19 +6510,19 @@ module.exports = function ( jq ) {
 		for (i=0; i < df.length; i++){
 			let row = $('<tr></tr>');
 			let nameCell = $('<td width="80%" align="left">' + df[i].Name + '</td>');
-			let priceCell = $('<td width="20%" align="right">' + df[i].DF + '</td>');
+			let priceCell = $('<td width="20%" align="right" style="padding-righg: 80px;">' + df[i].DF + '</td>');
 			total += Number(df[i].DF);
 			$(row).append($(nameCell)).append($(priceCell));
 			$(summaryTable).append($(row));
 		}
 		let totalRow = $('<tr></tr>');
 		if (i == 1){
-			$(totalRow).css({'height': '80px'});
+			$(totalRow).css({'height': '70px'});
 		} else if (i == 2) {
-			$(totalRow).css({'height': '40px'});
+			$(totalRow).css({'height': '30px'});
 		}
 		let totalNameCell = $('<td align="left" valign="bottom"><b>รวม</b></td>');
-		let totalPriceCell = $('<td align="right" valign="bottom"><b>' + total + '</b></td>');
+		let totalPriceCell = $('<td align="right" valign="bottom" style="padding-righg: 80px;"><b>' + total + '</b></td>');
 		$(totalRow).append($(totalNameCell)).append($(totalPriceCell))
 		$(summaryTable).append($(totalRow));
 		return $(summaryDF).append($(summaryTable));
@@ -6533,7 +6533,7 @@ module.exports = function ( jq ) {
 			let summarySecondLine = $('<div></div>');
 			let summarySecondArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let summarySecondAreaRow = $('<tr></tr>');
-			let summarySecondAreaLeft = $('<td width="30%" align="left" valign="top"></td>');
+			let summarySecondAreaLeft = $('<td width="38%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle2 = $('<td width="25%" align="left" valign="top"></td>');
 			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
