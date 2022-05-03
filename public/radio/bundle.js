@@ -6279,6 +6279,7 @@ module.exports = function ( jq ) {
 					let hrCell = $('<td width="100%" align="left"></td>');
 					$(hrRow).append($(hrCell))
 					$(hrCell).append($(patientHRButton));
+					$(hrTable).append($(hrRow));
 	      });
 			}
       resolve($(hrBox));
@@ -6516,9 +6517,9 @@ module.exports = function ( jq ) {
 		}
 		let totalRow = $('<tr></tr>');
 		if (i == 1){
-			$(totalRow).css({'height': '180px'});
+			$(totalRow).css({'height': '80px'});
 		} else if (i == 2) {
-			$(totalRow).css({'height': '90px'});
+			$(totalRow).css({'height': '40px'});
 		}
 		let totalNameCell = $('<td align="left" valign="bottom"><b>รวม</b></td>');
 		let totalPriceCell = $('<td align="right" valign="bottom"><b>' + total + '</b></td>');
@@ -6626,7 +6627,6 @@ module.exports = function ( jq ) {
 
 			let summarySecondLine = await doCreateSummarySecondLine(selectedCase, patientFullName, casedate, casetime);
       //$(summarySecondLine).css(common.pageLineStyle);
-			console.log($(summarySecondLine));
       $(summary).append($(summarySecondLine));
 
 			let summaryThirdLine = $('<div></div>');
