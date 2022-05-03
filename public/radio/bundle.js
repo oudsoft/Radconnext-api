@@ -6287,7 +6287,7 @@ module.exports = function ( jq ) {
   }
 
 	const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, casetime, hospitalId){
-		let dicomCmdBox = $('<div style="width: 120px; text-align: center;"></div>');
+		let dicomCmdBox = $('<div></div>');
 		let downloadCmd = $('<span class="action-btn">Download</span>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(dicomCmdBox));
@@ -6434,7 +6434,7 @@ module.exports = function ( jq ) {
 					$(backwardRow).append($('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;">' + (i+1) + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; padding: 4px; vertical-align: middle;">' + casedateDisplay + '</span>'));
 					$(backwardRow).append($('<span style="display: table-cell; text-align: left; vertical-align: middle;">' + backward.Case_BodyPart + '</span>'));
-					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
+					let dicomCmdCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle; width: 150px;"></span>');
 					$(dicomCmdCell).append($(dicomCmdBox));
 					$(backwardRow).append($(dicomCmdCell));
 					let hrBackwardCell = $('<span style="display: table-cell; text-align: center; padding: 4px; vertical-align: middle;"></span>');
