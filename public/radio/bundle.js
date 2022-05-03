@@ -6500,7 +6500,7 @@ module.exports = function ( jq ) {
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 		let headerRow = $('<tr></tr>');
 		let headerCell = $('<td colspan="2" align="left"><b>Scan Part</b></td>');
-		$(headerRow).append($(headCell));
+		$(headerRow).append($(headerCell));
 		$(summaryTable).append($(headerRow));
 		let i = undefined;
 		for (i=0; i < df.length; i++){
