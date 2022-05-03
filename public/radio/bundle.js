@@ -4228,6 +4228,7 @@ module.exports = function ( jq ) {
   const doCreateContactContainer = function(caseId, openCase){
 		contactLists = [];
     let contactContainer = $('<div id="ContactContainer" style=" position: relative; width: 100%; padding: 4px; margin-top: 10px; text-align: right;"></div>');
+		$(contactContainer).css('display', 'none');
 		let contactIconBar = $('<div id="ContactBar" style="position: relative; width: 100%"></div>');
 		$(contactIconBar).appendTo($(contactContainer));
 		let chatBoxContainer = $('<div id="ChatBoxContainer" style="position: relative; width: 100%;"></div>');
@@ -4239,6 +4240,7 @@ module.exports = function ( jq ) {
 			if (data.topicId == caseId){
 				let isHide = $(chatBoxContainer).css('display');
 				if (isHide === 'none') {
+					$(contactContainer).css('display', 'block');
 					$(chatBoxContainer).css('display', 'block');
 				}
 				let contact = await doCreateNewAudience(data.audienceId, data.audienceName, data.topicId, data.topicName);
@@ -6304,6 +6306,8 @@ module.exports = function ( jq ) {
 			common.doOpenStoneWebViewer(studyInstanceUID, hospitalId);
 		});
 		*/
+		let blankSpace = $('<span>    </span>');
+		$(dicomCmdBox).append($(blankSpace));
 		return $(dicomCmdBox);
 	}
 
@@ -6510,7 +6514,7 @@ module.exports = function ( jq ) {
 		for (i=0; i < df.length; i++){
 			let row = $('<tr></tr>');
 			let nameCell = $('<td width="80%" align="left">' + df[i].Name + '</td>');
-			let priceCell = $('<td width="20%" align="right" style="padding-righg: 80px;">' + df[i].DF + '</td>');
+			let priceCell = $('<td width="20%" align="right" style="padding-right: 80px;">' + df[i].DF + '</td>');
 			total += Number(df[i].DF);
 			$(row).append($(nameCell)).append($(priceCell));
 			$(summaryTable).append($(row));
@@ -6522,7 +6526,7 @@ module.exports = function ( jq ) {
 			$(totalRow).css({'height': '30px'});
 		}
 		let totalNameCell = $('<td align="left" valign="bottom"><b>รวม</b></td>');
-		let totalPriceCell = $('<td align="right" valign="bottom" style="padding-righg: 80px;"><b>' + total + '</b></td>');
+		let totalPriceCell = $('<td align="right" valign="bottom" style="padding-right: 80px;"><b>' + total + '</b></td>');
 		$(totalRow).append($(totalNameCell)).append($(totalPriceCell))
 		$(summaryTable).append($(totalRow));
 		return $(summaryDF).append($(summaryTable));
