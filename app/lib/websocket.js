@@ -313,11 +313,11 @@ function RadconWebSocketServer (arg, db, log) {
 
 					break;
 					case "casemisstake":
-						let sendto = data.sendto;
-						let from = data.from;
-						let msg = data.msg;
-						let msgSend = {type: 'casemisstake', msg: msg, from: from};
-						let sendResult = await $this.sendMessage(msgSend, sendto);
+						let sendtoCasemisstake = data.sendto;
+						let fromCasemisstake = data.from;
+						let msgCasemisstake = data.msg;
+						let msgCasemisstakeSend = {type: 'casemisstake', msg: msgCasemisstake, from: fromCasemisstake};
+						let sendResult = await $this.sendMessage(msgCasemisstakeSend, sendtoCasemisstake);
 					break;
 				}
 			} else {
