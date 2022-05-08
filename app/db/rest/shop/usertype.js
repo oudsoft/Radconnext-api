@@ -9,9 +9,29 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, Userstatus, log, auth;
+var db, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
+
+const doGenOptions = function() {
+  return new Promise(function(resolve, reject) {
+    const promiseList = new Promise(async function(resolve, reject) {
+      const types = await db.usertypes.findAll({ attributes: ['id', 'UserType_Name'] });
+      const result = [];
+      types.forEach((type, i) => {
+        result.push({Value: type.id, DisplayText: type.UserType_Name});
+      });
+      setTimeout(()=> {
+        resolve({Result: "OK", Options: result});
+      },200);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    }).catch((err)=>{
+      reject(err);
+    });
+  });
+}
 
 //List API
 app.post('/list', (req, res) => {
@@ -20,11 +40,8 @@ app.post('/list', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          const limit = req.query.jtPageSize;
-          const startAt = req.query.jtStartIndex;
-          const count = await Userstatus.count();
-          const types = await Userstatus.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
-          res.json({Result: "OK", Records: types, TotalRecordCount: count});
+          const types = await usertypes.findAll({attributes: excludeColumn});
+          res.json({Result: "OK", Records: types});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -43,14 +60,14 @@ app.post('/list', (req, res) => {
 });
 
 //add
-app.post('/add', (req, res) => {
+app.post('/add', async (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newUserstatus = req.body;
-        let adUserstatus = await Userstatus.create(newUserstatus);
-        res.json({Result: "OK", Record: adUserstatus});
+        let newUsertype = req.body;
+        let adUsertype = await db.usertypes.create(newUsertype);
+        res.json({Result: "OK", Record: adUsertype});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -70,8 +87,8 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let updateUserstatus = req.body;
-        await Userstatus.update(updateUserstatus, { where: { id: req.body.id } });
+        let updateUsertype = req.body;
+        await db.usertypes.update(updateUsertype, { where: { id: req.body.id } });
         res.json({Result: "OK"});
       } else {
         log.info('Can not found user from token.');
@@ -92,7 +109,7 @@ app.post('/delete', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        await Userstatus.destroy({ where: { id: req.body.id } });
+        await db.usertypes.destroy({ where: { id: req.body.id } });
         res.json({Result: "OK"});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -107,28 +124,21 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.get('/options', async (req, res) => {
-  const statuses = await Userstatus.findAll({ attributes: ['id', 'UserStatus_Name'] });
-  const result = [];
-  statuses.forEach((status, i) => {
-    result.push({Value: status.id, DisplayText: status.UserStatus_Name});
-  });
-  res.json({Result: "OK", Options: result});
+app.get('/options', (req, res) => {
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
 });
 
 app.post('/options', async (req, res) => {
-  const statuses = await Userstatus.findAll({ attributes: ['id', 'UserStatus_Name_Name'] });
-  const result = [];
-  statuses.forEach((status, i) => {
-    result.push({Value: status.id, DisplayText: type.UserStatus_Name});
-  });
-  res.json({Result: "OK", Options: result});
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
 });
 
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
-  Userstatus = db.userstatuses;
   return app;
 }

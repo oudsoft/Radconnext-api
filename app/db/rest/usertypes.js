@@ -64,36 +64,60 @@ app.post('/list', (req, res) => {
   }
 });
 
-//insert, update, delete API
-app.post('/(:subAction)', (req, res) => {
+//add
+app.post('/add', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
-      	const subAction = req.params.subAction;
-        const id = req.body.id;
-        try {
-          switch (subAction) {
-            case 'add':
-              let newUsertype = req.body;
-              let adUsertype = await Usertype.create(newUsertype);
-              res.json({Result: "OK", Record: adUsertype});
-            break;
-            case 'update':
-              let updateUsertype = req.body;
-              await Usertype.update(updateUsertype, { where: { id: id } });
-              res.json({Result: "OK"});
-            break;
-            case 'delete':
-              await Usertype.destroy({ where: { id: id } });
-              res.json({Result: "OK"});
-            break;
-          }
-        } catch(error) {
-      		log.error(error);
-          res.json({ status: {code: 500}, error: error });
-      	}
+        let newUsertype = req.body;
+        let adUsertype = await Usertype.create(newUsertype);
+        res.json({Result: "OK", Record: adUsertype});
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//update
+app.post('/update', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let updateUsertype = req.body;
+        await Usertype.update(updateUsertype, { where: { id: req.body.id } });
+        res.json({Result: "OK"});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else if (ur.token.expired){
+    res.json({ status: {code: 210}, token: {expired: true}});
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//delete
+app.post('/delete', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        await Usertype.destroy({ where: { id: req.body.id } });
+        res.json({Result: "OK"});
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});

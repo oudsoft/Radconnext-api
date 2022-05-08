@@ -230,7 +230,6 @@ $.widget( "custom.imagehistory", {
         }, 400);
       },
     });
-
   },
   doAppendNewImageData: function(data){
     let $this = this;

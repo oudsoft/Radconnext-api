@@ -61,15 +61,27 @@ app.post('/filter/hospital', (req, res) => {
           if (filterDate) {
             let startDate = new Date(filterDate.from);
             if (ur[0].usertypeId !== 5) {
-              whereClous = {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }, createdAt: { [db.Op.gte]: startDate}};
+              whereClous = {hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId }, createdAt: { [db.Op.gte]: startDate}};
+              if (userId) {
+                whereClous.userId = userId
+              }
             } else {
-              whereClous = {hospitalId: hospitalId, Case_RefferalId: userId, casestatusId: { [db.Op.in]: statusId }, createdAt: { [db.Op.gte]: startDate}};
+              whereClous = {hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId }, createdAt: { [db.Op.gte]: startDate}};
+              if (userId) {
+                whereClous.Case_RefferalId = userId
+              }
             }
           } else {
             if (ur[0].usertypeId !== 5) {
-              whereClous = {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }};
+              whereClous = {hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId }};
+              if (userId) {
+                whereClous.userId = userId
+              }
             } else {
-              whereClous = {hospitalId: hospitalId, Case_RefferalId: userId, casestatusId: { [db.Op.in]: statusId }};
+              whereClous = {hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusId }};
+              if (userId) {
+                whereClous.Case_RefferalId = userId
+              }
             }
           }
           const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
@@ -719,7 +731,7 @@ app.post('/search/key', async (req, res) => {
         let casewhereClous = undefined;
         let patientwhereClous = undefined;
         if ((usertypeId == 2) || (usertypeId == 5)) {
-          casewhereClous = {hospitalId: { [db.Op.eq]: hospitalId}, userId: { [db.Op.eq]: userId}};
+          casewhereClous = {hospitalId: { [db.Op.eq]: hospitalId}/*, userId: { [db.Op.eq]: userId}*/ };
           patientwhereClous = {hospitalId: { [db.Op.eq]: hospitalId}};
         } else if (usertypeId == 4) {
           casewhereClous = { Case_RadiologistId: { [db.Op.eq]: userId}};
@@ -864,12 +876,13 @@ app.post('/load/list/by/status/owner', async (req, res) => {
       if (ur.length > 0){
         const casestatusIds = req.body.casestatusIds;
         const userId = req.body.userId;
+        const hospitalId = req.body.hospitalId;
         //casestatusIds=>[["1"],["2","8","9"],["5","10","11","12","13","14"],["3","4","7"]]
         let allStatus = [];
         let promiseList = new Promise(async function(resolve, reject) {
           for (let i=0; i < casestatusIds.length; i++){
             let statusIdItem = casestatusIds[i];
-            let youCcases = await Case.findAll({attributes: ['id'], where: {userId: userId, casestatusId: { [db.Op.in]: statusIdItem }}});
+            let youCcases = await Case.findAll({attributes: ['id'], where: {/*userId: userId,*/ hospitalId: hospitalId, casestatusId: { [db.Op.in]: statusIdItem }}});
             allStatus.push({Records: youCcases});
           }
           setTimeout(()=> {

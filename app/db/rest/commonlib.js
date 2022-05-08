@@ -310,6 +310,17 @@ const doLoadRadioProfile = function(radioId){
   });
 }
 
+const doLoadCaseReport = function(caseId){
+  return new Promise(async (resolve, reject) => {
+    const reportCases = await db.casereports.findAll({ attributes: ['createdAt'], where: {caseId: caseId}});
+    if (reportCases[0]) {
+      resolve(reportCases[0]);
+    } else {
+      resolve();
+    }
+  });
+}
+
 const doCaseExpireAction = function(tasks, caseId, socket, newcaseStatusId, radioProfile, userProfile, caseMsgData, hospitalName){
   return new Promise(async (resolve, reject) => {
     const expiredStatus = await doCallCaseStatusByName('Expired');
@@ -454,7 +465,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
 
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
-        
+
       }
     });
     let endTime = newTask.triggerAt;
@@ -585,15 +596,19 @@ const doSummaryBillReport = function(hospitalId, key) {
     let casewhereClous = {hospitalId: hospitalId};
     casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
     const orderby = [['createdAt', 'ASC']];
-    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.casereports, attributes: ['createdAt']}];
-    const caseContents = await db.cases.findAll({attributes: ['createdAt', 'Case_ScanPart', 'Case_RadiologistId', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
+    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}];
+    const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'Case_ScanPart', 'Case_RadiologistId', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
     let finalSumaryRows = [];
     const promiseList = new Promise(function(resolve2, reject2) {
       caseContents.forEach(async (row, i) => {
         let radioRes = await doLoadRadioProfile(row.Case_RadiologistId);
+        let caseReportRes = await doLoadCaseReport(row.id);
         let radioBill = {User_NameEN: radioRes.User_NameEN, User_LastNameEN: radioRes.User_LastNameEN, User_NameTH: radioRes.User_NameTH, User_LastNameTH: radioRes.User_LastNameTH};
         let newItem = JSON.parse(JSON.stringify(row));
         newItem.radio = radioBill;
+        if (caseReportRes) {
+          newItem.reportCreatedAt = caseReportRes.createdAt;
+        }
         finalSumaryRows.push(newItem);
       });
       setTimeout(()=> {
@@ -1143,6 +1158,7 @@ module.exports = (dbconn, monitor) => {
     doGetCaseDescription,
     doLoadUserProfile,
     doLoadRadioProfile,
+    doLoadCaseReport,
     doCaseExpireAction,
     doCreateTaskAction,
     doCreateTaskVoip,

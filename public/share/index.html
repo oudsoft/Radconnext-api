@@ -187,7 +187,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const id = params.get('id');
 
   let sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
-  let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/title.jpg'
+  //let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/title.jpg'
+  let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/9c8cb539-ee47.jpg';
   let imageTitle2 = radconnextUrl + '/img/usr/upload/sponsor-001/1058008.jpg'
   let linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   let sponsorBoard = doCreateSponsorBox(imageTitle, linkTo);
@@ -248,10 +249,10 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             let view = undefined;
             let imageFileName = conId + '.jpg';
             let counterParams = {seriesId: seriesId, contentId: conId};
-            doCallUpdateViewCounter(counterParams).then(async (updateRes)=>{
-              console.log(updateRes);
-              let readRes = await doCallReadViewCounter(counterParams);
-              console.log(readRes);
+            //doCallUpdateViewCounter(counterParams).then(async (updateRes)=>{
+              //console.log(updateRes);
+              //let readRes = await doCallReadViewCounter(counterParams);
+              //console.log(readRes);
               view = $('<div style="width: 100%; text-align: center;"></div>');
               let bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
               let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFileName;
@@ -277,7 +278,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
               //$(newWindow.document.body).append($(view));
 
               $('#app').empty().append($(view));
-            });
+            //});
 
           } else {
             // play clip ใน mp4
@@ -322,11 +323,11 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           myLiffUrl = radconnextUrl + '/share/?seriesId=' + seriesId;
           let seriesUrl = '/api/usr/upload/series/' + seriesId;
           doCallListSeries(seriesUrl).then(async (resMe)=>{
-            let counterParams = {seriesId: seriesId};
-            let updateRes = await doCallUpdateViewCounter(counterParams);
-            console.log(updateRes);
-            let readRes = await doCallReadViewCounter(counterParams);
-            console.log(readRes);
+            //let counterParams = {seriesId: seriesId};
+            //let updateRes = await doCallUpdateViewCounter(counterParams);
+            //console.log(updateRes);
+            //let readRes = await doCallReadViewCounter(counterParams);
+            //console.log(readRes);
             let thumbsWrapper = await doCreateImagesSeriesThumb(seriesId, resMe);
             $(thumbsWrapper).css({'margin-top': '50px'});
             let shareCmd = doCreateShareCmd(myLiffUrl);
@@ -343,8 +344,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       myLiffUrl = radconnextUrl + '/share';
       doCallListUsrUpload().then((resMe)=>{
         doCreateUsrUploadThumb(resMe).then(async (thumbsWrapper)=>{
-          let readRes = await doCallReadViewCounter();
-          console.log(readRes);
+          //let readRes = await doCallReadViewCounter();
+          //console.log(readRes);
 
           $(thumbsWrapper).css({'margin-top': '50px'});
           let shareCmd = doCreateShareCmd(myLiffUrl);

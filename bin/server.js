@@ -58,6 +58,7 @@ log.info('process.env.SERVER_PORT => ' + process.env.SERVER_PORT);
 var port = normalizePort(process.env.SERVER_PORT || '3000');
 mainApp.set('port', port);
 mainApp.use('/', controlOrigin, express.static(__dirname + '/../public'));
+mainApp.use('/shop', controlOrigin, express.static(__dirname + '/../shop'));
 //mainApp.use('/orthanc', proxy('http://119.59.98.111:9044/stone-webviewer/index.html?study=1.2.840.113619.2.417.3.279715333.534.1631324932.178'));
 /**
  * Create HTTP server.
@@ -72,15 +73,16 @@ httpsServer.on('listening', onListening);
 
 //webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
 //const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
-const {api, db, taskCase, whomtask, voipTask, webSocketServer} = require(__dirname + '/../app/api.js')(httpsServer, log);
+const {api, db, shopdb, taskCase, whomtask, voipTask, webSocketServer} = require(__dirname + '/../app/api.js')(httpsServer, log);
 const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
 mainApp.use('/api', api);
 mainApp.use('/app', app);
 
 const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
-//const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
+const shopLogin = require(__dirname + '/../app/db/rest/shop/login.js')(shopdb, log);
 
 mainApp.use('/api/login', login);
+mainApp.use('/api/shop/login', shopLogin);
 
 const reCaseTaskApp = require(__dirname + '/../app/lib/re-casetasks.js')( taskCase, whomtask, voipTask, db, log, webSocketServer);
 reCaseTaskApp.doRun().then((alives)=>{

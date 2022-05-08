@@ -5720,6 +5720,11 @@ module.exports = function ( jq ) {
 		}
   }
 
+	const onMisstakeCaseNotifyCmd = function(evt){
+		let misstakeCaseData = $(evt.currentTarget).data('misstakeCaseData');
+		console.log(misstakeCaseData);
+	}
+
   const onTemplateSelectorChange = async function(evt) {
 		$('body').loading('start');
 		let yourResponse = $('#SimpleEditor').val();
@@ -6268,6 +6273,7 @@ module.exports = function ( jq ) {
 					let fileName = fileNames.split('.');
 					let fileExt = fileName[1];
 					let patientName = patientFullName.split(' ').join('_');
+					patientName = patientName.substring(0, 14);
 					let linkText = patientName + ' (' + (i+1) + ')' + '.' + fileExt;
 					//$(patientHRLink).text(linkText);
 					let patientHRButton = $('<div class="action-btn" style="width: 100%; cursor: pointer; text-align: center;">' + linkText + '</div>');
@@ -6509,8 +6515,14 @@ module.exports = function ( jq ) {
 		let i = undefined;
 		for (i=0; i < df.length; i++){
 			let row = $('<tr></tr>');
-			let nameCell = $('<td width="80%" align="left">' + df[i].Name + '</td>');
-			let priceCell = $('<td width="20%" align="right" style="padding-right: 80px;">' + df[i].DF + '</td>');
+			let dfName = undefined;
+			if (df[i].DF.type == 'night'){
+				dfName = df[i].Name + ' (เวรดึก)';
+			} else {
+				dfName = df[i].Name;
+			}
+			let nameCell = $('<td width="80%" align="left">' + dfName + '</td>');
+			let priceCell = $('<td width="20%" align="right" style="padding-right: 80px;">' + df[i].DF.value + '</td>');
 			total += Number(df[i].DF);
 			$(row).append($(nameCell)).append($(priceCell));
 			$(summaryTable).append($(row));
@@ -6536,7 +6548,7 @@ module.exports = function ( jq ) {
 			let summarySecondAreaLeft = $('<td width="36%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle2 = $('<td width="25%" align="left" valign="top"></td>');
-			let summarySecondAreaRight = $('<td width="*" align="left"></td>');
+			let summarySecondAreaRight = $('<td width="*" align="left" valign="bottom"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaRight));
 			$(summarySecondArea).append($(summarySecondAreaRow));
 			$(summarySecondLine).append($(summarySecondArea));
@@ -6560,7 +6572,7 @@ module.exports = function ( jq ) {
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
 
-			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
+			let downloadData = {caseId: selectedCase.case.id, patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', onDownloadCmdClick);
 			$(downloadCmd).appendTo($(downloadCmdCell));
@@ -6582,7 +6594,10 @@ module.exports = function ( jq ) {
 				$(summarySecondAreaMiddle2).append($(patientHRBox));
 			}
 
-			$('<span> </span>').appendTo($(summarySecondAreaRight));
+			let misstakeCaseNotifyCmd = $('<input type="button" value=" แจ้งเคสผิดพลาด " class="action-btn" style="cursor: pointer;"/>');
+			$(misstakeCaseNotifyCmd).data('misstakeCaseData', downloadData);
+			$(misstakeCaseNotifyCmd).on('click', onMisstakeCaseNotifyCmd);
+			$(misstakeCaseNotifyCmd).appendTo($(summarySecondAreaRight));
 
 			resolve($(summarySecondLine));
 		});

@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize
+const Sequelize = require('sequelize');
 
-/*
 const ShopUserTypeDef = {
   UserType_Name :  {
     type: Sequelize.STRING(40),
@@ -55,7 +54,7 @@ const ShopUserInfoDef = {
 		type: Sequelize.STRING(80)
 	}
 };
-*/
+
 const ShopShopDef = {
   Shop_Name : {
     type: Sequelize.STRING(150),
@@ -76,6 +75,9 @@ const ShopShopDef = {
   },
   Shop_VatNo : {
     type: Sequelize.STRING(20)
+  },
+  Shop_BillQuota : {
+    type: Sequelize.STRING(10)
   }
 };
 const ShopMenuGroupDef = {
@@ -117,15 +119,23 @@ const ShopCustomerDef = {
   }
 };
 const ShopOrderDef = {
-
+  Items : {
+    type: Sequelize.JSONB,
+    allowNull: false
+  }
+};
+const ShopInvoiceDef = {
+  No : {
+    type: Sequelize.STRING(80)
+  }
 };
 const ShopBillDef = {
 
 };
-const ShopInvoiceDef = {
-
-};
 const ShopTemplateDef = {
+  Name : {
+    type: Sequelize.STRING(80)
+  },
   Content : {
     type: Sequelize.JSON,
     allowNull: false
@@ -133,11 +143,9 @@ const ShopTemplateDef = {
 };
 
 module.exports = {
-  /*
-  ShopUserTypeDef
-  ShopUserDef
-  ShopUserInfoDef
-  */
+  ShopUserTypeDef,
+  ShopUserDef,
+  ShopUserInfoDef,
   ShopShopDef,
   ShopMenuGroupDef,
   ShopMenuItemDef,

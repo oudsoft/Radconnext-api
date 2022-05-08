@@ -370,13 +370,18 @@
         $(changeUsernameCmd).on('click', (evt)=>{
           doChangeUsername(userData);
         });
+        let changeHospitalCmd = $('<input type="button" value=" Move Tp ... "/>');
+        $(changeHospitalCmd).on('click', (evt)=>{
+          doMoveToHospital(userData);
+        });
         let deleteUserCmd = $('<input type="button" value=" Delete "/>');
         $(deleteUserCmd).on('click', (evt)=>{
           doDeleteUserCmd(userData);
         });
 
         $(commandCol).append($(editCmd)).append($('<span>  </span>')).append($(resetPwdCmd)).append($('<span>  </span>'));
-        $(commandCol).append($(changeUsernameCmd)).append($('<span>  </span>')).append($(deleteUserCmd));
+        $(commandCol).append($(changeUsernameCmd)).append($('<span>  </span>')).append($(changeHospitalCmd)).append($('<span>  </span>'));
+        $(commandCol).append($(deleteUserCmd))
       }
       $('#UserListByHospital').append($(table));
     });
@@ -550,6 +555,52 @@
           });
         } else {
           $(newUsernameInput).css({'border': '1px solid red'});
+        }
+      },
+      onCancel: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
+  }
+
+  function doMoveToHospital(userData){
+    let targetHospitalSelect = $('<select id="TargetHospitalSelect"></select>');
+    let radAlertMsg = $('<div style="margin-top: 10px;"></div>');
+    $(radAlertMsg).append($('<label for="TargetHospitalSelect">Target Hospital :</label>'));
+    $(radAlertMsg).append($(targetHospitalSelect));
+    let getHospitalOptionsUrl = '/api/hospital/options';
+    doGetApi(getHospitalOptionsUrl).then(async(response)=>{
+      let hospitals = response.Options;
+      await hospitals.forEach((item, i) => {
+        $(targetHospitalSelect).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'));
+      });
+    });
+    const radconfirmoption = {
+      title: 'เปลี่ยน Hospital ของผู้ใช้',
+      msg: $(radAlertMsg),
+      width: '420px',
+      onOk: function(evt) {
+        let newHospitalId = $(targetHospitalSelect).val();
+        if (newHospitalId) {
+          $(targetHospitalSelect).css({'border': ''});
+          let params = {};
+          $.ajax({
+            type: 'PUT',
+            url: '/api/users/sethospital/' + userData.id + '/' + newHospitalId,
+            contentType: 'application/json',
+            data: JSON.stringify(params), // access in body
+          }).done(function () {
+            console.log('SUCCESS');
+            alert('เปลี่ยน Hospital สำเร็จ');
+            radConfirmBox.closeAlert();
+            doHospitalChange();
+          }).fail(function (msg) {
+            console.log('FAIL');
+            alert('มีข้อผิดพลาดที่ API')
+          });
+        } else {
+          $(targetHospitalSelect).css({'border': '1px solid red'});
         }
       },
       onCancel: function(evt) {

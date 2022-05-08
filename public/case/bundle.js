@@ -207,7 +207,7 @@ function doLoadMainPage(){
 				let titleContent = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [เคสใหม่] -รอตอบรับจากรังสีแพทย์</h3></div>');
 				$(titleContent).appendTo($(titlePage));
 				$("#TitleContent").empty().append($(titlePage));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseReadWaitStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseReadWaitStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         }).catch(async (err)=>{
@@ -234,7 +234,7 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ตอบรับแล้ว] -รอผลอ่าน</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.casePositiveStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.casePositiveStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
@@ -247,7 +247,7 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ได้ผลอ่านแล้ว]</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseReadSuccessStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseReadSuccessStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
@@ -259,16 +259,16 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>รายการเคสไม่สมบูรณ์/รอคำสั่ง</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseNegativeStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseNegativeStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
 			});
 			$(document).on('opensearchcase', async (evt, data)=>{
 				$('body').loading('start');
-				let toDayFormat = util.getTodayDevFormat();
-
-				let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
+        let yesterDayFormat = util.getYesterdayDevFormat();
+        let toDayFormat = util.getTodayDevFormat();
+				let defaultSearchKey = {fromDateKeyValue: yesterDayFormat, toDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
 				let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
 
 				let searchTitlePage = cases.doCreateSearchTitlePage();
@@ -2355,10 +2355,10 @@ module.exports = function ( jq ) {
     }
   }
 
-  const doLoadCaseForSetupCounter = function(userId){
+  const doLoadCaseForSetupCounter = function(userId, hospitalId){
 		return new Promise(async function(resolve, reject) {
 			let loadUrl = '/api/cases/load/list/by/status/owner';
-			let rqParams = {userId: userId};
+			let rqParams = {userId: userId, hospitalId: hospitalId};
 			/*
 			rqParams.casestatusIds = [1];
 			let newList = await common.doCallApi(loadUrl, rqParams);
@@ -2393,7 +2393,8 @@ module.exports = function ( jq ) {
 			$('body').loading('start');
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
-			doLoadCaseForSetupCounter(userId).then(async (myList)=>{
+			let hospitalId = userdata.hospitalId;
+			doLoadCaseForSetupCounter(userId, hospitalId).then(async (myList)=>{
 
 				newstatusCases = [];
 			  accstatusCases = [];
@@ -4788,7 +4789,7 @@ module.exports = function ( jq ) {
 			let scanPart = query.Query.ScanPart;
 
 
-			if (!dicomDBReadyState){
+			//if (!dicomDBReadyState){
 				/* call from api */
 				const userdata = JSON.parse(localStorage.getItem('userdata'));
 				const dicomUrl = '/api/dicomtransferlog/studies/list';
@@ -4804,6 +4805,7 @@ module.exports = function ( jq ) {
 					reject({error: {code: 210, cause: 'Token Expired!'}});
 				}
 				/* sync dicom to IndexedDB */
+				/*
 				var req = indexedDB.deleteDatabase('dicomdb');
 				req.onsuccess = function () {
 					console.log("Deleted database successfully");
@@ -4829,10 +4831,12 @@ module.exports = function ( jq ) {
 
 				let synmessageCmd = {type: 'sync', dicoms: studies}
 	      webworker.postMessage(JSON.stringify(synmessageCmd));
-
+				*/
 				resolve(studies);
+			/*
 			} else {
 				/* call from IndexedDB */
+				/*
 				let dicomQuery = query.Query;
 				let openRequest = indexedDB.open("dicomdb", 2);
 				openRequest.onsuccess = async function() {
@@ -4857,6 +4861,7 @@ module.exports = function ( jq ) {
 					}
 				}
 			}
+			*/
 		});
 	}
 
@@ -5461,9 +5466,9 @@ module.exports = function ( jq ) {
 				let patientTargetName = defualtValue.patient.name;
 				let allNewSeries = updateDicom.Series.length;
 				let allNewImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientTargetName);
+				let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
+				console.log(allNewSum);
 				if (allNewSum !== summarySeriesImages){
-					let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
-					console.log(allNewSum);
 					$('#SumSeriesImages').text(allNewSum);
 					$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
 				} else {
@@ -6053,9 +6058,9 @@ module.exports = function ( jq ) {
 						let thisScanPart = scanparts[i];
 						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
 						if (isOutTime) {
-							thisScanPart.DF = dfRes.prdf.df.night;
+							thisScanPart.DF = {value: dfRes.prdf.df.night, type: 'night'};
 						} else {
-							thisScanPart.DF = dfRes.prdf.df.normal;
+							thisScanPart.DF = {value: dfRes.prdf.df.normal, type: 'normal'};
 						}
 						scanpartItem.push(thisScanPart);
 					}

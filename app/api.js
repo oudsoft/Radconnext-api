@@ -17,6 +17,9 @@ const windowsappPath = '/home/windowsapp';
 const db = require('./db/relation.js');
 db.sequelize.sync({ force: false });
 
+const shopdb = require('./db/shop-relation.js');
+shopdb.sequelize.sync({ force: false });
+
 const windowsappStatic = express.static(windowsappPath);
 const windowsappIndex = serveIndex(windowsappPath, {'icons': true});
 
@@ -109,6 +112,12 @@ module.exports = ( httpsServer, monitor ) => {
 
 	const uicommon = require('./db/rest/auicommon.js')(db, taskCase, taskWarning, voipTask, log, webSocketServer);
 
+	/* shop */
+	const shopusertype = require('./db/rest/shop/usertype.js')(shopdb, log);
+	const shopuser = require('./db/rest/shop/user.js')(shopdb, log);
+	const shopshop = require('./db/rest/shop/shop.js')(shopdb, log);
+	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
+
 	apiApp.use('/external', externalapiproxy);
 	apiApp.use('/orthancproxy', orthancproxy);
 	apiApp.use('/users', users);
@@ -152,6 +161,11 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/voipapp', voipapp);
 	apiApp.use('/voiptask', voipTaskApp);
 
+	/* shop */
+	apiApp.use('/shop/usertype', shopusertype);
+	apiApp.use('/shop/user', shopuser);
+	apiApp.use('/shop/shop', shopshop);
+
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;
 	log.info('Create Internal HTTP Server with command=>' + internalHTTP);
@@ -161,5 +175,5 @@ module.exports = ( httpsServer, monitor ) => {
 		log.error('error=>' + err);
 	});
 
-	return { api: apiApp, db: db, taskCase: taskCase, whomtask: whomtask, voipTask: voipTask, webSocketServer: webSocketServer };
+	return { api: apiApp, db: db, shopdb: shopdb, taskCase: taskCase, whomtask: whomtask, voipTask: voipTask, webSocketServer: webSocketServer };
 }
