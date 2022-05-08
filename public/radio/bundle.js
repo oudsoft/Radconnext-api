@@ -5724,9 +5724,53 @@ module.exports = function ( jq ) {
 		let misstakeCaseData = $(evt.currentTarget).data('misstakeCaseData');
 		console.log(misstakeCaseData);
 		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
-    doGetApi(getUserInfoUrl).then(async(response)=>{
+    common.doGetApi(getUserInfoUrl, {}).then(async(response)=>{
       let ownerCaseInfo = response.Record.info;
-			console.log(ownerCaseInfo);
+			let ownerCaseInfoBox = $('<div></div>');
+			$(ownerCaseInfoBox).append$($('<h4>ข้อมูลผู้ส่งเคส</h4>').css({'text-align': 'center', 'line-height': '14px'}));
+			$(ownerCaseInfoBox).append$($('<p>ชื่อ ' + ownerCaseInfo.User_NameTH + ' ' + ownerCaseInfo.User_LastNameTH + '</p>').css({'line-height': '14px'}));
+			$(ownerCaseInfoBox).append$($('<p>โทร. ' + ownerCaseInfo.User_Phone + '</p>').css({'line-height': '14px'}));
+			$(ownerCaseInfoBox).append$($('<p>อีเมล์. ' + ownerCaseInfo.User_Mail + '</p>').css({'line-height': '14px'}));
+
+			let notifyMessageBox = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+			let optionRow = $('<tr></tr>');
+			let optionNameCell = $('<td width="30%">สาเหตุ</td>').css({'padding': '5px'});
+			let optionValueCell = $('<td width="*"></td>').css({'padding': '5px'});
+			$(optionRow).append($(optionNameCell)).append($(optionValueCell));
+			let causeOption = $('<select></select>');
+			$(causeOption).append($('<option value="ประวัติไม่ชัดเจน/ขอประวัติเพิ่ม">ประวัติไม่ชัดเจน/ขอประวัติเพิ่ม</option>'));
+			$(causeOption).append($('<option value="ภาพไม่ครบ/ต้องการภาพเพิ่มเติม">ภาพไม่ครบ/ต้องการภาพเพิ่มเติม</option>'));
+			$(causeOption).append($('<option value="ประวัติ, ภาพ หรือผลผิดคน">ประวัติ, ภาพ หรือผลผิดคน</option>'));
+			$(causeOption).append($('<option value="รายการ DF ผิด">รายการ DF ผิด</option>'));
+			$(causeOption).append($('<option value="อื่นๆ">อื่นๆ</option>'));
+			$(optionValueCell).append($(causeOption));
+			$(notifyMessageBox).append($(optionRow));
+
+			let inputRow = $('<tr></tr>');
+			let inputNameCell = $('<td">เพิ่มเติม</td>').css({'padding': '5px'});
+			let inputValueCell = $('<td></td>').css({'padding': '5px'});
+			let inputValue = $('<input type="text" size="25"/>');
+			$(inputValueCell).append($(inputValue));
+			$(inputRow).append($(inputNameCell)).append($(inputValueCell));
+			$(notifyMessageBox).append($(inputRow));
+			let radAlertMsg = $('<div></div>');
+			$(radAlertMsg).append($(ownerCaseInfoBox)).append($(notifyMessageBox));
+
+			const radconfirmoption = {
+	      title: 'แจ้งเตสผิดพลาด',
+	      msg: $(radAlertMsg),
+	      width: '420px',
+	      onOk: function(evt) {
+					let causeValue = $(causeOption).val();
+					let otherValue = $(inputValue).val();
+					console.log(causeValue);
+					console.log(otherValue);
+	      },
+	      onCancel: function(evt) {
+	        radConfirmBox.closeAlert();
+	      }
+	    }
+	    let radConfirmBox = $('body').radalert(radconfirmoption);
     });
 	}
 
