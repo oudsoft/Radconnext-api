@@ -5723,6 +5723,11 @@ module.exports = function ( jq ) {
 	const onMisstakeCaseNotifyCmd = function(evt){
 		let misstakeCaseData = $(evt.currentTarget).data('misstakeCaseData');
 		console.log(misstakeCaseData);
+		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
+    doGetApi(getUserInfoUrl).then(async(response)=>{
+      let ownerCaseInfo = response.Record.info;
+			console.log(ownerCaseInfo);
+    });
 	}
 
   const onTemplateSelectorChange = async function(evt) {
@@ -6548,7 +6553,7 @@ module.exports = function ( jq ) {
 			let summarySecondAreaLeft = $('<td width="36%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle1 = $('<td width="15%" align="left" valign="top"></td>');
 			let summarySecondAreaMiddle2 = $('<td width="25%" align="left" valign="top"></td>');
-			let summarySecondAreaRight = $('<td width="*" align="left" valign="bottom"></td>');
+			let summarySecondAreaRight = $('<td width="*" align="center" valign="bottom"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaRight));
 			$(summarySecondArea).append($(summarySecondAreaRow));
 			$(summarySecondLine).append($(summarySecondArea));
@@ -6572,7 +6577,7 @@ module.exports = function ( jq ) {
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
 
-			let downloadData = {caseId: selectedCase.case.id, patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
+			let downloadData = {caseId: selectedCase.case.id, patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename, userId: selectedCase.case.userId};
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', onDownloadCmdClick);
 			$(downloadCmd).appendTo($(downloadCmdCell));

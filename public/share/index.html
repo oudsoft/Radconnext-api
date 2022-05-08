@@ -190,10 +190,20 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   //let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/title.jpg'
   let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/9c8cb539-ee47.jpg';
   let imageTitle2 = radconnextUrl + '/img/usr/upload/sponsor-001/1058008.jpg'
+  let imageTitle3 = radconnextUrl + '/img/usr/upload/sponsor-001/d59b2a36-88e1.jpg';
+  let imageTitle4 = radconnextUrl + '/img/usr/upload/sponsor-001/4123b6c5-381d.jpg';
+  let imageTitle5 = radconnextUrl + '/img/usr/upload/sponsor-001/8c6ae9a5-67db.jpg';
+  let imageTitle6 = radconnextUrl + '/img/usr/upload/sponsor-001/20c78b43-c933.jpg';
+
   let linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   let sponsorBoard = doCreateSponsorBox(imageTitle, linkTo);
   let sponsorBoard2 = doCreateSponsorBox(imageTitle2, linkTo);
-  $(sponsorBox).append($(sponsorBoard)).append($(sponsorBoard2));
+  let sponsorBoard3 = doCreateSponsorBox(imageTitle3, linkTo);
+  let sponsorBoard4 = doCreateSponsorBox(imageTitle4, linkTo);
+  let sponsorBoard5 = doCreateSponsorBox(imageTitle5, linkTo);
+  let sponsorBoard6 = doCreateSponsorBox(imageTitle6, linkTo);
+
+  $(sponsorBox).append($(sponsorBoard)).append($(sponsorBoard2)).append($(sponsorBoard3)).append($(sponsorBoard4)).append($(sponsorBoard5)).append($(sponsorBoard6));
 
   let shareBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
   let myLiffUrl = undefined;
