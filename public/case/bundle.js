@@ -145,6 +145,7 @@ function doLoadMainPage(){
   document.addEventListener("triggercasecounter", casecounter.onCaseChangeStatusTrigger);
   document.addEventListener("triggerconsultcounter", casecounter.onConsultChangeStatusTrigger);
   document.addEventListener("triggernewdicom", onNewDicomTransferTrigger);
+  document.addEventListener("triggercasemisstake", onCaseMisstakeNotifyTrigger);
   document.addEventListener("clientreconnecttrigger", onClientReconnectTrigger);
   document.addEventListener("clientresult", onClientResult);
 
@@ -485,6 +486,30 @@ const onNewDicomTransferTrigger = function(evt){
 
   let synmessageCmd = {type: 'save', dicom: dicom}
   webworker.postMessage(JSON.stringify(synmessageCmd));
+}
+
+const onCaseMisstakeNotifyTrigger = function(evt){
+  let trigerData = evt.detail.data;
+  let msg = trigerData.msg;
+  let from = trigerData.from;
+
+  let radAlertMsg = $('<div></div>');
+  let notifyFromromBox = $('<div></div>');
+  $(notifyFromromBox).append($('<p>ผู้แจ้ง ' + from.userfullname + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>สาเหตุเคสผิดพลาด ' + msg.cause + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ข้อความแจ้งเพิ่มเติม ' + msg.other + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
+  $(radAlertMsg).append($(notifyFromromBox));
+
+  const radalertoption = {
+    title: 'ข้อความแจ้งเตือนเตสผิดพลาด',
+    msg: $(radAlertMsg),
+    width: '420px',
+    onOk: function(evt) {
+      radConfirmBox.closeAlert();
+    }
+  }
+  let radAlertBox = $('body').radalert(radalertoption);
+  $(radAlertBox.cancelCmd).hide();
 }
 
 const onClientReconnectTrigger = function(evt){
@@ -8344,6 +8369,11 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'newdicom') {
 			let eventName = 'triggernewdicom'
 			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'casemisstake') {
+			let eventName = 'triggercasemisstake'
+			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
     } else if (data.type == 'notify') {

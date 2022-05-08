@@ -21,9 +21,10 @@ app.get('/(:userId)', (req, res) => {
       if (ur.length > 0){
         try {
           const userId = req.params.userId;
-          const anyUser = await db.users.findAll({ attributes: ['id', 'userinfoId', 'usertypeId'], where: {id: userId}});
+          const anyUser = await db.users.findAll({ attributes: ['id', 'username', 'userinfoId', 'usertypeId'], where: {id: userId}});
           const yourUser = await db.userinfoes.findAll({ where: {id: anyUser[0].userinfoId}});
-          let record = {user: anyUser[0], info: yourUser[0], type: anyUser[0].usertypeId}
+          let record = {user: anyUser[0], info: yourUser[0], type: anyUser[0].usertypeId};
+          record.info.username = anyUser[0].username;
           res.json({status: {code: 200}, Record: record});
         } catch(error) {
           log.error(error);

@@ -312,6 +312,13 @@ function RadconWebSocketServer (arg, db, log) {
 					case "clientupdate":
 
 					break;
+					case "casemisstake":
+						let sendto = data.sendto;
+						let from = data.from;
+						let msg = data.msg;
+						let msgSend = {type: 'casemisstake', msg: msg, from: from};
+						let sendResult = await $this.sendMessage(msgSend, sendto);
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));

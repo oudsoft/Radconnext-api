@@ -2764,6 +2764,11 @@ module.exports = function ( jq, wsm ) {
 			let triggerData = {dicom : data.dicom};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'casemisstake') {
+			let eventName = 'triggercasemisstake'
+			let triggerData = {msg : data.msg, from: data.from};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -3679,6 +3684,18 @@ module.exports = function ( jq ) {
 	        let clockCountdownDiv = $('<div></div>');
 	        $(clockCountdownDiv).countdownclock({countToHH: hh, countToMN: mn});
 	        $(caseColumn).append($(clockCountdownDiv));
+					let totalMinus = (hh*60) + mn;
+					if (totalMinus < 30){
+						$(clockCountdownDiv).css({'background-color': '#8532EF', 'color': 'white'});
+					} else if (totalMinus < 60){
+						$(clockCountdownDiv).css({'background-color': '#EF3232', 'color': 'white'});
+					} else if (totalMinus < 240){
+						$(clockCountdownDiv).css({'background-color': '#FF5733', 'color': 'white'});
+					} else if (totalMinus < 1440){
+						$(clockCountdownDiv).css({'background-color': '#F79C06', 'color': 'white'});
+					} else {
+						$(clockCountdownDiv).css({'background-color': '#177102 ', 'color': 'white'});
+					}
 	      } else {
 	        //$(caseColumn).append($('<span>not found Task</span>'));
 					$(caseColumn).append($('<span style="color: red;">-</span>'));
@@ -4772,6 +4789,19 @@ module.exports = function ( jq ) {
 	      //} else {
 	        //$(caseColumn).append($('<span>not found Task</span>'));
 	  		//}
+				let totalMinus = (hh*60) + mn;
+				if (totalMinus < 30){
+					$(clockCountdownDiv).css({'background-color': '#8532EF', 'color': 'white'});
+				} else if (totalMinus < 60){
+					$(clockCountdownDiv).css({'background-color': '#EF3232', 'color': 'white'});
+				} else if (totalMinus < 240){
+					$(clockCountdownDiv).css({'background-color': '#FF5733', 'color': 'white'});
+				} else if (totalMinus < 1440){
+					$(clockCountdownDiv).css({'background-color': '#F79C06', 'color': 'white'});
+				} else {
+					$(clockCountdownDiv).css({'background-color': '#177102 ', 'color': 'white'});
+				}
+				
 	  		$(caseColumn).appendTo($(caseRow));
 
 	      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
@@ -5726,12 +5756,14 @@ module.exports = function ( jq ) {
 		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
     common.doGetApi(getUserInfoUrl, {}).then(async(response)=>{
       let ownerCaseInfo = response.Record.info;
+			console.log(ownerCaseInfo);
 			let ownerCaseInfoBox = $('<div></div>');
-			$(ownerCaseInfoBox).append$($('<h4>ข้อมูลผู้ส่งเคส</h4>').css({'text-align': 'center', 'line-height': '14px'}));
-			$(ownerCaseInfoBox).append$($('<p>ชื่อ ' + ownerCaseInfo.User_NameTH + ' ' + ownerCaseInfo.User_LastNameTH + '</p>').css({'line-height': '14px'}));
-			$(ownerCaseInfoBox).append$($('<p>โทร. ' + ownerCaseInfo.User_Phone + '</p>').css({'line-height': '14px'}));
-			$(ownerCaseInfoBox).append$($('<p>อีเมล์. ' + ownerCaseInfo.User_Mail + '</p>').css({'line-height': '14px'}));
-
+			$(ownerCaseInfoBox).append($('<h4>ข้อมูลผู้ส่งเคส</h4>').css({'text-align': 'center', 'line-height': '14px'}));
+			$(ownerCaseInfoBox).append($('<p>ชื่อ ' + ownerCaseInfo.User_NameTH + ' ' + ownerCaseInfo.User_LastNameTH + '</p>').css({'line-height': '14px'}));
+			$(ownerCaseInfoBox).append($('<p>โทร. ' + ownerCaseInfo.User_Phone + '</p>').css({'line-height': '14px'}));
+			if (ownerCaseInfo.User_Mail) {
+				$(ownerCaseInfoBox).append($('<p>อีเมล์. ' + ownerCaseInfo.User_Mail + '</p>').css({'line-height': '14px'}));
+			}
 			let notifyMessageBox = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
 			let optionRow = $('<tr></tr>');
 			let optionNameCell = $('<td width="30%">สาเหตุ</td>').css({'padding': '5px'});
@@ -5763,8 +5795,17 @@ module.exports = function ( jq ) {
 	      onOk: function(evt) {
 					let causeValue = $(causeOption).val();
 					let otherValue = $(inputValue).val();
-					console.log(causeValue);
-					console.log(otherValue);
+					const userdata = JSON.parse(localStorage.getItem('userdata'));
+					let main = require('../main.js');
+					let myWsm = main.doGetWsm();
+					let sendto = ownerCaseInfo.username;
+					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
+					let msg = {cause: causeValue, other: otherValue};
+					let msgSend = {type: 'casemisstake', msg: msg, sendto: sendto, from: from};
+			    myWsm.send(JSON.stringify(msgSend));
+					$.notify('ระบบฯ แจ้งข้อมูลความผิดพลาดของเคสไปยังผู้ส่งเคสสำร็จ', 'success');
+					radConfirmBox.closeAlert();
 	      },
 	      onCancel: function(evt) {
 	        radConfirmBox.closeAlert();
@@ -7215,7 +7256,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./ai-lib.js":10,"./chatmanager.js":12,"./templatelib.js":18}],16:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8,"./ai-lib.js":10,"./chatmanager.js":12,"./templatelib.js":18}],16:[function(require,module,exports){
 /*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
