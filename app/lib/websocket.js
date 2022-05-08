@@ -317,7 +317,7 @@ function RadconWebSocketServer (arg, db, log) {
 						let fromCasemisstake = data.from;
 						let msgCasemisstake = data.msg;
 						let msgCasemisstakeSend = {type: 'casemisstake', msg: msgCasemisstake, from: fromCasemisstake};
-						let sendResult = await $this.sendMessage(msgCasemisstakeSend, sendtoCasemisstake);
+						let sendCasemisstakeResult = await $this.sendMessage(msgCasemisstakeSend, sendtoCasemisstake);
 					break;
 				}
 			} else {
