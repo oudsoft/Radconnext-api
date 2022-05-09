@@ -59,7 +59,7 @@ const doCreatePlayCmd = function(){
 const doCreateSponsorBox = function(imageTitle, linkTo){
   let sponsorBoard = $('<img src="' + imageTitle + '" style="cursor: pointer; width: 100%; height: auto; display: none;"/>');
   $(sponsorBoard).on('click', (evt)=>{
-    let sponsorLink =
+    $(sponsorBoard).parent().focus();
     window.open(linkTo, '_blank');
   });
   return $(sponsorBoard);
@@ -186,24 +186,16 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const params = new URLSearchParams(queryString);
   const id = params.get('id');
 
-  let sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
-  //let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/title.jpg'
-  let imageTitle = radconnextUrl + '/img/usr/upload/sponsor-001/9c8cb539-ee47.jpg';
-  let imageTitle2 = radconnextUrl + '/img/usr/upload/sponsor-001/1058008.jpg'
-  let imageTitle3 = radconnextUrl + '/img/usr/upload/sponsor-001/d59b2a36-88e1.jpg';
-  let imageTitle4 = radconnextUrl + '/img/usr/upload/sponsor-001/4123b6c5-381d.jpg';
-  let imageTitle5 = radconnextUrl + '/img/usr/upload/sponsor-001/8c6ae9a5-67db.jpg';
-  let imageTitle6 = radconnextUrl + '/img/usr/upload/sponsor-001/20c78b43-c933.jpg';
+  const sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;" tabindex="1"></div>');
+  const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
+  const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
+  const imageFiles = ['9c8cb539-ee47.jpg', '1058008.jpg', 'd59b2a36-88e1.jpg', '4123b6c5-381d.jpg', '8c6ae9a5-67db.jpg', '20c78b43-c933.jpg', '748b7641-299d.jpg', '45bf8e04-934c.jpg', 'a2e2085e-3c57.jpg', '55b07fac-9074.jpg', 'dc230594-a4c9.jpg'];
 
-  let linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
-  let sponsorBoard = doCreateSponsorBox(imageTitle, linkTo);
-  let sponsorBoard2 = doCreateSponsorBox(imageTitle2, linkTo);
-  let sponsorBoard3 = doCreateSponsorBox(imageTitle3, linkTo);
-  let sponsorBoard4 = doCreateSponsorBox(imageTitle4, linkTo);
-  let sponsorBoard5 = doCreateSponsorBox(imageTitle5, linkTo);
-  let sponsorBoard6 = doCreateSponsorBox(imageTitle6, linkTo);
-
-  $(sponsorBox).append($(sponsorBoard)).append($(sponsorBoard2)).append($(sponsorBoard3)).append($(sponsorBoard4)).append($(sponsorBoard5)).append($(sponsorBoard6));
+  for (let i=0; i < imageFiles.length; i++) {
+    let imageLink = imageTitleUrl + imageFiles[i];
+    let sponsorBoard = doCreateSponsorBox(imageLink, linkTo);
+    $(sponsorBox).append($(sponsorBoard))
+  }
 
   let shareBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
   let myLiffUrl = undefined;
@@ -282,7 +274,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
               let downloadCmd = doCreateDownloadCmd(src);
               $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
-              $(view).append($(sponsorBoard)).append($(img)).append($(bottomBar))
+              $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
 
               //let newWindow = window.open();
               //$(newWindow.document.body).append($(view));
@@ -369,21 +361,62 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     }
   }
 
+  let currentPlayIndex = 0;
+  let bannerImages = $(sponsorBox).children('img');
+  let timer = undefined;
+
   const doPlaySport = function(n){
-    let bannerImages = $(sponsorBox).children('img');
+    if (timer) {
+      window.clearTimeout(timer);
+    }
     $(bannerImages[n]).css({'display': 'block'});
-    let timer = window.setTimeout(()=>{
+    timer = window.setTimeout(()=>{
       $(bannerImages[n]).css({'display': 'none'});
       let i = n + 1;
       if (n >= (bannerImages.length-1)){
         i = 0;
       }
-      doPlaySport(i);
+      currentPlayIndex = i;
+      doPlaySport(currentPlayIndex);
     }, 30 * 1000);
   }
 
-  doPlaySport(0);
 
+  doPlaySport(currentPlayIndex);
+
+  $(sponsorBox).on('keydown', (evt)=>{
+    switch (evt.keyCode) {
+      case 39:
+        /* Arrow Right */
+        $(bannerImages[currentPlayIndex]).css({'display': 'none'});
+        ++currentPlayIndex;
+        if (currentPlayIndex == bannerImages.length) {
+          currentPlayIndex = 0;
+        }
+        $(bannerImages[currentPlayIndex]).css({'display': 'block'});
+      break;
+      case 37:
+        /* Arrow Left */
+        $(bannerImages[currentPlayIndex]).css({'display': 'none'});
+        --currentPlayIndex;
+        if (currentPlayIndex < 0) {
+          currentPlayIndex = bannerImages.length - 1;
+        }
+        $(bannerImages[currentPlayIndex]).css({'display': 'block'});
+      break;
+      case 38:
+        /* Arrow Up */
+      break;
+      case 40:
+        /* Arrow Down */
+      break;
+    }
+    if (timer) {
+      window.clearTimeout(timer);
+    }
+  });
+
+  $(sponsorBox).focus();
 //https://medium.com/linedevth/%E0%B9%80%E0%B8%97%E0%B8%84%E0%B8%99%E0%B8%B4%E0%B8%84%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-universal-link-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B9%84%E0%B8%94%E0%B9%89%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87-liff-url-%E0%B9%81%E0%B8%A5%E0%B8%B0-web-url-%E0%B9%82%E0%B8%94%E0%B8%A2%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%9E%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%A1%E0%B8%B7%E0%B8%AD-7bf17a435339
 
 //https://medium.com/linedevth/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-content-sharer-%E0%B9%83%E0%B8%AB%E0%B9%89-line-oa-%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-line-social-plugins-23156fbe5415

@@ -492,12 +492,26 @@ const onCaseMisstakeNotifyTrigger = function(evt){
   let trigerData = evt.detail.data;
   let msg = trigerData.msg;
   let from = trigerData.from;
+  let patientFullName = trigerData.caseData.patientFullName;
+  let patientHN = trigerData.caseData.patientHN;
+  let caseScanParts = trigerData.caseData.caseScanParts;
+  let caseScanPartsText = '';
+  caseScanParts.forEach((item, i) => {
+    if (i != (caseScanParts.length - 1)) {
+      caseScanPartsText  += item.Name + ' \ ';
+    } else {
+      caseScanPartsText  += item.Name;
+    }
+  });
 
   let radAlertMsg = $('<div></div>');
   let notifyFromromBox = $('<div></div>');
-  $(notifyFromromBox).append($('<p>ผู้แจ้ง ' + from.userfullname + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
-  $(notifyFromromBox).append($('<p>สาเหตุเคสผิดพลาด ' + msg.cause + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
-  $(notifyFromromBox).append($('<p>ข้อความแจ้งเพิ่มเติม ' + msg.other + '</p>').css({'text-align': 'center', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ผ้ป่วย ชื่อ ' + patientFullName + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>HN ' + patientHN + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ฆScan Part ' + caseScanPartsText + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ผู้แจ้ง ' + from.userfullname + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>สาเหตุเคสผิดพลาด ' + msg.cause + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ข้อความแจ้งเพิ่มเติม ' + msg.other + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
   $(radAlertMsg).append($(notifyFromromBox));
 
   const radalertoption = {

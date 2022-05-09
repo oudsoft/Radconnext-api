@@ -5750,7 +5750,7 @@ module.exports = function ( jq ) {
 		}
   }
 
-	const onMisstakeCaseNotifyCmd = function(evt){
+	const onMisstakeCaseNotifyCmdClick = function(evt){
 		let misstakeCaseData = $(evt.currentTarget).data('misstakeCaseData');
 		console.log(misstakeCaseData);
 		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
@@ -5801,7 +5801,7 @@ module.exports = function ( jq ) {
 					let sendto = ownerCaseInfo.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
-					let msg = {cause: causeValue, other: otherValue};
+					let msg = {cause: causeValue, other: otherValue, caseData: misstakeCaseData};
 					let msgSend = {type: 'casemisstake', msg: msg, sendto: sendto, from: from};
 			    myWsm.send(JSON.stringify(msgSend));
 					$.notify('ระบบฯ แจ้งข้อมูลความผิดพลาดของเคสไปยังผู้ส่งเคสสำร็จ', 'success');
@@ -6643,7 +6643,8 @@ module.exports = function ( jq ) {
 			$(summarySecondArea).append($(summarySecondAreaRow));
 			$(summarySecondLine).append($(summarySecondArea));
 
-			let summaryDF = doCreateSummaryDF(selectedCase.case.Case_ScanPart);
+			let caseScanParts = selectedCase.case.Case_ScanPart;
+			let summaryDF = doCreateSummaryDF(caseScanParts);
 			$(summarySecondAreaLeft).append($(summaryDF));
 
 			let buttonCmdArea = $('<div style="padding: 5px;"></div>');
@@ -6661,8 +6662,12 @@ module.exports = function ( jq ) {
 			$(buttonCmdArea).append($(buttonCmdTable));
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer;"/>');
-
+			let patientFullName = selectedCase.case.patient.Patient_NameEN + ' ' + selectedCase.case.patient.Patient_LastNameEN;
+			let patientHN = selectedCase.case.patient.Patient_HN;
 			let downloadData = {caseId: selectedCase.case.id, patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename, userId: selectedCase.case.userId};
+			downloadData.caseScanParts = caseScanParts;
+			downloadData.patientFullName = patientFullName;
+			downloadData.patientHN = patientHN;
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', onDownloadCmdClick);
 			$(downloadCmd).appendTo($(downloadCmdCell));
@@ -6686,7 +6691,7 @@ module.exports = function ( jq ) {
 
 			let misstakeCaseNotifyCmd = $('<input type="button" value=" แจ้งเคสผิดพลาด " class="action-btn" style="cursor: pointer;"/>');
 			$(misstakeCaseNotifyCmd).data('misstakeCaseData', downloadData);
-			$(misstakeCaseNotifyCmd).on('click', onMisstakeCaseNotifyCmd);
+			$(misstakeCaseNotifyCmd).on('click', onMisstakeCaseNotifyCmdClick);
 			$(misstakeCaseNotifyCmd).appendTo($(summarySecondAreaRight));
 
 			resolve($(summarySecondLine));
