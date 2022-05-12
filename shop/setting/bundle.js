@@ -1423,7 +1423,7 @@ module.exports = function ( jq ) {
 				});
 
 				$(commandCell).append($(editUserCmd));
-				$(commandCell).append($(resetPassword));
+				$(commandCell).append($(resetPasswordCmd));
 				$(commandCell).append($(deleteUserCmd));
         $(itemRow).append($(commandCell));
 				$(userTable).append($(itemRow));
