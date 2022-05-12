@@ -1703,7 +1703,7 @@ module.exports = function ( jq ) {
 						} else {
 							$(resetForm).find('#Password').css({'border': ''});
 							$(resetForm).find('#RetryPassword').css({'border': ''});
-							let newPasswordFormObj = {userId: userData.id, password: newPassword};
+							let newPasswordFormObj = {userId: userId, password: newPassword};
 							let userRes = await common.doCallApi('/api/users/resetpassword', newPasswordFormObj);
 							console.log(userRes);
 							if (userRes.status.code == 200) {
