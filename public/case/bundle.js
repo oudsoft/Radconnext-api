@@ -4834,6 +4834,7 @@ module.exports = function ( jq ) {
 				const dicomUrl = '/api/dicomtransferlog/studies/list';
 				let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyFromDate: studyFromDate, studyToDate: studyToDate, patientName: patientName, patientID: patientID, scanPart: scanPart};
 				let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
+				console.log(dicomStudiesRes);
 				let studies = [];
 				if (dicomStudiesRes.orthancRes) {
 					let dicomSudies = dicomStudiesRes.orthancRes;

@@ -15,11 +15,10 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 const doGenOptions = function(shopId) {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
-      const orderby = [['id', 'ASC']];
-      const customers = await db.customers.findAll({ attributes: ['id', 'Name'], where: {shopId: shopId}, order: orderby});
+      const menugroups = await db.menugroups.findAll({ attributes: ['id', 'GroupName'], where: {shopId: shopId} });
       const result = [];
-      customers.forEach((customer, i) => {
-        result.push({Value: customer.id, DisplayText: customer.Name});
+      menugroups.forEach((group, i) => {
+        result.push({Value: group.id, DisplayText: group.GroupName});
       });
       setTimeout(()=> {
         resolve({Result: "OK", Options: result});
@@ -42,8 +41,8 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const customers = await db.customers.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
-          res.json({status: {code: 200}, Records: customers});
+          const menugroups = await db.menugroups.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
+          res.json({status: {code: 200}, Records: menugroups});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -62,15 +61,15 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
 });
 
 //Select API
-app.post('/select/(:customerId)', (req, res) => {
+app.post('/select/(:groupId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          let customerId = req.params.customerId;
-          const shops = await db.customers.findAll({ attributes: excludeColumn, where: {id: customerId}});
-          res.json({status: {code: 200}, Record: shops[0]});
+          let groupId = req.params.groupId;
+          const menugroups = await db.menugroups.findAll({ attributes: excludeColumn, where: {id: groupId}});
+          res.json({status: {code: 200}, Record: menugroups[0]});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -94,9 +93,9 @@ app.post('/add', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newCustomer = req.body.data;
-        let adCustomer = await db.customers.create(newCustomer);
-        await db.customers.update({shopId: req.body.shopId},{where: {id: adCustomer.id}});
+        let newGroup = req.body.data;
+        let adGroup = await db.menugroups.create(newGroup);
+        await db.menugroups.update({shopId: req.body.shopId}, {where: {id: adGroup.id}});
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -117,8 +116,29 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let updateShop = req.body.data;
-        await db.customers.update(updateShop, { where: { id: req.body.id } });
+        let updateGroup = req.body.data;
+        await db.menugroups.update(updateGroup, { where: { id: req.body.id } });
+        res.json({Result: "OK", status: {code: 200}});
+      } else if (ur.token.expired){
+        res.json({status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/change/logo', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let updateGroup = req.body.data;
+        await db.menugroups.update(updateGroup, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
@@ -139,7 +159,7 @@ app.post('/delete', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        await db.cutomers.destroy({ where: { id: req.body.id } });
+        await db.menugroups.destroy({ where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

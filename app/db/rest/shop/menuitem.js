@@ -12,14 +12,13 @@ var db, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
-const doGenOptions = function(shopId) {
+const doGenOptions = function(shopId, gropId) {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
-      const orderby = [['id', 'ASC']];
-      const customers = await db.customers.findAll({ attributes: ['id', 'Name'], where: {shopId: shopId}, order: orderby});
+      const menuitems = await db.menuitems.findAll({ attributes: ['id', 'MenuName'], where: {shopId: shopId, menugroupId: gropId}});
       const result = [];
-      customers.forEach((customer, i) => {
-        result.push({Value: customer.id, DisplayText: customer.Name});
+      menuitems.forEach((group, i) => {
+        result.push({Value: group.id, DisplayText: group.GroupName});
       });
       setTimeout(()=> {
         resolve({Result: "OK", Options: result});
@@ -42,8 +41,9 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const customers = await db.customers.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
-          res.json({status: {code: 200}, Records: customers});
+          const menuInclude = [{model: db.menugroups, attributes: ['id', 'GroupName']}];
+          const menuitems = await db.menuitems.findAll({attributes: excludeColumn, include: menuInclude, where: {shopId: shopId}, order: orderby});
+          res.json({status: {code: 200}, Records: menuitems});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -62,15 +62,15 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
 });
 
 //Select API
-app.post('/select/(:customerId)', (req, res) => {
+app.post('/select/(:itemId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          let customerId = req.params.customerId;
-          const shops = await db.customers.findAll({ attributes: excludeColumn, where: {id: customerId}});
-          res.json({status: {code: 200}, Record: shops[0]});
+          let itemId = req.params.groupId;
+          const menuitems = await db.menuitems.findAll({ attributes: excludeColumn, where: {id: itemId}});
+          res.json({status: {code: 200}, Record: menuitems[0]});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -94,9 +94,9 @@ app.post('/add', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newCustomer = req.body.data;
-        let adCustomer = await db.customers.create(newCustomer);
-        await db.customers.update({shopId: req.body.shopId},{where: {id: adCustomer.id}});
+        let newItem = req.body.data;
+        let adItem = await db.menuitems.create(newItem);
+        await db.menuitems.update({shopId: req.body.shopId, menugroupId: req.body.groupId}, {where: {id: adItem.id}});
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -117,8 +117,29 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let updateShop = req.body.data;
-        await db.customers.update(updateShop, { where: { id: req.body.id } });
+        let updateGroup = req.body.data;
+        await db.menuitems.update(updateGroup, { where: { id: req.body.id } });
+        res.json({Result: "OK", status: {code: 200}});
+      } else if (ur.token.expired){
+        res.json({status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/change/logo', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let updateGroup = req.body.data;
+        await db.menuitems.update(updateGroup, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
@@ -139,7 +160,7 @@ app.post('/delete', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        await db.cutomers.destroy({ where: { id: req.body.id } });
+        await db.menuitems.destroy({ where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -154,16 +175,18 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.get('/options/(:shopId)', (req, res) => {
+app.get('/options/(:shopId)/(:groupId)', (req, res) => {
   let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
+  let groupId = reg.params.groupId
+  doGenOptions(shopId, groupId).then((result) => {
     res.json(result);
   })
 });
 
-app.post('/options/(:shopId)', async (req, res) => {
+app.post('/options/(:shopId)/(:groupId)', async (req, res) => {
   let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
+  let groupId = reg.params.groupId
+  doGenOptions(shopId, groupId).then((result) => {
     res.json(result);
   })
 });

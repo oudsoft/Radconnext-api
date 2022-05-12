@@ -28,6 +28,7 @@ const doCreateShareCmd = function(myLiffUrl){
   });
   return $(lineShareIconCmd);
 }
+
 const doCreateDownloadCmd = function(imgSrc){
   let downloadIconCmd = $('<img src="' + radconnextUrl + '/images/download-icon-2.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
   $(downloadIconCmd).on('click', (evt)=>{
@@ -47,12 +48,10 @@ const doCreateBackCmd = function(backUrl){
   });
   return $(backIconCmd);
 }
-const doCreatePlayCmd = function(){
+const doCreatePlayCmd = function(imageLists, seriesId, playCmdClickCallback){
   let playIconCmd = $('<img src="' + radconnextUrl + '/images/play-icon.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
   $(playIconCmd).on('click', (evt)=>{
-    $.getScript( "../js/main.js", function( code, textStatus, jqxhr ) {
-      //let execResult = eval(code);
-    });
+    playCmdClickCallback(evt, seriesId, imageLists);
   });
   return $(playIconCmd);
 }
@@ -65,7 +64,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   return $(sponsorBoard);
 }
 /*****************************************************/
-  const radconnextUrl = 'https://radconnext.info';
+  //const radconnextUrl = 'https://radconnext.info';
+  const radconnextUrl = 'https://' + window.location.hostname;
   const usrUploadPath = '/img/usr/upload/share';
   const usrSeriesRootPath = '/img/usr/upload';
 
@@ -162,7 +162,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       $(thumb).on('click', (evt)=> {
         let imageCode = imageFile.split('.');
         let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
-        window.location.replace(openUrl);
+        window.open(openUrl, '_blank');
       })
       return $(thumb);
     } else if (m >= 0){
@@ -171,7 +171,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       $(thumb).on('click', (evt)=> {
         let clipCode = imageFile.split('.');
         let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + clipCode[0];
-        window.location.replace(openUrl);
+        window.open(openUrl, '_blank');
       })
       return $(thumb);
     } else {
@@ -189,7 +189,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;" tabindex="1"></div>');
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
-  const imageFiles = ['9c8cb539-ee47.jpg', '1058008.jpg', 'd59b2a36-88e1.jpg', '4123b6c5-381d.jpg', '8c6ae9a5-67db.jpg', '20c78b43-c933.jpg', '748b7641-299d.jpg', '45bf8e04-934c.jpg', 'a2e2085e-3c57.jpg', '55b07fac-9074.jpg', 'dc230594-a4c9.jpg'];
+  const imageFiles = ['0000-001.jpg', '0000-002.jpg', '0000-003.jpg', '0000-004.jpg', '0000-005.jpg', '0000-006.jpg', '0000-007.jpg', '0000-008.jpg', '0000-009.jpg', '0000-010.jpg', '0000-011.jpg'];
 
   for (let i=0; i < imageFiles.length; i++) {
     let imageLink = imageTitleUrl + imageFiles[i];
@@ -333,7 +333,9 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             let thumbsWrapper = await doCreateImagesSeriesThumb(seriesId, resMe);
             $(thumbsWrapper).css({'margin-top': '50px'});
             let shareCmd = doCreateShareCmd(myLiffUrl);
-            $(shareBox).append($(shareCmd));
+            let playCmd = doCreatePlayCmd(resMe, seriesId, playCmdClickCallback);
+            $(playCmd).css({'margin-left': '10px'});
+            $(shareBox).append($(shareCmd)).append($(playCmd));
             $('#app').prepend($(thumbsWrapper));
             $('#app').append($(shareBox));
             $('#app').prepend($(sponsorBox));
@@ -361,62 +363,172 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     }
   }
 
-  let currentPlayIndex = 0;
+  let currentPlaySportIndex = 0;
   let bannerImages = $(sponsorBox).children('img');
-  let timer = undefined;
+  let sponsorTimer = undefined;
 
   const doPlaySport = function(n){
-    if (timer) {
-      window.clearTimeout(timer);
-    }
     $(bannerImages[n]).css({'display': 'block'});
-    timer = window.setTimeout(()=>{
+    sponsorTimer = window.setTimeout(()=>{
       $(bannerImages[n]).css({'display': 'none'});
       let i = n + 1;
       if (n >= (bannerImages.length-1)){
         i = 0;
       }
-      currentPlayIndex = i;
-      doPlaySport(currentPlayIndex);
+      currentPlaySportIndex = i;
+      doPlaySport(currentPlaySportIndex);
     }, 30 * 1000);
   }
 
 
-  doPlaySport(currentPlayIndex);
+  doPlaySport(currentPlaySportIndex);
 
   $(sponsorBox).on('keydown', (evt)=>{
     switch (evt.keyCode) {
       case 39:
         /* Arrow Right */
-        $(bannerImages[currentPlayIndex]).css({'display': 'none'});
-        ++currentPlayIndex;
-        if (currentPlayIndex == bannerImages.length) {
-          currentPlayIndex = 0;
+        $(bannerImages[currentPlaySportIndex]).css({'display': 'none'});
+        ++currentPlaySportIndex;
+        if (currentPlaySportIndex == bannerImages.length) {
+          currentPlaySportIndex = 0;
         }
-        $(bannerImages[currentPlayIndex]).css({'display': 'block'});
+        $(bannerImages[currentPlaySportIndex]).css({'display': 'block'});
+        if (sponsorTimer) {
+          window.clearTimeout(sponsorTimer);
+        }
       break;
       case 37:
         /* Arrow Left */
-        $(bannerImages[currentPlayIndex]).css({'display': 'none'});
-        --currentPlayIndex;
-        if (currentPlayIndex < 0) {
-          currentPlayIndex = bannerImages.length - 1;
+        $(bannerImages[currentPlaySportIndex]).css({'display': 'none'});
+        --currentPlaySportIndex;
+        if (currentPlaySportIndex < 0) {
+          currentPlaySportIndex = bannerImages.length - 1;
         }
-        $(bannerImages[currentPlayIndex]).css({'display': 'block'});
+        $(bannerImages[currentPlaySportIndex]).css({'display': 'block'});
+        if (sponsorTimer) {
+          window.clearTimeout(sponsorTimer);
+        }
       break;
       case 38:
         /* Arrow Up */
+        doPlaySport(currentPlaySportIndex);
       break;
       case 40:
         /* Arrow Down */
+        doPlaySport(currentPlaySportIndex);
       break;
-    }
-    if (timer) {
-      window.clearTimeout(timer);
     }
   });
 
   $(sponsorBox).focus();
+
+  const doCreateImgView = function(seriesId, imageFile){
+    let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
+    let img = $('<img width="96%" height="auto" src="' + src + '"/>');
+    $(img).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
+    $(img).on('click', (evt)=> {
+      let imageCode = imageFile.split('.');
+      let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
+      window.open(openUrl, '_blank');
+    })
+    return $(img);
+  }
+
+  const playCmdClickCallback = function(evt, seriesId, imageLists){
+    let myPBox = $('<div id="PBox" tabindex="1"></div>');
+		$(myPBox).css({'position': 'absolute', 'width': '75%', 'height': 'auto', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '100px'});
+		$('body').append($(myPBox));
+
+		$(myPBox).draggable({containment: "parent"});
+		$(myPBox).resizable({containment: 'parent',
+			stop: function(evt) {
+				$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+			}
+		});
+		$(myPBox).on('click', (evt)=>{
+			$(myPBox).focus();
+		});
+		$(myPBox).on('keydown', (evt)=>{
+			//console.log(evt.keyCode);
+			//console.log(evt.which);
+      let w = 0;
+      let newSrc = undefined;
+      let openUrl = undefined;
+			switch (evt.keyCode) {
+				case 39:
+					/* Arrow Right */
+          ++currentPlayPreviewIndex;
+          if (currentPlayPreviewIndex == imageLists.length) {
+            currentPlayPreviewIndex = 0;
+          }
+          newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+          $(myPBox).find('img').attr('src', newSrc);
+          $(myPBox).find('img').on('click', (evt)=>{
+            openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+            window.open(openUrl, '_blank');
+          })
+          if (previewTimer) {
+            window.clearTimeout(previewTimer);
+          }
+				break;
+				case 37:
+					/* Arrow Left */
+          --currentPlayPreviewIndex;
+          if (currentPlayPreviewIndex < 0) {
+            currentPlayPreviewIndex = imageLists.length -1;
+          }
+          newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+          $(myPBox).find('img').attr('src', newSrc);
+          $(myPBox).find('img').on('click', (evt)=>{
+            openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+            window.open(openUrl, '_blank');
+          })
+          if (previewTimer) {
+            window.clearTimeout(previewTimer);
+          }
+				break;
+				case 38:
+					/* Arrow Up */
+          w = $(myPBox).find('img').css('width');
+          w = parseFloat(w) + 10 + 'px';
+          $(myPBox).find('img').css('width', w);
+				break;
+				case 40:
+					/* Arrow Down */
+          w = $(myPBox).find('img').css('width');
+          w = parseFloat(w) - 10 + 'px';
+          $(myPBox).find('img').css('width', w);
+				break;
+			}
+		});
+
+    $(myPBox).parent().css({'width': '100%', 'min-height': '100%'});
+    let imgBox = doCreateImgView(seriesId, imageLists[0]);
+    $(myPBox).append($(imgBox));
+    let closeCmd = $('<input type="button" value=" Close "/>');
+    $(closeCmd).on('click', (evt)=>{
+      $(myPBox).remove();
+    });
+    $(myPBox).append($(closeCmd));
+    $(myPBox).focus();
+
+    let currentPlayPreviewIndex = 0;
+    let previewTimer = undefined;
+
+    const doPlayPreview = function(n){
+      let src = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[n];
+      $(myPBox).find('img').attr('src', src);
+      previewTimer = window.setTimeout(()=>{
+        let i = n + 1;
+        if (n >= (imageLists.length-1)){
+          i = 0;
+        }
+        currentPlayPreviewIndex = i;
+        doPlayPreview(currentPlayPreviewIndex);
+      }, 20 * 1000);
+    }
+    doPlayPreview(currentPlayPreviewIndex);
+  }
 //https://medium.com/linedevth/%E0%B9%80%E0%B8%97%E0%B8%84%E0%B8%99%E0%B8%B4%E0%B8%84%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-universal-link-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B9%84%E0%B8%94%E0%B9%89%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87-liff-url-%E0%B9%81%E0%B8%A5%E0%B8%B0-web-url-%E0%B9%82%E0%B8%94%E0%B8%A2%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%9E%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%A1%E0%B8%B7%E0%B8%AD-7bf17a435339
 
 //https://medium.com/linedevth/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-content-sharer-%E0%B9%83%E0%B8%AB%E0%B9%89-line-oa-%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-line-social-plugins-23156fbe5415

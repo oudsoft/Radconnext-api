@@ -321,7 +321,7 @@ app.post('/load/list/by/status/owner', (req, res) => {
         try {
           const casestatusIds = req.body.casestatusIds;
           const userId = req.body.userId;
-          const youConsults = await db.radconsults.findAll({attributes: ['id'], where: {userId: userId, casestatusId: { [db.Op.in]: casestatusIds }}});
+          const youConsults = await db.radconsults.findAll({attributes: ['id'], where: {/*userId: userId,*/ casestatusId: { [db.Op.in]: casestatusIds }}});
           res.json({status: {code: 200}, Records: youConsults});
         } catch(error) {
       		log.error(error);

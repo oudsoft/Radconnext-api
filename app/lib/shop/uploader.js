@@ -82,45 +82,53 @@ module.exports = function (app) {
 		});
 	});
 
-	app.post('/shop/scannerupload', function(req, res) {
-  	const rootname = req.originalUrl.split('/')[1];
-		var body = req.body;
-		var newFileName = genUniqueID() + '.jpg';
-		var newPath = usrUploadDir + '/'  + newFileName;
-	  var base64Data = body.image.replace(/^data:image\/jpeg;base64,/,"");
-		fs.writeFile(newPath, base64Data, 'base64', function(err) {
-			if (err) {
-				res.status(500).send({status: {code: 500}, text: 'Write File Error =>', error: err});
-			} else {
-				var link =  DWLD + '/' + newFileName;
-				res.status(200).send({status: {code: 200}, text: 'ok scannerupload.', link: link});
-				}
-		});
-	});
+  app.post('/shop/upload/menugrouplogo', upload.array('groupmenulogo'), function(req, res) {
 
-	app.post('/shop/captureupload', upload.array('picture'), function(req, res) {
+		const rootname = req.originalUrl.split('/')[1];
 
 		var filename = req.files[0].originalname;
 		var fullnames = filename.split('.');
 
-		var newFileName = genUniqueID() + '.jpg';
+		var newFileName = genUniqueID() + '.' + fullnames[1];
 		var imgPath = req.files[0].destination + '/' + req.files[0].filename;
-		var newPath = req.files[0].destination + '/'  + newFileName;
+		var newPath = req.files[0].destination + '/groupmenulogo/'  + newFileName;
 		var readStream = fs.createReadStream(imgPath);
 		var writeStream = fs.createWriteStream(newPath);
 		readStream.pipe(writeStream);
 
-		var command = parseStr('rm %s', imgPath);
+		var command = parseStr(' rm %s', imgPath);
 		runcommand(command).then((stdout) => {
-			var link =  DWLD + '/' + newFileName;
-
-      res.status(200).send({status: {code: 200}, text: 'ok captureupload.', link: link});
-
+			var link =  DWLD + '/groupmenulogo/' + newFileName;
+			res.status(200).send({status: {code: 200}, text: 'ok upload groupmenu logo.', link: link});
 		}).catch((err) => {
 			console.log('err: 500 >>', err);
-			res.status(500).send({status: {code: 500}, error: err});
+      res.status(500).send({status: {code: 500}, error: ree});
 		});
 	});
+
+  app.post('/shop/upload/menuitemlogo', upload.array('menuitemlogo'), function(req, res) {
+
+    const rootname = req.originalUrl.split('/')[1];
+
+    var filename = req.files[0].originalname;
+    var fullnames = filename.split('.');
+
+    var newFileName = genUniqueID() + '.' + fullnames[1];
+    var imgPath = req.files[0].destination + '/' + req.files[0].filename;
+    var newPath = req.files[0].destination + '/itemmenulogo/'  + newFileName;
+    var readStream = fs.createReadStream(imgPath);
+    var writeStream = fs.createWriteStream(newPath);
+    readStream.pipe(writeStream);
+
+    var command = parseStr(' rm %s', imgPath);
+    runcommand(command).then((stdout) => {
+      var link =  DWLD + '/itemmenulogo/' + newFileName;
+      res.status(200).send({status: {code: 200}, text: 'ok upload itemmenu logo.', link: link});
+    }).catch((err) => {
+      console.log('err: 500 >>', err);
+      res.status(500).send({status: {code: 500}, error: ree});
+    });
+  });
 
 	return {
 		genUniqueID,

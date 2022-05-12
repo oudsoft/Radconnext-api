@@ -49,8 +49,9 @@ app.post('/add', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newOrthanc = req.body;
+        let newOrthanc = req.body.data;
         let adOrthanc = await Orthanc.create(newOrthanc);
+        await Orthanc.update({hospitalId: req.body.hospitalId},{where: {id: adOrthanc.id}});
         res.json({Result: "OK", Record: adOrthanc});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

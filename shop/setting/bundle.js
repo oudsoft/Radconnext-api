@@ -102,7 +102,811 @@ module.exports = {
   doShowShopItems,
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":3,"jquery":6}],3:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":6,"jquery":9}],3:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  const customerTableFields = [
+		{fieldName: 'Name', displayName: 'ชื่อ', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'Address', displayName: 'ที่อยู่', width: '25%', align: 'left', inputSize: '30', verify: false, showHeader: true},
+    {fieldName: 'Tel', displayName: 'โทรศัพท์', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
+		{fieldName: 'Mail', displayName: 'อีเมล์', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
+	];
+
+  const doShowCustomerItem = function(shopData, workAreaBox){
+    return new Promise(async function(resolve, reject) {
+      $(workAreaBox).empty();
+      let customerRes = await common.doCallApi('/api/shop/customer/list/by/shop/' + shopData.id, {});
+			let customerItems = customerRes.Records;
+
+      let titlePageBox = $('<div style="padding: 4px;">รายการลูกค้าของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+			$(workAreaBox).append($(titlePageBox));
+			let newCustomerCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+			let newCustomerCmd = $('<input type="button" value=" + New Customer " class="action-btn"/>');
+			$(newCustomerCmd).on('click', (evt)=>{
+				doOpenNewCustomerForm(shopData, workAreaBox);
+			});
+			$(newCustomerCmdBox).append($(newCustomerCmd))
+			$(workAreaBox).append($(newCustomerCmdBox));
+
+      let customerTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+			let headerRow = $('<tr></tr>');
+			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
+      for (let i=0; i < customerTableFields.length; i++) {
+        if (customerTableFields[i].showHeader) {
+          $(headerRow).append($('<td width="' + customerTableFields[i].width + '" align="center"><b>' + customerTableFields[i].displayName + '</b></td>'));
+        }
+			}
+      $(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
+			$(customerTable).append($(headerRow));
+
+      for (let x=0; x < customerItems.length; x++) {
+				let itemRow = $('<tr></tr>');
+				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
+				let item = customerItems[x];
+        for (let i=0; i < customerTableFields.length; i++) {
+          if (customerTableFields[i].showHeader) {
+  					let field = $('<td align="' + customerTableFields[i].align + '"></td>');
+            $(field).text(item[customerTableFields[i].fieldName]);
+            $(itemRow).append($(field));
+          }
+        }
+
+        let commandCell = $('<td align="center"></td>');
+
+        let editCustomerCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
+				$(editCustomerCmd).on('click', (evt)=>{
+					doOpenEditCustomerForm(shopData, workAreaBox, item);
+				});
+				let deleteCustomerCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
+				$(deleteCustomerCmd).on('click', (evt)=>{
+					doDeleteCustomer(shopData, workAreaBox, item.id);
+				});
+
+				$(commandCell).append($(editCustomerCmd));
+				$(commandCell).append($(deleteCustomerCmd));
+        $(itemRow).append($(commandCell));
+				$(customerTable).append($(itemRow));
+      }
+      $(workAreaBox).append($(customerTable));
+      resolve();
+    });
+  }
+
+  const doCreateNewCustomerForm = function(customerData){
+    let customerFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+		for (let i=0; i < customerTableFields.length; i++) {
+			let fieldRow = $('<tr></tr>');
+			let labelField = $('<td width="40%" align="left">' + customerTableFields[i].displayName + (customerTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
+			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+			let inputValue = $('<input type="text" id="' + customerTableFields[i].fieldName + '" size="' + customerTableFields[i].inputSize + '"/>');
+			if ((customerData) && (customerData[customerTableFields[i].fieldName])) {
+				$(inputValue).val(customerData[customerTableFields[i].fieldName]);
+			}
+			$(inputField).append($(inputValue));
+			$(fieldRow).append($(labelField));
+			$(fieldRow).append($(inputField));
+			$(customerFormTable).append($(fieldRow));
+		}
+		return $(customerFormTable);
+  }
+
+  const doVerifyCustomerForm = function(){
+    let isVerify = true;
+		let customerDataForm = {};
+		for (let i=0; i < customerTableFields.length; i++) {
+			let curValue = $('#'+customerTableFields[i].fieldName).val();
+			if (customerTableFields[i].verify) {
+				if (curValue !== '') {
+					$('#'+customerTableFields[i].fieldName).css({'border': ''});
+					customerDataForm[customerTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				} else {
+					$('#'+customerTableFields[i].fieldName).css({'border': '1px solid red'});
+					isVerify = isVerify && false;
+					return;
+				}
+			} else {
+				if (curValue !== '') {
+					customerDataForm[customerTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				}
+			}
+		}
+		return customerDataForm;
+  }
+
+  const doOpenNewCustomerForm = function(shopData, workAreaBox) {
+    let newCustomerForm = doCreateNewCustomerForm();
+    let radNewCustomerFormBox = $('<div></div>');
+    $(radNewCustomerFormBox).append($(newCustomerForm));
+    const newcustomerformoption = {
+      title: 'เพิ่มลูกค้าใหม่เข้าร้าน',
+      msg: $(radNewCustomerFormBox),
+      width: '520px',
+      onOk: async function(evt) {
+        let newCustomerFormObj = doVerifyCustomerForm();
+        if (newCustomerFormObj) {
+          let hasValue = newCustomerFormObj.hasOwnProperty('Name');
+          if (hasValue){
+            newCustomerFormBox.closeAlert();
+						let params = {data: newCustomerFormObj, shopId: shopData.id};
+            let userRes = await common.doCallApi('/api/shop/customer/add', params);
+            if (userRes.status.code == 200) {
+              $.notify("เพิ่มรายการลูกค้าสำเร็จ", "success");
+              await doShowCustomerItem(shopData, workAreaBox)
+            } else if (userRes.status.code == 201) {
+              $.notify("ไม่สามารถเพิ่มรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+            } else {
+              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการลูกค้าได้", "error");
+            }
+          }else {
+            $.notify("ข้อมูลไม่ถูกต้อง", "error");
+          }
+        } else {
+          $.notify("ข้อมูลไม่ถูกต้อง", "error");
+        }
+      },
+      onCancel: function(evt){
+        newCustomerFormBox.closeAlert();
+      }
+    }
+    let newCustomerFormBox = $('body').radalert(newcustomerformoption);
+  }
+
+  const doOpenEditCustomerForm = function(shopData, workAreaBox, customerData){
+		let editCustomerForm = doCreateNewCustomerForm(customerData);
+		let radEditCustomerFormBox = $('<div></div>');
+		$(radEditCustomerFormBox).append($(editCustomerForm));
+		const editcustomerformoption = {
+			title: 'แก้ไขลูกค้าของร้าน',
+			msg: $(radEditCustomerFormBox),
+			width: '520px',
+			onOk: async function(evt) {
+				let editCustomerFormObj = doVerifyCustomerForm();
+				if (editCustomerFormObj) {
+					let hasValue = editCustomerFormObj.hasOwnProperty('Name');
+					if (hasValue){
+						editCustomerFormBox.closeAlert();
+						let params = {data: editCustomerFormObj, id: customerData.id};
+						let userRes = await common.doCallApi('/api/shop/customer/update', params);
+						if (userRes.status.code == 200) {
+							$.notify("แก้ไขรายการลูกค้าสำเร็จ", "success");
+							await doShowCustomerItem(shopData, workAreaBox)
+						} else if (userRes.status.code == 201) {
+							$.notify("ไม่สามารถแก้ไขรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+						} else {
+							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการลูกค้าได้", "error");
+						}
+					}else {
+						$.notify("ข้อมูลไม่ถูกต้อง", "error");
+					}
+				} else {
+					$.notify("ข้อมูลไม่ถูกต้อง", "error");
+				}
+			},
+			onCancel: function(evt){
+				editCustomerFormBox.closeAlert();
+			}
+		}
+		let editCustomerFormBox = $('body').radalert(editcustomerformoption);
+	}
+
+  const doDeleteCustomer = function(shopData, workAreaBox, customerId){
+		let radConfirmMsg = $('<div></div>');
+		$(radConfirmMsg).append($('<p>คุณต้องการลบลูกค้ารายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบลูกค้า</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
+		const radconfirmoption = {
+			title: 'โปรดยืนยันการลบลูกค้า',
+			msg: $(radConfirmMsg),
+			width: '420px',
+			onOk: async function(evt) {
+				radConfirmBox.closeAlert();
+				let customerRes = await common.doCallApi('/api/shop/customer/delete', {id: customerId});
+				if (customerRes.status.code == 200) {
+					$.notify("ลบรายการลูกค้าสำเร็จ", "success");
+					await doShowCustomerItem(shopData, workAreaBox);
+				} else if (userRes.status.code == 201) {
+					$.notify("ไม่สามารถลบรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+				} else {
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการลูกค้าได้", "error");
+				}
+			},
+			onCancel: function(evt){
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+	}
+
+  return {
+    doShowCustomerItem
+  }
+}
+
+},{"../../../home/mod/common-lib.js":1}],4:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  const groupmenuTableFields = [
+		{fieldName: 'GroupName', displayName: 'ชื่อกลุ่มเมนู', width: '30%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'GroupPicture', displayName: 'โลโก้', width: '25%', align: 'left', inputSize: '30', verify: false, showHeader: true}
+	];
+
+  const doShowMenugroupItem = function(shopData, workAreaBox){
+    return new Promise(async function(resolve, reject) {
+      $(workAreaBox).empty();
+      let groupmenuRes = await common.doCallApi('/api/shop/menugroup/list/by/shop/' + shopData.id, {});
+			let groupmenuItems = groupmenuRes.Records;
+      let titlePageBox = $('<div style="padding: 4px;">รายการกลุ่มเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+      $(workAreaBox).append($(titlePageBox));
+      let newGroupmenuCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+      let newGroupmenuCmd = $('<input type="button" value=" + New Group Menu " class="action-btn"/>');
+      $(newGroupmenuCmd).on('click', (evt)=>{
+        doOpenNewGroupmenuForm(shopData, workAreaBox);
+      });
+      $(newGroupmenuCmdBox).append($(newGroupmenuCmd))
+      $(workAreaBox).append($(newGroupmenuCmdBox));
+
+      let groupmenuTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+			let headerRow = $('<tr></tr>');
+			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
+			for (let i=0; i < groupmenuTableFields.length; i++) {
+        if (groupmenuTableFields[i].showHeader) {
+          $(headerRow).append($('<td width="' + groupmenuTableFields[i].width + '" align="center"><b>' + groupmenuTableFields[i].displayName + '</b></td>'));
+        }
+			}
+			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
+			$(groupmenuTable).append($(headerRow));
+
+			for (let x=0; x < groupmenuItems.length; x++) {
+				let itemRow = $('<tr></tr>');
+				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
+				let item = groupmenuItems[x];
+				for (let i=0; i < groupmenuTableFields.length; i++) {
+					let field = $('<td align="' + groupmenuTableFields[i].align + '"></td>');
+					if (groupmenuTableFields[i].fieldName !== 'GroupPicture') {
+						$(field).text(item[groupmenuTableFields[i].fieldName]);
+						$(itemRow).append($(field));
+					} else {
+						let groupmenuLogoIcon = new Image();
+						groupmenuLogoIcon.id = 'GroupPicture_' + item.id;
+						if (item['GroupPicture'] !== ''){
+							groupmenuLogoIcon.src = item['GroupPicture'];
+						} else {
+							groupmenuLogoIcon.src = '/shop/favicon.ico'
+						}
+						$(groupmenuLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
+						$(groupmenuLogoIcon).on('click', (evt)=>{
+							window.open(item['GroupPicture'], '_blank');
+						});
+						$(field).append($(groupmenuLogoIcon));
+						let updateGroupmenuLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
+						$(updateGroupmenuLogoCmd).on('click', (evt)=>{
+							doStartUploadPicture(evt, groupmenuLogoIcon, field, item.id, shopData, workAreaBox);
+						});
+						$(field).append($(updateGroupmenuLogoCmd));
+						$(itemRow).append($(field));
+					}
+				}
+				let editGroupmenuCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
+				$(editGroupmenuCmd).on('click', (evt)=>{
+					doOpenEditGroupmenuForm(shopData, workAreaBox, item);
+				});
+				let deleteGroupmenuCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
+				$(deleteGroupmenuCmd).on('click', (evt)=>{
+					doDeleteGroupmenu(shopData, workAreaBox, item.id);
+				});
+
+				let commandCell = $('<td align="center"></td>');
+				$(commandCell).append($(editGroupmenuCmd));
+				$(commandCell).append($(deleteGroupmenuCmd));
+				$(itemRow).append($(commandCell));
+				$(groupmenuTable).append($(itemRow));
+			}
+			$(workAreaBox).append($(groupmenuTable));
+      resolve();
+    });
+  }
+
+  const doStartUploadPicture = function(evt, groupmenuLogoIcon, imageBox, groupId, shopData, workAreaBox){
+    let fileBrowser = $('<input type="file"/>');
+    $(fileBrowser).attr("name", 'groupmenulogo');
+    $(fileBrowser).attr("multiple", true);
+    $(fileBrowser).css('display', 'none');
+    $(fileBrowser).on('change', function(e) {
+      const defSize = 10000000;
+      var fileSize = e.currentTarget.files[0].size;
+      var fileType = e.currentTarget.files[0].type;
+      if (fileSize <= defSize) {
+        doUploadImage(fileBrowser, groupmenuLogoIcon, fileType, groupId, shopData, workAreaBox);
+      } else {
+        $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
+      }
+    });
+    $(fileBrowser).appendTo($(imageBox));
+    $(fileBrowser).click();
+  }
+
+  const doUploadImage = function(fileBrowser, groupmenuLogoIcon, fileType, groupId, shopData, workAreaBox){
+    var uploadUrl = '/api/shop/upload/menugrouplogo';
+    $(fileBrowser).simpleUpload(uploadUrl, {
+      success: async function(data){
+        $(fileBrowser).remove();
+        let shopRes = await common.doCallApi('/api/shop/menugroup/change/logo', {data: {GroupPicture: data.link}, id: groupId});
+        setTimeout(async() => {
+          await doShowMenugroupItem(shopData, workAreaBox);
+        }, 400);
+      },
+    });
+  }
+
+	const doCreateNewGroupmenuForm = function(groupmenuData){
+    let groupmenuFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+		for (let i=0; i < groupmenuTableFields.length; i++) {
+			if (groupmenuTableFields[i].fieldName !== 'GroupPicture') {
+				let fieldRow = $('<tr></tr>');
+				let labelField = $('<td width="40%" align="left">' + groupmenuTableFields[i].displayName + (groupmenuTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
+				let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+				let inputValue = $('<input type="text" id="' + groupmenuTableFields[i].fieldName + '" size="' + groupmenuTableFields[i].inputSize + '"/>');
+				if ((groupmenuData) && (groupmenuData[groupmenuTableFields[i].fieldName])) {
+					$(inputValue).val(groupmenuData[groupmenuTableFields[i].fieldName]);
+				}
+				$(inputField).append($(inputValue));
+				$(fieldRow).append($(labelField));
+				$(fieldRow).append($(inputField));
+				$(groupmenuFormTable).append($(fieldRow));
+			}
+		}
+		return $(groupmenuFormTable);
+  }
+
+	const doVerifyGroupmenuForm = function(){
+    let isVerify = true;
+		let groupmenuDataForm = {};
+		for (let i=0; i < groupmenuTableFields.length; i++) {
+			let curValue = $('#'+groupmenuTableFields[i].fieldName).val();
+			if (groupmenuTableFields[i].verify) {
+				if (curValue !== '') {
+					$('#'+groupmenuTableFields[i].fieldName).css({'border': ''});
+					groupmenuDataForm[groupmenuTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				} else {
+					$('#'+groupmenuTableFields[i].fieldName).css({'border': '1px solid red'});
+					isVerify = isVerify && false;
+					return;
+				}
+			} else {
+				if (curValue !== '') {
+					groupmenuDataForm[groupmenuTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				}
+			}
+		}
+		return groupmenuDataForm;
+  }
+
+  const doOpenNewGroupmenuForm = function(shopData, workAreaBox) {
+		let newGroupmenuForm = doCreateNewGroupmenuForm();
+    let radNewGroupmenuFormBox = $('<div></div>');
+    $(radNewGroupmenuFormBox).append($(newGroupmenuForm));
+    const newgroupmenuformoption = {
+      title: 'เพิ่มกลุ่มเมนูใหม่เข้าร้าน',
+      msg: $(radNewGroupmenuFormBox),
+      width: '520px',
+      onOk: async function(evt) {
+        let newGroupmenuFormObj = doVerifyGroupmenuForm();
+        if (newGroupmenuFormObj) {
+          let hasValue = newGroupmenuFormObj.hasOwnProperty('GroupName');
+          if (hasValue){
+            newGroupmenuFormBox.closeAlert();
+						let params = {data: newGroupmenuFormObj, shopId: shopData.id};
+            let userRes = await common.doCallApi('/api/shop/menugroup/add', params);
+            if (userRes.status.code == 200) {
+              $.notify("เพิ่มรายการกลุ่มเมนูสำเร็จ", "success");
+              await doShowMenugroupItem(shopData, workAreaBox)
+            } else if (userRes.status.code == 201) {
+              $.notify("ไม่สามารถเพิ่มรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+            } else {
+              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการกลุ่มเมนูได้", "error");
+            }
+          }else {
+            $.notify("ข้อมูลไม่ถูกต้อง", "error");
+          }
+        } else {
+          $.notify("ข้อมูลไม่ถูกต้อง", "error");
+        }
+      },
+      onCancel: function(evt){
+        newGroupmenuFormBox.closeAlert();
+      }
+    }
+    let newGroupmenuFormBox = $('body').radalert(newgroupmenuformoption);
+  }
+
+  const doOpenEditGroupmenuForm = function(shopData, workAreaBox, groupmenuData) {
+		let editGroupmenuForm = doCreateNewGroupmenuForm(groupmenuData);
+		let radEditGroupmenuFormBox = $('<div></div>');
+		$(radEditGroupmenuFormBox).append($(editGroupmenuForm));
+		const editgroupmenuformoption = {
+			title: 'แก้ไขกลุ่มเมนูของร้าน',
+			msg: $(radEditGroupmenuFormBox),
+			width: '520px',
+			onOk: async function(evt) {
+				let editGroupmenuFormObj = doVerifyGroupmenuForm();
+				if (editGroupmenuFormObj) {
+					let hasValue = editGroupmenuFormObj.hasOwnProperty('GroupName');
+					if (hasValue){
+						editGroupmenuFormBox.closeAlert();
+						let params = {data: editGroupmenuFormObj, id: groupmenuData.id};
+						let userRes = await common.doCallApi('/api/shop/menugroup/update', params);
+						if (userRes.status.code == 200) {
+							$.notify("แก้ไขรายการกลุ่มเมนูสำเร็จ", "success");
+							await doShowMenugroupItem(shopData, workAreaBox)
+						} else if (userRes.status.code == 201) {
+							$.notify("ไม่สามารถแก้ไขรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+						} else {
+							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการกลุ่มเมนูได้", "error");
+						}
+					}else {
+						$.notify("ข้อมูลไม่ถูกต้อง", "error");
+					}
+				} else {
+					$.notify("ข้อมูลไม่ถูกต้อง", "error");
+				}
+			},
+			onCancel: function(evt){
+				editGroupmenuFormBox.closeAlert();
+			}
+		}
+		let editGroupmenuFormBox = $('body').radalert(editgroupmenuformoption);
+  }
+
+  const doDeleteGroupmenu = function(shopData, workAreaBox, groupmenuId){
+    let radConfirmMsg = $('<div></div>');
+		$(radConfirmMsg).append($('<p>คุณต้องการลบกลุ่มเมนูรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบกลุ่มเมน</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
+		const radconfirmoption = {
+			title: 'โปรดยืนยันการลบกลุ่มเมนู',
+			msg: $(radConfirmMsg),
+			width: '420px',
+			onOk: async function(evt) {
+				radConfirmBox.closeAlert();
+				let groupmenuRes = await common.doCallApi('/api/shop/menugroup/delete', {id: groupmenuId});
+				if (groupmenuRes.status.code == 200) {
+					$.notify("ลบรายการกลุ่มเมนูสำเร็จ", "success");
+					await doShowMenugroupItem(shopData, workAreaBox);
+				} else if (userRes.status.code == 201) {
+					$.notify("ไม่สามารถลบรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+				} else {
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการกลุ่มเมนูได้", "error");
+				}
+			},
+			onCancel: function(evt){
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+  }
+
+  return {
+    doShowMenugroupItem
+  }
+}
+
+},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  const menuitemTableFields = [
+		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
+    {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'left', inputSize: '20', verify: true, showHeader: true},
+		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true}
+	];
+  const menugroupTableFields = [
+		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true}
+  ];
+
+  const doShowMenuitemItem = function(shopData, workAreaBox){
+    return new Promise(async function(resolve, reject) {
+      let menugroupRes = await common.doCallApi('/api/shop/menugroup/options/' + shopData.id, {});
+      let menugroups = menugroupRes.Options;
+      localStorage.setItem('menugroups', JSON.stringify(menugroups));
+
+      $(workAreaBox).empty();
+      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, {});
+			let menuitemItems = menuitemRes.Records;
+      let titlePageBox = $('<div style="padding: 4px;">รายการเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+      $(workAreaBox).append($(titlePageBox));
+      let newMenuitemCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+      let newMenuitemCmd = $('<input type="button" value=" + New Menu " class="action-btn"/>');
+      $(newMenuitemCmd).on('click', (evt)=>{
+        doOpenNewMenuitemForm(shopData, workAreaBox);
+      });
+      $(newMenuitemCmdBox).append($(newMenuitemCmd))
+      $(workAreaBox).append($(newMenuitemCmdBox));
+
+      let menuitemTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+			let headerRow = $('<tr></tr>');
+			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
+			for (let i=0; i < menuitemTableFields.length; i++) {
+        if (menuitemTableFields[i].showHeader) {
+          $(headerRow).append($('<td width="' + menuitemTableFields[i].width + '" align="center"><b>' + menuitemTableFields[i].displayName + '</b></td>'));
+        }
+			}
+      for (let i=0; i < menugroupTableFields.length; i++) {
+        if (menugroupTableFields[i].showHeader) {
+          $(headerRow).append($('<td width="' + menugroupTableFields[i].width + '" align="center"><b>' + menugroupTableFields[i].displayName + '</b></td>'));
+        }
+			}
+			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
+			$(menuitemTable).append($(headerRow));
+
+      for (let x=0; x < menuitemItems.length; x++) {
+				let itemRow = $('<tr></tr>');
+				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
+				let item = menuitemItems[x];
+				for (let i=0; i < menuitemTableFields.length; i++) {
+					let field = $('<td align="' + menuitemTableFields[i].align + '"></td>');
+					if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
+						$(field).text(item[menuitemTableFields[i].fieldName]);
+						$(itemRow).append($(field));
+					} else {
+						let menuitemLogoIcon = new Image();
+						menuitemLogoIcon.id = 'MenuPicture_' + item.id;
+						if (item['MenuPicture'] !== ''){
+							menuitemLogoIcon.src = item['MenuPicture'];
+						} else {
+							menuitemLogoIcon.src = '/shop/favicon.ico'
+						}
+						$(menuitemLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
+						$(menuitemLogoIcon).on('click', (evt)=>{
+							window.open(item['MenuPicture'], '_blank');
+						});
+						$(field).append($(menuitemLogoIcon));
+						let updateMenuitemLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
+						$(updateMenuitemLogoCmd).on('click', (evt)=>{
+							doStartUploadPicture(evt, menuitemLogoIcon, field, item.id, shopData, workAreaBox);
+						});
+						$(field).append($('<div style="width: 100%;"></div>').append($(updateMenuitemLogoCmd)));
+						$(itemRow).append($(field));
+					}
+				}
+        for (let i=0; i < menugroupTableFields.length; i++) {
+          let field = $('<td align="' + menugroupTableFields[i].align + '"></td>');
+          $(field).text(item.menugroup[menugroupTableFields[i].fieldName]);
+          $(itemRow).append($(field));
+        }
+				let editMenuitemCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
+				$(editMenuitemCmd).on('click', (evt)=>{
+					doOpenEditMenuitemForm(shopData, workAreaBox, item);
+				});
+				let deleteMenuitemCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
+				$(deleteMenuitemCmd).on('click', (evt)=>{
+					doDeleteMenuitem(shopData, workAreaBox, item.id);
+				});
+
+				let commandCell = $('<td align="center"></td>');
+				$(commandCell).append($(editMenuitemCmd));
+				$(commandCell).append($(deleteMenuitemCmd));
+				$(itemRow).append($(commandCell));
+				$(menuitemTable).append($(itemRow));
+			}
+
+      $(workAreaBox).append($(menuitemTable));
+      resolve();
+    });
+  }
+
+  const doStartUploadPicture = function(evt, menuitemLogoIcon, imageBox, itemId, shopData, workAreaBox){
+    let fileBrowser = $('<input type="file"/>');
+    $(fileBrowser).attr("name", 'menuitemlogo');
+    $(fileBrowser).attr("multiple", true);
+    $(fileBrowser).css('display', 'none');
+    $(fileBrowser).on('change', function(e) {
+      const defSize = 10000000;
+      var fileSize = e.currentTarget.files[0].size;
+      var fileType = e.currentTarget.files[0].type;
+      if (fileSize <= defSize) {
+        doUploadImage(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox);
+      } else {
+        $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
+      }
+    });
+    $(fileBrowser).appendTo($(imageBox));
+    $(fileBrowser).click();
+  }
+
+  const doUploadImage = function(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox){
+    var uploadUrl = '/api/shop/upload/menuitemlogo';
+    $(fileBrowser).simpleUpload(uploadUrl, {
+      success: async function(data){
+        $(fileBrowser).remove();
+        let shopRes = await common.doCallApi('/api/shop/menuitem/change/logo', {data: {MenuPicture: data.link}, id: itemId});
+        setTimeout(async() => {
+          await doShowMenuitemItem(shopData, workAreaBox);
+        }, 400);
+      },
+    });
+  }
+
+  const doCreateNewMenuitemForm = function(menuitemData){
+    let menuitemFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+		for (let i=0; i < menuitemTableFields.length; i++) {
+      if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
+  			let fieldRow = $('<tr></tr>');
+  			let labelField = $('<td width="40%" align="left">' + menuitemTableFields[i].displayName + (menuitemTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
+  			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+  			let inputValue = $('<input type="text" id="' + menuitemTableFields[i].fieldName + '" size="' + menuitemTableFields[i].inputSize + '"/>');
+  			if ((menuitemData) && (menuitemData[menuitemTableFields[i].fieldName])) {
+  				$(inputValue).val(menuitemData[menuitemTableFields[i].fieldName]);
+  			}
+  			$(inputField).append($(inputValue));
+  			$(fieldRow).append($(labelField));
+  			$(fieldRow).append($(inputField));
+  			$(menuitemFormTable).append($(fieldRow));
+      }
+		}
+    let fieldRow = $('<tr></tr>');
+		let labelField = $('<td width="40%" align="left">กลุ่มเมนู <span style="color: red;">*</span></td>').css({'padding': '5px'});
+		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+		let inputValue = $('<select id="GroupId"></select>');
+		let menugroups = JSON.parse(localStorage.getItem('menugroups'));
+		console.log(menugroups);
+		menugroups.forEach((item, i) => {
+			console.log(item);
+			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
+		});
+		$(inputField).append($(inputValue));
+		$(fieldRow).append($(labelField));
+		$(fieldRow).append($(inputField));
+		$(menuitemFormTable).append($(fieldRow));
+
+		return $(menuitemFormTable);
+  }
+
+  const doVerifyMenuitemForm = function(){
+    let isVerify = true;
+		let menuitemDataForm = {};
+		for (let i=0; i < menuitemTableFields.length; i++) {
+			let curValue = $('#'+menuitemTableFields[i].fieldName).val();
+			if (menuitemTableFields[i].verify) {
+				if (curValue !== '') {
+					$('#'+menuitemTableFields[i].fieldName).css({'border': ''});
+					menuitemDataForm[menuitemTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				} else {
+					$('#'+menuitemTableFields[i].fieldName).css({'border': '1px solid red'});
+					isVerify = isVerify && false;
+					return;
+				}
+			} else {
+				if (curValue !== '') {
+					menuitemDataForm[menuitemTableFields[i].fieldName] = curValue;
+					isVerify = isVerify && true;
+				}
+			}
+		}
+    menuitemDataForm.groupId = $('#GroupId').val();
+		return menuitemDataForm;
+  }
+
+  const doOpenNewMenuitemForm = function(shopData, workAreaBox){
+    let newMenuitemForm = doCreateNewMenuitemForm();
+    let radNewMenuitemFormBox = $('<div></div>');
+    $(radNewMenuitemFormBox).append($(newMenuitemForm));
+    const newmenuitemformoption = {
+      title: 'เพิ่มเมนูใหม่เข้าร้าน',
+      msg: $(radNewMenuitemFormBox),
+      width: '520px',
+      onOk: async function(evt) {
+        let newMenuitemFormObj = doVerifyMenuitemForm();
+        if (newMenuitemFormObj) {
+          let hasValue = newMenuitemFormObj.hasOwnProperty('MenuName');
+          if (hasValue){
+            newMenuitemFormBox.closeAlert();
+						let params = {data: newMenuitemFormObj, shopId: shopData.id, groupId: newMenuitemFormObj.groupId};
+            let menuitemRes = await common.doCallApi('/api/shop/menuitem/add', params);
+            if (menuitemRes.status.code == 200) {
+              $.notify("เพิ่มรายการเมนูสำเร็จ", "success");
+              await doShowMenuitemItem(shopData, workAreaBox)
+            } else if (menuitemRes.status.code == 201) {
+              $.notify("ไม่สามารถเพิ่มรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+            } else {
+              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการเมนูได้", "error");
+            }
+          }else {
+            $.notify("ข้อมูลไม่ถูกต้อง", "error");
+          }
+        } else {
+          $.notify("ข้อมูลไม่ถูกต้อง", "error");
+        }
+      },
+      onCancel: function(evt){
+        newMenuitemFormBox.closeAlert();
+      }
+    }
+    let newMenuitemFormBox = $('body').radalert(newmenuitemformoption);
+  }
+
+  const doOpenEditMenuitemForm = function(shopData, workAreaBox, menuitemData){
+    let editMenuitemForm = doCreateNewMenuitemForm(menuitemData);
+		let radEditMenuitemFormBox = $('<div></div>');
+		$(radEditMenuitemFormBox).append($(editMenuitemForm));
+		const editmenuitemformoption = {
+			title: 'แก้ไขเมนูของร้าน',
+			msg: $(radEditMenuitemFormBox),
+			width: '520px',
+			onOk: async function(evt) {
+				let editMenuitemFormObj = doVerifyMenuitemForm();
+				if (editMenuitemFormObj) {
+					let hasValue = editMenuitemFormObj.hasOwnProperty('MenuName');
+					if (hasValue){
+						editMenuitemFormBox.closeAlert();
+						let params = {data: editMenuitemFormObj, id: menuitemData.id};
+						let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+						if (menuitemRes.status.code == 200) {
+							$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
+							await doShowMenuitemItem(shopData, workAreaBox)
+						} else if (menuitemRes.status.code == 201) {
+							$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+						} else {
+							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการเมนูได้", "error");
+						}
+					}else {
+						$.notify("ข้อมูลไม่ถูกต้อง", "error");
+					}
+				} else {
+					$.notify("ข้อมูลไม่ถูกต้อง", "error");
+				}
+			},
+			onCancel: function(evt){
+				editMenuitemFormBox.closeAlert();
+			}
+		}
+		let editMenuitemFormBox = $('body').radalert(editmenuitemformoption);
+  }
+
+  const doDeleteMenuitem = function(shopData, workAreaBox, menuitemId){
+    let radConfirmMsg = $('<div></div>');
+		$(radConfirmMsg).append($('<p>คุณต้องการลบเมนูรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบเมน</p>'));
+		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
+		const radconfirmoption = {
+			title: 'โปรดยืนยันการลบเมนู',
+			msg: $(radConfirmMsg),
+			width: '420px',
+			onOk: async function(evt) {
+				radConfirmBox.closeAlert();
+				let menugitemRes = await common.doCallApi('/api/shop/menugitem/delete', {id: groupmenuId});
+				if (menugitemRes.status.code == 200) {
+					$.notify("ลบรายการเมนูสำเร็จ", "success");
+					await doShowMenuitemItem(shopData, workAreaBox);
+				} else if (menugitemRes.status.code == 201) {
+					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+				} else {
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเมนูได้", "error");
+				}
+			},
+			onCancel: function(evt){
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+  }
+
+  return {
+    doShowMenuitemItem
+  }
+}
+
+},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -407,7 +1211,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":4}],4:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":7}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -415,6 +1219,9 @@ module.exports = function ( jq ) {
 
   const common = require('../../../home/mod/common-lib.js')($);
 	const user = require('./user-mng.js')($);
+	const customer = require('./customer-mng.js')($);
+	const menugroup = require('./menugroup-mng.js')($);
+	const menuitem = require('./menuitem-mng.js')($);
 
   const doCreateTitlePage = function(shopData){
     let shopLogoIcon = new Image();
@@ -491,19 +1298,19 @@ module.exports = function ( jq ) {
 		await user.doShowUserItem(shopData, workingAreaBox);
   }
 
-  const doCustomerMngClickCallBack = function(evt, shopData){
-    console.log(evt);
-    console.log(shopData);
+  const doCustomerMngClickCallBack = async function(evt, shopData){
+    let workingAreaBox = $('#WorkingAreaBox');
+		await customer.doShowCustomerItem(shopData, workingAreaBox)
   }
 
-  const doMenugroupMngClickCallBack = function(evt, shopData){
-    console.log(evt);
-    console.log(shopData);
+  const doMenugroupMngClickCallBack = async function(evt, shopData){
+		let workingAreaBox = $('#WorkingAreaBox');
+		await menugroup.doShowMenugroupItem(shopData, workingAreaBox)
   }
 
-  const doMenuitemMngClickCallBack = function(evt, shopData){
-    console.log(evt);
-    console.log(shopData);
+  const doMenuitemMngClickCallBack = async function(evt, shopData){
+		let workingAreaBox = $('#WorkingAreaBox');
+		await menuitem.doShowMenuitemItem(shopData, workingAreaBox)
   }
 
   const doOrderMngClickCallBack = function(evt, shopData){
@@ -516,7 +1323,7 @@ module.exports = function ( jq ) {
 }
 '#App'
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./user-mng.js":5}],5:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./customer-mng.js":3,"./menugroup-mng.js":4,"./menuitem-mng.js":5,"./user-mng.js":8}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -559,6 +1366,7 @@ module.exports = function ( jq ) {
 			});
 			$(newUserCmdBox).append($(newUserCmd))
 			$(workAreaBox).append($(newUserCmdBox));
+
 			let userTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
 			let headerRow = $('<tr></tr>');
 			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
@@ -603,11 +1411,11 @@ module.exports = function ( jq ) {
 
 				let editUserCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
 				$(editUserCmd).on('click', (evt)=>{
-					doOpenEditUserForm(opData, item);
+					doOpenEditUserForm(shopData, workAreaBox, item);
 				});
 				let deleteUserCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
 				$(deleteUserCmd).on('click', (evt)=>{
-					doDeleteUser(shopData, item.id);
+					doDeleteUser(shopData, workAreaBox, item.id);
 				});
 
 				$(commandCell).append($(editUserCmd));
@@ -769,7 +1577,7 @@ module.exports = function ( jq ) {
 		let radNewUserFormBox = $('<div></div>');
 		$(radNewUserFormBox).append($(newRegForm));
 		const newuserformoption = {
-			title: 'เพิ่มผู้ใช้งานใหม่เข้าสู่ระบบ',
+			title: 'เพิ่มผู้ใช้งานใหม่ของร้าน',
 			msg: $(radNewUserFormBox),
 			width: '520px',
 			onOk: async function(evt) {
@@ -803,12 +1611,12 @@ module.exports = function ( jq ) {
 		let newUserFormBox = $('body').radalert(newuserformoption);
 	}
 
-	const doOpenEditUserForm = function(shopData, userData){
-		let editRegForm = doCreateUserRegisterForm();
+	const doOpenEditUserForm = function(shopData, workAreaBox, userData){
+		let editRegForm = doCreateUserRegisterForm(userData);
 		let radEditUserFormBox = $('<div></div>');
 		$(radNewUserFormBox).append($(editRegForm));
 		const edituserformoption = {
-			title: 'แก้ไขผู้ใช้งานใหม่เข้าสู่ระบบ',
+			title: 'แก้ไขผู้ใช้งานใหม่ของร้าน',
 			msg: $(radEditUserFormBox),
 			width: '520px',
 			onOk: async function(evt) {
@@ -835,15 +1643,15 @@ module.exports = function ( jq ) {
 				}
 			},
 			onCancel: function(evt){
-				newUserFormBox.closeAlert();
+				editUserFormBox.closeAlert();
 			}
 		}
-		let newUserFormBox = $('body').radalert(newuserformoption);
+		let editUserFormBox = $('body').radalert(nedituserformoption);
 	}
 
-	const doDeleteUser = function(shopData, userId){
+	const doDeleteUser = function(shopData, workAreaBox, userId){
 		let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบผู้ใช้งานรายการที่เลือกออกจากระบบฯ ใช่ หรือไม่</p>'));
+		$(radConfirmMsg).append($('<p>คุณต้องการลบผู้ใช้งานรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
 		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบผู้ใช้งาน</p>'));
 		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
 		const radconfirmoption = {
@@ -854,13 +1662,13 @@ module.exports = function ( jq ) {
 				radConfirmBox.closeAlert();
 				let userRes = await common.doCallApi('/api/shop/user/delete', {id: userId});
 				if (userRes.status.code == 200) {
-					$.notify("ลบรายการผู้ใช้งานรายการทีสำเร็จ", "success");
+					$.notify("ลบรายการผู้ใช้งานรายการทีเลือกสำเร็จ", "success");
 					let workingAreaBox = $('#WorkingAreaBox');
-					await doShowUserItem(shopData, workingAreaBox);
+					await doShowUserItem(shopData, workAreaBox);
 				} else if (userRes.status.code == 201) {
 					$.notify("ไม่สามารถลบรายการผู้ใช้งานได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการร้านค้าได้", "error");
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการผู้ใช้งานได้", "error");
 				}
 			},
 			onCancel: function(evt){
@@ -875,7 +1683,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],9:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/

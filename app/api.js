@@ -116,6 +116,9 @@ module.exports = ( httpsServer, monitor ) => {
 	const shopusertype = require('./db/rest/shop/usertype.js')(shopdb, log);
 	const shopuser = require('./db/rest/shop/user.js')(shopdb, log);
 	const shopshop = require('./db/rest/shop/shop.js')(shopdb, log);
+	const shopcustomer = require('./db/rest/shop/customer.js')(shopdb, log);
+	const shopmenugroup = require('./db/rest/shop/menugroup.js')(shopdb, log);
+	const shopmenuitem = require('./db/rest/shop/menuitem.js')(shopdb, log);
 	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
 
 	apiApp.use('/external', externalapiproxy);
@@ -165,6 +168,9 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/shop/usertype', shopusertype);
 	apiApp.use('/shop/user', shopuser);
 	apiApp.use('/shop/shop', shopshop);
+	apiApp.use('/shop/customer', shopcustomer);
+	apiApp.use('/shop/menugroup', shopmenugroup);
+	apiApp.use('/shop/menuitem', shopmenuitem);
 
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;
