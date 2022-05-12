@@ -250,6 +250,39 @@ app.post('/delete', (req, res) => {
   }
 });
 
+app.post('/resetpassword', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          let yourUserId = req.body.userId;
+          let yourNewPassword = req.body.password;
+          if (yourUserId){
+            let yourUser = await db.users.findAll({ where: {	id: yourUserId}});
+            let yourSalt = yourUser[0].salt();
+            let yourEncryptPassword = db.users.encryptPassword(yourNewPassword, yourSalt);
+            log.info('yourEncryptPassword => ' + yourEncryptPassword);
+            await db.users.update({password: yourEncryptPassword}, { where: { id: yourUserId } });
+            res.json({status: {code: 200}});
+          } else {
+            res.json({status: {code: 203}, result: 'Your userId is undefined.'});
+          }
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 module.exports = ( dbconn, monitor, casetask) => {
   db = dbconn;
   log = monitor;

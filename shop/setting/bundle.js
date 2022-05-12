@@ -333,7 +333,7 @@ module.exports = function ( jq ) {
 
   const groupmenuTableFields = [
 		{fieldName: 'GroupName', displayName: 'ชื่อกลุ่มเมนู', width: '30%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'GroupPicture', displayName: 'โลโก้', width: '25%', align: 'left', inputSize: '30', verify: false, showHeader: true}
+		{fieldName: 'GroupPicture', displayName: 'โลโก้', width: '25%', align: 'center', inputSize: '30', verify: false, showHeader: true}
 	];
 
   const doShowMenugroupItem = function(shopData, workAreaBox){
@@ -1413,12 +1413,17 @@ module.exports = function ( jq ) {
 				$(editUserCmd).on('click', (evt)=>{
 					doOpenEditUserForm(shopData, workAreaBox, item);
 				});
+				let resetPasswordCmd = $('<input type="button" value=" Reset Passord " class="action-btn"/>').css({'margin-left': '8px'});
+				$(resetPasswordCmd).on('click', (evt)=>{
+					doResetPassword(shopData, workAreaBox, item.id);
+				});
 				let deleteUserCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
 				$(deleteUserCmd).on('click', (evt)=>{
 					doDeleteUser(shopData, workAreaBox, item.id);
 				});
 
 				$(commandCell).append($(editUserCmd));
+				$(commandCell).append($(resetPassword));
 				$(commandCell).append($(deleteUserCmd));
         $(itemRow).append($(commandCell));
 				$(userTable).append($(itemRow));
@@ -1458,6 +1463,29 @@ module.exports = function ( jq ) {
 		$(usernameFormTable).append($(fieldRow));
 
 		return $(usernameFormTable);
+	}
+
+	const doCreateResetPasswordForm = function(){
+		let resetPasswordFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+		let fieldRow = $('<tr></tr>');
+		let labelField = $('<td width="40%" align="left">Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
+		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+		let passwordValue = $('<input type="password" id="Password" size="30"/>');
+		$(inputField).append($(passwordValue));
+		$(fieldRow).append($(labelField));
+		$(fieldRow).append($(inputField));
+		$(resetPasswordFormTable).append($(fieldRow));
+
+		fieldRow = $('<tr></tr>');
+		labelField = $('<td width="40%" align="left">Retry Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
+		inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+		let retrypasswordValue = $('<input type="password" id="RetryPassword" size="30"/>');
+		$(inputField).append($(retrypasswordValue));
+		$(fieldRow).append($(labelField));
+		$(fieldRow).append($(inputField));
+		$(resetPasswordFormTable).append($(fieldRow));
+
+		return $(resetPasswordFormTable);
 	}
 
 	const doCreateUserRegisterForm = function(userData){
@@ -1615,9 +1643,9 @@ module.exports = function ( jq ) {
 	const doOpenEditUserForm = function(shopData, workAreaBox, userData){
 		let editRegForm = doCreateUserRegisterForm(userData);
 		let radEditUserFormBox = $('<div></div>');
-		$(radNewUserFormBox).append($(editRegForm));
+		$(radEditUserFormBox).append($(editRegForm));
 		const edituserformoption = {
-			title: 'แก้ไขผู้ใช้งานใหม่ของร้าน',
+			title: 'แก้ไขผู้ใช้งานของร้าน',
 			msg: $(radEditUserFormBox),
 			width: '520px',
 			onOk: async function(evt) {
@@ -1647,7 +1675,56 @@ module.exports = function ( jq ) {
 				editUserFormBox.closeAlert();
 			}
 		}
-		let editUserFormBox = $('body').radalert(nedituserformoption);
+		let editUserFormBox = $('body').radalert(edituserformoption);
+	}
+
+	const doResetPassword = function(shopData, workAreaBox, userId){
+		let resetForm = doCreateResetPasswordForm();
+		let radResetFormBox = $('<div></div>');
+		$(radResetFormBox).append($(resetForm));
+		const resetpasswordformoption = {
+			title: 'Reset Password',
+			msg: $(radResetFormBox),
+			width: '420px',
+			onOk: async function(evt) {
+				let newPassword = $(resetForm).find('#Password').val();
+				let newRetryPassword = $(resetForm).find('#RetryPassword').val();
+				if (newPassword === '') {
+					$(resetForm).find('#Password').css({'border': '1px solid red'});
+				} else {
+					$(resetForm).find('#Password').css({'border': ''});
+					if (newRetryPassword === ''){
+						$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
+					} else {
+						$(resetForm).find('#RetryPassword').css({'border': ''});
+						if (newPassword !== newRetryPassword) {
+							$(resetForm).find('#Password').css({'border': '1px solid red'});
+							$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
+						} else {
+							$(resetForm).find('#Password').css({'border': ''});
+							$(resetForm).find('#RetryPassword').css({'border': ''});
+							let newPasswordFormObj = {userId: userData.id, password: newPassword};
+							let userRes = await common.doCallApi('/api/users/resetpassword', newPasswordFormObj);
+							console.log(userRes);
+							if (userRes.status.code == 200) {
+								$(resetForm).find('#Password').css({'border': ''});
+								$(resetForm).find('#RetryPassword').css({'border': ''});
+								resetPasswordFormBox.closeAlert();
+								await doShowUserItem(shopData, workAreaBox);
+							} else {
+								$(resetForm).find('#Password').css({'border': '1px solid red'});
+								$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
+								$.notify("Invalid Password", "error");
+							}
+						}
+					}
+				}
+			},
+			onCancel: function(evt){
+				resetPasswordFormBox.closeAlert();
+			}
+		}
+		let resetPasswordFormBox = $('body').radalert(resetpasswordformoption);
 	}
 
 	const doDeleteUser = function(shopData, workAreaBox, userId){
