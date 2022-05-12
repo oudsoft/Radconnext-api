@@ -388,7 +388,7 @@ module.exports = function ( jq ) {
 						$(updateGroupmenuLogoCmd).on('click', (evt)=>{
 							doStartUploadPicture(evt, groupmenuLogoIcon, field, item.id, shopData, workAreaBox);
 						});
-						$(field).append($(updateGroupmenuLogoCmd));
+						$(field).append($('<div style="width: 100%;"></div>').append($(updateGroupmenuLogoCmd)));
 						$(itemRow).append($(field));
 					}
 				}
