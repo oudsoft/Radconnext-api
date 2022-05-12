@@ -605,9 +605,9 @@ module.exports = function ( jq ) {
 
   const menuitemTableFields = [
 		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
-    {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'left', inputSize: '20', verify: true, showHeader: true},
-		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true}
+		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'center', inputSize: '30', verify: false, showHeader: true},
+    {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'right', inputSize: '20', verify: true, showHeader: true},
+		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
 	];
   const menugroupTableFields = [
 		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true}
@@ -917,12 +917,12 @@ module.exports = function ( jq ) {
 
 	const shopTableFields = [
 		{fieldName: 'Shop_Name', displayName: 'ชื่อร้าน', width: '12%', align: 'left', inputSize: '40', verify: true},
-		{fieldName: 'Shop_Address', displayName: 'ที่อยู่', width: '20%', align: 'left', inputSize: '40', verify: true},
+		{fieldName: 'Shop_Address', displayName: 'ที่อยู่', width: '15%', align: 'left', inputSize: '40', verify: true},
 		{fieldName: 'Shop_Tel', displayName: 'โทรศัพท์', width: '10%', align: 'left', inputSize: '20', verify: true},
 		{fieldName: 'Shop_Mail', displayName: 'อีเมล์', width: '10%', align: 'left', inputSize: '40', verify: true},
 		{fieldName: 'Shop_LogoFilename', displayName: 'โลโก้', width: '10%', align: 'center', inputSize: '40', verify: false},
 		{fieldName: 'Shop_VatNo', displayName: 'VAT No.', width: '10%', align: 'left', inputSize: '20', verify: false},
-		{fieldName: 'Shop_BillQuota', displayName: 'Bill Quota', width: '10%', align: 'left', inputSize: '10', verify: false},
+		{fieldName: 'Shop_BillQuota', displayName: 'Bill Quota', width: '7%', align: 'left', inputSize: '10', verify: false},
 		{fieldName: 'id', displayName: 'ShopId', width: '5%', align: 'center', inputSize: '40', verify: false},
 	];
 
@@ -1588,6 +1588,7 @@ module.exports = function ( jq ) {
 						newUserFormBox.closeAlert();
 						newUserFormObj.username = newUsernameData.username;
 						newUserFormObj.password = newUsernameData.password;
+						newUserFormObj.shopId = shopData.id;
 						let userRes = await common.doCallApi('/api/shop/user/add', newUserFormObj);
 						if (userRes.status.code == 200) {
 							$.notify("เพิ่มรายการผู้ใช้งานสำเร็จ", "success");
