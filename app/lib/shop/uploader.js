@@ -11,7 +11,7 @@ const DWLD = process.env.SHOP_USRUPLOAD_PATH;
 const USRUPLOAD_DIR = process.env.SHOP_USRUPLOAD_DIR;
 const currentDir = __dirname;
 const parentDir = path.normalize(currentDir + '/..');
-const usrUploadDir = path.join(__dirname, '../../../', USRUPLOAD_DIR,);
+const usrUploadDir = path.join(__dirname, '../../../', USRUPLOAD_DIR);
 
 const maxUploadSize = 900000000;
 
