@@ -122,11 +122,24 @@ const ShopOrderDef = {
   Items : {
     type: Sequelize.JSONB,
     allowNull: false
+  },
+  Status : {
+    type: Sequelize.INTEGER, // <- 0=cancel, 1=active
+    defaultValue: 1
   }
 };
 const ShopInvoiceDef = {
   No : {
-    type: Sequelize.STRING(80)
+    type: Sequelize.STRING(80),
+    allowNull: false
+  },
+  Discount : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  },
+  Vat : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
   }
 };
 const ShopBillDef = {

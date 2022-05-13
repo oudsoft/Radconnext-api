@@ -1,24 +1,25 @@
-//$('head').append('<script src="https://radconnext.info/lib/jquery.js"></script>');
-$('head').append('<script src="https://radconnext.info/lib/jquery-ui.min.js"></script>');
-$('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/jquery-ui.min.css" type="text/css" />');
-$('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
-$('head').append('<script type="text/javascript" src="https://radconnext.info/lib/fabric.js"></script>');
+let domainNameUrl = 'https://' + window.location.hostname;
+//$('head').append('<script src="' + domainNameUrl + '/lib/jquery.js"></script>');
+$('head').append('<script src="' + domainNameUrl + '/lib/jquery-ui.min.js"></script>');
+$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/lib/jquery-ui.min.css" type="text/css" />');
+$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/stylesheets/style.css" type="text/css" />');
+$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/fabric.js"></script>');
 setTimeout(()=>{
-	$('head').append('<link href="https://radconnext.info/lib/tui-image-editor.min.css" rel="stylesheet">');
-	$('head').append('<link href="https://radconnext.info/lib/tui-color-picker.css" rel="stylesheet">');
-	$('head').append('<script type="text/javascript" src="https://radconnext.info/lib/tui-code-snippet.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.info/lib/tui-color-picker.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.info/lib/tui-image-editor.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.info/lib/simpleUpload.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.info/setting/plugin/jqury-readystate-plugin.js"></script>');
+	$('head').append('<link href="' + domainNameUrl + '/lib/tui-image-editor.min.css" rel="stylesheet">');
+	$('head').append('<link href="' + domainNameUrl + '/lib/tui-color-picker.css" rel="stylesheet">');
+	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/tui-code-snippet.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/tui-color-picker.js"></script>');
+	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/tui-image-editor.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/simpleUpload.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/setting/plugin/jqury-readystate-plugin.js"></script>');
 
 	$('head').append('<script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.5.9/RecordRTC.js"></script>');
 	$('head').append('<script src="https://www.webrtc-experiment.com/screenshot.js"></script>');
 
-	$('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
-	$('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/scanpart.css" type="text/css" />');
-	//$('head').append('<script src="https://radconnext.info/lib/player.js?t=jyoky"></script>');
-	$('head').append('<script src="https://radconnext.info/lib/player.js?ty=mjxokyh"></script>');
+	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/stylesheets/style.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/case/css/scanpart.css" type="text/css" />');
+	//$('head').append('<script src="' + domainNameUrl + '/lib/player.js?t=jyoky"></script>');
+	$('head').append('<script src="' + domainNameUrl + '/lib/player.js?ty=mjxokyh"></script>');
 
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');
@@ -67,7 +68,7 @@ setTimeout(()=>{
 }, 3300);
 
 /*
-$.getScript( "https://radconnext.info/js/main.js", function( code, textStatus, jqxhr ) {
+$.getScript( "' + domainNameUrl + '/js/main.js", function( code, textStatus, jqxhr ) {
 	//let execResult = eval(code);
 });
 
@@ -78,7 +79,7 @@ $.getScript( "https://radconnext.info/js/main.js", function( code, textStatus, j
 	var po = document.createElement('script');
 	po.type = 'text/javascript';
 	po.async = true;
-	po.src = 'https://radconnext.info/lib/jquery.js';
+	po.src = domainNameUrl + /lib/jquery.js';
 	var s = document.getElementsByTagName('script')[0];
 	s.parentNode.insertBefore(po, s);
 })();

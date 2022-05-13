@@ -26,7 +26,7 @@
 
     const $this = this;
     const clipURL = window.URL;
-    const pluginUrl = 'https://radconnext.info';
+    const pluginUrl = 'https://' + window.location.hostname;;
 
     let timer = undefined;
     let selectedFiles = undefined;
@@ -490,7 +490,7 @@
           cWidth: w,
           cHeight: h,
           imageInit: fileURL,
-          uploadApiUrl: 'https://radconnext.info/api/shareupload/share'
+          uploadApiUrl: 'https://' + window.location.hostname + '/api/shareupload/share'
         };
 
         const myEditor = $(editorbox).imageeditor(pluginOption);
@@ -697,16 +697,3 @@
 
 
 })(jQuery);
-
-/*
-$('head').append('<script src="https://radconnext.info/lib/jquery.js"></script>');
-$('head').append('<script src="https://radconnext.info/lib/jquery-ui.min.js"></script>');
-$('head').append('<script src="https://radconnext.info/lib/player.js"></script>');
-
-let myBox = $('<div></div>');
-$(myBox).css({'position': 'fixed', 'width': '50%', 'min-height': '50px;', 'top': '0px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '4'});
-let myPlayer = $(myBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 230});
-$('body').append($(myBox));
-$(myBox).draggable({containment: 'parent'});
-$(myBox).resizable({containment: 'parent'});
-*/
