@@ -319,6 +319,9 @@ function RadconWebSocketServer (arg, db, log) {
 						let msgCasemisstakeSend = {type: 'casemisstake', msg: msgCasemisstake, from: fromCasemisstake};
 						let sendCasemisstakeResult = await $this.sendMessage(msgCasemisstakeSend, sendtoCasemisstake);
 					break;
+					case "wrtc":
+						let controlRes = await $this.doControlWrtcMessage(data);
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
@@ -626,6 +629,14 @@ function RadconWebSocketServer (arg, db, log) {
 				resolve();
 			}
 		});
+	}
+
+	this.doControlWrtcMessage = function(data){
+	  return new Promise(async function(resolve, reject) {
+	    let sendto = data.sendto;
+	    let sendResult = await $this.sendMessage(data, sendto);
+	    resolve(sendResult);
+	  });
 	}
 
 	this.runCommand = function (command) {

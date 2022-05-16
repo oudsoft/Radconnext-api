@@ -179,6 +179,10 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     }
   }
 
+  Array.prototype.random = function () {
+    return this[Math.floor((Math.random()*this.length))];
+  }
+
   /*****************************************************/
   const defaultTitle = 'Rad Connext Share';
 
@@ -189,7 +193,12 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;" tabindex="1"></div>');
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
-  const imageFiles = ['0000-001.jpg', '0000-002.jpg', '0000-003.jpg', '0000-004.jpg', '0000-005.jpg', '0000-006.jpg', '0000-007.jpg', '0000-008.jpg', '0000-009.jpg', '0000-010.jpg', '0000-011.jpg', '0000-012.jpg', '0000-013.jpg', '0000-014.jpg', '0000-015.jpg', '0000-016.jpg', '0000-017.jpg', '0000-018.jpg', '0000-019.jpg', '0000-020.jpg'];
+  const imageFiles = [
+    '0000-001.jpg', '0000-002.jpg', '0000-003.jpg', '0000-004.jpg', '0000-005.jpg', '0000-006.jpg', '0000-007.jpg', '0000-008.jpg', '0000-009.jpg', '0000-010.jpg', '0000-011.jpg', '0000-012.jpg', '0000-013.jpg', '0000-014.jpg', '0000-015.jpg', '0000-016.jpg', '0000-017.jpg', '0000-018.jpg', '0000-019.jpg', '0000-020.jpg',
+    '0000-021.jpg', '0000-022.jpg', '0000-023.jpg', '0000-024.jpg', '0000-025.jpg', '0000-026.jpg', '0000-027.jpg', '0000-028.jpg', '0000-029.jpg', '0000-030.jpg', '0000-031.jpg', '0000-032.jpg', '0000-033.jpg', '0000-034.jpg', '0000-035.jpg', '0000-036.jpg', '0000-037.jpg', '0000-038.jpg', '0000-039.jpg', '0000-040.jpg',
+    '0000-041.jpg', '0000-042.jpg', '0000-043.jpg', '0000-044.jpg', '0000-045.jpg', '0000-046.jpg', '0000-047.jpg', '0000-048.jpg', '0000-049.jpg', '0000-050.jpg', '0000-051.jpg', '0000-052.jpg', '0000-053.jpg', '0000-054.jpg', '0000-055.jpg', '0000-056.jpg', '0000-057.jpg', '0000-058.jpg', '0000-059.jpg', '0000-060.jpg',
+    '0000-061.jpg', '0000-062.jpg', '0000-063.jpg', '0000-064.jpg', '0000-065.jpg', '0000-066.jpg', '0000-067.jpg', '0000-068.jpg', '0000-069.jpg', '0000-070.jpg'
+  ];
 
   for (let i=0; i < imageFiles.length; i++) {
     let imageLink = imageTitleUrl + imageFiles[i];
@@ -363,19 +372,23 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     }
   }
 
-  let currentPlaySportIndex = 0;
+  let minimum = 0;
+  let maximum = imageFiles.length - 1;
+  let currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
   let bannerImages = $(sponsorBox).children('img');
   let sponsorTimer = undefined;
-
   const doPlaySport = function(n){
     $(bannerImages[n]).css({'display': 'block'});
     sponsorTimer = window.setTimeout(()=>{
       $(bannerImages[n]).css({'display': 'none'});
+      /*
       let i = n + 1;
       if (n >= (bannerImages.length-1)){
         i = 0;
       }
       currentPlaySportIndex = i;
+      */
+      currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
       doPlaySport(currentPlaySportIndex);
     }, 30 * 1000);
   }
@@ -509,15 +522,35 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(closeCmd).on('click', (evt)=>{
       $(myPBox).remove();
     });
-    $(myPBox).append($(closeCmd));
+
+    $(closeCmd).on('click', (evt)=>{
+      $(myPBox).remove();
+    });
+    let settingTimeCmd = $('<input type="button" value=" Time ... "/>').css({'margin-left': '10px'});
+    $(settingTimeCmd).on('click', (evt)=>{
+      let newValue = prompt("Please enter your new delay time value", delaySecond);
+      if (Number(newValue) > 0) {
+        delaySecond = Number(newValue);
+      }
+    });
+
+    $(myPBox).append($(closeCmd)).append($(settingTimeCmd));
     $(myPBox).focus();
 
     let currentPlayPreviewIndex = 0;
     let previewTimer = undefined;
+    let delaySecond = 20;
 
     const doPlayPreview = function(n){
       let src = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[n];
       $(myPBox).find('img').attr('src', src);
+      $(myPBox).find('img').attr("onclick", "").unbind("click");
+      $(myPBox).find('img').on('click', (evt)=>{
+        let imageCode = imageLists[n].split('.');
+        openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
+        window.open(openUrl, '_blank');
+      })
+
       previewTimer = window.setTimeout(()=>{
         let i = n + 1;
         if (n >= (imageLists.length-1)){
@@ -525,7 +558,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         }
         currentPlayPreviewIndex = i;
         doPlayPreview(currentPlayPreviewIndex);
-      }, 20 * 1000);
+      }, delaySecond * 1000);
     }
     doPlayPreview(currentPlayPreviewIndex);
   }

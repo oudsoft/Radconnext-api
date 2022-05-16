@@ -1,1848 +1,3380 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+/* apiconnect.js */
+
+const apiExt = ".php";
+const proxyRootUri = '/api';
+const proxyApi = '/apiproxy';
+const proxyEndPoint = "/callapi";
+const proxyUrl = proxyRootUri + proxyApi + proxyEndPoint;
+//const hostIP = '202.28.68.28';
+const hostApiPort = '8080';
+const hostIP = 'localhost';
+const hostOrthancApiPort = '8042';
+const hostName = hostIP + ':' + hostApiPort;
+const domainName = 'radconnext.com';
+const adminEmailAddress = 'oudsoft@gmail.com';
+
+
+//const hostURL = 'https://radconnext.com/rad_test/api';
+const hostURL = 'https://radconnext.com/radconnext/api';
+
+const hostOrthancUrl = 'http://' + hostIP + ':' +  hostOrthancApiPort;
+const orthancProxyApi = '/orthancproxy';
+
+const RadConStatus = [
+  {id: 1, status_en: 'draft', status_th: "Draft", use: false},
+  {id: 2, status_en: 'wait_edit', status_th: "รอแก้ไข", use: false},
+  {id: 3, status_en: 'wait_start', status_th: "รอเริ่ม", use: false},
+  {id: 4, status_en: 'wait_zip', status_th: "รอเตรียมไฟล์ภาพ", use: false},
+  {id: 5, status_en: 'processing', status_th: "กำลังเตรียมไฟล์ภาพ", use: false},
+  {id: 6, status_en: 'wait_upload', status_th: "รอส่งไฟล์ภาพ", use: false},
+  {id: 7, status_en: 'uploading', status_th: "กำลังส่งไฟล์ภาพ", use: false},
+  {id: 8, status_en: 'wait_consult', status_th: "รอหมอ Consult", use: false},
+  {id: 9, status_en: 'wait_dr_consult', status_th: "รอหมอตอบ Consult", use: false},
+  {id: 10, status_en: 'consult_expire', status_th: "หมอตอบ Consult ไม่ทันเวลา", use: false},
+  {id: 11, status_en: 'wait_consult_ack', status_th: "ตอบ Consult แล้ว", use: false},
+  {id: 12, status_en: 'wait_response_1', status_th: "รอหมอตอบรับ", use: false},
+  {id: 13, status_en: 'wait_response_2', status_th: "รอหมอตอบรับ", use: false},
+  {id: 14, status_en: 'wait_response_3', status_th: "รอหมอตอบรับ", use: false},
+  {id: 15, status_en: 'wait_response_4', status_th: "รอหมอตอบรับ", use: false},
+  {id: 16, status_en: 'wait_response_5', status_th: "รอหมอตอบรับ", use: false},
+  {id: 17, status_en: 'wait_response_6', status_th: "รอหมอตอบรับ", use: false},
+  {id: 18, status_en: 'wait_dr_key', status_th: "รออ่านผล", use: true},
+  {id: 19, status_en: 'wait_close', status_th: "รอพิมพ์ผล", use: true},
+  {id: 20, status_en: 'wait_close2', status_th: "รอพิมพ์ผลที่แก้ไข", use: true},
+  {id: 21, status_en: 'close', status_th: "ดูผลแล้ว", use: true},
+  {id: 22, status_en: 'cancel', status_th: "ยกเลิก", use: true},
+];
+
+const filterValue = (obj, key, value)=> obj.filter(v => v[key] === value);
+
+
 module.exports = function ( jq ) {
 	const $ = jq;
 
-  const doCallApi = function(apiUrl, rqParams) {
-    return new Promise(function(resolve, reject) {
-      $('body').loading('start');
-      $.post(apiUrl, rqParams, function(data){
-        resolve(data);
-        $('body').loading('stop');
-      }).fail(function(error) {
-        reject(error);
-        $('body').loading('stop');
-      });
-    });
-  }
-
-  const doGetApi = function(apiUrl, rqParams) {
-    return new Promise(function(resolve, reject) {
-      $('body').loading('start');
-      $.get(apiUrl, rqParams, function(data){
-        resolve(data);
-        $('body').loading('stop');
-      }).fail(function(error) {
-        reject(error);
-        $('body').loading('stop');
-      });
-    });
-  }
-
-	const doUserLogout = function() {
-	  localStorage.removeItem('token');
-		localStorage.removeItem('userdata');
-	  let url = '/shop/index.html';
-	  window.location.replace(url);
+	const doTestAjaxCallApi = function () {
+		return new Promise(function(resolve, reject) {
+			let testURL = "../api/chk_login.php";
+			$.ajax({
+				type: 'POST',
+				url: testURL ,
+				dataType: 'json',
+				data: JSON.stringify({ username: "limparty", password: "Limparty" }) /*,
+				headers: {
+					authorization: localStorage.getItem('token')
+				}
+				*/
+			}).then(function(httpdata) {
+				resolve(httpdata);
+			});
+		});
 	}
 
-  return {
+  const doCallApiByAjax = function(url, payload){
+    return new Promise(function(resolve, reject) {
+      $.ajax({
+        url: url,
+        type: 'post',
+        data: payload,
+        xhr: function () {
+          var xhr = $.ajaxSettings.xhr();
+          xhr.onprogress = function(e) {
+            // For downloads
+            console.log('down prog=>', e);
+            if (e.lengthComputable) {
+              console.log(e.loaded / e.total);
+            }
+          };
+          xhr.upload.onprogress = function (e) {
+            // For uploads
+            console.log('up prog=>', e);
+            if (e.lengthComputable) {
+              console.log(e.loaded / e.total);
+            }
+          };
+          return xhr;
+        }
+      }).done(function (e) {
+        resolve(e)
+      }).fail(function (e) {
+        reject(e)
+      });
+    });
+  }
+
+	const doCallApiDirect = function (apiUrl, params) {
+		return new Promise(function(resolve, reject) {
+			$.post(apiUrl, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
+	const doCallApiByProxy = function (apiname, params) {
+		return new Promise(function(resolve, reject) {
+			$.post(proxyUrl, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
+  const doCallApi = function (apiurl, params) {
+		return new Promise(function(resolve, reject) {
+      /*
+			$.post(apiurl, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+      */
+      let apiname = apiurl;
+      const progBar = $('body').radprogress({value: 0, apiname: apiname});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $.ajax({
+        url: apiurl,
+        type: 'post',
+        data: params,
+        xhr: function () {
+          var xhr = $.ajaxSettings.xhr();
+          xhr.onprogress = function(evt) {
+            if (evt.lengthComputable) {
+              // For Download
+              /*
+              var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
+              document.dispatchEvent(event);
+              */
+
+              let loaded = evt.loaded;
+              let total = evt.total;
+              let prog = (loaded / total) * 100;
+              let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              $('body').find('#ProgressValueBox').text(perc + '%');
+            }
+          };
+          xhr.upload.onprogress = function (evt) {
+            // For uploads
+          };
+          return xhr;
+        }
+      }).done(function (res) {
+        progBar.doUpdateProgressValue(100);
+        setTimeout(()=>{
+  				progBar.doCloseProgress();
+
+          let apiItem = {api: apiurl};
+          console.log(apiItem);
+          let logWin = $('body').find('#LogBox');
+          $(logWin).simplelog(apiItem);
+
+          resolve(res)
+        }, 1000);
+      }).fail(function (err) {
+        $(progBar.handle).find('#ApiNameBar').css({'color': 'red'});
+        $(progBar.progressValueBox).css({'color': 'red'});
+        $.notify('มีข้อผิดพลาดเกิดที่ระบบฯ', 'error');
+        const userdata = JSON.parse(localStorage.getItem('userdata'));
+        const { getFomateDateTime } = require('./utilmod.js')($);
+        let dt = new Date();
+        let bugDataReport = $('<div></div>');
+        $(bugDataReport).append($('<h2 style="text-align: center;"><b>ERROR REPORT</b></h2>'));
+        if ((err.responseJSON) && (err.responseJSON.error)){
+          $(bugDataReport).append('<h3>ERROR MESSAGE : ' + err.responseJSON.error + '</h3>');
+        } else {
+          $(bugDataReport).append('<h3>ERROR MESSAGE : ' + JSON.stringify(err) + '</h3>');
+        }
+        $(bugDataReport).append($('<h3>API : ' + apiurl + '</h3>'));
+        $(bugDataReport).append($('<h3>METHOD : POST</h3>'));
+        $(bugDataReport).append($('<h3>Date-Time : ' + getFomateDateTime(dt) + '</h3>'));
+        $(bugDataReport).append($('<h5>User Data : ' + JSON.stringify(userdata) + '</h5>'));
+        let bugParams = {email: adminEmailAddress, bugreport: bugDataReport.html()};
+        doCallReportBug(bugParams).then((reportRes)=>{
+          if (reportRes.status.code == 200) {
+            $.notify('ระบบฯ ได้รวบรวมข้อผิดพลาดที่เกิดขึ้นส่งไปให้ผู้ดูแลระบบทางอีเมล์แล้ว', 'warning');
+            //มีข้อผิดพลาด กรุณาแจ้งผู้ดูแลระบบ
+          } else if (reportRes.status.code == 500) {
+            $.notify('การรายงานข้อผิดพลาดทางอีเมล์เกิดข้อผิดพลาด @API', 'error');
+          } else {
+            $.notify('การรายงานข้อผิดพลาดทางอีเมล์เกิดข้อผิดพลาด @ไม่ทราบสาเหตุ', 'error');
+          }
+          setTimeout(()=>{
+            progBar.doCloseProgress();
+            reject(err);
+          }, 2500);
+        })
+      });
+		});
+	}
+
+  const doGetApi = function (apiurl, params) {
+		return new Promise(function(resolve, reject) {
+			$.get(apiurl, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
+	const doGetResourceByProxy = function(params) {
+		return new Promise(function(resolve, reject) {
+			let proxyEndPoint = proxyRootUri + proxyApi + '/getresource';
+			$.post(proxyEndPoint, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
+	const doCallOrthancApiByProxy = function(params) {
+		return new Promise(function(resolve, reject) {
+			let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/find';
+			$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
+  const doCallReportBug = function(params){
+    return new Promise(function(resolve, reject) {
+			let reportBugEndPoint = proxyRootUri + '/bug/report/email';
+			$.post(reportBugEndPoint, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+  }
+
+	const doCallDicomPreview = function(instanceID, username){
+		return new Promise(function(resolve, reject) {
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/preview/' + instanceID;
+  		let params = {username: username};
+  		$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+  	});
+	}
+
+	const doCallDownloadDicom = function(studyID, hospitalId){
+		return new Promise(function(resolve, reject) {
+      const progBar = $('body').radprogress({value: 0, apiname: 'Preparing Zip File'});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      $(progBar.progressValueBox).remove();
+      $(progBar.progressBox).css({'font-size': '50px'});
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/loadarchive/' + studyID;
+  		let params = {hospitalId: hospitalId};
+      //doCallApi(orthancProxyEndPoint, params).then((data)=>{
+  		$.post(orthancProxyEndPoint, params, function(data){
+        progBar.doCloseProgress();
+				resolve(data);
+      }).fail(function(error) {
+        progBar.doCloseProgress();
+				reject(error);
+			});
+  	});
+	}
+
+  const doCrateDicomAdvance = function(studyID, hospitalId){
+		return new Promise(function(resolve, reject) {
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/create/archive/advance/' + studyID;
+  		let params = {hospitalId: hospitalId};
+      doCallApi(orthancProxyEndPoint, params).then((data)=>{
+  		//$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			});
+  	});
+	}
+
+	const doCallTransferDicom = function(studyID, username){
+		return new Promise(function(resolve, reject) {
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/transferdicom/' + studyID;
+  		let params = {username: username};
+  		$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+  	});
+	}
+
+	const doCallTransferHistory = function(filename){
+		return new Promise(function(resolve, reject) {
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/transferhistory';
+  		let params = {filename: filename};
+  		$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+		});
+	}
+
+	const doCallDeleteDicom = function (studyID, hospitalId) {
+		return new Promise(function(resolve, reject) {
+  		let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/deletedicom/' + studyID;
+  		let params = {hospitalId: hospitalId};
+  		$.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+  	});
+	}
+
+  const doGetOrthancPort = function(hospitalId) {
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/orthancexternalport';
+      let params = {hospitalId: hospitalId};
+      $.get(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
+  const doCallDicomArchiveExist = function(archiveFilename){
+    return new Promise(function(resolve, reject) {
+      let orthancProxyEndPoint = proxyRootUri + orthancProxyApi + '/archivefile/exist';
+      let params = {filename: archiveFilename};
+      $.post(orthancProxyEndPoint, params, function(data){
+				resolve(data);
+			})
+    });
+  }
+
+  const doConvertPageToPdf = function(pageUrl){
+    return new Promise(function(resolve, reject) {
+      let convertorEndPoint = proxyRootUri + "/convertfromurl";;
+      let params = {url: pageUrl};
+			$.post(convertorEndPoint, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+    });
+  }
+
+  const doDownloadResult = function(caseId, hospitalId, userId, patient){
+    return new Promise(async function(resolve, reject) {
+      let reportCreateCallerEndPoint = proxyRootUri + "/casereport/create";;
+      let params = {caseId: caseId, hospitalId: hospitalId, userId: userId, pdfFileName: patient};
+			let reportPdf = await $.post(reportCreateCallerEndPoint, params);
+      resolve(reportPdf);
+    });
+  }
+
+  const doConvertPdfToDicom = function(caseId, hospitalId, userId, studyID, modality, studyInstanceUID){
+    return new Promise(function(resolve, reject) {
+      let convertorEndPoint = proxyRootUri + "/casereport/convert";;
+      let params = {caseId, hospitalId, userId, studyID, modality, studyInstanceUID};
+			$.post(convertorEndPoint, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+        console.log('convert error', error);
+				reject(error);
+			});
+    });
+  }
+
+  const doCallNewTokenApi = function() {
+    return new Promise(function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      var newTokenApiUri = '/api/login/newtoken';
+      var params = {username: userdata.username};
+      $.post(newTokenApiUri, params, function(response){
+  			resolve(response);
+  		}).catch((err) => {
+  			console.log('doCallNewTokenApi=>', JSON.stringify(err));
+        reject(err);
+  		})
+  	});
+  }
+
+  const doCallLoadStudyTags = function(hospitalId, studyId){
+    return new Promise(async function(resolve, reject) {
+      let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+      let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+      let callLoadUrl = '/api/orthancproxy/find'
+      $.post(callLoadUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  const doReStructureDicom = function(hospitalId, studyId, dicom){
+    return new Promise(async function(resolve, reject) {
+      let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+      let restudyUrl = '/api/dicomtransferlog/add';
+      $.post(restudyUrl, params).then((response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  /* Zoom API Connection */
+
+  const zoomUserId = 'vwrjK4N4Tt284J2xw-V1ew';
+
+  const meetingType = 2; // 1, 2, 3, 8
+  const totalMinute = 15;
+  const meetingTimeZone = "Asia/Bangkok";
+  const agenda = "RADConnext";
+  const joinPassword = "RAD1234";
+
+  const meetingConfig ={
+    host_video: false,
+    participant_video: true,
+    cn_meeting: false,
+    in_meeting: false,
+    join_before_host: true,
+    mute_upon_entry: false,
+    watermark: false,
+    use_pmi: false,
+    waiting_room: false,
+    approval_type: 0, // 0, 1, 2
+    registration_type: 1, // 1, 2, 3
+    audio: "both",
+    auto_recording: "none",
+    alternative_hosts: "",
+    close_registration: true,
+    //global_dial_in_countries: true,
+    registrants_email_notification: false,
+    meeting_authentication: false,
+  }
+
+  const doGetZoomMeeting = function(incident, startMeetingTime, hospitalName) {
+    return new Promise(function(resolve, reject) {
+      let reqParams = {};
+      reqParams.zoomUserId = zoomUserId;
+      let reqUrl = '/api/zoom/listmeeting';
+      doCallApi(reqUrl, reqParams).then((meetingsRes)=>{
+        //console.log(meetingsRes);
+        reqUrl = '/api/zoom/getmeeting';
+        reqParams = {};
+        let meetings = meetingsRes.response.meetings;
+        let readyMeetings = [];
+        var promiseList = new Promise(async function(inResolve, inReject){
+          await meetings.forEach(async (item, i) => {
+            reqParams.meetingId = item.id;
+            let meetingRes = await doCallApi(reqUrl, reqParams);
+            console.log(meetingRes);
+            if ((meetingRes.response) && (meetingRes.response.status)){
+              if (meetingRes.response.status === 'waiting') {
+                readyMeetings.push(item);
+                return;
+              } else if (meetingRes.response.status === 'end') {
+                reqUrl = '/api/zoom/deletemeeting';
+                meetingRes = await doCallApi(reqUrl, reqParams);
+              }
+            } else {
+              return;
+            }
+          });
+          setTimeout(()=> {
+            inResolve(readyMeetings);
+          }, 1200);
+        });
+        Promise.all([promiseList]).then(async (ob)=>{
+          let patientFullNameEN = incident.case.patient.Patient_NameEN + ' ' + incident.case.patient.Patient_LastNameEN;
+          let patientHN = incident.case.patient.Patient_HN;
+          if (ob[0].length >= 1) {
+            let readyMeeting = ob[0][0];
+            console.log('readyMeeting =>', readyMeeting);
+            console.log('case dtail =>', incident);
+            //update meeting for user
+            let joinTopic = 'โรงพยาบาล' + hospitalName + '  ' + patientFullNameEN + '  HN: ' + patientHN;
+            let startTime = startMeetingTime;
+            let zoomParams = {
+              topic: joinTopic,
+              type: meetingType,
+              start_time: startTime,
+              duration: totalMinute,
+              timezone: meetingTimeZone,
+              password: joinPassword,
+              agenda: agenda
+            };
+            zoomParams.settings = meetingConfig;
+            reqParams.params = zoomParams;
+            reqUrl = '/api/zoom/updatemeeting';
+            let meetingRes = await doCallApi(reqUrl, reqParams);
+            console.log('update result=>', meetingRes);
+            reqUrl = '/api/zoom/getmeeting';
+            reqParams = {meetingId: readyMeeting.id};
+            meetingRes = await doCallApi(reqUrl, reqParams);
+            console.log('updated result=>', meetingRes);
+            resolve(meetingRes.response);
+          } else {
+            //create new meeting
+            reqUrl = '/api/zoom/createmeeting';
+            reqParams.zoomUserId = zoomUserId;
+            let joinTopic =  'โรงพยาบาล' + hospitalName + ' ' + patientFullNameEN + ' HN: ' + patientHN;
+            let startTime = startMeetingTime;
+            let zoomParams = {
+              topic: joinTopic,
+              type: meetingType,
+              start_time: startTime,
+              duration: totalMinute,
+              timezone: meetingTimeZone,
+              password: joinPassword,
+              agenda: agenda
+            };
+            zoomParams.settings = meetingConfig;
+            reqParams.params = zoomParams;
+            doCallApi(reqUrl, reqParams).then((meetingsRes)=>{
+              console.log('create meetingsRes=>', meetingsRes);
+              reqUrl = '/api/zoom/getmeeting';
+              reqParams = {};
+              reqParams.meetingId = meetingsRes.response.id;
+              doCallApi(reqUrl, reqParams).then((meetingRes)=>{
+                console.log('create meetingRes=>', meetingRes);
+                resolve(meetingRes.response);
+              });
+            });
+          }
+        });
+      });
+    });
+  }
+
+	return {
+		/* const */
+		apiExt,
+		proxyRootUri,
+		proxyApi,
+		proxyEndPoint,
+		proxyUrl,
+		hostIP,
+		hostURL,
+		hostApiPort,
+		hostOrthancApiPort,
+		hostName,
+		hostURL,
+		hostOrthancUrl,
+		orthancProxyApi,
+		RadConStatus,
+    adminEmailAddress,
+		/*method*/
+		filterValue,
+		doTestAjaxCallApi,
+    doCallApiByAjax,
+		doCallApiDirect,
+		doCallApiByProxy,
     doCallApi,
     doGetApi,
-		doUserLogout
+		doGetResourceByProxy,
+		doCallOrthancApiByProxy,
+    doCallReportBug,
+		doCallDicomPreview,
+		doCallDownloadDicom,
+    doCrateDicomAdvance,
+		doCallTransferDicom,
+		doCallTransferHistory,
+		doCallDeleteDicom,
+    doGetOrthancPort,
+    doCallDicomArchiveExist,
+    doConvertPageToPdf,
+    doDownloadResult,
+    doConvertPdfToDicom,
+    doCallNewTokenApi,
+    doCallLoadStudyTags,
+    doReStructureDicom,
+    doGetZoomMeeting
 	}
 }
 
-},{}],2:[function(require,module,exports){
+},{"./utilmod.js":3}],2:[function(require,module,exports){
+/* commonlib.js */
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const util = require('./utilmod.js')($);
+  const apiconnector = require('./apiconnect.js')($);
+
+	const caseReadWaitStatus = [1];
+	const caseResultWaitStatus = [2, 8, 9, 13, 14];
+	const casePositiveStatus = [2,8,9];
+	const caseNegativeStatus = [3,4,7];
+	const caseReadSuccessStatus = [5, 10, 11, 12, 13, 14];
+	const caseAllStatus = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+	const allCaseStatus = [
+		{value: 1, DisplayText: 'เคสใหม่'},
+		{value: 2, DisplayText: 'หมอตอบรับแล้ว่ '},
+		{value: 3, DisplayText: 'หมอไม่ตอบรับ'},
+		{value: 4, DisplayText: 'หมดอายุ'},
+		{value: 5, DisplayText: 'ได้ผลอ่านแล้ว'},
+		{value: 6, DisplayText: 'ปิดเคสไปแล้ว'},
+		{value: 7, DisplayText: 'เคสถูกยกเลิก'},
+		{value: 8, DisplayText: 'หมอเปิดอ่านแล้ว'},
+		{value: 9, DisplayText: 'หมอเริ่มพิมพ์ผล'},
+		{value: 10, DisplayText: 'เจ้าของเคสดูผลแล้ว'},
+		{value: 11, DisplayText: 'เจ้าของเคสพิมพ์ผลแล้ว'},
+		{value: 12, DisplayText: 'มีการแก้ไขผลอ่าน'},
+		{value: 13, DisplayText: 'มีผลอ่านชั่วคราว'},
+		{value: 14, DisplayText: 'มีข้อความประเด็นเคส'}
+	];
+
+	const allCaseStatusForRadio = [
+		{value: 1, DisplayText: 'เคสใหม่'},
+		{value: 2, DisplayText: 'หมอตอบรับแล้ว่ '},
+		//{value: 3, DisplayText: 'หมอไม่ตอบรับ'},
+		{value: 4, DisplayText: 'หมดอายุ'},
+		{value: 5, DisplayText: 'ได้ผลอ่านแล้ว'},
+		//{value: 6, DisplayText: 'ปิดเคสไปแล้ว'},
+		//{value: 7, DisplayText: 'เคสถูกยกเลิก'},
+		{value: 8, DisplayText: 'หมอเปิดอ่านแล้ว'},
+		{value: 9, DisplayText: 'หมอเริ่มพิมพ์ผล'},
+		{value: 10, DisplayText: 'เจ้าของเคสดูผลแล้ว'},
+		{value: 11, DisplayText: 'เจ้าของเคสพิมพ์ผลแล้ว'},
+		{value: 12, DisplayText: 'มีการแก้ไขผลอ่าน'},
+		{value: 13, DisplayText: 'มีผลอ่านชั่วคราว'},
+		{value: 14, DisplayText: 'มีข้อความประเด็นเคส'}
+	];
+
+	const defaultProfile = {
+    readyState: 1,
+		readyBy: 'user',
+    screen: {
+      lock: 30,
+      unlock: 0
+    },
+    auotacc: 0,
+    casenotify: {
+      webmessage: 1,
+      line: 1,
+      autocall: 0,
+      mancall:0
+    }
+  };
+
+	const dicomTagPath = [
+		{tag: 'StudyDate', path: 'MainDicomTags/StudyDate'},
+		{tag: 'StudyTime', path: 'MainDicomTags/StudyTime'},
+		{tag: 'Modality', path: 'SamplingSeries/MainDicomTags/Modality'},
+		{tag: 'PatientName', path: 'PatientMainDicomTags/PatientName'},
+		{tag: 'PatientID', path: 'PatientMainDicomTags/PatientID'},
+		{tag: 'StudyDescription', path: 'MainDicomTags/StudyDescription'},
+		{tag: 'ProtocolName', path: 'SamplingSeries/MainDicomTags/ProtocolName'}
+	];
+
+  const pageLineStyle = {'width': '100%', 'border': '2px solid gray', /*'border-radius': '10px',*/ 'background-color': '#ddd', 'margin-top': '4px', 'padding': '2px'};
+	const headBackgroundColor = '#184175';
+	const jqteConfig = {format: false, fsize: false, ol: false, ul: false, indent: false, outdent: false,
+		link: false, unlink: false, remove: false, /*br: false,*/ strike: false, rule: false,
+		sub: false, sup: false, left: false, center: false, right: false/*, source: false */
+	};
+	const modalitySelectItem = ['CR', 'CT', 'MG', 'US', 'MR', 'AX'];
+	const sizeA4Style = {width: '210mm', height: '297mm'};
+	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '33', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto',/* 'background-color': 'rgb(0,0,0)',*/ 'background-color': 'rgba(0,0,0,0.4)'};
+	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '70px auto', 'padding': '0px', 'border': '2px solid #888', 'width': '620px', 'height': '500px'/*, 'font-family': 'THSarabunNew', 'font-size': '24px'*/ };
+
+  const doCallApi = function(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			apiconnector.doCallApi(url, rqParams).then((response) => {
+				resolve(response);
+			}).catch((err) => {
+				console.log('error at api ' + url);
+				console.log(JSON.stringify(err));
+			})
+		});
+	}
+
+	const doGetApi = function(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			apiconnector.doGetApi(url, rqParams).then((response) => {
+				resolve(response);
+			}).catch((err) => {
+				console.log(JSON.stringify(err));
+			})
+		});
+	}
+
+	const doCreateDicomFilterForm = function(execCallback){
+		let studyFromDateInput = $('<input type="text" value="*" id="StudyFromDateInput" style="width: 50px;"/>');
+		$(studyFromDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
+		$(studyFromDateInput).on('keypress',function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let studyToDateInput = $('<input type="text" value="*" id="StudyToDateInput" style="width: 50px;"/>');
+		$(studyToDateInput).datepicker({ dateFormat: 'dd-mm-yy' });
+		$(studyToDateInput).on('keypress',function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let patientHNInput = $('<input type="text" value="*" id="PatientHNInput" size="12"/>');
+		$(patientHNInput).on('keypress',function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let patientNameInput = $('<input type="text" value="*" id="PatientNameInput" size="15"/>');
+		$(patientNameInput).on('keypress',function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let modalityInput = $('<input type="text" value="*" id="ModalityInput" size="4"/>');
+		$(modalityInput).on('keypress', function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let scanPartInput = $('<input type="text" value="*" id="ScanPartInput" style="width: 96.5%;"/>');
+		$(scanPartInput).on('keypress', function(evt) {
+			if(evt.which == 13) {
+				doVerifyForm();
+			};
+		});
+
+		let filterFormRow = $('<div id="DicomFilterForm" style="display: table-row; width: 100%;"></div>');
+		let studyDateCell = $('<div style="display: table-cell; text-align: left;" class="header-cell"></div>');
+		$(studyDateCell).append($(studyFromDateInput));
+		$(studyDateCell).append($('<span style="margin-left: 5px; margin-right: 2px; display: inline-block;">-</span>'));
+		$(studyDateCell).append($(studyToDateInput));
+		let patentHNCell = $('<div style="display: table-cell; text-align: left;" class="header-cell"></div>');
+		$(patentHNCell).append($(patientHNInput));
+		let patentNameCell = $('<div style="display: table-cell; text-align: left;" class="header-cell"></div>');
+		$(patentNameCell).append($(patientNameInput));
+		let modalityCell = $('<div style="display: table-cell; text-align: left;" class="header-cell"></div>');
+		$(modalityCell).append($(modalityInput));
+		let scanPartCell = $('<div style="display: table-cell; text-align: left;" class="header-cell"></div>');
+		$(scanPartCell).append($(scanPartInput));
+
+		$(filterFormRow).append($('<div style="display: table-cell; text-align: left;" class="header-cell"></div>'));
+		$(filterFormRow).append($(studyDateCell));
+		$(filterFormRow).append($(patentHNCell));
+		$(filterFormRow).append($(patentNameCell));
+		$(filterFormRow).append($('<div style="display: table-cell; text-align: left;" class="header-cell"></div>'));
+		$(filterFormRow).append($(modalityCell));
+		$(filterFormRow).append($(scanPartCell));
+
+		const doVerifyForm = function(){
+			let studyFromDateValue = $(studyFromDateInput).val();
+			let studyToDateValue = $(studyToDateInput).val();
+			let patientNameValue = $(patientNameInput).val();
+			let patientHNValue = $(patientHNInput).val();
+			let modalityValue = $(modalityInput).val();
+			let scanPartValue = $(scanPartInput).val();
+
+			if ((studyFromDateValue === '') && (studyToDateValue === '') && (patientNameValue === '') && (patientHNValue === '') && (modalityValue === '') && (scanPartValue === '')){
+				$(studyFromDateInput).css('border', '1px solid red');
+				$(studyToDateInput).css('border', '1px solid red');
+				$(patientHNInput).css('border', '1px solid red');
+				$(patientNameInput).css('border', '1px solid red');
+				$(modalityInput).css('border', '1px solid red');
+				$(scanPartInput).css('border', '1px solid red');
+			} else {
+				$(studyFromDateInput).css('border', '');
+				$(studyToDateInput).css('border', '');
+				$(patientHNInput).css('border', '');
+				$(patientNameInput).css('border', '');
+				$(modalityInput).css('border', '');
+				$(scanPartInput).css('border', '');
+
+				let stdfdf = studyFromDateValue;
+				if (studyFromDateValue !== '*') {
+					let yy = studyFromDateValue.substr(6, 4);
+					let mo = studyFromDateValue.substr(3, 2);
+					let dd = studyFromDateValue.substr(0, 2);
+					stdfdf = yy + mo + dd;
+				}
+				let stdtdf = studyToDateValue;
+				if (studyToDateValue !== '*') {
+					let yy = studyToDateValue.substr(6, 4);
+					let mo = studyToDateValue.substr(3, 2);
+					let dd = studyToDateValue.substr(0, 2);
+					stdtdf = yy + mo + dd;
+				}
+				let filterValue = {studyFromDate: stdfdf, studyToDate: stdtdf, patientName: patientNameValue, patientHN: patientHNValue, modality: modalityValue, scanPart: scanPartValue};
+				execCallback(filterValue);
+			}
+		}
+
+		return $(filterFormRow);
+	}
+
+	const doSaveQueryDicom = function(filterData){
+	  let searchQuery = {Level: "Study", Expand: true};
+	  let dicomQuery = {};
+		if (filterData.studyFromDate) {
+	    dicomQuery.StudyFromDate = filterData.studyFromDate;
+	  }
+		if (filterData.studyToDate) {
+	    dicomQuery.StudyToDate = filterData.studyToDate;
+	  }
+	  if (filterData.patientName) {
+	    dicomQuery.PatientName = filterData.patientName;
+	  }
+	  if (filterData.patientHN) {
+	    dicomQuery.PatientID = filterData.patientHN;
+	  }
+		if (filterData.modality) {
+	    dicomQuery.Modality = filterData.modality;
+	  }
+	  if (filterData.scanPart) {
+	    dicomQuery.ScanPart = filterData.scanPart;
+	  }
+	  searchQuery.Query = dicomQuery;
+	  localStorage.setItem('dicomfilter', JSON.stringify(searchQuery));
+	}
+
+	const dicomFilterLogic = function(logicPairs){
+		return new Promise(function(resolve, reject) {
+			if (logicPairs.length == 0) {
+				resolve(true);
+			} else {
+				let logicAns = true;
+				let	promiseList = new Promise(function(resolve2, reject2){
+					for (let i=0; i < logicPairs.length; i++){
+						let pair = logicPairs[i];
+
+						let realKey = pair.key;
+						let indexAt = realKey.indexOf('*');
+		        if (indexAt == 0) {
+		          realKey = realKey.substring(1);
+		        } else if (indexAt == (realKey.length-1)) {
+							realKey = realKey.substring(0, (realKey.length-1));
+						} else {
+							realKey = realKey;
+						}
+						let key = realKey;
+						let value = pair.value;
+						let op = pair.op;
+						switch (op) {
+				      case '==':
+				        logicAns = logicAns && (value.indexOf(key) >= 0);
+				      break;
+				      case '>=':
+				        logicAns = logicAns && (value >= key);
+				      break;
+				      case '<=':
+								logicAns = logicAns && (value <= key);
+							break;
+						}
+					}
+					setTimeout(()=>{
+						resolve2(logicAns);
+					}, 10);
+				});
+				Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			}
+		});
+	}
+
+	const doFilterDicom = function(dicoms, query){
+		return new Promise(function(resolve, reject) {
+			let studyFromDate = query.StudyFromDate;
+			let studyToDate = query.StudyToDate;
+			let modality = query.Modality;
+			let patientName = query.PatientName;
+			let patientID = query.PatientID;
+			let scanPart = query.ScanPart;
+
+			let studies = [];
+
+			let	promiseList = new Promise(async function(resolve2, reject2){
+				let i = 0;
+				while ( i < dicoms.length ) {
+					let keyPairs = [];
+					let studyTag = dicoms[i];
+
+					let studyDateValue = studyTag.MainDicomTags.StudyDate;
+					let modalityValue = studyTag.SamplingSeries.MainDicomTags.Modality;
+					let patientNameValue = studyTag.PatientMainDicomTags.PatientName;
+					let patientIDValue = studyTag.PatientMainDicomTags.PatientID;
+					let studyDescriptionValue = studyTag.MainDicomTags.StudyDescription;
+					let protocolNameValue = studyTag.SamplingSeries.MainDicomTags.ProtocolName;
+
+					if ((studyFromDate) && (studyFromDate !== '*')) {
+						if ((studyToDate) && (studyToDate !== '*')) {
+							let fromPair = {value: studyDateValue, key: studyFromDate, op: '>='};
+							let toPair = {value: studyDateValue, key: studyToDate, op: '<='};
+							keyPairs.push(fromPair);
+							keyPairs.push(toPair);
+						} else {
+							let fromPair = {value: studyDateValue, key: studyFromDate, op: '=='};
+							keyPairs.push(fromPair);
+						}
+					} else {
+						if ((studyToDate) && (studyToDate !== '*')) {
+							let toPair = {value: studyDateValue, key: studyToDate, op: '<='};
+							keyPairs.push(toPair);
+						}
+					}
+
+					if ((modality) && (modality !== '*')) {
+						let modPair = {value: modalityValue, key: modality, op: '=='};
+						keyPairs.push(modPair);
+					}
+
+
+					if ((patientName) && (patientName !== '*')) {
+						let patientNamePair = {value: patientNameValue, key: patientName, op: '=='};
+						keyPairs.push(patientNamePair);
+					}
+
+
+					if ((patientID) && (patientID !== '*')) {
+						let patientIDPair = {value: patientIDValue, key: patientID, op: '=='};
+						keyPairs.push(patientIDPair);
+					}
+
+					if ((scanPart) && (scanPart !== '*')) {
+						let scanPartPair = undefined;
+						if ((studyDescriptionValue) && (studyDescriptionValue !== '')){
+							scanPartPair = {value: studyDescriptionValue, key: scanPart, op: '=='};
+						} else if ((protocolNameValue) && (protocolNameValue !== '')){
+							scanPartPair = {value: protocolNameValue, key: scanPart, op: '=='};
+						} else {
+							scanPartPair = {value: '', key: scanPart, op: '=='};
+						}
+						keyPairs.push(scanPartPair);
+					}
+
+
+					let filterCheck = await dicomFilterLogic(keyPairs);
+					if(filterCheck == true){
+						studies.push(studyTag);
+					}
+
+					i++;
+				}
+				setTimeout(()=>{
+          resolve2(studies);
+        }, 1100);
+			});
+			Promise.all([promiseList]).then(async(ob)=>{
+				await ob[0].sort((a,b) => {
+					let av = util.getDatetimeValue(a.MainDicomTags.StudyDate, a.MainDicomTags.StudyTime);
+					let bv = util.getDatetimeValue(b.MainDicomTags.StudyDate, b.MainDicomTags.StudyTime);
+					if (av && bv) {
+						return bv - av;
+					} else {
+						return 0;
+					}
+				});
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doUserLogout = function(wsm) {
+	  if (wsm) {
+	  	let userdata = JSON.parse(localStorage.getItem('userdata'));
+	    wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
+	  }
+	  localStorage.removeItem('token');
+		localStorage.removeItem('userdata');
+		localStorage.removeItem('masternotify');
+		//localStorage.removeItem('dicomfilter');
+	  let url = '/index.html';
+	  window.location.replace(url);
+	}
+
+  const doOpenStoneWebViewer = function(StudyInstanceUID, hosId) {
+		//const orthancWebviewerUrl = 'http://' + window.location.hostname + ':8042/web-viewer/app/viewer.html?series=';
+		let hospitalId = undefined;
+		if (hosId) {
+			hospitalId = hosId;
+		} else {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			hospitalId = userdata.hospitalId;
+		}
+		apiconnector.doGetOrthancPort(hospitalId).then((response) => {
+			//const orthancStoneWebviewer = 'http://'+ window.location.hostname + ':' + response.port + '/stone-webviewer/index.html?study=';
+			const orthancStoneWebviewer = 'http://'+ response.ip + ':' + response.port + '/stone-webviewer/index.html?study=';
+			let orthancwebapplink = orthancStoneWebviewer + StudyInstanceUID + '&user=' + userdata.username;
+			window.open(orthancwebapplink, '_blank');
+		});
+	}
+
+  const doDownloadDicom = function(studyID, dicomFilename){
+		$('body').loading('start');
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		const hospitalId = userdata.hospitalId;
+  	apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
+  		console.log(response);
+  		//let openLink = response.archive.link;
+  		//window.open(openLink, '_blank');
+			var pom = document.createElement('a');
+			pom.setAttribute('href', response.link);
+			pom.setAttribute('download', dicomFilename);
+			pom.click();
+			$('body').loading('stop');
+  	}).catch((err)=>{
+			console.log(err);
+			$('body').loading('stop');
+		})
+  }
+
+  const doPreparePatientParams = function(newCaseData){
+		let rqParams = {};
+		let patientFragNames = newCaseData.patientNameEN.split(' ');
+		let patientNameEN = patientFragNames[0];
+		let patientLastNameEN = patientFragNames[0];
+		if (patientFragNames.length >= 2) {
+			if (patientFragNames[1] !== '') {
+				patientLastNameEN = patientFragNames[1];
+			} else {
+				let foundNotBlank = patientFragNames.find((item, i) =>{
+					if (i > 1) {
+						if (patientFragNames[i] !== '') {
+							return item;
+						}
+					}
+				});
+				if (foundNotBlank){
+					patientLastNameEN = foundNotBlank;
+				} else {
+					patientLastNameEN = patientNameEN;
+				}
+			}
+		}
+		patientFragNames = newCaseData.patientNameTH.split(' ');
+		let patientNameTH = patientFragNames[0];
+		let patientLastNameTH = patientFragNames[0];
+		if (patientFragNames.length >= 2) {
+			if (patientFragNames[1] !== '') {
+				patientLastNameTH = patientFragNames[1];
+			} else {
+				let foundNotBlank = patientFragNames.find((item, i) =>{
+					if (i > 1) {
+						if (patientFragNames[i] !== '') {
+							return item;
+						}
+					}
+				});
+				if (foundNotBlank){
+					patientLastNameTH = foundNotBlank;
+				} else {
+					patientLastNameTH = patientNameTH;
+				}
+			}
+		}
+		rqParams.Patient_HN = newCaseData.hn;
+		rqParams.Patient_NameTH = patientNameTH;
+		rqParams.Patient_LastNameTH = patientLastNameTH;
+		rqParams.Patient_NameEN = patientNameEN;
+		rqParams.Patient_LastNameEN = patientLastNameEN;
+		rqParams.Patient_CitizenID = newCaseData.patientCitizenID;
+		rqParams.Patient_Birthday = '';
+		rqParams.Patient_Age = newCaseData.patientAge;
+		rqParams.Patient_Sex = newCaseData.patientSex;
+		rqParams.Patient_Tel = '';
+		rqParams.Patient_Address = '';
+		return rqParams;
+	}
+
+  const doPrepareCaseParams = function(newCaseData) {
+		let rqParams = {};
+		rqParams.Case_OrthancStudyID = newCaseData.studyID;
+		rqParams.Case_ACC = newCaseData.acc;
+		rqParams.Case_BodyPart = newCaseData.bodyPart;
+		rqParams.Case_ScanPart = newCaseData.scanpartItems;
+		rqParams.Case_Modality = newCaseData.mdl;
+		rqParams.Case_Manufacturer = newCaseData.manufacturer;
+		rqParams.Case_ProtocolName = newCaseData.protocalName;
+		rqParams.Case_StudyDescription  = newCaseData.studyDesc;
+		rqParams.Case_StationName = newCaseData.stationName
+		rqParams.Case_PatientHRLink = newCaseData.patientHistory;
+		rqParams.Case_RadiologistId = newCaseData.drReader
+		rqParams.Case_RefferalId = newCaseData.drOwner;
+		rqParams.Case_RefferalName = '';
+		rqParams.Case_Price = newCaseData.price;
+		rqParams.Case_Department =  newCaseData.department;
+		rqParams.Case_DESC = newCaseData.detail;
+		rqParams.Case_StudyInstanceUID = newCaseData.studyInstanceUID
+		return rqParams;
+	}
+
+	const doGetSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			const dicomUrl = '/api/dicomtransferlog/select/' + studyId;
+			let rqParams = {hospitalId: hospitalId, username: username};
+			let dicomStudiesRes = await doCallApi(dicomUrl, rqParams);
+			if (dicomStudiesRes.orthancRes.length > 0) {
+				resolve(dicomStudiesRes.orthancRes[0].StudyTags);
+			} else {
+				resolve()
+			}
+		});
+	}
+
+	const doGetOrthancStudyDicom = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/studies/' + studyId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
+			resolve(orthancRes);
+		});
+	}
+
+	const doGetOrthancSeriesDicom = function(seriesId) {
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let rqBody = '{"Level": "Series", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/series/' + seriesId;
+	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallCreatePreviewSeries = function(seriesId, instanceList){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceList: instanceList};
+			let apiurl = '/api/orthancproxy/create/preview';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallCreateZipInstance = function(seriesId, instanceId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let username = userdata.username;
+			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceId: instanceId};
+			let apiurl = '/api/orthancproxy/create/zip/instance';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallSendAI = function(seriesId, instanceId, studyId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = { userId: userdata.id, hospitalId: userdata.hospitalId, seriesId: seriesId, instanceId: instanceId, studyId: studyId};
+			let apiurl = '/api/orthancproxy/sendai';
+			try {
+				let orthancRes = await apiconnector.doCallApi(apiurl, params)
+				resolve(orthancRes);
+			} catch (err) {
+				reject(err);
+			}
+		});
+	}
+
+	const doConvertAIResult = function(studyId, pdfcodes, modality){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = {hospitalId: userdata.hospitalId, username: userdata.id, studyId: studyId, pdfcodes: pdfcodes, modality: modality};
+			let apiurl = '/api/orthancproxy/convert/ai/report';
+			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(orthancRes);
+		});
+	}
+
+	const doCallAIResultLog = function(studyId){
+		return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let params = { userId: userdata.id, studyId: studyId};
+			let apiurl = '/api/ailog/select/' + studyId;
+			let aiLogRes = await apiconnector.doCallApi(apiurl, params)
+			resolve(aiLogRes);
+		});
+	}
+
+	const doUpdateCaseStatus = function(id, newStatus, newDescription){
+		return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.id;
+			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: id, casestatusId: newStatus, caseDescription: newDescription};
+			let apiUrl = '/api/cases/status/' + id;
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doUpdateCaseStatusByShortCut = function(id, newStatus, newDescription){
+		return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.id;
+			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: id, casestatusId: newStatus, caseDescription: newDescription};
+			let apiUrl = '/api/cases/status/shortcut/' + id;
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doUpdateConsultStatus = function(id, newStatus){
+		return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.id;
+			let rqParams = { hospitalId: hospitalId, userId: userId, consultId: id, casestatusId: newStatus};
+			let apiUrl = '/api/consult/status/' + id;
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doCreateNewCustomUrgent = function(ugData){
+		return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let acceptStep = {dd: ugData.Accept.dd, hh: ugData.Accept.hh, mn: ugData.Accept.mn};
+			let workingStep = {dd: ugData.Working.dd, hh: ugData.Working.hh, mn: ugData.Working.mn};
+			let ugTypeData = {UGType: 'custom', UGType_Name: 'กำหนดเอง', UGType_ColorCode: '', UGType_AcceptStep: JSON.stringify(acceptStep), UGType_WorkingStep: JSON.stringify(workingStep), hospitalId: hospitalId};
+			let rqData = {data: ugTypeData};
+			let apiUrl = '/api/urgenttypes/add';
+			try {
+				let response = await doCallApi(apiUrl, rqData);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doCallSelectUrgentType = function(urgentId){
+		return new Promise(async function(resolve, reject) {
+			let apiUrl = '/api/urgenttypes/select/' + urgentId;
+			let rqParams = {};
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doUpdateCustomUrgent = function(ugData, ugentId) {
+		return new Promise(async function(resolve, reject) {
+			let acceptStep = {dd: ugData.Accept.dd, hh: ugData.Accept.hh, mn: ugData.Accept.mn};
+			let workingStep = {dd: ugData.Working.dd, hh: ugData.Working.hh, mn: ugData.Working.mn};
+			let ugTypeData = {UGType_AcceptStep: JSON.stringify(acceptStep), UGType_WorkingStep: JSON.stringify(workingStep)};
+			let rqParams = {id: ugentId, data: ugTypeData};
+			let apiUrl = '/api/urgenttypes/update';
+			try {
+				let response = await doCallApi(apiUrl, ugTypeData);
+				resolve(response);
+			} catch(e) {
+				reject(e);
+			}
+		});
+	}
+
+	const doLoadScanpartAux = function(studyDesc, protocolName){
+		return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.userId;
+			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
+			let apiUrl = '/api/scanpartaux/select';
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doFillSigleDigit = function(x) {
+		if (Number(x) < 10) {
+			return '0' + x;
+		} else {
+			return '' + x;
+		}
+	}
+
+	const doDisplayCustomUrgentResult = function(dd, hh, mn, fromDate) {
+		let totalShiftTime = (dd * 24 * 60 * 60 * 1000) + (hh * 60 * 60 * 1000) + (mn * 60 * 1000);
+		let atDate;
+		if (fromDate) {
+			atDate = new Date(fromDate);
+		} else {
+			atDate = new Date();
+		}
+		let atTime = atDate.getTime() + totalShiftTime;
+		atTime = new Date(atTime);
+		let YY = atTime.getFullYear();
+		let MM = doFillSigleDigit(atTime.getMonth() + 1);
+		let DD = doFillSigleDigit(atTime.getDate());
+		let HH = doFillSigleDigit(atTime.getHours());
+		let MN = doFillSigleDigit(atTime.getMinutes());
+		let td = `${YY}-${MM}-${DD} : ${HH}.${MN}`;
+		return td;
+	}
+
+	const doFormatDateTimeCaseCreated = function(createdAt) {
+		let atTime = new Date(createdAt);
+		let YY = atTime.getFullYear();
+		let MM = doFillSigleDigit(atTime.getMonth() + 1);
+		let DD = doFillSigleDigit(atTime.getDate());
+		let HH = doFillSigleDigit(atTime.getHours());
+		let MN = doFillSigleDigit(atTime.getMinutes());
+		let td = `${YY}-${MM}-${DD} : ${HH}.${MN}`;
+		return td;
+	}
+
+	const formatNumberWithCommas = function(x) {
+		if (x) {
+			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		} else {
+			return undefined;
+		}
+	}
+
+	const doRenderScanpartSelectedBox = function(scanparts) {
+		return new Promise(async function(resolve, reject) {
+			const doCreateHeaderField = function() {
+	      let headerFieldRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: ' + headBackgroundColor + '; color: white;"></div>');
+				let fieldCell = $('<div style="display: table-cell; padding: 2px;">ลำดับที่</div>');
+	      $(fieldCell).appendTo($(headerFieldRow));
+	      fieldCell = $('<div style="display: table-cell; padding: 2px;">รหัส</div>');
+	      $(fieldCell).appendTo($(headerFieldRow));
+	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ชื่อ</div>');
+	      $(fieldCell).appendTo($(headerFieldRow));
+	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ราคา</div>');
+	      $(fieldCell).appendTo($(headerFieldRow));
+	      return $(headerFieldRow);
+	    };
+
+			let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			let headerFieldRow = doCreateHeaderField();
+			$(headerFieldRow).appendTo($(selectedBox));
+			await scanparts.forEach((item, i) => {
+				let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+				$(itemRow).appendTo($(selectedBox));
+				let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
+				$(itemCell).appendTo($(itemRow));
+				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+				$(itemCell).appendTo($(itemRow));
+				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+				$(itemCell).appendTo($(itemRow));
+				itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+				$(itemCell).appendTo($(itemRow));
+			});
+			resolve($(selectedBox));
+		});
+	}
+
+	const getPatientFullNameEN = function (patientId) {
+		return new Promise(async function(resolve, reject) {
+			let rqParams = {patientId: patientId};
+			let apiUrl = '/api/patient/fullname/en/' + patientId;
+			try {
+				//let response = await doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	const doRenderScanpartSelectedAbs = function (scanparts) {
+		return new Promise(async function(resolve, reject) {
+			let scanPartBox = $('<div class="scanpart-box"></div>');
+			let	promiseList = new Promise(function(resolve2, reject2){
+				let joinText = '';
+				for (let i=0; i < scanparts.length; i++){
+					let item = scanparts[i];
+					if (i != (scanparts.length-1)) {
+						joinText += item.Name + ' / ';
+					} else {
+						joinText += item.Name;
+					}
+					/*
+					if ((item.DF) && (item.DF !== '')) {
+						joinText += ' ' + item.DF + ' บ.';
+					}
+					*/
+				}
+				$(scanPartBox).append($('<div>' + joinText + '</div>'));
+				setTimeout(()=>{
+          resolve2($(scanPartBox));
+        }, 100);
+      });
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doExtractList = function(originList, from, to) {
+		return new Promise(async function(resolve, reject) {
+			let exResults = [];
+			let	promiseList = new Promise(function(resolve2, reject2){
+				for (let i = (from-1); i < to; i++) {
+					if (originList[i]){
+						exResults.push(originList[i]);
+					}
+				}
+				setTimeout(()=>{
+          resolve2(exResults);
+        }, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doCreateCaseCmd = function(cmd, data, clickCallbak) {
+		const cmdIcon = $('<img class="pacs-command" data-toggle="tooltip"/>');
+		switch (cmd) {
+			case 'view':
+			$(cmdIcon).attr('src','/images/pdf-icon.png');
+			$(cmdIcon).attr('title', 'Open Result Report.');
+			break;
+
+			case 'print':
+			$(cmdIcon).attr('src','/images/print-icon.png');
+			$(cmdIcon).attr('title', 'Print Result Report.');
+			break;
+
+			case 'convert':
+			$(cmdIcon).attr('src','/images/convert-icon.png');
+			$(cmdIcon).attr('title', 'Convert Result Report to Synapse (PACS).');
+			break;
+
+			case 'callzoom':
+			$(cmdIcon).attr('src','/images/zoom-black-icon.png');
+			$(cmdIcon).attr('title', 'Call Radiologist by zoom App.');
+			break;
+
+			case 'upd':
+			$(cmdIcon).attr('src','/images/update-icon.png');
+			$(cmdIcon).attr('title', 'Update Case data.');
+			break;
+
+			case 'delete':
+			$(cmdIcon).attr('src','/images/delete-icon.png');
+			$(cmdIcon).attr('title', 'Delete Case.');
+			break;
+
+			case 'ren':
+			$(cmdIcon).attr('src','/images/renew-icon.png');
+			$(cmdIcon).attr('title', 'Re-New Case.');
+			break;
+
+			case 'cancel':
+			$(cmdIcon).attr('src','/images/cancel-icon.png');
+			$(cmdIcon).attr('title', 'Cancel Case.');
+			break;
+
+			case 'edit':
+			$(cmdIcon).attr('src','/images/status-icon.png');
+			$(cmdIcon).attr('title', 'Edit Result.');
+			break;
+
+			case 'close':
+			$(cmdIcon).attr('src','/images/closed-icon.png');
+			$(cmdIcon).attr('title', 'Edit Result.');
+			break;
+
+		}
+		$(cmdIcon).on('click', (evt)=>{
+			clickCallbak(data);
+		});
+		return $(cmdIcon);
+	}
+
+	const doCallMyUserTasksCase = function(){
+    return new Promise(async function(resolve, reject) {
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let username = userdata.username;
+			let rqParams = {userId: userId, username: username, statusId: caseReadWaitStatus};
+			let apiUrl = '/api/tasks/filter/user/' + userId;
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+        resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+    });
+  }
+
+	const doFindTaksOfCase = function(tasks, caseId){
+		return new Promise(async function(resolve, reject) {
+			if (tasks) {
+				let task = await tasks.find((item)=>{
+					if (item.caseId == caseId) return item;
+				});
+				resolve(task);
+			} else {
+				resolve();
+			}
+		});
+	}
+
+	const doCreateLegentCmd = function(legentCmdClickCallback){
+		let legentCmd = $('<img src="/images/question-icon.png" style="width: 25px; height: auto; padding: 1px; border: 2px solid #ddd; cursor: pointer; margin-top: 0px;" data-toggle="tooltip" title="วิธีพิมพ์ป้อน Study Description"/>');
+		$(legentCmd).hover(()=>{
+			$(legentCmd).css({'border': '2px solid grey'});
+		},()=>{
+			$(legentCmd).css({'border': '2px solid #ddd'});
+		});
+		$(legentCmd).on('click', (evt)=>{
+			//doShowLegentCmdClick(evt);
+			legentCmdClickCallback(evt);
+		});
+		let legentCmdBox = $('<span style="margin-left: 10px;"></span>');
+		return $(legentCmdBox).append($(legentCmd));
+	}
+
+	const doShowStudyDescriptionLegentCmdClick = function(evt){
+		const content = $('<div></div>');
+		$(content).append($('<p>พิมพ์รายการ Study Description แต่ล่ะรายการ โดยคั่นด้วยเครื่องหมาย Comma (,)</p>'));
+		const radalertoption = {
+			title: 'วิธีพิมพ์ป้อน Study Description',
+			msg: $(content),
+			width: '610px',
+			onOk: function(evt) {
+				radAlertBox.closeAlert();
+			}
+		}
+		let radAlertBox = $('body').radalert(radalertoption);
+		$(radAlertBox.cancelCmd).hide();
+	}
+
+	const doScrollTopPage = function(){
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+	  return false;
+	}
+
+	const genUniqueID = function () {
+		function s4() {
+			return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+		}
+		return s4() + s4() + '-' + s4();
+	}
+
+	const onSimpleEditorPaste = function(evt){
+		let pathElems = evt.originalEvent.path;
+		let simpleEditor = pathElems.find((path)=>{
+			if (path.className === 'jqte_editor') {
+				return path;
+			}
+		});
+		if (simpleEditor) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+			let textPastedData = clipboardData.getData('text');
+			let htmlPastedData = clipboardData.getData('text/html');
+			let htmlFormat = htmlformat(htmlPastedData);
+
+			let caseData = $('#SimpleEditorBox').data('casedata');
+			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
+			let oldContent = $(simpleEditor).val();
+			if ((htmlFormat) && (htmlFormat !== '')) {
+				document.execCommand('insertHTML', false, htmlFormat);
+				let newContent = oldContent + htmlFormat;
+				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
+				localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
+			} else {
+				if ((textPastedData) && (textPastedData !== '')) {
+					document.execCommand('insertText', false, textPastedData);
+					let newContent = oldContent + textPastedData;
+					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
+					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+					$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
+				}
+			}
+			//console.log(localStorage.getItem('draftbackup'));
+		}
+	}
+
+	const doCallLoadStudyTags = function(hospitalId, studyId){
+		return new Promise(async function(resolve, reject) {
+			let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
+			let orthancUri = '/studies/' + studyId;
+			let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
+			let callLoadUrl = '/api/orthancproxy/find'
+			$.post(callLoadUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
+	const doReStructureDicom = function(hospitalId, studyId, dicom){
+		return new Promise(async function(resolve, reject) {
+			let params = {hospitalId: hospitalId, resourceId: studyId, resourceType: "study", dicom: dicom};
+			let restudyUrl = '/api/dicomtransferlog/add';
+			$.post(restudyUrl, params).then((response) => {
+				resolve(response);
+			});
+		});
+	}
+
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
+
+	const doCallPriceChart = function(hospitalId, scanpartId){
+    return new Promise(async function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      //let hospitalId = userdata.hospitalId;
+      let userId = userdata.id;
+      let rqParams = {userId: userId, hospitalId: hospitalId, scanpartId: scanpartId};
+      let apiUrl = '/api/pricechart/find';
+			let response = await doGetApi(apiUrl, rqParams);
+			resolve(response);
+    });
+  }
+
+  return {
+		/* Constant share */
+		caseReadWaitStatus,
+		caseResultWaitStatus,
+		casePositiveStatus,
+		caseNegativeStatus,
+		caseReadSuccessStatus,
+		caseAllStatus,
+		allCaseStatus,
+		allCaseStatusForRadio,
+		defaultProfile,
+		dicomTagPath,
+		pageLineStyle,
+		headBackgroundColor,
+		jqteConfig,
+		modalitySelectItem,
+		sizeA4Style,
+		quickReplyDialogStyle,
+		quickReplyContentStyle,
+		/* Function share */
+		doCallApi,
+		doGetApi,
+		doCreateDicomFilterForm,
+		doSaveQueryDicom,
+		doFilterDicom,
+		doUserLogout,
+		doOpenStoneWebViewer,
+		doDownloadDicom,
+    doPreparePatientParams,
+    doPrepareCaseParams,
+		doGetSeriesList,
+		doGetOrthancStudyDicom,
+		doGetOrthancSeriesDicom,
+		doCallCreatePreviewSeries,
+		doCallCreateZipInstance,
+		doCallSendAI,
+		doConvertAIResult,
+		doCallAIResultLog,
+		doUpdateCaseStatus,
+		doUpdateCaseStatusByShortCut,
+		doUpdateConsultStatus,
+		doCreateNewCustomUrgent,
+		doCallSelectUrgentType,
+		doUpdateCustomUrgent,
+		doLoadScanpartAux,
+		doFillSigleDigit,
+		doDisplayCustomUrgentResult,
+		doFormatDateTimeCaseCreated,
+		formatNumberWithCommas,
+		getPatientFullNameEN,
+		doRenderScanpartSelectedBox,
+		doRenderScanpartSelectedAbs,
+		doExtractList,
+		doCreateCaseCmd,
+		doCallMyUserTasksCase,
+		doFindTaksOfCase,
+		doCreateLegentCmd,
+		doShowStudyDescriptionLegentCmdClick,
+		doScrollTopPage,
+		genUniqueID,
+		onSimpleEditorPaste,
+		doCallLoadStudyTags,
+		doReStructureDicom,
+		doCheckOutTime,
+		doCallPriceChart
+	}
+}
+
+},{"./apiconnect.js":1,"./utilmod.js":3}],3:[function(require,module,exports){
+/* utilmod.js */
+
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	let wsm;
+
+	const formatDateStr = function(d) {
+		var yy, mm, dd;
+		yy = d.getFullYear();
+		if (d.getMonth() + 1 < 10) {
+			mm = '0' + (d.getMonth() + 1);
+		} else {
+			mm = '' + (d.getMonth() + 1);
+		}
+		if (d.getDate() < 10) {
+			dd = '0' + d.getDate();
+		} else {
+			dd = '' + d.getDate();
+		}
+		var td = `${yy}-${mm}-${dd}`;
+		return td;
+	}
+
+	const formatTimeStr = function(d) {
+		var hh, mn, ss;
+		hh = d.getHours();
+		mn = d.getMinutes();
+		ss = d.getSeconds();
+		var td = `${hh}:${mn}:${ss}`;
+		return td;
+	}
+
+	const formatDate = function(dateStr) {
+		var fdate = new Date(dateStr);
+		var mm, dd;
+		if (fdate.getMonth() + 1 < 10) {
+			mm = '0' + (fdate.getMonth() + 1);
+		} else {
+			mm = '' + (fdate.getMonth() + 1);
+		}
+		if (fdate.getDate() < 10) {
+			dd = '0' + fdate.getDate();
+		} else {
+			dd = '' + fdate.getDate();
+		}
+		var date = fdate.getFullYear() + (mm) + dd;
+		return date;
+	}
+
+	const videoConstraints = {video: {displaySurface: "application", height: 1080, width: 1920 }};
+
+	const doGetScreenSignalError = function(e) {
+		var error = {
+			name: e.name || 'UnKnown',
+			message: e.message || 'UnKnown',
+			stack: e.stack || 'UnKnown'
+		};
+
+		if(error.name === 'PermissionDeniedError') {
+			if(location.protocol !== 'https:') {
+				error.message = 'Please use HTTPs.';
+				error.stack   = 'HTTPs is required.';
+			}
+		}
+
+		console.error(error.name);
+		console.error(error.message);
+		console.error(error.stack);
+
+		alert('Unable to capture your screen.\n\n' + error.name + '\n\n' + error.message + '\n\n' + error.stack);
+	}
+
+	/* export function */
+	const getTodayDevFormat = function(){
+		var d = new Date();
+		return formatDateStr(d);
+	}
+
+	const getYesterdayDevFormat = function(){
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
+		return formatDateStr(d);
+	}
+
+	const getToday = function(){
+		var d = new Date();
+		var td = formatDateStr(d);
+		return formatDate(td);
+	}
+
+	const getYesterday = function() {
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
+		var td = formatDateStr(d);
+		return formatDate(td);
+	}
+
+	const getDateLastThreeDay = function(){
+		var days = 3;
+		var d = new Date();
+		var last = new Date(d.getTime() - (days * 24 * 60 * 60 * 1000));
+		var td = formatDateStr(last);
+		return formatDate(td);
+	}
+
+	const getDateLastWeek = function(){
+		var days = 7;
+		var d = new Date();
+		var last = new Date(d.getTime() - (days * 24 * 60 * 60 * 1000));
+		var td = formatDateStr(last);
+		return formatDate(td);
+	}
+
+	const getDateLastMonth = function(){
+		var d = new Date();
+		d.setDate(d.getDate() - 31);
+		var td = formatDateStr(d);
+		return formatDate(td);
+	}
+
+	const getDateLast3Month = function(){
+		var d = new Date();
+		d.setMonth(d.getMonth() - 3);
+		var td = formatDateStr(d);
+		return formatDate(td);
+	}
+
+	const getDateLastYear = function(){
+		var d = new Date();
+		d.setFullYear(d.getFullYear() - 1);
+		var td = formatDateStr(d);
+		return formatDate(td);
+	}
+
+	const getFomateDateTime = function(date) {
+		var todate = formatDateStr(date);
+		var totime = formatTimeStr(date);
+		return todate + 'T' + totime;
+	}
+
+	const getAge = function(dateString) {
+		var dob = dateString;
+		var yy = dob.substr(0, 4);
+		var mo = dob.substr(4, 2);
+		var dd = dob.substr(6, 2);
+		var dobf = yy + '-' + mo + '-' + dd;
+	  var today = new Date();
+	  var birthDate = new Date(dobf);
+	  var age = today.getFullYear() - birthDate.getFullYear();
+	  var ageTime = today.getTime() - birthDate.getTime();
+	  ageTime = new Date(ageTime);
+	  if (age > 0) {
+	  	if ((ageTime.getMonth() > 0) || (ageTime.getDate() > 0)) {
+	  		age = (age + 1) + 'Y';
+	  	} else {
+	  		age = age + 'Y';
+	  	}
+	  } else {
+	  	if (ageTime.getMonth() > 0) {
+	  		age = ageTime.getMonth() + 'M';
+	  	} else if (ageTime.getDate() > 0) {
+	  		age = ageTime.getDate() + 'D';
+	  	}
+	  }
+	  return age;
+	}
+	const formatStudyDate = function(studydateStr){
+		if (studydateStr.length >= 8) {
+			var yy = studydateStr.substr(0, 4);
+			var mo = studydateStr.substr(4, 2);
+			var dd = studydateStr.substr(6, 2);
+			var stddf = yy + '-' + mo + '-' + dd;
+			var stdDate = new Date(stddf);
+			var month = stdDate.toLocaleString('default', { month: 'short' });
+			return Number(dd) + ' ' + month + ' ' + yy;
+		} else {
+			return studydateStr;
+		}
+	}
+	const formatStudyTime = function(studytimeStr){
+		if (studytimeStr.length >= 4) {
+			var hh = studytimeStr.substr(0, 2);
+			var mn = studytimeStr.substr(2, 2);
+			return hh + '.' + mn;
+		} else {
+			return studytimeStr;
+		}
+	}
+	const getDatetimeValue = function(studydateStr, studytimeStr){
+		if ((studydateStr.length >= 8) && (studytimeStr.length >= 6)) {
+			var yy = studydateStr.substr(0, 4);
+			var mo = studydateStr.substr(4, 2);
+			var dd = studydateStr.substr(6, 2);
+			var hh = studytimeStr.substr(0, 2);
+			var mn = studytimeStr.substr(2, 2);
+			var ss = studytimeStr.substr(4, 2);
+			var stddf = yy + '-' + mo + '-' + dd + ' ' + hh + ':' + mn + ':' + ss;
+			var stdDate = new Date(stddf);
+			return stdDate.getTime();
+		}
+	}
+	const formatDateDev = function(dateStr) {
+		if (dateStr.length >= 8) {
+			var yy = dateStr.substr(0, 4);
+			var mo = dateStr.substr(4, 2);
+			var dd = dateStr.substr(6, 2);
+			var stddf = yy + '-' + mo + '-' + dd;
+			return stddf;
+		} else {
+			return;
+		}
+	}
+
+	const formatDateTimeStr = function(dt){
+	  d = new Date(dt);
+		d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+		var yy, mm, dd, hh, mn, ss;
+	  yy = d.getFullYear();
+	  if (d.getMonth() + 1 < 10) {
+	    mm = '0' + (d.getMonth() + 1);
+	  } else {
+	    mm = '' + (d.getMonth() + 1);
+	  }
+	  if (d.getDate() < 10) {
+	    dd = '0' + d.getDate();
+	  } else {
+	    dd = '' + d.getDate();
+	  }
+	  if (d.getHours() < 10) {
+	    hh = '0' + d.getHours();
+	  } else {
+		   hh = '' + d.getHours();
+	  }
+	  if (d.getMinutes() < 10){
+		   mn = '0' + d.getMinutes();
+	  } else {
+	    mn = '' + d.getMinutes();
+	  }
+	  if (d.getSeconds() < 10) {
+		   ss = '0' + d.getSeconds();
+	  } else {
+	    ss = '' + d.getSeconds();
+	  }
+		var td = `${yy}-${mm}-${dd}T${hh}:${mn}:${ss}`;
+		return td;
+	}
+
+	const formatStartTimeStr = function(){
+		let d = new Date().getTime() + (5*60*1000);
+		return formatDateTimeStr(d);
+	}
+
+	const formatFullDateStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		return `${dtStrings[0]}`;;
+	}
+
+	const formatTimeHHMNStr = function(fullDateTimeStr){
+		let dtStrings = fullDateTimeStr.split('T');
+		let ts = dtStrings[1].split(':');
+		return `${ts[0]}:${ts[1]}`;;
+	}
+
+	const invokeGetDisplayMedia = function(success) {
+		if(navigator.mediaDevices.getDisplayMedia) {
+	    navigator.mediaDevices.getDisplayMedia(videoConstraints).then(success).catch(doGetScreenSignalError);
+	  } else {
+	    navigator.getDisplayMedia(videoConstraints).then(success).catch(doGetScreenSignalError);
+	  }
+	}
+
+	const addStreamStopListener = function(stream, callback) {
+		stream.getTracks().forEach(function(track) {
+			track.addEventListener('ended', function() {
+				callback();
+			}, false);
+		});
+	}
+
+	const base64ToBlob = function (base64, mime) {
+		mime = mime || '';
+		var sliceSize = 1024;
+		var byteChars = window.atob(base64);
+		var byteArrays = [];
+
+		for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+			var slice = byteChars.slice(offset, offset + sliceSize);
+
+			var byteNumbers = new Array(slice.length);
+			for (var i = 0; i < slice.length; i++) {
+				byteNumbers[i] = slice.charCodeAt(i);
+			}
+
+			var byteArray = new Uint8Array(byteNumbers);
+
+			byteArrays.push(byteArray);
+		}
+
+		return new Blob(byteArrays, {type: mime});
+	}
+
+	const windowMinimize = function (){
+		window.innerWidth = 100;
+		window.innerHeight = 100;
+		window.screenX = screen.width;
+		window.screenY = screen.height;
+		alwaysLowered = true;
+	}
+
+	const windowMaximize = function () {
+		window.innerWidth = screen.width;
+		window.innerHeight = screen.height;
+		window.screenX = 0;
+		window.screenY = 0;
+		alwaysLowered = false;
+	}
+
+	const doResetPingCounter = function(){
+		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
+			wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+		} else {
+			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+		}
+	}
+
+	const doSetScreenState = function(state){
+		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
+			wsm.send(JSON.stringify({type: 'set', what: 'screenstate', value: state}));
+		} else {
+			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+		}
+	}
+
+	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
+	  const hostname = window.location.hostname;
+	  const port = window.location.port;
+	  const paths = window.location.pathname.split('/');
+	  const rootname = paths[1];
+
+	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
+		const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+	  wsm = new WebSocket(wsUrl);
+		wsm.onopen = function () {
+			//console.log('Master Websocket is connected to the signaling server')
+		};
+
+		//console.log(usertype);
+
+		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageHospital.onMessageHospital;
+		} else if (usertype == 4) {
+			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRedio.onMessageRadio;
+		} else if (usertype == 5) {
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRefer.onMessageRefer;
+		}
+
+	  wsm.onclose = function(event) {
+			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+		};
+
+		wsm.onerror = function (err) {
+		   console.log("Master WS Got error", err);
+		};
+
+		return wsm;
+	}
+
+	const wslOnClose = function(event) {
+		console.log("Local WebSocket is closed now. with  event:=> ", event);
+	}
+
+	const wslOnError = function (err) {
+		 console.log("Local WS Got error", err);
+	}
+
+	const wslOnOpen = function () {
+		console.log('Local Websocket is connected to the signaling server')
+	}
+
+	const wslOnMessage = function (msgEvt) {
+		let data = JSON.parse(msgEvt.data);
+		console.log(data);
+		if (data.type !== 'test') {
+			let localNotify = localStorage.getItem('localnotify');
+			let LocalNotify = JSON.parse(localNotify);
+			if (LocalNotify) {
+				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
+			} else {
+				LocalNotify = [];
+				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
+			}
+			localStorage.setItem('localnotify', JSON.stringify(LocalNotify));
+		}
+		if (data.type == 'test') {
+			$.notify(data.message, "success");
+		} else if (data.type == 'result') {
+			$.notify(data.message, "success");
+		} else if (data.type == 'notify') {
+			$.notify(data.message, "warnning");
+		} else if (data.type == 'exec') {
+			//Send result of exec back to websocket server
+			wsm.send(JSON.stringify(data.data));
+		} else if (data.type == 'move') {
+			wsm.send(JSON.stringify(data.data));
+		} else if (data.type == 'run') {
+			wsm.send(JSON.stringify(data.data));
+		}
+	}
+
+	const doConnectWebsocketLocal = function(username){
+	  let wsUrl = 'ws://localhost:3000/api/' + username + '?type=local';
+		wsl = new WebSocket(wsUrl);
+		wsl.onopen = wslOnOpen;
+		wsl.onmessage = wslOnMessage;
+	  wsl.onclose = wslOnClose;
+		wsl.onerror = wslOnError;
+		return wsl;
+	}
+
+	const isMobileDeviceCheck = function(){
+	  if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
+      || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
+      return true;
+	  } else {
+			return false;
+		}
+	}
+
+	const contains = function(needle) {
+    // Per spec, the way to identify NaN is that it is not equal to itself
+    var findNaN = needle !== needle;
+    var indexOf;
+
+    if(!findNaN && typeof Array.prototype.indexOf === 'function') {
+      indexOf = Array.prototype.indexOf;
+    } else {
+      indexOf = function(needle) {
+        var i = -1, index = -1;
+
+        for(i = 0; i < this.length; i++) {
+          var item = this[i];
+
+          if((findNaN && item !== item) || item === needle) {
+            index = i;
+            break;
+          }
+        }
+
+        return index;
+      };
+    }
+    return indexOf.call(this, needle) > -1;
+	};
+
+	const doCreateDownloadPDF = function(pdfLink){
+	  return new Promise(async function(resolve, reject){
+	    $.ajax({
+		    url: pdfLink,
+		    success: function(response){
+					let stremLink = URL.createObjectURL(new Blob([response.data], {type: 'application/pdf'}));
+	        resolve(stremLink);
+				}
+			});
+	  });
+	}
+
+	const XLSX_FILE_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+	const doCreateDownloadXLSX = function(xlsxLink){
+	  return new Promise(async function(resolve, reject){
+	    $.ajax({
+		    url: xlsxLink,
+		    success: function(response){
+					let stremLink = URL.createObjectURL(new Blob([response.data], {type: XLSX_FILE_TYPE}));
+	        resolve(stremLink);
+				}
+			});
+	  });
+	}
+
+	const doShowLogWindow = function(){
+		let myLogBox = $('<div id="LogBox"></div>');
+		$(myLogBox).css({'position': 'absolute', 'width': '50%', 'min-height': '250px', 'background-color': 'rgba(192,192,192,0.3)', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '100px'});
+		let myLogWindow = $(myLogBox).simplelog({});
+		$('body').append($(myLogBox));
+
+		$(myLogBox).draggable({ containment: "body"});
+		$(myLogBox).resizable({	containment: 'body'});
+		return $(myLogBox);
+	}
+
+	/*
+	const dicomZipSyncWorker = new Worker("../lib/dicomzip-sync-webworker.js");
+	dicomZipSyncWorker.addEventListener("message", async function(event) {
+	  let evtData = event.data;
+	  //{studyID,fileEntryURL}
+		if (evtData.fileEntryURL){
+		  let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
+		  await dicomzipsync.forEach((dicom, i) => {
+		    if (dicom.studyID == evtData.studyID) {
+		      dicom.fileEntryURL = evtData.fileEntryURL;
+		    }
+		  });
+		  localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
+		} else if (evtData.error){
+			$.notify("Your Sync Dicom in Background Error", "error");
+		}
+	});
+	*/
+	
+	return {
+		formatDateStr,
+		getTodayDevFormat,
+		getYesterdayDevFormat,
+		getToday,
+		getYesterday,
+		getDateLastThreeDay,
+		getDateLastWeek,
+		getDateLastMonth,
+		getDateLast3Month,
+		getDateLastYear,
+		getFomateDateTime,
+		getAge,
+		formatStudyDate,
+		formatStudyTime,
+		getDatetimeValue,
+		formatDateDev,
+		formatDateTimeStr,
+		formatStartTimeStr,
+		formatFullDateStr,
+		formatTimeHHMNStr,
+		invokeGetDisplayMedia,
+		addStreamStopListener,
+		base64ToBlob,
+		windowMinimize,
+		windowMaximize,
+		doResetPingCounter,
+		doSetScreenState,
+		doConnectWebsocketMaster,
+		doConnectWebsocketLocal,
+		isMobileDeviceCheck,
+		contains,
+		doCreateDownloadPDF,
+		XLSX_FILE_TYPE,
+		doCreateDownloadXLSX,
+		doShowLogWindow,
+		//dicomZipSyncWorker,
+		/*  Web Socket Interface */
+		wsm
+	}
+}
+
+},{"../../radio/mod/websocketmessage.js":5,"../../refer/mod/websocketmessage.js":6,"./websocketmessage.js":4}],4:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm ) {
+	const $ = jq;
+  const onMessageHospital = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type !== 'test') {
+      let masterNotify = localStorage.getItem('masternotify');
+      let MasterNotify = JSON.parse(masterNotify);
+      if (MasterNotify) {
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      } else {
+        MasterNotify = [];
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      }
+      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+    }
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+    } else if (data.type == 'trigger') {
+			/*************************/
+			/*
+      let message = {type: 'trigger', dcmname: data.dcmname, StudyInstanceUID: data.studyInstanceUID, owner: data.ownere, hostname: data.hostname};
+      wsl.send(JSON.stringify(message));
+      $.notify('The system will be start store dicom to your local.', "success");
+			*/
+		} else if (data.type == 'refresh') {
+			if (data.thing === 'consult') {
+				let eventName = 'triggerconsultcounter'
+				let triggerData = {caseId : data.caseId, statusId: data.statusId};
+				let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+				document.dispatchEvent(event);
+			} else if (data.thing === 'case') {
+				let eventName = 'triggercasecounter'
+				let triggerData = {caseId : data.caseId, statusId: data.statusId};
+				let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+				document.dispatchEvent(event);
+			}
+		//} else if (data.type == 'refreshconsult') {
+		} else if (data.type == 'newdicom') {
+			let eventName = 'triggernewdicom'
+			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'casemisstake') {
+			let eventName = 'triggercasemisstake'
+			let triggerData = {msg : data.msg, from: data.from};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+    } else if (data.type == 'notify') {
+      $.notify(data.message, "info");
+    } else if (data.type == 'exec') {
+			/*************************/
+			/*
+        wsl.send(JSON.stringify(data));
+			*/
+    } else if (data.type == 'cfindresult') {
+      let evtData = { result: data.result, owner: data.owner, hospitalId: data.hospitalId, queryPath: data.queryPath};
+      $("#RemoteDicom").trigger('cfindresult', [evtData]);
+    } else if (data.type == 'move') {
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
+    } else if (data.type == 'cmoveresult') {
+      let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId, patientID: data.patientID};
+      setTimeout(()=>{
+        $("#RemoteDicom").trigger('cmoveresult', [evtData]);
+      }, 5000);
+    } else if (data.type == 'run') {
+			/*************************/
+			/*
+      wsl.send(JSON.stringify(data));
+			*/
+    } else if (data.type == 'runresult') {
+      //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
+      let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
+      $('body').trigger('runresult', [evtData]);
+    } else if (data.type == 'refresh') {
+      let event = new CustomEvent(data.section, {"detail": {eventname: data.section, stausId: data.statusId, caseId: data.caseId}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoom') {
+      let eventName = 'callzoominterrupt';
+      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoomback') {
+      let eventName = 'stopzoominterrupt';
+      let evtData = {result: data.result};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+      document.dispatchEvent(event);
+		} else if (data.type == 'message') {
+      $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+      let eventData = {msg: data.msg, from: data.from, context: data.context};
+      $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'importresult') {
+			let eventName = 'createnewdicomtranserlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'clientresult') {
+			console.log(data);
+			let eventName = 'clientresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result, hospitalId: data.hospitalId, owner: data.owner}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'logreturn') {
+			let eventName = 'logreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.log}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'dicomlogreturn') {
+			let eventName = 'logreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.log}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'reportlogreturn') {
+			console.log('yess');
+			let eventName = 'logreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.log}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'echoreturn') {
+			let eventName = 'echoreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'clientreconnect') {
+			let eventName = 'clientreconnecttrigger';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+    } else {
+			console.log('Nothing Else');
+		}
+  };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMessage = localStorage.getItem('localmessage');
+		let localMessageJson = JSON.parse(localMessage);
+		if (localMessageJson) {
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		} else {
+			localMessageJson = [];
+			localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+		}
+		localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+	}
+
+  return {
+    onMessageHospital
+	}
+}
+
+},{}],5:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm) {
+	const $ = jq;
+
+  const onMessageRadio = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type !== 'test') {
+      let masterNotify = localStorage.getItem('masternotify');
+      let MasterNotify = JSON.parse(masterNotify);
+      if (MasterNotify) {
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      } else {
+        MasterNotify = [];
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      }
+      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+    }
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'refresh') {
+			let eventName = 'triggercounter'
+			let triggerData = {caseId : data.caseId, statusId: data.statusId, thing: data.thing};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+    } else if (data.type == 'notify') {
+			$.notify(data.message, "info");
+    } else if (data.type == 'callzoom') {
+      let eventName = 'callzoominterrupt';
+      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoomback') {
+      let eventName = 'stopzoominterrupt';
+      let evtData = {result: data.result};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+      document.dispatchEvent(event);
+		} else if (data.type == 'ping') {
+			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
+			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+			if (data.counterping == minuteLockScreen) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			} else if (tryLockModTime == 0) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			}
+			if (minuteLogout > 0){
+				if (data.counterping == minuteLogout) {
+					let eventName = 'autologout';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				}
+			}
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+		} else if (data.type == 'unlockscreen') {
+			let eventName = 'unlockscreen';
+			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updateuserprofile') {
+			let eventName = 'updateuserprofile';
+			let evtData = data.profile;
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'message') {
+			$.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+			/* จุดระวัง */
+			/* จุด Swap หรือ จุดไขว้ค่า myId กับ audienceId ระหว่าง sendto กับ from */
+			let newConversationData = {topicId: data.context.topicId, topicName: data.context.topicName, topicType: data.context.topicType, topicStatusId: data.context.topicStatusId, audienceId: data.context.myId, audienceName: data.context.myName, myId: data.context.audienceId, myName: data.context.audienceName };
+			newConversationData.message = {msg: data.msg, from: data.from, context: data.context};
+			$('#ContactContainer').trigger('newconversation', [newConversationData]);
+		} else if (data.type == 'clientresult') {
+			let eventName = 'clientresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.result}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'logreturn') {
+			let eventName = 'logreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.log}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'echoreturn') {
+			let eventName = 'echoreturn';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+    }
+  };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+		} else {
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
+		}
+	}
+
+  return {
+    onMessageRadio
+	}
+}
+
+},{}],6:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm ) {
+	const $ = jq;
+
+  const onMessageRefer = function (msgEvt) {
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type !== 'test') {
+      let masterNotify = localStorage.getItem('masternotify');
+      let MasterNotify = JSON.parse(masterNotify);
+      if (MasterNotify) {
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      } else {
+        MasterNotify = [];
+        MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
+      }
+      localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+    }
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+		} else if (data.type == 'refresh') {
+			let eventName = 'triggercounter'
+			let triggerData = {caseId : data.caseId, statusId: data.statusId};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+
+    } else if (data.type == 'notify') {
+			$.notify(data.message, "info");
+    } else if (data.type == 'callzoom') {
+      let eventName = 'callzoominterrupt';
+      let callData = {openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: callData}});
+      document.dispatchEvent(event);
+    } else if (data.type == 'callzoomback') {
+      let eventName = 'stopzoominterrupt';
+      let evtData = {result: data.result};
+      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+      document.dispatchEvent(event);
+		} else if (data.type == 'ping') {
+      console.log('Ping Data =>', data);
+      /*
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+			if (data.counterping == minuteLockScreen) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			} else if (tryLockModTime == 0) {
+				let eventName = 'lockscreen';
+	      let evtData = {};
+	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+	      document.dispatchEvent(event);
+			}
+        */
+		} else if (data.type == 'unlockscreen') {
+      /*
+			let eventName = 'unlockscreen';
+			let evtData = {};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			document.dispatchEvent(event);
+      */
+    } else if (data.type == 'message') {
+      $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
+			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
+      let eventData = {msg: data.msg, from: data.from, context: data.context};
+      $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+    }
+  };
+
+	const doSaveMessageToLocal = function(msg ,from, topicId, status){
+		let localMsgStorage = localStorage.getItem('localmessage');
+		if ((localMsgStorage) && (localMsgStorage !== '')) {
+			let localMessage = JSON.parse(localMsgStorage);
+			//console.log(localMessage);
+			let localMessageJson = localMessage;
+			if (localMessageJson) {
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			} else {
+				localMessageJson = [];
+				localMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			}
+			localStorage.setItem('localmessage', JSON.stringify(localMessageJson));
+		} else {
+			let firstFocalMessageJson = [];
+			firstFocalMessageJson.push({msg: msg, from: from, topicId: topicId, datetime: new Date(), status: status});
+			localStorage.setItem('localmessage', JSON.stringify(firstFocalMessageJson));
+		}
+	}
+
+  return {
+    onMessageRefer
+	}
+}
+
+},{}],7:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
 
+/*****************************/
 window.$.ajaxSetup({
   beforeSend: function(xhr) {
     xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
   }
 });
 
-const common = require('../../home/mod/common-lib.js')($);
-const shopitem = require('./mod/shop-item-mng.js')($);
+let userJoinOption, wsm, userMediaStream, displayMediaStream, localMergedStream;
+let remoteConn = null;
+
+const util = require('../case/mod/utilmod.js')($);
+const common = require('../case/mod/commonlib.js')($);
+const streamMerger = require('./mod/streammergermod.js');
+
+const videoInitSize = {width: 437, height: 298};
+const videoConstraints = {video: true, audio: false};
+const mergeOption = {
+  width: 520,
+  height: 310,
+  fps: 25,
+  clearRect: true,
+  audioContext: null
+};
+
+/* https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b */
+const rtcConfiguration = {
+	'iceServers': [
+	 {url: 'stun:stun2.l.google.com:19302'},
+	 {url: 'turn:numb.viagenie.ca',
+		credential: 'muazkh',
+		username: 'webrtc@live.com'
+	 }
+	]
+};
 
 $( document ).ready(function() {
   const initPage = function() {
-    let jqueryUiCssUrl = "../lib/jquery-ui.min.css";
-  	let jqueryUiJsUrl = "../lib/jquery-ui.min.js";
-  	let jqueryLoadingUrl = '../lib/jquery.loading.min.js';
-  	let jqueryNotifyUrl = '../lib/notify.min.js';
-    let printjs = '../lib/print/print.min.js';
-    let jquerySimpleUploadUrl = '../lib/simpleUpload.min.js';
-    let utilityPlugin = "../lib/plugin/jquery-radutil-plugin.js";
-
-    $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
-  	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
-  	//https://carlosbonetti.github.io/jquery-loading/
-  	$('head').append('<script src="' + jqueryLoadingUrl + '"></script>');
-  	//https://notifyjs.jpillora.com/
-  	$('head').append('<script src="' + jqueryNotifyUrl + '"></script>');
-    //https://printjs.crabbly.com/
-    $('head').append('<script src="' + printjs + '"></script>');
-    //https://www.jqueryscript.net/other/Export-Table-JSON-Data-To-Excel-jQuery-ExportToExcel.html#google_vignette
-    $('head').append('<script src="' + jquerySimpleUploadUrl + '"></script>');
-
-    $('head').append('<script src="' + utilityPlugin + '"></script>');
-
-    $('head').append('<link rel="stylesheet" href="../stylesheets/style.css" type="text/css" />');
-    $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
-
-    $('body').append($('<div id="App"></div>'));
-    $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
-
-    $('body').loading({overlay: $("#overlay"), stoppable: true});
-
-
-    doShowShopItems();
-	};
-
-	initPage();
+    let userdata = localStorage.getItem('userdata');
+    if (userdata !== 'undefined') {
+      userdata = JSON.parse(userdata);
+      console.log(userdata);
+      doLoadMainPage();
+    }
+  }
+  initPage();
 });
 
-const doShowShopItems = function(){
-  shopitem.doShowShopItem();
+function doLoadMainPage(){
+  let jqueryUiCssUrl = "../lib/jquery-ui.min.css";
+	let jqueryUiJsUrl = "../lib/jquery-ui.min.js";
+	let jqueryLoadingUrl = '../lib/jquery.loading.min.js';
+  let jqueryNotifyUrl = '../lib/notify.min.js';
+  let utilityPlugin = "../setting/plugin/jquery-radutil-plugin.js";
+
+  $('head').append('<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />');
+  $('head').append('<meta http-equiv="Pragma" content="no-cache" />');
+
+  $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
+	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
+	//https://carlosbonetti.github.io/jquery-loading/
+	$('head').append('<script src="' + jqueryLoadingUrl + '"></script>');
+  $('head').append('<script src="' + jqueryNotifyUrl + '"></script>');
+  $('head').append('<script src="' + utilityPlugin + '"></script>');
+
+  $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
+  $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
+
+  $('body').loading({overlay: $("#overlay"), stoppable: true});
+
+  let joinOptionBox = doCreateJoinOptionBox(onJoinOptionSubmit);
+  $("body").append($(joinOptionBox));
+}
+
+const onJoinOptionSubmit = function(joinOption){
+  doCheckBrowser().then((checkResult)=>{
+    userJoinOption = joinOption;
+    console.log(userJoinOption);
+    if (checkResult) {
+      $("body").empty();
+      $("body").append($('<div id="VideoBox" style="width: 100%; text-align: center;"></div>').append($('<video id="MyVideo" width="520" height="290" autoplay/>')));
+      let myVideo = document.getElementById("MyVideo");
+      let displaySize = setScaleDisplay(videoInitSize.width, videoInitSize.height, 10, 20);
+      myVideo.width = displaySize.width;
+      myVideo.height = displaySize.height;
+      myVideo.srcObject = userMediaStream;
+
+      wsm = util.doConnectWebsocketMaster(userJoinOption.joinName, 5, 1, 'none');
+      wsm.onmessage = onNewMessage;
+
+      if (userJoinOption.joinType == 'caller'){
+        let shareScreenIconUrl = '/images/screen-capture-icon.png';
+        let shareScreenCmd = doCreateControlCmd(shareScreenIconUrl);;
+        $(shareScreenCmd).on("click", async function(evt){
+          await doGetDisplayMedia(onDisplayMediaSuccess);
+          let callIconUrl = '/images/phone-call-icon-1.png';
+          let callCmd = doCreateControlCmd(callIconUrl);;
+          $(callCmd).on("click", function(evt){
+            doShowCalleeListDialog();
+          });
+          //$(shareScreenCmd).hide();
+          $("body").find('#CommandBox').empty();
+          $("body").find('#CommandBox').append($(callCmd));
+        });
+        $("body").append($('<div id="CommandBox" style="width: 100%; text-align: center;"></div>').append($(shareScreenCmd)));
+      } else if (userJoinOption.joinType === 'callee') {
+        doInitRTCPeer(userMediaStream);
+        //console.log(remoteConn);
+        $("body").append($('<div id="CommandBox" style="width: 100%; text-align: center;"></div>'));
+      }
+    }
+  });
+}
+
+const onDisplayMediaSuccess = function(stream){
+  let vw, vh;
+  let myVideo = document.getElementById("MyVideo");
+  stream.getTracks().forEach(function(track) {
+    track.addEventListener('ended', function() {
+      console.log('Stop Stream.');
+    }, false);
+  });
+
+  displayMediaStream = stream;
+  let streams = [displayMediaStream, userMediaStream];
+  let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+  localMergedStream = myMerger.result
+  myVideo.srcObject = localMergedStream;
+
+  myVideo.addEventListener( "loadedmetadata", function (e) {
+    vw = this.videoWidth;
+    vh = this.videoHeight;
+    myVideo.width = vw;
+    myVideo.height = vh;
+  });
+}
+
+const doCreateJoinOptionBox = function(submitFormCallback){
+  let joinOptionBox = $('<div></div>');
+  let joinOptionForm = $('<table  width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+  let formRow = $('<tr></tr>');
+  let labelCell = $('<td colspan="2"><h3>โปรดเลือกและระบุชื่อ</h3></td>');
+  $(formRow).append($(labelCell));
+  $(joinOptionForm).append($(formRow));
+  formRow = $('<tr></tr>');
+  labelCell = $('<td width="35%">เช้าร่วมแบบ</td>');
+  let valueCell = $('<td width="*"></td>');
+  let joinTypeSelect = $('<select></select>');
+  $(joinTypeSelect).append($('<option value="caller">ผู้เรียกสาย</option>'));
+  $(joinTypeSelect).append($('<option value="callee">ผู้รับสาย</option>'));
+  $(valueCell).append($(joinTypeSelect));
+  $(formRow).append($(labelCell)).append($(valueCell));
+  $(joinOptionForm).append($(formRow));
+
+  formRow = $('<tr></tr>');
+  labelCell = $('<td width="35%">ชื่อผู้เช้าร่วม</td>');
+  valueCell = $('<td width="*"></td>');
+  let joinNameValue = $('<input type="text" size="30"/>');
+  $(valueCell).append($(joinNameValue));
+  $(formRow).append($(labelCell)).append($(valueCell));
+  $(joinOptionForm).append($(formRow));
+
+  formRow = $('<tr></tr>');
+  labelCell = $('<td colspan="2" align="center"></td>');
+  let submitFormCmd = $('<input type="button" value=" ตกลง "/>');
+  $(labelCell).append($(submitFormCmd));
+  $(formRow).append($(labelCell));
+  $(joinOptionForm).append($(formRow));
+
+  $(submitFormCmd).on('click', (evt)=>{
+    let joinType = $(joinTypeSelect).val();
+    let joinName = $(joinNameValue).val();
+    let joinOption = {joinType, joinName};
+    submitFormCallback(joinOption);
+  });
+
+  return $(joinOptionBox).append($(joinOptionForm));
+}
+
+const doCreateControlCmd = function(iconUrl){
+  let hsIcon = new Image();
+  hsIcon.src = iconUrl;
+  $(hsIcon).css({"width": "40px", "height": "auto", "cursor": "pointer", "padding": "2px"});
+  $(hsIcon).css({'border': '4px solid grey', 'border-radius': '5px', 'margin': '4px'});
+  $(hsIcon).prop('data-toggle', 'tooltip');
+  $(hsIcon).prop('title', "Share Screen");
+  $(hsIcon).hover(()=>{
+    $(hsIcon).css({'border': '4px solid grey'});
+  },()=>{
+    $(hsIcon).css({'border': '4px solid #ddd'});
+  });
+  return $(hsIcon);
+}
+
+const errorMessage = function(message, evt) {
+	console.error(message, typeof evt == 'undefined' ? '' : evt);
+	alert(message);
+}
+
+const doCheckBrowser = function() {
+	return new Promise(function(resolve, reject) {
+		if (location.protocol === 'https:') {
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+			if (navigator.getUserMedia) {
+				//const vidOption = {audio: true, video: {facingMode: 'user',frameRate: 30, width : 640, height:480}};
+				const vidOption = { audio: true, video: true };
+				navigator.getUserMedia(vidOption, function (stream) {
+					var mediaStreamTrack = stream.getVideoTracks()[0];
+					if (typeof mediaStreamTrack == "undefined") {
+						errorMessage('Permission denied!');
+						resolve(false);
+					} else {
+						userMediaStream = stream;
+						resolve(true);
+					}
+				}, function (e) {
+					var message;
+					switch (e.name) {
+						case 'NotFoundError':
+						case 'DevicesNotFoundError':
+							message = 'Please setup your webcam first.';
+							break;
+						case 'SourceUnavailableError':
+							message = 'Your webcam is busy';
+							break;
+						case 'PermissionDeniedError':
+						case 'SecurityError':
+							message = 'Permission denied!';
+							break;
+						default: errorMessage('Reeeejected!', e);
+							resolve(false);
+					}
+					errorMessage(message);
+					resolve(false);
+				});
+			} else {
+				errorMessage('Uncompatible browser!');
+				resolve(false);
+			}
+		} else {
+			errorMessage('Please use https protocol for open this page.');
+			resolve(false);
+		}
+	});
+}
+
+const doGetDisplayMedia = function(invokeGetDisplayMedia){
+  return new Promise(function(resolve, reject) {
+    if(navigator.mediaDevices.getDisplayMedia) {
+      navigator.mediaDevices.getDisplayMedia(videoConstraints).then(invokeGetDisplayMedia).catch(doGetScreenSignalError);
+    } else {
+      navigator.getDisplayMedia(videoConstraints).then(invokeGetDisplayMedia).catch(doGetScreenSignalError);
+    }
+    resolve();
+  });
+}
+
+const setScaleDisplay = function( width, height, padding, border ) {
+   var scrWidth = $( window ).width() - 30,
+   scrHeight = $( window ).height() - 30,
+   ifrPadding = 2 * padding,
+   ifrBorder = 2 * border,
+   ifrWidth = width + ifrPadding + ifrBorder,
+   ifrHeight = height + ifrPadding + ifrBorder,
+   h, w;
+
+   if ( ifrWidth < scrWidth && ifrHeight < scrHeight ) {
+	  w = ifrWidth;
+	  h = ifrHeight;
+   } else if ( ( ifrWidth / scrWidth ) > ( ifrHeight / scrHeight ) ) {
+	  w = scrWidth;
+	  h = ( scrWidth / ifrWidth ) * ifrHeight;
+   } else {
+	  h = scrHeight;
+	  w = ( scrHeight / ifrHeight ) * ifrWidth;
+   }
+   return {
+	  width: w - ( ifrPadding + ifrBorder ),
+	  height: h - ( ifrPadding + ifrBorder )
+   };
+}
+
+const doGetScreenSignalError =  function(evt){
+  var error = {
+    name: evt.name || 'UnKnown',
+    message: evt.message || 'UnKnown',
+    stack: evt.stack || 'UnKnown'
+  };
+  console.error(error);
+  if(error.name === 'PermissionDeniedError') {
+    if(location.protocol !== 'https:') {
+      error.message = 'Please use HTTPs.';
+      error.stack   = 'HTTPs is required.';
+    }
+  }
+}
+
+const doShowCalleeListDialog = async function(){
+  let calleeListForm = await doCreateUserOnlineList();
+  const calleelistformoption = {
+    title: 'โปรดเลือกผู้รับสาย',
+    msg: $(calleeListForm),
+    width: '520px',
+    onOk: async function(evt) {
+      let calleeName = $('input[name="CalleeList"]:checked').val();
+      if ((calleeName) && (calleeName !== '')) {
+        calleeListFormHandle.closeAlert();
+        onSelectCallee(calleeName);
+      }
+    },
+    onCancel: function(evt){
+      calleeListFormHandle.closeAlert();
+    }
+  }
+  let calleeListFormHandle = $('body').radalert(calleelistformoption);
+}
+
+const doCallOnlineSocket = function(){
+  return new Promise(async function(resolve, reject) {
+    let callUrl = '/api/dicomtransferlog/socket/clients';
+    let params = {};
+    $.get(callUrl, params).then((response) => {
+      resolve(response);
+    });
+  });
+}
+
+const doCreateUserOnlineList = function(){
+  return new Promise(async function(resolve, reject) {
+    let socketRes = await doCallOnlineSocket();
+    const radioBtnStyle = {'transform': 'scale(2.2)'};
+    const radioLabelStyle = {'position': 'relative', 'top': '-1px', 'margin-left': '15px'};
+    let onlineSelectBox = $('<div></div>').css({'margin-top': '6px'});
+    let sockets = socketRes.Clients;
+    let	promiseList = new Promise(async function(resolve2, reject2){
+      for (let i=0; i < sockets.length; i++){
+        if (sockets[i].id != userJoinOption.joinName) {
+          let calleeOption = $('<input type="radio" name="CalleeList" value="' + sockets[i].id + '"/>').css(radioBtnStyle);
+          let calleeName = $('<label>' + sockets[i].id + '</label>').css(radioLabelStyle);
+          $(onlineSelectBox).append($(calleeOption)).append($(calleeName));
+        }
+      }
+      setTimeout(()=>{
+        resolve2($(onlineSelectBox));
+      }, 100);
+    });
+    Promise.all([promiseList]).then((ob)=>{
+      resolve(ob[0]);
+    });
+  });
+}
+
+const onSelectCallee = function(calleeName){
+  console.log(calleeName);
+  userJoinOption.audienceName = calleeName;
+  doInitRTCPeer(localMergedStream);
+  setTimeout(() => {
+    doCreateOffer();
+  }, 2500);
+}
+
+const doCreateEndCmd = function(){
+  let endIconUrl = '/images/phone-call-icon-3.png';
+  let endCmd = doCreateControlCmd(endIconUrl);
+  let commandBox = $("body").find('#CommandBox');
+  if (commandBox) {
+    $(commandBox).empty().append($(endCmd));
+  } else {
+    $("body").append($('<div id="CommandBox" style="width: 100%; text-align: center;"></div>').append($(endCmd)));
+  }
+  return $(endCmd);
+}
+
+const doEndCall = function(evt){
+  let myVideo = document.getElementById("MyVideo");
+  let remoteStream = myVideo.srcObject;
+  if (remoteStream) {
+    remoteStream.getTracks().forEach((track)=>{
+    	track.stop();
+    });
+  }
+
+  userMediaStream.getTracks().forEach((track)=>{
+		track.stop();
+	});
+  displayMediaStream.getTracks().forEach((track)=>{
+		track.stop();
+	});
+  localMergedStream.getTracks().forEach((track)=>{
+		track.stop();
+	});
+  if (remoteConn) {
+    remoteConn.close();
+  }
+  let joinOptionBox = doCreateJoinOptionBox(onJoinOptionSubmit);
+  $("body").empty().append($(joinOptionBox));
+
+  doCreateLeave();
+}
+
+/**********************************************/
+// WebRTC Section */
+
+const doGetWsState = function() {
+	if (wsm) {
+		return wsm.readyState;
+	} else {
+		return -1;
+	}
+}
+
+const doSendSocketData = function(data){
+	if (doGetWsState() == 1){
+		wsm.send(JSON.stringify(data));
+	} else {
+		console.log('WS not already state.')
+	}
+}
+
+const doInitRTCPeer = function(stream) {
+	remoteConn = new RTCPeerConnection(rtcConfiguration);
+
+	// Setup ice handling
+	remoteConn.onicecandidate = function (event) {
+		if (event.candidate) {
+			let sendData = {
+				type: "wrtc",
+				wrtc: "candidate",
+				candidate: event.candidate,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+			};
+			doSendSocketData(sendData);
+		}
+	};
+
+	remoteConn.oniceconnectionstatechange = function(event) {
+		const peerConnection = event.target;
+		console.log('ICE state change event: ', event);
+		remoteConn = peerConnection;
+	};
+
+	remoteConn.onicegatheringstatechange = function() {
+		switch(remoteConn.iceGatheringState) {
+			case "new":
+			case "complete":
+				//label = "Idle";
+				console.log(remoteConn.iceGatheringState);
+				//เริ่มส่ง stream ให้ client อัตโนมัติ
+				//wsHandleStart(null, 'remote', clientId)
+			break;
+			case "gathering":
+				//label = "Determining route";
+			break;
+		}
+	};
+
+	stream.getTracks().forEach((track) => {
+		remoteConn.addTrack(track, stream);
+	});
+
+	remoteConn.ontrack = function(event) {
+		if (event.streams[0]) {
+      let myVideo = document.getElementById("MyVideo");
+    	let remoteStream = event.streams[0];
+      if (userJoinOption.joinType === 'caller') {
+        let streams = [displayMediaStream, remoteStream];
+        let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+        let remoteMergedStream = myMerger.result
+        myVideo.srcObject = remoteMergedStream;
+        console.log('caller new stream');
+      } else if (userJoinOption.joinType === 'callee') {
+        myVideo.srcObject = remoteStream;
+        console.log('callee new stream');
+      }
+      let endCmd = doCreateEndCmd();
+      $(endCmd).on("click", function(evt){
+        doEndCall(evt);
+      });
+    }
+  }
+}
+
+const onNewMessage = function(msg) {
+  if (msg.data !== '') {
+    var data = JSON.parse(msg.data);
+    console.log(data);
+    switch(data.type) {
+      case "wrtc":
+        switch(data.wrtc) {
+          //when somebody wants to call us
+          case "offer":
+            wsHandleOffer(data.offer);
+            if ((!userJoinOption.audienceName) || (userJoinOption.audienceName !== data.sender)) {
+              userJoinOption.audienceName = data.sender;
+            }
+          break;
+          case "answer":
+            wsHandleAnswer(data.answer);
+          break;
+          //when a remote peer sends an ice candidate to us
+          case "candidate":
+            wsHandleCandidate(data.candidate);
+          break;
+          case "leave":
+            wsHandleLeave(data.leave);
+          break;
+        }
+      break;
+    }
+  } else {
+    console.log(msg);
+  }
+}
+
+const doCreateOffer = function() {
+  if (remoteConn){
+    remoteConn.createOffer(function (offer) {
+    	remoteConn.setLocalDescription(offer);
+    	let sendData = {
+    		type: "wrtc",
+    		wrtc: "offer",
+    		offer: offer ,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+    	};
+    	doSendSocketData(sendData);
+    }, function (error) {
+    	alert("WSError when creating an offer");
+    });
+  }
+}
+
+const wsHandleOffer = function(offer) {
+	remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
+	remoteConn.createAnswer(function (answer) {
+		remoteConn.setLocalDescription(answer);
+		let sendData = {
+			type: "wrtc",
+			wrtc: "answer",
+			answer: answer,
+      sender: userJoinOption.joinName,
+      sendto: userJoinOption.audienceName
+		};
+		doSendSocketData(sendData);
+	}, function (error) {
+		console.log(JSON.stringify(error));
+		alert("Error when creating an answer");
+	});
+}
+
+const wsHandleAnswer = function(answer) {
+	if (remoteConn){
+		remoteConn.setRemoteDescription(new RTCSessionDescription(answer)).then(
+			function() {
+				console.log('remoteConn setRemoteDescription success.');
+				//console.log(remoteConn);
+			}, 	function(error) {
+				console.log('remoteConn Failed to setRemoteDescription:=> ' + error.toString() );
+			}
+		);
+  }
+}
+
+const wsHandleCandidate = function(candidate) {
+	if (remoteConn){
+		remoteConn.addIceCandidate(new RTCIceCandidate(candidate)).then(
+			function() {/* console.log(candidate) */},
+			function(error) {console.log(error)}
+		);
+	}
+}
+
+const wsHandleLeave = function(leave) {
+  let myVideo = document.getElementById("MyVideo");
+  let remoteStream = myVideo.srcObject;
+  /*
+  if (userMediaStream) {
+    myVideo.srcObject = userMediaStream;
+  } else {
+    myVideo.pause();
+  }
+  */
+  userMediaStream.getTracks().forEach((track)=>{
+		track.stop();
+	});
+  if (remoteStream) {
+    remoteStream.getTracks().forEach((track)=>{
+    	track.stop();
+    });
+  }
+  if (remoteConn) {
+    remoteConn.close();
+  }
+  let joinOptionBox = doCreateJoinOptionBox(onJoinOptionSubmit);
+  $("body").empty().append($(joinOptionBox));
+}
+
+const doCreateLeave = function() {
+	let sendData = {
+		type: "wrtc",
+		wrtc: "leave",
+		leave: {reason: 'Stop with cmd.'},
+		sender: userJoinOption.joinName,
+    sendto: userJoinOption.audienceName
+	};
+	doSendSocketData(sendData);
+}
+
+},{"../case/mod/commonlib.js":2,"../case/mod/utilmod.js":3,"./mod/streammergermod.js":8,"jquery":10}],8:[function(require,module,exports){
+/* streammergermod.js */
+const streamMerger = require('./video-stream-merger.js');
+
+const CallcenterMerger = function(streams, mergOption) {
+	this.merger = new streamMerger(mergOption);
+	this.merger.addStream(streams[0], {
+		index: 0,
+		x: 0,
+		y: 0,
+		width: this.merger.width,
+		height: this.merger.height,
+		fps: 30,
+		clearRect: true,
+		audioContext: null,
+		mute: true
+	});
+
+	var xmepos = this.merger.width * 0.24;
+	var ymepos = this.merger.height * 0.25;
+
+	this.merger.addStream(streams[1], {
+		index: 1,
+		x: this.merger.width - xmepos,
+		y: this.merger.height - ymepos,
+		width: xmepos,
+		height: ymepos,
+		fps: 30,
+		clearRect: true,
+		mute: false
+	});
+
+	/*
+	var staticTextStream = createStaticTextStream('สด');
+	this.merger.addStream(staticTextStream, {
+		index: 2,
+		x: 5,
+		y: 10,
+		width: 80,
+		height: 50,
+		mute: true
+	});
+	*/
+	this.merger.start();
+	return this.merger;
+}
+
+CallcenterMerger.prototype.getMerger = function() {
+	return this.merger;
+};
+
+const createStaticTextStream = function(text) {
+	$('body').append($('<div id="HiddenDiv"></div>'));
+	var hiddenDiv = document.querySelector('#HiddenDiv');
+	var drawer = document.createElement("canvas");
+	drawer.style.display = 'none';
+	hiddenDiv.appendChild(drawer);
+
+	drawer.width = 80;
+	drawer.height = 50;
+	var ctx = drawer.getContext("2d");
+	ctx.font = 'bold 30px THNiramitAS';
+	ctx.fillStyle = 'red';
+	ctx.textAlign = 'left';
+	ctx.fillText(text, 10, 20);
+	var stream = drawer.captureStream(25);
+	return stream;
 }
 
 module.exports = {
-  doShowShopItems,
-}
-
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":7,"jquery":10}],3:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-  const common = require('../../../home/mod/common-lib.js')($);
-
-  const customerTableFields = [
-		{fieldName: 'Name', displayName: 'ชื่อ', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'Address', displayName: 'ที่อยู่', width: '25%', align: 'left', inputSize: '30', verify: false, showHeader: true},
-    {fieldName: 'Tel', displayName: 'โทรศัพท์', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
-		{fieldName: 'Mail', displayName: 'อีเมล์', width: '15%', align: 'left', inputSize: '30', verify: false, showHeader: true},
-	];
-
-  const doShowCustomerItem = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      $(workAreaBox).empty();
-      let customerRes = await common.doCallApi('/api/shop/customer/list/by/shop/' + shopData.id, {});
-			let customerItems = customerRes.Records;
-
-      let titlePageBox = $('<div style="padding: 4px;">รายการลูกค้าของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			$(workAreaBox).append($(titlePageBox));
-			let newCustomerCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-			let newCustomerCmd = $('<input type="button" value=" + New Customer " class="action-btn"/>');
-			$(newCustomerCmd).on('click', (evt)=>{
-				doOpenNewCustomerForm(shopData, workAreaBox);
-			});
-			$(newCustomerCmdBox).append($(newCustomerCmd))
-			$(workAreaBox).append($(newCustomerCmdBox));
-
-      let customerTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-			let headerRow = $('<tr></tr>');
-			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
-      for (let i=0; i < customerTableFields.length; i++) {
-        if (customerTableFields[i].showHeader) {
-          $(headerRow).append($('<td width="' + customerTableFields[i].width + '" align="center"><b>' + customerTableFields[i].displayName + '</b></td>'));
-        }
-			}
-      $(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
-			$(customerTable).append($(headerRow));
-
-      for (let x=0; x < customerItems.length; x++) {
-				let itemRow = $('<tr></tr>');
-				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
-				let item = customerItems[x];
-        for (let i=0; i < customerTableFields.length; i++) {
-          if (customerTableFields[i].showHeader) {
-  					let field = $('<td align="' + customerTableFields[i].align + '"></td>');
-            $(field).text(item[customerTableFields[i].fieldName]);
-            $(itemRow).append($(field));
-          }
-        }
-
-        let commandCell = $('<td align="center"></td>');
-
-        let editCustomerCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-				$(editCustomerCmd).on('click', (evt)=>{
-					doOpenEditCustomerForm(shopData, workAreaBox, item);
-				});
-				let deleteCustomerCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-				$(deleteCustomerCmd).on('click', (evt)=>{
-					doDeleteCustomer(shopData, workAreaBox, item.id);
-				});
-
-				$(commandCell).append($(editCustomerCmd));
-				$(commandCell).append($(deleteCustomerCmd));
-        $(itemRow).append($(commandCell));
-				$(customerTable).append($(itemRow));
-      }
-      $(workAreaBox).append($(customerTable));
-      resolve();
-    });
-  }
-
-  const doCreateNewCustomerForm = function(customerData){
-    let customerFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		for (let i=0; i < customerTableFields.length; i++) {
-			let fieldRow = $('<tr></tr>');
-			let labelField = $('<td width="40%" align="left">' + customerTableFields[i].displayName + (customerTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
-			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-			let inputValue = $('<input type="text" id="' + customerTableFields[i].fieldName + '" size="' + customerTableFields[i].inputSize + '"/>');
-			if ((customerData) && (customerData[customerTableFields[i].fieldName])) {
-				$(inputValue).val(customerData[customerTableFields[i].fieldName]);
-			}
-			$(inputField).append($(inputValue));
-			$(fieldRow).append($(labelField));
-			$(fieldRow).append($(inputField));
-			$(customerFormTable).append($(fieldRow));
-		}
-		return $(customerFormTable);
-  }
-
-  const doVerifyCustomerForm = function(){
-    let isVerify = true;
-		let customerDataForm = {};
-		for (let i=0; i < customerTableFields.length; i++) {
-			let curValue = $('#'+customerTableFields[i].fieldName).val();
-			if (customerTableFields[i].verify) {
-				if (curValue !== '') {
-					$('#'+customerTableFields[i].fieldName).css({'border': ''});
-					customerDataForm[customerTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				} else {
-					$('#'+customerTableFields[i].fieldName).css({'border': '1px solid red'});
-					isVerify = isVerify && false;
-					return;
-				}
-			} else {
-				if (curValue !== '') {
-					customerDataForm[customerTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				}
-			}
-		}
-		return customerDataForm;
-  }
-
-  const doOpenNewCustomerForm = function(shopData, workAreaBox) {
-    let newCustomerForm = doCreateNewCustomerForm();
-    let radNewCustomerFormBox = $('<div></div>');
-    $(radNewCustomerFormBox).append($(newCustomerForm));
-    const newcustomerformoption = {
-      title: 'เพิ่มลูกค้าใหม่เข้าร้าน',
-      msg: $(radNewCustomerFormBox),
-      width: '520px',
-      onOk: async function(evt) {
-        let newCustomerFormObj = doVerifyCustomerForm();
-        if (newCustomerFormObj) {
-          let hasValue = newCustomerFormObj.hasOwnProperty('Name');
-          if (hasValue){
-            newCustomerFormBox.closeAlert();
-						let params = {data: newCustomerFormObj, shopId: shopData.id};
-            let userRes = await common.doCallApi('/api/shop/customer/add', params);
-            if (userRes.status.code == 200) {
-              $.notify("เพิ่มรายการลูกค้าสำเร็จ", "success");
-              await doShowCustomerItem(shopData, workAreaBox)
-            } else if (userRes.status.code == 201) {
-              $.notify("ไม่สามารถเพิ่มรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-            } else {
-              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการลูกค้าได้", "error");
-            }
-          }else {
-            $.notify("ข้อมูลไม่ถูกต้อง", "error");
-          }
-        } else {
-          $.notify("ข้อมูลไม่ถูกต้อง", "error");
-        }
-      },
-      onCancel: function(evt){
-        newCustomerFormBox.closeAlert();
-      }
-    }
-    let newCustomerFormBox = $('body').radalert(newcustomerformoption);
-  }
-
-  const doOpenEditCustomerForm = function(shopData, workAreaBox, customerData){
-		let editCustomerForm = doCreateNewCustomerForm(customerData);
-		let radEditCustomerFormBox = $('<div></div>');
-		$(radEditCustomerFormBox).append($(editCustomerForm));
-		const editcustomerformoption = {
-			title: 'แก้ไขลูกค้าของร้าน',
-			msg: $(radEditCustomerFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let editCustomerFormObj = doVerifyCustomerForm();
-				if (editCustomerFormObj) {
-					let hasValue = editCustomerFormObj.hasOwnProperty('Name');
-					if (hasValue){
-						editCustomerFormBox.closeAlert();
-						let params = {data: editCustomerFormObj, id: customerData.id};
-						let userRes = await common.doCallApi('/api/shop/customer/update', params);
-						if (userRes.status.code == 200) {
-							$.notify("แก้ไขรายการลูกค้าสำเร็จ", "success");
-							await doShowCustomerItem(shopData, workAreaBox)
-						} else if (userRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการลูกค้าได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				editCustomerFormBox.closeAlert();
-			}
-		}
-		let editCustomerFormBox = $('body').radalert(editcustomerformoption);
-	}
-
-  const doDeleteCustomer = function(shopData, workAreaBox, customerId){
-		let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบลูกค้ารายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบลูกค้า</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
-		const radconfirmoption = {
-			title: 'โปรดยืนยันการลบลูกค้า',
-			msg: $(radConfirmMsg),
-			width: '420px',
-			onOk: async function(evt) {
-				radConfirmBox.closeAlert();
-				let customerRes = await common.doCallApi('/api/shop/customer/delete', {id: customerId});
-				if (customerRes.status.code == 200) {
-					$.notify("ลบรายการลูกค้าสำเร็จ", "success");
-					await doShowCustomerItem(shopData, workAreaBox);
-				} else if (userRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการลูกค้าได้", "error");
-				}
-			},
-			onCancel: function(evt){
-				radConfirmBox.closeAlert();
-			}
-		}
-		let radConfirmBox = $('body').radalert(radconfirmoption);
-	}
-
-  return {
-    doShowCustomerItem
-  }
-}
-
-},{"../../../home/mod/common-lib.js":1}],4:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-  const common = require('../../../home/mod/common-lib.js')($);
-
-  const groupmenuTableFields = [
-		{fieldName: 'GroupName', displayName: 'ชื่อกลุ่มเมนู', width: '30%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'GroupPicture', displayName: 'โลโก้', width: '25%', align: 'center', inputSize: '30', verify: false, showHeader: true}
-	];
-
-  const doShowMenugroupItem = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      $(workAreaBox).empty();
-      let groupmenuRes = await common.doCallApi('/api/shop/menugroup/list/by/shop/' + shopData.id, {});
-			let groupmenuItems = groupmenuRes.Records;
-      let titlePageBox = $('<div style="padding: 4px;">รายการกลุ่มเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-      $(workAreaBox).append($(titlePageBox));
-      let newGroupmenuCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-      let newGroupmenuCmd = $('<input type="button" value=" + New Group Menu " class="action-btn"/>');
-      $(newGroupmenuCmd).on('click', (evt)=>{
-        doOpenNewGroupmenuForm(shopData, workAreaBox);
-      });
-      $(newGroupmenuCmdBox).append($(newGroupmenuCmd))
-      $(workAreaBox).append($(newGroupmenuCmdBox));
-
-      let groupmenuTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-			let headerRow = $('<tr></tr>');
-			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
-			for (let i=0; i < groupmenuTableFields.length; i++) {
-        if (groupmenuTableFields[i].showHeader) {
-          $(headerRow).append($('<td width="' + groupmenuTableFields[i].width + '" align="center"><b>' + groupmenuTableFields[i].displayName + '</b></td>'));
-        }
-			}
-			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
-			$(groupmenuTable).append($(headerRow));
-
-			for (let x=0; x < groupmenuItems.length; x++) {
-				let itemRow = $('<tr></tr>');
-				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
-				let item = groupmenuItems[x];
-				for (let i=0; i < groupmenuTableFields.length; i++) {
-					let field = $('<td align="' + groupmenuTableFields[i].align + '"></td>');
-					if (groupmenuTableFields[i].fieldName !== 'GroupPicture') {
-						$(field).text(item[groupmenuTableFields[i].fieldName]);
-						$(itemRow).append($(field));
-					} else {
-						let groupmenuLogoIcon = new Image();
-						groupmenuLogoIcon.id = 'GroupPicture_' + item.id;
-						if (item['GroupPicture'] !== ''){
-							groupmenuLogoIcon.src = item['GroupPicture'];
-						} else {
-							groupmenuLogoIcon.src = '/shop/favicon.ico'
-						}
-						$(groupmenuLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
-						$(groupmenuLogoIcon).on('click', (evt)=>{
-							window.open(item['GroupPicture'], '_blank');
-						});
-						$(field).append($(groupmenuLogoIcon));
-						let updateGroupmenuLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateGroupmenuLogoCmd).on('click', (evt)=>{
-							doStartUploadPicture(evt, groupmenuLogoIcon, field, item.id, shopData, workAreaBox);
-						});
-						$(field).append($('<div style="width: 100%;"></div>').append($(updateGroupmenuLogoCmd)));
-						$(itemRow).append($(field));
-					}
-				}
-				let editGroupmenuCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-				$(editGroupmenuCmd).on('click', (evt)=>{
-					doOpenEditGroupmenuForm(shopData, workAreaBox, item);
-				});
-				let deleteGroupmenuCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-				$(deleteGroupmenuCmd).on('click', (evt)=>{
-					doDeleteGroupmenu(shopData, workAreaBox, item.id);
-				});
-
-				let commandCell = $('<td align="center"></td>');
-				$(commandCell).append($(editGroupmenuCmd));
-				$(commandCell).append($(deleteGroupmenuCmd));
-				$(itemRow).append($(commandCell));
-				$(groupmenuTable).append($(itemRow));
-			}
-			$(workAreaBox).append($(groupmenuTable));
-      resolve();
-    });
-  }
-
-  const doStartUploadPicture = function(evt, groupmenuLogoIcon, imageBox, groupId, shopData, workAreaBox){
-    let fileBrowser = $('<input type="file"/>');
-    $(fileBrowser).attr("name", 'groupmenulogo');
-    $(fileBrowser).attr("multiple", true);
-    $(fileBrowser).css('display', 'none');
-    $(fileBrowser).on('change', function(e) {
-      const defSize = 10000000;
-      var fileSize = e.currentTarget.files[0].size;
-      var fileType = e.currentTarget.files[0].type;
-      if (fileSize <= defSize) {
-        doUploadImage(fileBrowser, groupmenuLogoIcon, fileType, groupId, shopData, workAreaBox);
-      } else {
-        $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
-      }
-    });
-    $(fileBrowser).appendTo($(imageBox));
-    $(fileBrowser).click();
-  }
-
-  const doUploadImage = function(fileBrowser, groupmenuLogoIcon, fileType, groupId, shopData, workAreaBox){
-    var uploadUrl = '/api/shop/upload/menugrouplogo';
-    $(fileBrowser).simpleUpload(uploadUrl, {
-      success: async function(data){
-        $(fileBrowser).remove();
-        let shopRes = await common.doCallApi('/api/shop/menugroup/change/logo', {data: {GroupPicture: data.link}, id: groupId});
-        setTimeout(async() => {
-          await doShowMenugroupItem(shopData, workAreaBox);
-        }, 400);
-      },
-    });
-  }
-
-	const doCreateNewGroupmenuForm = function(groupmenuData){
-    let groupmenuFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		for (let i=0; i < groupmenuTableFields.length; i++) {
-			if (groupmenuTableFields[i].fieldName !== 'GroupPicture') {
-				let fieldRow = $('<tr></tr>');
-				let labelField = $('<td width="40%" align="left">' + groupmenuTableFields[i].displayName + (groupmenuTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
-				let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-				let inputValue = $('<input type="text" id="' + groupmenuTableFields[i].fieldName + '" size="' + groupmenuTableFields[i].inputSize + '"/>');
-				if ((groupmenuData) && (groupmenuData[groupmenuTableFields[i].fieldName])) {
-					$(inputValue).val(groupmenuData[groupmenuTableFields[i].fieldName]);
-				}
-				$(inputField).append($(inputValue));
-				$(fieldRow).append($(labelField));
-				$(fieldRow).append($(inputField));
-				$(groupmenuFormTable).append($(fieldRow));
-			}
-		}
-		return $(groupmenuFormTable);
-  }
-
-	const doVerifyGroupmenuForm = function(){
-    let isVerify = true;
-		let groupmenuDataForm = {};
-		for (let i=0; i < groupmenuTableFields.length; i++) {
-			let curValue = $('#'+groupmenuTableFields[i].fieldName).val();
-			if (groupmenuTableFields[i].verify) {
-				if (curValue !== '') {
-					$('#'+groupmenuTableFields[i].fieldName).css({'border': ''});
-					groupmenuDataForm[groupmenuTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				} else {
-					$('#'+groupmenuTableFields[i].fieldName).css({'border': '1px solid red'});
-					isVerify = isVerify && false;
-					return;
-				}
-			} else {
-				if (curValue !== '') {
-					groupmenuDataForm[groupmenuTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				}
-			}
-		}
-		return groupmenuDataForm;
-  }
-
-  const doOpenNewGroupmenuForm = function(shopData, workAreaBox) {
-		let newGroupmenuForm = doCreateNewGroupmenuForm();
-    let radNewGroupmenuFormBox = $('<div></div>');
-    $(radNewGroupmenuFormBox).append($(newGroupmenuForm));
-    const newgroupmenuformoption = {
-      title: 'เพิ่มกลุ่มเมนูใหม่เข้าร้าน',
-      msg: $(radNewGroupmenuFormBox),
-      width: '520px',
-      onOk: async function(evt) {
-        let newGroupmenuFormObj = doVerifyGroupmenuForm();
-        if (newGroupmenuFormObj) {
-          let hasValue = newGroupmenuFormObj.hasOwnProperty('GroupName');
-          if (hasValue){
-            newGroupmenuFormBox.closeAlert();
-						let params = {data: newGroupmenuFormObj, shopId: shopData.id};
-            let userRes = await common.doCallApi('/api/shop/menugroup/add', params);
-            if (userRes.status.code == 200) {
-              $.notify("เพิ่มรายการกลุ่มเมนูสำเร็จ", "success");
-              await doShowMenugroupItem(shopData, workAreaBox)
-            } else if (userRes.status.code == 201) {
-              $.notify("ไม่สามารถเพิ่มรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-            } else {
-              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการกลุ่มเมนูได้", "error");
-            }
-          }else {
-            $.notify("ข้อมูลไม่ถูกต้อง", "error");
-          }
-        } else {
-          $.notify("ข้อมูลไม่ถูกต้อง", "error");
-        }
-      },
-      onCancel: function(evt){
-        newGroupmenuFormBox.closeAlert();
-      }
-    }
-    let newGroupmenuFormBox = $('body').radalert(newgroupmenuformoption);
-  }
-
-  const doOpenEditGroupmenuForm = function(shopData, workAreaBox, groupmenuData) {
-		let editGroupmenuForm = doCreateNewGroupmenuForm(groupmenuData);
-		let radEditGroupmenuFormBox = $('<div></div>');
-		$(radEditGroupmenuFormBox).append($(editGroupmenuForm));
-		const editgroupmenuformoption = {
-			title: 'แก้ไขกลุ่มเมนูของร้าน',
-			msg: $(radEditGroupmenuFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let editGroupmenuFormObj = doVerifyGroupmenuForm();
-				if (editGroupmenuFormObj) {
-					let hasValue = editGroupmenuFormObj.hasOwnProperty('GroupName');
-					if (hasValue){
-						editGroupmenuFormBox.closeAlert();
-						let params = {data: editGroupmenuFormObj, id: groupmenuData.id};
-						let userRes = await common.doCallApi('/api/shop/menugroup/update', params);
-						if (userRes.status.code == 200) {
-							$.notify("แก้ไขรายการกลุ่มเมนูสำเร็จ", "success");
-							await doShowMenugroupItem(shopData, workAreaBox)
-						} else if (userRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการกลุ่มเมนูได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				editGroupmenuFormBox.closeAlert();
-			}
-		}
-		let editGroupmenuFormBox = $('body').radalert(editgroupmenuformoption);
-  }
-
-  const doDeleteGroupmenu = function(shopData, workAreaBox, groupmenuId){
-    let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบกลุ่มเมนูรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบกลุ่มเมน</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
-		const radconfirmoption = {
-			title: 'โปรดยืนยันการลบกลุ่มเมนู',
-			msg: $(radConfirmMsg),
-			width: '420px',
-			onOk: async function(evt) {
-				radConfirmBox.closeAlert();
-				let groupmenuRes = await common.doCallApi('/api/shop/menugroup/delete', {id: groupmenuId});
-				if (groupmenuRes.status.code == 200) {
-					$.notify("ลบรายการกลุ่มเมนูสำเร็จ", "success");
-					await doShowMenugroupItem(shopData, workAreaBox);
-				} else if (userRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการกลุ่มเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการกลุ่มเมนูได้", "error");
-				}
-			},
-			onCancel: function(evt){
-				radConfirmBox.closeAlert();
-			}
-		}
-		let radConfirmBox = $('body').radalert(radconfirmoption);
-  }
-
-  return {
-    doShowMenugroupItem
-  }
-}
-
-},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-  const common = require('../../../home/mod/common-lib.js')($);
-
-  const menuitemTableFields = [
-		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'center', inputSize: '30', verify: false, showHeader: true},
-    {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'right', inputSize: '20', verify: true, showHeader: true},
-		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
-	];
-  const menugroupTableFields = [
-		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true}
-  ];
-
-  const doShowMenuitemItem = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      let menugroupRes = await common.doCallApi('/api/shop/menugroup/options/' + shopData.id, {});
-      let menugroups = menugroupRes.Options;
-      localStorage.setItem('menugroups', JSON.stringify(menugroups));
-
-      $(workAreaBox).empty();
-      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, {});
-			let menuitemItems = menuitemRes.Records;
-      let titlePageBox = $('<div style="padding: 4px;">รายการเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-      $(workAreaBox).append($(titlePageBox));
-      let newMenuitemCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-      let newMenuitemCmd = $('<input type="button" value=" + New Menu " class="action-btn"/>');
-      $(newMenuitemCmd).on('click', (evt)=>{
-        doOpenNewMenuitemForm(shopData, workAreaBox);
-      });
-      $(newMenuitemCmdBox).append($(newMenuitemCmd))
-      $(workAreaBox).append($(newMenuitemCmdBox));
-
-      let menuitemTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-			let headerRow = $('<tr></tr>');
-			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
-			for (let i=0; i < menuitemTableFields.length; i++) {
-        if (menuitemTableFields[i].showHeader) {
-          $(headerRow).append($('<td width="' + menuitemTableFields[i].width + '" align="center"><b>' + menuitemTableFields[i].displayName + '</b></td>'));
-        }
-			}
-      for (let i=0; i < menugroupTableFields.length; i++) {
-        if (menugroupTableFields[i].showHeader) {
-          $(headerRow).append($('<td width="' + menugroupTableFields[i].width + '" align="center"><b>' + menugroupTableFields[i].displayName + '</b></td>'));
-        }
-			}
-			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
-			$(menuitemTable).append($(headerRow));
-
-      for (let x=0; x < menuitemItems.length; x++) {
-				let itemRow = $('<tr></tr>');
-				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
-				let item = menuitemItems[x];
-				for (let i=0; i < menuitemTableFields.length; i++) {
-					let field = $('<td align="' + menuitemTableFields[i].align + '"></td>');
-					if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
-						$(field).text(item[menuitemTableFields[i].fieldName]);
-						$(itemRow).append($(field));
-					} else {
-						let menuitemLogoIcon = new Image();
-						menuitemLogoIcon.id = 'MenuPicture_' + item.id;
-						if (item['MenuPicture'] !== ''){
-							menuitemLogoIcon.src = item['MenuPicture'];
-						} else {
-							menuitemLogoIcon.src = '/shop/favicon.ico'
-						}
-						$(menuitemLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
-						$(menuitemLogoIcon).on('click', (evt)=>{
-							window.open(item['MenuPicture'], '_blank');
-						});
-						$(field).append($(menuitemLogoIcon));
-						let updateMenuitemLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateMenuitemLogoCmd).on('click', (evt)=>{
-							doStartUploadPicture(evt, menuitemLogoIcon, field, item.id, shopData, workAreaBox);
-						});
-						$(field).append($('<div style="width: 100%;"></div>').append($(updateMenuitemLogoCmd)));
-						$(itemRow).append($(field));
-					}
-				}
-        for (let i=0; i < menugroupTableFields.length; i++) {
-          let field = $('<td align="' + menugroupTableFields[i].align + '"></td>');
-          $(field).text(item.menugroup[menugroupTableFields[i].fieldName]);
-          $(itemRow).append($(field));
-        }
-				let editMenuitemCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-				$(editMenuitemCmd).on('click', (evt)=>{
-					doOpenEditMenuitemForm(shopData, workAreaBox, item);
-				});
-				let deleteMenuitemCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-				$(deleteMenuitemCmd).on('click', (evt)=>{
-					doDeleteMenuitem(shopData, workAreaBox, item.id);
-				});
-
-				let commandCell = $('<td align="center"></td>');
-				$(commandCell).append($(editMenuitemCmd));
-				$(commandCell).append($(deleteMenuitemCmd));
-				$(itemRow).append($(commandCell));
-				$(menuitemTable).append($(itemRow));
-			}
-
-      $(workAreaBox).append($(menuitemTable));
-      resolve();
-    });
-  }
-
-  const doStartUploadPicture = function(evt, menuitemLogoIcon, imageBox, itemId, shopData, workAreaBox){
-    let fileBrowser = $('<input type="file"/>');
-    $(fileBrowser).attr("name", 'menuitemlogo');
-    $(fileBrowser).attr("multiple", true);
-    $(fileBrowser).css('display', 'none');
-    $(fileBrowser).on('change', function(e) {
-      const defSize = 10000000;
-      var fileSize = e.currentTarget.files[0].size;
-      var fileType = e.currentTarget.files[0].type;
-      if (fileSize <= defSize) {
-        doUploadImage(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox);
-      } else {
-        $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
-      }
-    });
-    $(fileBrowser).appendTo($(imageBox));
-    $(fileBrowser).click();
-  }
-
-  const doUploadImage = function(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox){
-    var uploadUrl = '/api/shop/upload/menuitemlogo';
-    $(fileBrowser).simpleUpload(uploadUrl, {
-      success: async function(data){
-        $(fileBrowser).remove();
-        let shopRes = await common.doCallApi('/api/shop/menuitem/change/logo', {data: {MenuPicture: data.link}, id: itemId});
-        setTimeout(async() => {
-          await doShowMenuitemItem(shopData, workAreaBox);
-        }, 400);
-      },
-    });
-  }
-
-  const doCreateNewMenuitemForm = function(menuitemData){
-    let menuitemFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		for (let i=0; i < menuitemTableFields.length; i++) {
-      if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
-  			let fieldRow = $('<tr></tr>');
-  			let labelField = $('<td width="40%" align="left">' + menuitemTableFields[i].displayName + (menuitemTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
-  			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-  			let inputValue = $('<input type="text" id="' + menuitemTableFields[i].fieldName + '" size="' + menuitemTableFields[i].inputSize + '"/>');
-  			if ((menuitemData) && (menuitemData[menuitemTableFields[i].fieldName])) {
-  				$(inputValue).val(menuitemData[menuitemTableFields[i].fieldName]);
-  			}
-  			$(inputField).append($(inputValue));
-  			$(fieldRow).append($(labelField));
-  			$(fieldRow).append($(inputField));
-  			$(menuitemFormTable).append($(fieldRow));
-      }
-		}
-    let fieldRow = $('<tr></tr>');
-		let labelField = $('<td width="40%" align="left">กลุ่มเมนู <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let inputValue = $('<select id="GroupId"></select>');
-		let menugroups = JSON.parse(localStorage.getItem('menugroups'));
-		console.log(menugroups);
-		menugroups.forEach((item, i) => {
-			console.log(item);
-			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
-		});
-		$(inputField).append($(inputValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(menuitemFormTable).append($(fieldRow));
-
-		return $(menuitemFormTable);
-  }
-
-  const doVerifyMenuitemForm = function(){
-    let isVerify = true;
-		let menuitemDataForm = {};
-		for (let i=0; i < menuitemTableFields.length; i++) {
-			let curValue = $('#'+menuitemTableFields[i].fieldName).val();
-			if (menuitemTableFields[i].verify) {
-				if (curValue !== '') {
-					$('#'+menuitemTableFields[i].fieldName).css({'border': ''});
-					menuitemDataForm[menuitemTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				} else {
-					$('#'+menuitemTableFields[i].fieldName).css({'border': '1px solid red'});
-					isVerify = isVerify && false;
-					return;
-				}
-			} else {
-				if (curValue !== '') {
-					menuitemDataForm[menuitemTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				}
-			}
-		}
-    menuitemDataForm.groupId = $('#GroupId').val();
-		return menuitemDataForm;
-  }
-
-  const doOpenNewMenuitemForm = function(shopData, workAreaBox){
-    let newMenuitemForm = doCreateNewMenuitemForm();
-    let radNewMenuitemFormBox = $('<div></div>');
-    $(radNewMenuitemFormBox).append($(newMenuitemForm));
-    const newmenuitemformoption = {
-      title: 'เพิ่มเมนูใหม่เข้าร้าน',
-      msg: $(radNewMenuitemFormBox),
-      width: '520px',
-      onOk: async function(evt) {
-        let newMenuitemFormObj = doVerifyMenuitemForm();
-        if (newMenuitemFormObj) {
-          let hasValue = newMenuitemFormObj.hasOwnProperty('MenuName');
-          if (hasValue){
-            newMenuitemFormBox.closeAlert();
-						let params = {data: newMenuitemFormObj, shopId: shopData.id, groupId: newMenuitemFormObj.groupId};
-            let menuitemRes = await common.doCallApi('/api/shop/menuitem/add', params);
-            if (menuitemRes.status.code == 200) {
-              $.notify("เพิ่มรายการเมนูสำเร็จ", "success");
-              await doShowMenuitemItem(shopData, workAreaBox)
-            } else if (menuitemRes.status.code == 201) {
-              $.notify("ไม่สามารถเพิ่มรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-            } else {
-              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการเมนูได้", "error");
-            }
-          }else {
-            $.notify("ข้อมูลไม่ถูกต้อง", "error");
-          }
-        } else {
-          $.notify("ข้อมูลไม่ถูกต้อง", "error");
-        }
-      },
-      onCancel: function(evt){
-        newMenuitemFormBox.closeAlert();
-      }
-    }
-    let newMenuitemFormBox = $('body').radalert(newmenuitemformoption);
-  }
-
-  const doOpenEditMenuitemForm = function(shopData, workAreaBox, menuitemData){
-    let editMenuitemForm = doCreateNewMenuitemForm(menuitemData);
-		let radEditMenuitemFormBox = $('<div></div>');
-		$(radEditMenuitemFormBox).append($(editMenuitemForm));
-		const editmenuitemformoption = {
-			title: 'แก้ไขเมนูของร้าน',
-			msg: $(radEditMenuitemFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let editMenuitemFormObj = doVerifyMenuitemForm();
-				if (editMenuitemFormObj) {
-					let hasValue = editMenuitemFormObj.hasOwnProperty('MenuName');
-					if (hasValue){
-						editMenuitemFormBox.closeAlert();
-						let params = {data: editMenuitemFormObj, id: menuitemData.id};
-						let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
-						if (menuitemRes.status.code == 200) {
-							$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
-							await doShowMenuitemItem(shopData, workAreaBox)
-						} else if (menuitemRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการเมนูได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				editMenuitemFormBox.closeAlert();
-			}
-		}
-		let editMenuitemFormBox = $('body').radalert(editmenuitemformoption);
-  }
-
-  const doDeleteMenuitem = function(shopData, workAreaBox, menuitemId){
-    let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบเมนูรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบเมน</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
-		const radconfirmoption = {
-			title: 'โปรดยืนยันการลบเมนู',
-			msg: $(radConfirmMsg),
-			width: '420px',
-			onOk: async function(evt) {
-				radConfirmBox.closeAlert();
-				let menugitemRes = await common.doCallApi('/api/shop/menugitem/delete', {id: groupmenuId});
-				if (menugitemRes.status.code == 200) {
-					$.notify("ลบรายการเมนูสำเร็จ", "success");
-					await doShowMenuitemItem(shopData, workAreaBox);
-				} else if (menugitemRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเมนูได้", "error");
-				}
-			},
-			onCancel: function(evt){
-				radConfirmBox.closeAlert();
-			}
-		}
-		let radConfirmBox = $('body').radalert(radconfirmoption);
-  }
-
-  return {
-    doShowMenuitemItem
-  }
-}
-
-},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	//const welcome = require('./welcome.js')($);
-	//const login = require('./login.js')($);
-  const common = require('../../../home/mod/common-lib.js')($);
-
-  const doShowOrderList = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      let customerRes = await common.doCallApi('/api/shop/customer/list/by/shop/' + shopData.id, {});
-      let menugroupRes = await common.doCallApi('/api/shop/menugroup/list/by/shop/' + shopData.id, {});
-      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, {});
-      let customers = customerRes.Records;
-      localStorage.setItem('customers', JSON.stringify(customers));
-      let menugroups = menugroupRes.Records;
-      localStorage.setItem('menugroups', JSON.stringify(menugroups));
-      let menuitems = menuitemRes.Records;
-      localStorage.setItem('menuitems', JSON.stringify(menuitems));
-
-      $(workAreaBox).empty();
-
-      let titlePageBox = $('<div style="padding: 4px;">รายการออร์เดอร์ของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			$(workAreaBox).append($(titlePageBox));
-			let newOrderCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-			let newOrderCmd = $('<input type="button" value=" + New Order " class="action-btn"/>');
-			$(newOrderCmd).on('click', (evt)=>{
-				doOpenOrderForm(shopData, workAreaBox);
-			});
-			$(newOrderCmdBox).append($(newUserCmd))
-			$(workAreaBox).append($(newOrderCmdBox));
-
-      /*
-        order list of today
-      */
-      resolve();
-    });
-  }
-
-  const doOpenOrderForm = function(shopData, workAreaBox, orderData){
-    $(workAreaBox).empty();
-    let titleText = 'เปิดออร์เดอร์ใหม่';
-    if (orderData) {
-      titleText = 'แก้ไขออร์เดอร์';
-    }
-    let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-    let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
-    let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 99.1%;"></viv>');
-    $(workAreaBox).append($(titlePageBox)).append($(customerWokingBox)).append($(itemlistWorkingBox));
-
-    let customerForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
-    let customerFormRow = $('<tr></tr>');
-    let customerContent = $('<td width="85%" align="left"></tf>');
-    let customerControlCmd = $('<td width="*" align="cnter" valign="middle"></tf>');
-    $(customerFormRow).append($(customerContent)).append($(customerControlCmd));
-    $(customerForm).append($(customerFormRow));
-    $(customerWokingBox).append($(customerForm));
-
-    if (orderData) {
-      $(customerContent).text(JSON.stringify(orderData.customer));
-    } else {
-      $(customerContent).append($('<h2>ข้อมูลลูกค้า</h2>'));
-    }
-    let editCustomerCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-    $(customerControlCmd).append($(editCustomerCmd));
-    $(editCustomerCmd).on('click', (evt)=>{
-      doOpenCustomerMngDlg(shopData, customerContent);
-    });
-    $(itemlistWorkingBox).append('<h1>Control Item Area</h1>');
-  }
-
-  const doOpenCustomerMngDlg = function(shopData, customerContent) {
-
-  }
-  
-  return {
-    doShowOrderList
-	}
-}
-
-},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	//const welcome = require('./welcome.js')($);
-	//const login = require('./login.js')($);
-  const common = require('../../../home/mod/common-lib.js')($);
-	const shopmng = require('./shop-mng.js')($);
-
-	const shopTableFields = [
-		{fieldName: 'Shop_Name', displayName: 'ชื่อร้าน', width: '12%', align: 'left', inputSize: '40', verify: true},
-		{fieldName: 'Shop_Address', displayName: 'ที่อยู่', width: '15%', align: 'left', inputSize: '40', verify: true},
-		{fieldName: 'Shop_Tel', displayName: 'โทรศัพท์', width: '10%', align: 'left', inputSize: '20', verify: true},
-		{fieldName: 'Shop_Mail', displayName: 'อีเมล์', width: '10%', align: 'left', inputSize: '40', verify: true},
-		{fieldName: 'Shop_LogoFilename', displayName: 'โลโก้', width: '10%', align: 'center', inputSize: '40', verify: false},
-		{fieldName: 'Shop_VatNo', displayName: 'VAT No.', width: '10%', align: 'left', inputSize: '20', verify: false},
-		{fieldName: 'Shop_BillQuota', displayName: 'Bill Quota', width: '7%', align: 'left', inputSize: '10', verify: false},
-		{fieldName: 'id', displayName: 'ShopId', width: '5%', align: 'center', inputSize: '40', verify: false},
-	];
-
-  const doShowShopItem = function(){
-    return new Promise(async function(resolve, reject) {
-			$('#App').empty();
-      let shopRes = await common.doCallApi('/api/shop/shop/list', {});
-			if ((shopRes) &&/* (shopRes.status) && (shopRes.status.code) && */ (shopRes.status.code == 210)) {
-		    common.doUserLogout();
-			}
-			let shopItems = shopRes.Records;
-			let titlePageBox = $('<div style="padding: 4px;">รายการร้านค้าในระบบ</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			$('#App').append($(titlePageBox));
-			let newShopCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-			let newShopCmd = $('<input type="button" value=" + New Shop " class="action-btn"/>');
-			$(newShopCmd).on('click', (evt)=>{
-				doOpenNewShopForm();
-			});
-			$(newShopCmdBox).append($(newShopCmd))
-			$('#App').append($(newShopCmdBox));
-			let shopTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-			let headerRow = $('<tr></tr>');
-			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
-			for (let i=0; i < shopTableFields.length; i++) {
-				$(headerRow).append($('<td width="' + shopTableFields[i].width + '" align="center"><b>' + shopTableFields[i].displayName + '</b></td>'));
-			}
-			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
-			$(shopTable).append($(headerRow));
-			for (let x=0; x < shopItems.length; x++) {
-				let itemRow = $('<tr></tr>');
-				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
-				let item = shopItems[x];
-				for (let i=0; i < shopTableFields.length; i++) {
-					let field = $('<td align="' + shopTableFields[i].align + '"></td>');
-					if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
-						$(field).text(item[shopTableFields[i].fieldName]);
-						$(itemRow).append($(field));
-					} else {
-						let shopLogoIcon = new Image();
-						shopLogoIcon.id = 'Shop_LogoFilename_' + item.id;
-						if (item['Shop_LogoFilename'] !== ''){
-							shopLogoIcon.src = item['Shop_LogoFilename'];
-						} else {
-							shopLogoIcon.src = '/shop/favicon.ico'
-						}
-						$(shopLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
-						$(shopLogoIcon).on('click', (evt)=>{
-							window.open(item['Shop_LogoFilename'], '_blank');
-						});
-						$(field).append($(shopLogoIcon));
-						let updateShopLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateShopLogoCmd).on('click', (evt)=>{
-							doStartUploadPicture(evt, shopLogoIcon, field, item.id);
-						});
-						$(field).append($(updateShopLogoCmd));
-						$(itemRow).append($(field));
-					}
-				}
-				let editShopCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-				$(editShopCmd).on('click', (evt)=>{
-					doOpenEditShopForm(item);
-				});
-				let mngShopCmd = $('<input type="button" value=" Manage " class="action-btn"/>').css({'margin-left': '8px'});
-				$(mngShopCmd).on('click', (evt)=>{
-					doOpenManageShop(item);
-				});
-				let deleteShopCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-				$(deleteShopCmd).on('click', (evt)=>{
-					doDeleteShop(item.id);
-				});
-
-				let commandCell = $('<td align="center"></td>');
-				$(commandCell).append($(editShopCmd));
-				$(commandCell).append($(mngShopCmd));
-				$(commandCell).append($(deleteShopCmd));
-				$(itemRow).append($(commandCell));
-				$(shopTable).append($(itemRow));
-			}
-			$('#App').append($(shopTable));
-			resolve();
-    });
-  }
-
-	const doCreateShopForm = function(shopData){
-		let shopFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		for (let i=0; i < shopTableFields.length; i++) {
-			if ((shopTableFields[i].fieldName !== 'id') && (shopTableFields[i].fieldName !== 'Shop_LogoFilename')) {
-				let fieldRow = $('<tr></tr>');
-				let labelField = $('<td width="40%" align="left">' + shopTableFields[i].displayName + (shopTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
-				let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-				let inputValue = $('<input type="text" id="' + shopTableFields[i].fieldName + '" size="' + shopTableFields[i].inputSize + '"/>');
-				if ((shopData) && (shopData[shopTableFields[i].fieldName])) {
-					$(inputValue).val(shopData[shopTableFields[i].fieldName]);
-				}
-				$(inputField).append($(inputValue));
-				$(fieldRow).append($(labelField));
-				$(fieldRow).append($(inputField));
-				$(shopFormTable).append($(fieldRow));
-			}
-		}
-		return $(shopFormTable);
-	}
-
-	const doVerifyShopForm = function(){
-		let isVerify = true;
-		let shopDataForm = {};
-		for (let i=0; i < shopTableFields.length; i++) {
-			if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
-				let curValue = $('#'+shopTableFields[i].fieldName).val();
-				if (shopTableFields[i].verify) {
-					if (curValue !== '') {
-						$('#'+shopTableFields[i].fieldName).css({'border': ''});
-						shopDataForm[shopTableFields[i].fieldName] = curValue;
-						isVerify = isVerify && true;
-					} else {
-						$('#'+shopTableFields[i].fieldName).css({'border': '1px solid red'});
-						isVerify = isVerify && false;
-						return;
-					}
-				} else {
-					if (curValue !== '') {
-						shopDataForm[shopTableFields[i].fieldName] = curValue;
-						isVerify = isVerify && true;
-					}
-				}
-			}
-		}
-		return shopDataForm;
-	}
-
-	const doStartUploadPicture = function(evt, shopLogoIcon, imageBox, shopId){
-		let fileBrowser = $('<input type="file"/>');
-    $(fileBrowser).attr("name", 'shoplogo');
-    $(fileBrowser).attr("multiple", true);
-    $(fileBrowser).css('display', 'none');
-    $(fileBrowser).on('change', function(e) {
-      const defSize = 10000000;
-      var fileSize = e.currentTarget.files[0].size;
-      var fileType = e.currentTarget.files[0].type;
-      if (fileSize <= defSize) {
-        doUploadImage(fileBrowser, shopLogoIcon, fileType, shopId);
-      } else {
-        $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
-      }
-    });
-    $(fileBrowser).appendTo($(imageBox));
-    $(fileBrowser).click();
-	}
-
-	const doUploadImage = function(fileBrowser, shopLogoIcon, fileType, shopId){
-		var uploadUrl = '/api/shop/upload/shoplogo';
-    $(fileBrowser).simpleUpload(uploadUrl, {
-      success: async function(data){
-        $(fileBrowser).remove();
-				let shopRes = await common.doCallApi('/api/shop/shop/change/logo', {data: {Shop_LogoFilename: data.link}, id: shopId});
-        setTimeout(async() => {
-					/*
-					$(shopLogoIcon).attr('src', data.link);
-					$(shopLogoIcon).on('click', (evt)=>{
-						window.open(data.link, '_blank');
-					});
-					*/
-					await doShowShopItem();
-        }, 400);
-      },
-    });
-	}
-
-	const doOpenNewShopForm = function(){
-		let shopNewForm = doCreateShopForm();
-		let radNewShopFormBox = $('<div></div>');
-		$(radNewShopFormBox).append($(shopNewForm));
-		const newshopformoption = {
-			title: 'เพิ่มร้านค้าใหม่เข้าสู่ระบบ',
-			msg: $(radNewShopFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let newShopFormObj = doVerifyShopForm();
-				if (newShopFormObj) {
-					let hasValue = newShopFormObj.hasOwnProperty('Shop_Name');
-					if (hasValue){
-						newShopFormBox.closeAlert();
-						newShopFormObj.Shop_LogoFilename = '';
-						if (!newShopFormObj.Shop_VatNo) {
-							newShopFormObj.Shop_VatNo = '';
-						}
-						let shopRes = await common.doCallApi('/api/shop/shop/add', newShopFormObj);
-						if (shopRes.status.code == 200) {
-							$.notify("เพิ่มรายการร้านค้าสำเร็จ", "success");
-							await doShowShopItem()
-						} else if (shopRes.status.code == 201) {
-							$.notify("ไม่สามารถเพิ่มรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการร้านค้าได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				newShopFormBox.closeAlert();
-			}
-		}
-		let newShopFormBox = $('body').radalert(newshopformoption);
-	}
-
-	const doOpenEditShopForm = function(shopData){
-		let shopEditForm = doCreateShopForm(shopData);
-		let radEditShopFormBox = $('<div></div>');
-		$(radEditShopFormBox).append($(shopEditForm));
-		const editshopformoption = {
-			title: 'แก้ไขข้อมูลร้านค้า',
-			msg: $(radEditShopFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let editShopFormObj = doVerifyShopForm();
-				if (editShopFormObj) {
-					let hasValue = editShopFormObj.hasOwnProperty('Shop_Name');
-					if (hasValue){
-						editShopFormBox.closeAlert();
-						//editShopFormObj.Shop_LogoFilename = '';
-						if (!editShopFormObj.Shop_VatNo) {
-							editShopFormObj.Shop_VatNo = '';
-						}
-						let params = {data: editShopFormObj, id: shopData.id}
-						let shopRes = await common.doCallApi('/api/shop/shop/update', params);
-						if (shopRes.status.code == 200) {
-							$.notify("แก้ไขรายการร้านค้าสำเร็จ", "success");
-							await doShowShopItem()
-						} else if (shopRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการร้านค้าได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				editShopFormBox.closeAlert();
-			}
-		}
-		let editShopFormBox = $('body').radalert(editshopformoption);
-	}
-
-	const doOpenManageShop = function(shopData){
-		shopmng.doShowShopMhg(shopData)
-	}
-
-	const doDeleteShop = function(shopId){
-		let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบร้านค้ารายการที่เลือกออกจากระบบฯ ใช่ หรือไม่</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบร้านค้า</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
-		const radconfirmoption = {
-			title: 'โปรดยืนยันการลบร้านค้า',
-			msg: $(radConfirmMsg),
-			width: '420px',
-			onOk: async function(evt) {
-				radConfirmBox.closeAlert();
-				let shopRes = await common.doCallApi('/api/shop/shop/delete', {id: shopId});
-				if (shopRes.status.code == 200) {
-					$.notify("ลบรายการร้านค้าสำเร็จ", "success");
-					await doShowShopItem()
-				} else if (shopRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการร้านค้าได้", "error");
-				}
-			},
-			onCancel: function(evt){
-				radConfirmBox.closeAlert();
-			}
-		}
-		let radConfirmBox = $('body').radalert(radconfirmoption);
-	}
-
-  return {
-    doShowShopItem
-	}
-}
-
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":8}],8:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	//const welcome = require('./welcome.js')($);
-
-  const common = require('../../../home/mod/common-lib.js')($);
-	const user = require('./user-mng.js')($);
-	const customer = require('./customer-mng.js')($);
-	const menugroup = require('./menugroup-mng.js')($);
-	const menuitem = require('./menuitem-mng.js')($);
-	const order = require('./order-mng.js')($);
-
-  const doCreateTitlePage = function(shopData){
-    let shopLogoIcon = new Image();
-    if (shopData['Shop_LogoFilename'] !== ''){
-    	shopLogoIcon.src = shopData['Shop_LogoFilename'];
-    } else {
-    	shopLogoIcon.src = '/shop/favicon.ico'
-    }
-    $(shopLogoIcon).css({"width": "140px", "height": "auto", "padding": "2px", "border": "2px solid #ddd"});
-    let shopName = $('<h2>' + shopData['Shop_Name'] + '</h2>').css({'line-height': '20px'});
-    let shopAddress = $('<p>' + shopData['Shop_Address'] + '</p>').css({'line-height': '11px'});
-    let shopTel = $('<p>โทร. ' + shopData['Shop_Tel'] + '</p>').css({'line-height': '11px'});
-    let shopMail = $('<p>อีเมล์ ' + shopData['Shop_Mail'] + '</p>').css({'line-height': '11px'});
-    let shopVatNo = $('<p>หมายเลขผู้เสียภาษี ' + shopData['Shop_VatNo'] + '</p>').css({'line-height': '11px'});
-
-    let backCmd = $('<input type="button" value=" Back " class="action-btn"/>');
-    $(backCmd).on('click', (evt)=>{
-      const main = require('../main.js');
-      main.doShowShopItems();
-    });
-
-    let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '18px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-    let layoutPage = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
-    let layoutRow = $('<tr></tr>');
-    let letfSideCell = $('<td width="15%" align="center" valign="middle"></td>');
-    let middleCell = $('<td width="70%" align="left" valign="middle"></td>');
-    let rightSideCell = $('<td width="*" align="center" valign="middle"></td>');
-    $(letfSideCell).append($(shopLogoIcon));
-    $(middleCell).append($(shopName)).append($(shopAddress)).append($(shopTel)).append($(shopMail)).append($(shopVatNo));
-    $(rightSideCell).append($(backCmd));
-    $(layoutRow).append($(letfSideCell)).append($(middleCell)).append($(rightSideCell));
-    $(layoutPage).append($(layoutRow));
-    return $(titlePageBox).append($(layoutPage));
-  }
-
-  const doCreateContolShopCmds = function(shopData){
-    let commandsBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'left', 'font-size': '14px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white', 'margin-top': '10px'});
-    let userMngCmd = $('<input type="button" value=" User " class="action-btn"/>');
-    $(userMngCmd).on('click', (evt)=>{
-      doUserMngClickCallBack(evt, shopData);
-    });
-    let customerMngCmd = $('<input type="button" value=" Custome " class="action-btn"/>').css({'margin-left': '10px'});
-    $(customerMngCmd).on('click', (evt)=>{
-      doCustomerMngClickCallBack(evt, shopData);
-    });
-    let menugroupMngCmd = $('<input type="button" value=" Menu Group " class="action-btn"/>').css({'margin-left': '10px'});
-    $(menugroupMngCmd).on('click', (evt)=>{
-      doMenugroupMngClickCallBack(evt, shopData);
-    });
-    let menuitemMngCmd = $('<input type="button" value=" Menu Item " class="action-btn"/>').css({'margin-left': '10px'});
-    $(menuitemMngCmd).on('click', (evt)=>{
-      doMenuitemMngClickCallBack(evt, shopData);
-    });
-
-    let orderMngCmd = $('<input type="button" value=" Order " class="action-btn"/>').css({'margin-left': '10px'});
-    $(orderMngCmd).on('click', (evt)=>{
-      doOrderMngClickCallBack(evt, shopData);
-    });
-
-    return $(commandsBox).append($(userMngCmd)).append($(customerMngCmd)).append($(menugroupMngCmd)).append($(menuitemMngCmd)).append($(orderMngCmd));
-  }
-
-  const doShowShopMhg = function(shopData){
-    let titlePage = doCreateTitlePage(shopData);
-    $('#App').empty().append($(titlePage));
-    let shopCmdControl = doCreateContolShopCmds(shopData);
-		let workingAreaBox = $('<div id="WorkingAreaBox" style="padding: 4px;"></viv>').css({'width': '99.1%', 'font-size': '14px', 'border': '2px solid black', 'border-radius': '0px'});
-		$(workingAreaBox).css({'margin-top': '8px'});
-    $('#App').append($(shopCmdControl)).append($(workingAreaBox));
-  }
-
-  const doUserMngClickCallBack = async function(evt, shopData){
-		let workingAreaBox = $('#WorkingAreaBox');
-		await user.doShowUserItem(shopData, workingAreaBox);
-  }
-
-  const doCustomerMngClickCallBack = async function(evt, shopData){
-    let workingAreaBox = $('#WorkingAreaBox');
-		await customer.doShowCustomerItem(shopData, workingAreaBox)
-  }
-
-  const doMenugroupMngClickCallBack = async function(evt, shopData){
-		let workingAreaBox = $('#WorkingAreaBox');
-		await menugroup.doShowMenugroupItem(shopData, workingAreaBox)
-  }
-
-  const doMenuitemMngClickCallBack = async function(evt, shopData){
-		let workingAreaBox = $('#WorkingAreaBox');
-		await menuitem.doShowMenuitemItem(shopData, workingAreaBox)
-  }
-
-  const doOrderMngClickCallBack = async function(evt, shopData){
-		let workingAreaBox = $('#WorkingAreaBox');
-		await order.doShowOrderList(shopData, workingAreaBox)
-  }
-
-  return {
-    doShowShopMhg
-	}
-}
-
-},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./customer-mng.js":3,"./menugroup-mng.js":4,"./menuitem-mng.js":5,"./order-mng.js":6,"./user-mng.js":9}],9:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-
-	//const welcome = require('./welcome.js')($);
-	//const login = require('./login.js')($);
-  const common = require('../../../home/mod/common-lib.js')($);
-
-	const userTableFields = [
-		{fieldName: 'username', displayName: 'Username', width: '15%', align: 'left', inputSize: '30', verify: false},
-		{fieldName: 'id', displayName: 'UserId', width: '5%', align: 'center', inputSize: '30', verify: false},
-	];
-  const userinfoTableFields = [
-		{fieldName: 'User_NameEN', displayName: 'ชื่อ (ภาษาอังกฤษ)', width: '12%', align: 'left', inputSize: '30', verify: false, showHeader: false},
-		{fieldName: 'User_LastNameEN', displayName: 'นามสกุล (ภาษาอังกฤษ)', width: '12%', align: 'left', inputSize: '30', verify: false, showHeader: false},
-    {fieldName: 'User_NameTH', displayName: 'ชื่อ (ภาษาไทย)', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'User_LastNameTH', displayName: 'นามสกุล (ภาษาไทย)', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'User_Phone', displayName: 'โทรศัพท์', width: '10%', align: 'left', inputSize: '20', verify: false, showHeader: true},
-		{fieldName: 'User_Email', displayName: 'อีเมล์', width: '10%', align: 'left', inputSize: '30', verify: false, showHeader: false},
-		{fieldName: 'User_LineID', displayName: 'Line ID', width: '10%', align: 'center', inputSize: '30', verify: false, showHeader: false},
-	];
-  const usertypeTableFields = [
-		{fieldName: 'UserType_Name', displayName: 'ประเภทผู้ใช้งาน', width: '15%', align: 'left', inputSize: '30', verify: true},
-	];
-
-  const doShowUserItem = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      let usertypeRes = await common.doCallApi('/api/shop/usertype/options', {});
-      let usertypes = usertypeRes.Options;
-      localStorage.setItem('usertypes', JSON.stringify(usertypes));
-      $(workAreaBox).empty();
-      let userRes = await common.doCallApi('/api/shop/user/list/by/shop/' + shopData.id, {});
-			let userItems = userRes.Records;
-
-      let titlePageBox = $('<div style="padding: 4px;">รายการผู้ใช้งานในร้านค้า</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			$(workAreaBox).append($(titlePageBox));
-			let newUserCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
-			let newUserCmd = $('<input type="button" value=" + New User " class="action-btn"/>');
-			$(newUserCmd).on('click', (evt)=>{
-				doOpenNewUserForm(shopData, workAreaBox);
-			});
-			$(newUserCmdBox).append($(newUserCmd))
-			$(workAreaBox).append($(newUserCmdBox));
-
-			let userTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-			let headerRow = $('<tr></tr>');
-			$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
-			for (let i=0; i < userTableFields.length; i++) {
-				$(headerRow).append($('<td width="' + userTableFields[i].width + '" align="center"><b>' + userTableFields[i].displayName + '</b></td>'));
-			}
-      for (let i=0; i < userinfoTableFields.length; i++) {
-        if (userinfoTableFields[i].showHeader) {
-          $(headerRow).append($('<td width="' + userinfoTableFields[i].width + '" align="center"><b>' + userinfoTableFields[i].displayName + '</b></td>'));
-        }
-			}
-      for (let i=0; i < usertypeTableFields.length; i++) {
-				$(headerRow).append($('<td width="' + usertypeTableFields[i].width + '" align="center"><b>' + usertypeTableFields[i].displayName + '</b></td>'));
-			}
-
-			$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
-			$(userTable).append($(headerRow));
-
-      for (let x=0; x < userItems.length; x++) {
-				let itemRow = $('<tr></tr>');
-				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
-				let item = userItems[x];
-				for (let i=0; i < userTableFields.length; i++) {
-					let field = $('<td align="' + userTableFields[i].align + '"></td>');
-          $(field).text(item[userTableFields[i].fieldName]);
-          $(itemRow).append($(field));
-        }
-        for (let i=0; i < userinfoTableFields.length; i++) {
-          if (userinfoTableFields[i].showHeader) {
-  					let field = $('<td align="' + userinfoTableFields[i].align + '"></td>');
-            $(field).text(item.userinfo[userinfoTableFields[i].fieldName]);
-            $(itemRow).append($(field));
-          }
-        }
-        for (let i=0; i < usertypeTableFields.length; i++) {
-					let field = $('<td align="' + usertypeTableFields[i].align + '"></td>');
-          $(field).text(item.usertype[usertypeTableFields[i].fieldName]);
-          $(itemRow).append($(field));
-        }
-
-        let commandCell = $('<td align="center"></td>');
-
-				let editUserCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-				$(editUserCmd).on('click', (evt)=>{
-					doOpenEditUserForm(shopData, workAreaBox, item);
-				});
-				let resetPasswordCmd = $('<input type="button" value=" Reset Passord " class="action-btn"/>').css({'margin-left': '8px'});
-				$(resetPasswordCmd).on('click', (evt)=>{
-					doResetPassword(shopData, workAreaBox, item.id);
-				});
-				let deleteUserCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-				$(deleteUserCmd).on('click', (evt)=>{
-					doDeleteUser(shopData, workAreaBox, item.id);
-				});
-
-				$(commandCell).append($(editUserCmd));
-				$(commandCell).append($(resetPasswordCmd));
-				$(commandCell).append($(deleteUserCmd));
-        $(itemRow).append($(commandCell));
-				$(userTable).append($(itemRow));
-      }
-      $(workAreaBox).append($(userTable));
-      resolve();
-    });
-  }
-
-	const doCreateVerifyUsernameForm = function(){
-		let usernameFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		let fieldRow = $('<tr></tr>');
-		let labelField = $('<td width="40%" align="left">Username <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let usernameValue = $('<input type="text" id="Username" size="30"/>');
-		$(inputField).append($(usernameValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(usernameFormTable).append($(fieldRow));
-
-		fieldRow = $('<tr></tr>');
-		labelField = $('<td width="40%" align="left">Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let passwordValue = $('<input type="password" id="Password" size="30"/>');
-		$(inputField).append($(passwordValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(usernameFormTable).append($(fieldRow));
-
-		fieldRow = $('<tr></tr>');
-		labelField = $('<td width="40%" align="left">Retry Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let retrypasswordValue = $('<input type="password" id="RetryPassword" size="30"/>');
-		$(inputField).append($(retrypasswordValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(usernameFormTable).append($(fieldRow));
-
-		return $(usernameFormTable);
-	}
-
-	const doCreateResetPasswordForm = function(){
-		let resetPasswordFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		let fieldRow = $('<tr></tr>');
-		let labelField = $('<td width="40%" align="left">Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let passwordValue = $('<input type="password" id="Password" size="30"/>');
-		$(inputField).append($(passwordValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(resetPasswordFormTable).append($(fieldRow));
-
-		fieldRow = $('<tr></tr>');
-		labelField = $('<td width="40%" align="left">Retry Password <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let retrypasswordValue = $('<input type="password" id="RetryPassword" size="30"/>');
-		$(inputField).append($(retrypasswordValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(resetPasswordFormTable).append($(fieldRow));
-
-		return $(resetPasswordFormTable);
-	}
-
-	const doCreateUserRegisterForm = function(userData){
-		let regFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
-		for (let i=0; i < userinfoTableFields.length; i++) {
-			let fieldRow = $('<tr></tr>');
-			let labelField = $('<td width="40%" align="left">' + userinfoTableFields[i].displayName + (userinfoTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
-			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-			let inputValue = $('<input type="text" id="' + userinfoTableFields[i].fieldName + '" size="' + userinfoTableFields[i].inputSize + '"/>');
-			if ((userData) && (userData[userinfoTableFields[i].fieldName])) {
-				$(inputValue).val(userData[userinfoTableFields[i].fieldName]);
-			}
-			$(inputField).append($(inputValue));
-			$(fieldRow).append($(labelField));
-			$(fieldRow).append($(inputField));
-			$(regFormTable).append($(fieldRow));
-		}
-		let fieldRow = $('<tr></tr>');
-		let labelField = $('<td width="40%" align="left">ประภทผู้ใช้งาน <span style="color: red;">*</span></td>').css({'padding': '5px'});
-		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-		let inputValue = $('<select id="UsertypeId"></select>');
-		let usertypes = JSON.parse(localStorage.getItem('usertypes'));
-		console.log(usertypes);
-		usertypes.forEach((item, i) => {
-			console.log(item);
-			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
-		});
-		$(inputField).append($(inputValue));
-		$(fieldRow).append($(labelField));
-		$(fieldRow).append($(inputField));
-		$(regFormTable).append($(fieldRow));
-
-		return $(regFormTable);
-	}
-
-	const doVerifyUserForm = function(){
-		let isVerify = true;
-		let userinfoDataForm = {};
-		for (let i=0; i < userinfoTableFields.length; i++) {
-			let curValue = $('#'+userinfoTableFields[i].fieldName).val();
-			if (userinfoTableFields[i].verify) {
-				if (curValue !== '') {
-					$('#'+userinfoTableFields[i].fieldName).css({'border': ''});
-					userinfoDataForm[userinfoTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				} else {
-					$('#'+userinfoTableFields[i].fieldName).css({'border': '1px solid red'});
-					isVerify = isVerify && false;
-					return;
-				}
-			} else {
-				if (curValue !== '') {
-					userinfoDataForm[userinfoTableFields[i].fieldName] = curValue;
-					isVerify = isVerify && true;
-				}
-			}
-		}
-		userinfoDataForm.usertypeId = $('#UsertypeId').val();
-		return userinfoDataForm;
-	}
-
-	const doOpenNewUserForm = function(shopData, workAreaBox) {
-		let verifyUsernameForm = doCreateVerifyUsernameForm();
-		let radNewUserFormBox = $('<div></div>');
-		$(radNewUserFormBox).append($(verifyUsernameForm));
-		const newuserformoption = {
-			title: 'ตรวจสอบ Username',
-			msg: $(radNewUserFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let newUsername = $(verifyUsernameForm).find('#Username').val();
-				let newPassword = $(verifyUsernameForm).find('#Password').val();
-				let newRetryPassword = $(verifyUsernameForm).find('#RetryPassword').val();
-				if (newUsername === '') {
-					$(verifyUsernameForm).find('#Username').css({'border': '1px solid red'});
-				} else {
-					$(verifyUsernameForm).find('#Username').css({'border': ''});
-					if (newPassword === '') {
-						$(verifyUsernameForm).find('#Password').css({'border': '1px solid red'});
-					} else {
-						$(verifyUsernameForm).find('#Password').css({'border': ''});
-						if (newRetryPassword === ''){
-							$(verifyUsernameForm).find('#RetryPassword').css({'border': '1px solid red'});
-						} else {
-							$(verifyUsernameForm).find('#RetryPassword').css({'border': ''});
-							if (newPassword !== newRetryPassword) {
-								$(verifyUsernameForm).find('#Password').css({'border': '1px solid red'});
-								$(verifyUsernameForm).find('#RetryPassword').css({'border': '1px solid red'});
-							} else {
-								$(verifyUsernameForm).find('#Password').css({'border': ''});
-								$(verifyUsernameForm).find('#RetryPassword').css({'border': ''});
-								let newUserFormObj = {username: newUsername, password: newPassword};
-								let userRes = await common.doCallApi('/api/shop/user/verifyusername/' + newUsername, newUserFormObj);
-								console.log(userRes);
-								if (!userRes.result.result) {
-									$(verifyUsernameForm).find('#Username').css({'border': ''});
-									newUserFormBox.closeAlert();
-									doOpenUserRegisterForm(shopData, workAreaBox, newUserFormObj);
-								} else {
-									$(verifyUsernameForm).find('#Username').css({'border': '1px solid red'});
-									$.notify("Invalid Username", "error");
-								}
-							}
-						}
-					}
-				}
-			},
-			onCancel: function(evt){
-				newUserFormBox.closeAlert();
-			}
-		}
-		let newUserFormBox = $('body').radalert(newuserformoption);
-	}
-
-	const doOpenUserRegisterForm = function(shopData, workAreaBox, newUsernameData){
-		let newRegForm = doCreateUserRegisterForm();
-		let radNewUserFormBox = $('<div></div>');
-		$(radNewUserFormBox).append($(newRegForm));
-		const newuserformoption = {
-			title: 'เพิ่มผู้ใช้งานใหม่ของร้าน',
-			msg: $(radNewUserFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let newUserFormObj = doVerifyUserForm();
-				if (newUserFormObj) {
-					let hasValue = newUserFormObj.hasOwnProperty('User_NameTH');
-					if (hasValue){
-						newUserFormBox.closeAlert();
-						newUserFormObj.username = newUsernameData.username;
-						newUserFormObj.password = newUsernameData.password;
-						newUserFormObj.shopId = shopData.id;
-						let userRes = await common.doCallApi('/api/shop/user/add', newUserFormObj);
-						if (userRes.status.code == 200) {
-							$.notify("เพิ่มรายการผู้ใช้งานสำเร็จ", "success");
-							await doShowUserItem(shopData, workAreaBox)
-						} else if (userRes.status.code == 201) {
-							$.notify("ไม่สามารถเพิ่มรายการผู้ใช้งานได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการผู้ใช้งานได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				newUserFormBox.closeAlert();
-			}
-		}
-		let newUserFormBox = $('body').radalert(newuserformoption);
-	}
-
-	const doOpenEditUserForm = function(shopData, workAreaBox, userData){
-		let editRegForm = doCreateUserRegisterForm(userData);
-		let radEditUserFormBox = $('<div></div>');
-		$(radEditUserFormBox).append($(editRegForm));
-		const edituserformoption = {
-			title: 'แก้ไขผู้ใช้งานของร้าน',
-			msg: $(radEditUserFormBox),
-			width: '520px',
-			onOk: async function(evt) {
-				let editUserFormObj = doVerifyUserForm();
-				if (editUserFormObj) {
-					let hasValue = editUserFormObj.hasOwnProperty('User_NameTH');
-					if (hasValue){
-						editUserFormBox.closeAlert();
-						let params = {data: editUserFormObj, id: userData.id, userinfoId: userData.userinfo.id};
-						let userRes = await common.doCallApi('/api/shop/user/update', params);
-						if (userRes.status.code == 200) {
-							$.notify("แก้ไขรายการผู้ใช้งานสำเร็จ", "success");
-							await doShowUserItem(shopData, workAreaBox)
-						} else if (userRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการผู้ใช้งานได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการผู้ใช้งานได้", "error");
-						}
-					}else {
-						$.notify("ข้อมูลไม่ถูกต้อง", "error");
-					}
-				} else {
-					$.notify("ข้อมูลไม่ถูกต้อง", "error");
-				}
-			},
-			onCancel: function(evt){
-				editUserFormBox.closeAlert();
-			}
-		}
-		let editUserFormBox = $('body').radalert(edituserformoption);
-	}
-
-	const doResetPassword = function(shopData, workAreaBox, userId){
-		let resetForm = doCreateResetPasswordForm();
-		let radResetFormBox = $('<div></div>');
-		$(radResetFormBox).append($(resetForm));
-		const resetpasswordformoption = {
-			title: 'Reset Password',
-			msg: $(radResetFormBox),
-			width: '420px',
-			onOk: async function(evt) {
-				let newPassword = $(resetForm).find('#Password').val();
-				let newRetryPassword = $(resetForm).find('#RetryPassword').val();
-				if (newPassword === '') {
-					$(resetForm).find('#Password').css({'border': '1px solid red'});
-				} else {
-					$(resetForm).find('#Password').css({'border': ''});
-					if (newRetryPassword === ''){
-						$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
-					} else {
-						$(resetForm).find('#RetryPassword').css({'border': ''});
-						if (newPassword !== newRetryPassword) {
-							$(resetForm).find('#Password').css({'border': '1px solid red'});
-							$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
-						} else {
-							$(resetForm).find('#Password').css({'border': ''});
-							$(resetForm).find('#RetryPassword').css({'border': ''});
-							let newPasswordFormObj = {userId: userId, password: newPassword};
-							let userRes = await common.doCallApi('/api/users/resetpassword', newPasswordFormObj);
-							console.log(userRes);
-							if (userRes.status.code == 200) {
-								$(resetForm).find('#Password').css({'border': ''});
-								$(resetForm).find('#RetryPassword').css({'border': ''});
-								resetPasswordFormBox.closeAlert();
-								await doShowUserItem(shopData, workAreaBox);
-							} else {
-								$(resetForm).find('#Password').css({'border': '1px solid red'});
-								$(resetForm).find('#RetryPassword').css({'border': '1px solid red'});
-								$.notify("Invalid Password", "error");
-							}
-						}
-					}
-				}
-			},
-			onCancel: function(evt){
-				resetPasswordFormBox.closeAlert();
-			}
-		}
-		let resetPasswordFormBox = $('body').radalert(resetpasswordformoption);
-	}
-
-	const doDeleteUser = function(shopData, workAreaBox, userId){
-		let radConfirmMsg = $('<div></div>');
-		$(radConfirmMsg).append($('<p>คุณต้องการลบผู้ใช้งานรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบผู้ใช้งาน</p>'));
-		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ยกเลิก</b> หาก <b>ไม่ใช่</b></p>'));
-		const radconfirmoption = {
-			title: 'โปรดยืนยันการลบผู้ใช้งาน',
-			msg: $(radConfirmMsg),
-			width: '420px',
-			onOk: async function(evt) {
-				radConfirmBox.closeAlert();
-				let userRes = await common.doCallApi('/api/shop/user/delete', {id: userId});
-				if (userRes.status.code == 200) {
-					$.notify("ลบรายการผู้ใช้งานรายการทีเลือกสำเร็จ", "success");
-					let workingAreaBox = $('#WorkingAreaBox');
-					await doShowUserItem(shopData, workAreaBox);
-				} else if (userRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการผู้ใช้งานได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการผู้ใช้งานได้", "error");
-				}
-			},
-			onCancel: function(evt){
-				radConfirmBox.closeAlert();
-			}
-		}
-		let radConfirmBox = $('body').radalert(radconfirmoption);
-	}
-
-  return {
-    doShowUserItem
-	}
-}
-
-},{"../../../home/mod/common-lib.js":1}],10:[function(require,module,exports){
+	CallcenterMerger,
+	createStaticTextStream
+};
+
+},{"./video-stream-merger.js":9}],9:[function(require,module,exports){
+(function (global){(function (){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
+
+},{}]},{},[1])(1)
+});
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],10:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -12725,4 +14257,4 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}]},{},[2]);
+},{}]},{},[7]);

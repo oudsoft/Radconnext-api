@@ -387,7 +387,7 @@ $.widget( "custom.imagehistory", {
       vw = this.videoWidth;
       vh = this.videoHeight;
       video.width = vw;
-      video,height = vh;
+      video.height = vh;
 
       ctx.canvas.width = vw;
       ctx.canvas.height = vh;
