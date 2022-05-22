@@ -78,6 +78,9 @@ const ShopShopDef = {
   },
   Shop_BillQuota : {
     type: Sequelize.STRING(10)
+  },
+  Shop_PromptPayNo : {
+    type: Sequelize.STRING(30)
   }
 };
 const ShopMenuGroupDef = {
@@ -140,10 +143,41 @@ const ShopInvoiceDef = {
   Vat : {
     type: Sequelize.FLOAT,
     defaultValue: 0
+  },
+  Filename : {
+    type: Sequelize.STRING(80)
   }
 };
 const ShopBillDef = {
-
+  No : {
+    type: Sequelize.STRING(80),
+    allowNull: false
+  },
+  Discount : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  },
+  Vat : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  },
+  Filename : {
+    type: Sequelize.STRING(80)
+  }
+};
+const ShopPaytypeDef = {
+  NameTH : {
+    type: Sequelize.STRING(80)
+  },
+  NameEN : {
+    type: Sequelize.STRING(80)
+  }
+};
+const ShopPaymentDef = {
+  Amount : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  }
 };
 const ShopTemplateDef = {
   Name : {
@@ -166,5 +200,7 @@ module.exports = {
   ShopOrderDef,
   ShopBillDef,
   ShopInvoiceDef,
+  ShopPaytypeDef,
+  ShopPaymentDef,
   ShopTemplateDef
 }

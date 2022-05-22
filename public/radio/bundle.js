@@ -583,7 +583,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":6}],2:[function(require,module,exports){
+},{"./utilmod.js":7}],2:[function(require,module,exports){
 /* commonlib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1739,7 +1739,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":1,"./utilmod.js":6}],3:[function(require,module,exports){
+},{"./apiconnect.js":1,"./utilmod.js":7}],3:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1924,6 +1924,80 @@ module.exports = function ( jq ) {
 }
 
 },{}],4:[function(require,module,exports){
+/* streammergermod.js */
+const streamMerger = require('./video-stream-merger.js');
+
+const CallcenterMerger = function(streams, mergOption) {
+	this.merger = new streamMerger(mergOption);
+	this.merger.addStream(streams[0], {
+		index: 0,
+		x: 0,
+		y: 0,
+		width: this.merger.width,
+		height: this.merger.height,
+		fps: 30,
+		clearRect: true,
+		audioContext: null,
+		mute: true
+	});
+
+	var xmepos = this.merger.width * 0.24;
+	var ymepos = this.merger.height * 0.25;
+
+	this.merger.addStream(streams[1], {
+		index: 1,
+		x: this.merger.width - xmepos,
+		y: this.merger.height - ymepos,
+		width: xmepos,
+		height: ymepos,
+		fps: 30,
+		clearRect: true,
+		mute: false
+	});
+
+	/*
+	var staticTextStream = createStaticTextStream('สด');
+	this.merger.addStream(staticTextStream, {
+		index: 2,
+		x: 5,
+		y: 10,
+		width: 80,
+		height: 50,
+		mute: true
+	});
+	*/
+	this.merger.start();
+	return this.merger;
+}
+
+CallcenterMerger.prototype.getMerger = function() {
+	return this.merger;
+};
+
+const createStaticTextStream = function(text) {
+	$('body').append($('<div id="HiddenDiv"></div>'));
+	var hiddenDiv = document.querySelector('#HiddenDiv');
+	var drawer = document.createElement("canvas");
+	drawer.style.display = 'none';
+	hiddenDiv.appendChild(drawer);
+
+	drawer.width = 80;
+	drawer.height = 50;
+	var ctx = drawer.getContext("2d");
+	ctx.font = 'bold 30px THNiramitAS';
+	ctx.fillStyle = 'red';
+	ctx.textAlign = 'left';
+	ctx.fillText(text, 10, 20);
+	var stream = drawer.captureStream(25);
+	return stream;
+}
+
+module.exports = {
+	CallcenterMerger,
+	createStaticTextStream
+};
+
+},{"./video-stream-merger.js":8}],5:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2099,7 +2173,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":6}],5:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":7}],6:[function(require,module,exports){
 /* userprofilelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2156,7 +2230,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":6}],6:[function(require,module,exports){
+},{"./apiconnect.js":1,"./commonlib.js":2,"./utilmod.js":7}],7:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -2713,7 +2787,16 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":19,"../../refer/mod/websocketmessage.js":22,"./websocketmessage.js":7}],7:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":22,"../../refer/mod/websocketmessage.js":25,"./websocketmessage.js":9}],8:[function(require,module,exports){
+(function (global){(function (){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
+
+},{}]},{},[1])(1)
+});
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],9:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -2868,7 +2951,462 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+const streamMerger = require('./streammergermod.js');
+
+const videoInitSize = {width: 437, height: 298};
+const videoConstraints = {video: true, audio: false};
+const mergeOption = {
+  width: 520,
+  height: 310,
+  fps: 25,
+  clearRect: true,
+  audioContext: null
+};
+
+/* https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b */
+const rtcConfiguration = {
+	'iceServers': [
+	 {url: 'stun:stun2.l.google.com:19302'},
+	 {url: 'turn:numb.viagenie.ca',
+		credential: 'muazkh',
+		username: 'webrtc@live.com'
+	 }
+	]
+};
+
+
+let $ = undefined;
+
+let userJoinOption = undefined;
+let userMediaStream = undefined;
+let displayMediaStream = undefined;
+let localMergedStream = undefined;
+let remoteConn = undefined;
+
+const doSetupRemoteConn = function(peerConn){
+  remoteConn = peerConn;
+}
+
+const doSetupUserJoinOption = function(joinOption){
+  userJoinOption = joinOption;
+}
+
+const setupDisplayMediaStream = function(stream){
+  displayMediaStream = stream;
+}
+
+const doInitRTCPeer = function(stream, wsm) {
+	let remoteConn = new RTCPeerConnection(rtcConfiguration);
+
+	// Setup ice handling
+	remoteConn.onicecandidate = function (event) {
+		if (event.candidate) {
+			let sendData = {
+				type: "wrtc",
+				wrtc: "candidate",
+				candidate: event.candidate,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+			};
+			wsm.send(JSON.stringify(sendData));
+		}
+	};
+
+	remoteConn.oniceconnectionstatechange = function(event) {
+		const peerConnection = event.target;
+		console.log('ICE state change event: ', event);
+		remoteConn = peerConnection;
+	};
+
+	remoteConn.onicegatheringstatechange = function() {
+		switch(remoteConn.iceGatheringState) {
+			case "new":
+			case "complete":
+				//label = "Idle";
+				console.log(remoteConn.iceGatheringState);
+			break;
+			case "gathering":
+				//label = "Determining route";
+			break;
+		}
+	};
+
+	stream.getTracks().forEach((track) => {
+		remoteConn.addTrack(track, stream);
+	});
+
+	remoteConn.ontrack = function(event) {
+		if (event.streams[0]) {
+      let myVideo = document.getElementById("MyVideo");
+      userMediaStream = myVideo.srcObject;
+    	let remoteStream = event.streams[0];
+      /*
+      remoteStream.getTracks().forEach(function(track) {
+        console.log(track);
+      });
+      */
+      if (userJoinOption.joinType === 'caller') {
+        let streams = [displayMediaStream, remoteStream];
+        let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+        let remoteMergedStream = myMerger.result
+        myVideo.srcObject = remoteMergedStream;
+        console.log('caller new stream');
+        $('#CommandBox').find('#ShareWebRCTCmd').hide();
+        $('#CommandBox').find('#StartWebRCTCmd').hide();
+        $('#CommandBox').find('#EndWebRCTCmd').show();
+      } else if (userJoinOption.joinType === 'callee') {
+        myVideo.srcObject = remoteStream;
+        console.log('callee new stream');
+        $('#CommandBox').find('#ShareWebRCTCmd').hide();
+        $('#CommandBox').find('#StartWebRCTCmd').hide();
+        $('#CommandBox').find('#EndWebRCTCmd').show();
+      }
+    }
+  }
+  return remoteConn;
+}
+
+const doCreateOffer = function(wsm) {
+  if (remoteConn){
+    //console.log(remoteConn);
+    remoteConn.createOffer(function (offer) {
+    	remoteConn.setLocalDescription(offer);
+      console.log(offer);
+    	let sendData = {
+    		type: "wrtc",
+    		wrtc: "offer",
+    		offer: offer ,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+    	};
+      wsm.send(JSON.stringify(sendData));
+    }, function (error) {
+  		console.log(error);
+  	});
+  }
+}
+
+const doCreateLeave = function(wsm) {
+	let sendData = {
+		type: "wrtc",
+		wrtc: "leave",
+		leave: {reason: 'Stop with cmd.'},
+		sender: userJoinOption.joinName,
+    sendto: userJoinOption.audienceName
+	};
+  wsm.send(JSON.stringify(sendData));
+}
+
+const wsHandleOffer = function(wsm, offer) {
+  remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
+  remoteConn.createAnswer(function (answer) {
+    remoteConn.setLocalDescription(answer);
+    let sendData = {
+      type: "wrtc",
+      wrtc: "answer",
+      answer: answer,
+      sender: userJoinOption.joinName,
+      sendto: userJoinOption.audienceName
+    };
+    wsm.send(JSON.stringify(sendData));
+  }, function (error) {
+    console.log(error);
+  });
+}
+
+const wsHandleAnswer = function(wsm, answer) {
+  if (remoteConn){
+    remoteConn.setRemoteDescription(new RTCSessionDescription(answer)).then(
+      function() {
+        console.log('remoteConn setRemoteDescription success.');
+        //console.log(remoteConn);
+      }, 	function(error) {
+        console.log('remoteConn Failed to setRemoteDescription:=> ' + error.toString() );
+      }
+    );
+  }
+}
+
+const wsHandleCandidate = function(wsm, candidate) {
+  if (remoteConn){
+    remoteConn.addIceCandidate(new RTCIceCandidate(candidate)).then(
+      function() {/* console.log(candidate) */},
+      function(error) {console.log(error)}
+    );
+  }
+}
+
+const wsHandleLeave = function(wsm, leave) {
+  doEndCall(wsm);
+}
+
+const errorMessage = function(message, evt) {
+	console.error(message, typeof evt == 'undefined' ? '' : evt);
+	alert(message);
+}
+
+const doGetScreenSignalError =  function(evt){
+  var error = {
+    name: evt.name || 'UnKnown',
+    message: evt.message || 'UnKnown',
+    stack: evt.stack || 'UnKnown'
+  };
+  console.error(error);
+  if(error.name === 'PermissionDeniedError') {
+    if(location.protocol !== 'https:') {
+      error.message = 'Please use HTTPs.';
+      error.stack   = 'HTTPs is required.';
+    }
+  }
+}
+
+const doCheckBrowser = function() {
+	return new Promise(function(resolve, reject) {
+		if (location.protocol === 'https:') {
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+			if (navigator.getUserMedia) {
+				//const vidOption = {audio: true, video: {facingMode: 'user',frameRate: 30, width : 640, height:480}};
+				const vidOption = { audio: true, video: true };
+				navigator.getUserMedia(vidOption, function (stream) {
+					var mediaStreamTrack = stream.getVideoTracks()[0];
+					if (typeof mediaStreamTrack == "undefined") {
+						errorMessage('Permission denied!');
+						resolve();
+					} else {
+						userMediaStream = stream;
+						resolve(stream);
+					}
+				}, function (e) {
+					var message;
+					switch (e.name) {
+						case 'NotFoundError':
+						case 'DevicesNotFoundError':
+							message = 'Please setup your webcam first.';
+							break;
+						case 'SourceUnavailableError':
+							message = 'Your webcam is busy';
+							break;
+						case 'PermissionDeniedError':
+						case 'SecurityError':
+							message = 'Permission denied!';
+							break;
+						default: errorMessage('Reeeejected!', e);
+							resolve(false);
+					}
+					errorMessage(message);
+					resolve(false);
+				});
+			} else {
+				errorMessage('Uncompatible browser!');
+				resolve(false);
+			}
+		} else {
+			errorMessage('Please use https protocol for open this page.');
+			resolve(false);
+		}
+	});
+}
+
+const doCreateControlCmd = function(id, iconUrl){
+  let hsIcon = new Image();
+  hsIcon.src = iconUrl;
+  hsIcon.id = id;
+  $(hsIcon).css({"width": "40px", "height": "auto", "cursor": "pointer", "padding": "2px"});
+  $(hsIcon).css({'border': '4px solid grey', 'border-radius': '5px', 'margin': '4px'});
+  $(hsIcon).prop('data-toggle', 'tooltip');
+  $(hsIcon).prop('title', "Share Screen");
+  $(hsIcon).hover(()=>{
+    $(hsIcon).css({'border': '4px solid grey'});
+  },()=>{
+    $(hsIcon).css({'border': '4px solid #ddd'});
+  });
+  return $(hsIcon);
+}
+
+const doCreateShareScreenCmd = function(){
+  let shareScreenIconUrl = '/images/screen-capture-icon.png';
+  let shareScreenCmd = doCreateControlCmd('ShareWebRCTCmd', shareScreenIconUrl);;
+  return $(shareScreenCmd);
+}
+
+//  $(shareScreenCmd).on("click", async function(evt){
+const onShareCmdClickCallback = async function(wsm ,callback){
+  let captureStream = await doGetDisplayMedia();
+  onDisplayMediaSuccess(captureStream, wsm, ()=>{
+    let myRemoteConn = doInitRTCPeer(localMergedStream, wsm);
+    //console.log(myRemoteConn);
+    doSetupRemoteConn(myRemoteConn);
+
+    $('#CommandBox').find('#ShareWebRCTCmd').show();
+
+    $('#CommandBox').find('#EndWebRCTCmd').show();
+
+    callback();
+  });
+}
+
+const doCreateStartCallCmd = function(){
+  let callIconUrl = '/images/phone-call-icon-1.png';
+  let callCmd = doCreateControlCmd('StartWebRCTCmd', callIconUrl);
+  return $(callCmd)
+}
+
+const onDisplayMediaSuccess = function(stream, wsm, callback){
+  let vw, vh;
+  let myVideo = document.getElementById("MyVideo");
+  stream.getTracks().forEach(function(track) {
+    track.addEventListener('ended', function() {
+      console.log('Stop Capture Stream.');
+      doCreateLeave(wsm);
+      displayMediaStream = undefined;
+      myVideo.srcObject = userMediaStream;
+    }, false);
+  });
+
+  //setupDisplayMediaStream(stream);
+  displayMediaStream = stream;
+  let streams = [displayMediaStream, userMediaStream];
+  let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+  localMergedStream = myMerger.result
+  myVideo.srcObject = localMergedStream;
+  myVideo.addEventListener( "loadedmetadata", function (e) {
+    vw = this.videoWidth;
+    vh = this.videoHeight;
+    myVideo.width = vw;
+    myVideo.height = vh;
+  });
+  callback();
+}
+
+const doGetDisplayMedia = function(){
+  return new Promise(async function(resolve, reject) {
+    let captureStream = undefined;
+    if(navigator.mediaDevices.getDisplayMedia) {
+      try {
+        captureStream = await navigator.mediaDevices.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    } else {
+      try {
+        captureStream = await navigator.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    }
+  });
+}
+
+const setScaleDisplay = function( width, height, padding, border ) {
+   var scrWidth = $( window ).width() - 30,
+   scrHeight = $( window ).height() - 30,
+   ifrPadding = 2 * padding,
+   ifrBorder = 2 * border,
+   ifrWidth = width + ifrPadding + ifrBorder,
+   ifrHeight = height + ifrPadding + ifrBorder,
+   h, w;
+
+   if ( ifrWidth < scrWidth && ifrHeight < scrHeight ) {
+	  w = ifrWidth;
+	  h = ifrHeight;
+   } else if ( ( ifrWidth / scrWidth ) > ( ifrHeight / scrHeight ) ) {
+	  w = scrWidth;
+	  h = ( scrWidth / ifrWidth ) * ifrHeight;
+   } else {
+	  h = scrHeight;
+	  w = ( scrHeight / ifrHeight ) * ifrWidth;
+   }
+   return {
+	  width: w - ( ifrPadding + ifrBorder ),
+	  height: h - ( ifrPadding + ifrBorder )
+   };
+}
+
+const doCreateEndCmd = function(){
+  let endIconUrl = '/images/phone-call-icon-3.png';
+  let endCmd = doCreateControlCmd('EndWebRCTCmd', endIconUrl);
+  return $(endCmd);
+}
+
+const doEndCall = function(wsm){
+  let myVideo = document.getElementById("MyVideo");
+  console.log(myVideo);
+  if (myVideo) {
+    doCheckBrowser().then((stream)=>{
+      myVideo.srcObject = stream;
+    });
+  }
+
+  if (displayMediaStream) {
+    displayMediaStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  if (localMergedStream) {
+    localMergedStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  /*
+  if (remoteConn) {
+    remoteConn.close();
+  }
+  */
+  displayMediaStream = undefined;
+  localMergedStream = undefined;
+
+  $('#CommandBox').find('#ShareWebRCTCmd').show();
+  $('#CommandBox').find('#StartWebRCTCmd').hide();
+  $('#CommandBox').find('#EndWebRCTCmd').hide();
+}
+
+
+module.exports = (jq) => {
+  $ = jq;
+  return {
+    streamMerger,
+    videoInitSize,
+    videoConstraints,
+    mergeOption,
+
+    userJoinOption,
+    userMediaStream,
+    displayMediaStream,
+    localMergedStream,
+    remoteConn,
+
+    /************************/
+
+    doSetupRemoteConn,
+    doSetupUserJoinOption,
+    setupDisplayMediaStream,
+    doInitRTCPeer,
+    doCreateOffer,
+    doCreateLeave,
+
+    wsHandleOffer,
+    wsHandleAnswer,
+    wsHandleCandidate,
+    wsHandleLeave,
+    doCheckBrowser,
+    doCreateControlCmd,
+    doCreateShareScreenCmd,
+    onShareCmdClickCallback,
+    doCreateStartCallCmd,
+    doCreateEndCmd,
+    onDisplayMediaSuccess,
+    doGetDisplayMedia,
+    setScaleDisplay,
+    doEndCall
+  }
+}
+
+},{"./streammergermod.js":4}],11:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -3028,7 +3566,8 @@ function doLoadMainPage(){
 	});
 
   document.addEventListener("triggercounter", welcome.onCaseChangeStatusTrigger);
-  document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
+  //document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
+  document.addEventListener("callzoominterrupt", welcome.doInterruptWebRTCCallEvt);
   document.addEventListener("lockscreen", onLockScreenTrigger);
   document.addEventListener("unlockscreen", onUnLockScreenTrigger);
   document.addEventListener("autologout", onAutoLogoutTrigger);
@@ -3533,7 +4072,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/softphonelib.js":3,"../case/mod/userinfolib.js":4,"../case/mod/userprofilelib.js":5,"../case/mod/utilmod.js":6,"./mod/acccaselib.js":9,"./mod/newcaselib.js":13,"./mod/opencase.js":15,"./mod/profilelibV2.js":16,"./mod/searchcaselib.js":17,"./mod/templatelib.js":18,"./mod/welcomelib.js":20,"jquery":21}],9:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/softphonelib.js":3,"../case/mod/userinfolib.js":5,"../case/mod/userprofilelib.js":6,"../case/mod/utilmod.js":7,"./mod/acccaselib.js":12,"./mod/newcaselib.js":16,"./mod/opencase.js":18,"./mod/profilelibV2.js":19,"./mod/searchcaselib.js":20,"./mod/templatelib.js":21,"./mod/welcomelib.js":23,"jquery":24}],12:[function(require,module,exports){
 /* acccaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3842,7 +4381,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8}],10:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11}],13:[function(require,module,exports){
 /*ai-lib.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4132,7 +4671,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],11:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],14:[function(require,module,exports){
 /*changepwddlg.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4229,7 +4768,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],12:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],15:[function(require,module,exports){
 /* chatmanager.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4564,7 +5103,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":6,"../main.js":8}],13:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":7,"../main.js":11}],16:[function(require,module,exports){
 /* newcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4801,7 +5340,7 @@ module.exports = function ( jq ) {
 				} else {
 					$(clockCountdownDiv).css({'background-color': '#177102 ', 'color': 'white'});
 				}
-				
+
 	  		$(caseColumn).appendTo($(caseRow));
 
 	      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
@@ -5265,8 +5804,6 @@ module.exports = function ( jq ) {
 			Promise.all([promiseList]).then((ob)=>{
 				resolve(ob[0]);
 			});
-
-			resolve($(consultView))
 		});
 	}
 
@@ -5527,7 +6064,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./chatmanager.js":12}],14:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./chatmanager.js":15}],17:[function(require,module,exports){
 /* onrefreshtrigger.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5554,7 +6091,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* opencase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7261,7 +7798,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8,"./ai-lib.js":10,"./chatmanager.js":12,"./templatelib.js":18}],16:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
 /*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7916,7 +8453,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"./changepwddlg.js":11}],17:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./changepwddlg.js":14}],20:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8405,7 +8942,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6}],18:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],21:[function(require,module,exports){
 /* templatelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9211,10 +9748,12 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":6,"../main.js":8}],19:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11}],22:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRadio = function (msgEvt) {
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -9252,31 +9791,33 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
-			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-			if (minuteLogout > 0){
-				if (data.counterping == minuteLogout) {
-					let eventName = 'autologout';
+			if ((userdata.userprofiles) && (userdata.userprofiles.length > 0)) {
+				let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+				let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
+				let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+				if (data.counterping == minuteLockScreen) {
+					let eventName = 'lockscreen';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				} else if (tryLockModTime == 0) {
+					let eventName = 'lockscreen';
 		      let evtData = {};
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
-			}
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				if (minuteLogout > 0){
+					if (data.counterping == minuteLogout) {
+						let eventName = 'autologout';
+			      let evtData = {};
+			      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			      document.dispatchEvent(event);
+					}
+				}
+				let modPingCounter = Number(data.counterping) % 10;
+				if (modPingCounter == 0) {
+					wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -9308,6 +9849,23 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -9336,7 +9894,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],20:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":10}],23:[function(require,module,exports){
 /* welcomelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9344,6 +9902,7 @@ module.exports = function ( jq ) {
 	const apiconnector = require('../../case/mod/apiconnect.js')($);
 	const common = require('../../case/mod/commonlib.js')($);
 	const caseCounter = require('./onrefreshtrigger.js')($);
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')($);
 
 	let newstatusCases = [];
   let accstatusCases = [];
@@ -9548,6 +10107,113 @@ module.exports = function ( jq ) {
 		let radConfirmBox = $('body').radalert(radconfirmoption);
 	}
 
+	const doInterruptWebRTCCallEvt = function(evt){
+		$('body').loading('start');
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		const main = require('../main.js');
+		const wsm = main.doGetWsm();
+		//wrtcCommon.doSetupWsm(wsm);
+
+		let callData = evt.detail.data;
+		//console.log(callData);
+
+		wrtcCommon.doCheckBrowser().then((stream)=>{
+			if (stream) {
+				wrtcCommon.userMediaStream = stream;
+				let userJoinOption = {joinType: 'callee', joinName: userdata.username, audienceName: callData.sender, userMediaStream: stream};
+				wrtcCommon.doSetupUserJoinOption(userJoinOption);
+
+				let webRCTBox = $('#WebRCTBox');
+				if (!webRCTBox) {
+					let dlgContent = doCreateWebRCTDlgContent();
+					let radwebrctoption = {
+						title: 'Video Conference [' + callData.topic + ']',
+						msg: $(dlgContent),
+						width: '620px',
+						onOk: function(evt) {
+							webrtcBox.closeAlert();
+						}
+					}
+					let webrtcBox = $('body').radalert(radwebrctoption);
+					$(webrtcBox.cancelCmd).hide();
+				}
+				let myVideo = document.getElementById("MyVideo");
+				//myVideo.srcObject = stream;
+				if (!myVideo.srcObject) {
+					myVideo.srcObject = stream;
+				}
+
+				let shareCmd = wrtcCommon.doCreateShareScreenCmd();
+				$(shareCmd).on('click', (evt)=>{
+					wrtcCommon.onShareCmdClickCallback( wsm, ()=>{
+						$(dlgContent).find('#CommandBox').append($(shareCmd).hide());
+						$(dlgContent).find('#CommandBox').append($(startCmd).show());
+						$(dlgContent).find('#CommandBox').append($(endCmd).hide());
+					});
+				});
+				let startCmd = wrtcCommon.doCreateStartCallCmd();
+				$(startCmd).on('click', (evt)=>{
+					//let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
+					//wrtcCommon.doSetupRemoteConn(myRemoteConn);
+					setTimeout(() => {
+						wrtcCommon.doCreateOffer(wsm);
+						$('body').loading('stop');
+					}, 2500);
+				})
+				let endCmd = wrtcCommon.doCreateEndCmd();
+				$(endCmd).on('click', async (evt)=>{
+					wrtcCommon.userMediaStream = await wrtcCommon.doCheckBrowser();
+					myVideo.srcObject = wrtcCommon.userMediaStream;
+					wrtcCommon.doEndCall(wsm);
+					wrtcCommon.doCreateLeave(wsm);
+				})
+				$(dlgContent).find('#CommandBox').append($(shareCmd).hide());
+				$(dlgContent).find('#CommandBox').append($(startCmd).hide());
+				$(dlgContent).find('#CommandBox').append($(endCmd).hide());
+
+				let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
+				wrtcCommon.doSetupRemoteConn(myRemoteConn);
+				setTimeout(() => {
+					wrtcCommon.doCreateOffer(wsm);
+					$('body').loading('stop');
+				}, 2500);
+			} else {
+				$.notify('เว็บบราวเซอร์ของคุณไม่รองรับการใช้งานฟังก์ชั่นนี้', 'error');
+				$('body').loading('stop');
+			}
+		});
+	}
+
+	const doCreateWebRCTDlgContent = function(){
+		let wrapper = $('<div id="WebRCTBox" style="width: 100%"></div>');
+		let myVideoElem = $('<video id="MyVideo" width="620" height="350" autoplay/>')/*.css({'border': '1px solid blue'})*/;
+		let videoCmdBox = $('<div id="CommandBox" style="width: 100%; text-align: center;"></div>');
+		return $(wrapper).append($(myVideoElem)).append($(videoCmdBox));
+	}
+
+	const onDisplayMediaSuccess = function(stream){
+  	let vw, vh;
+	  let myVideo = document.getElementById("MyVideo");
+		stream.getTracks().forEach(function(track) {
+	    track.addEventListener('ended', function() {
+	      console.log('Stop Stream.');
+	    }, false);
+	  });
+
+	  wrtcCommon.displayMediaStream = stream;
+
+	  let streams = [wrtcCommon.displayMediaStream, wrtcCommon.userMediaStream];
+	  let myMerger = wrtcCommon.streamMerger.CallcenterMerger(streams, wrtcCommon.mergeOption);
+	  wrtcCommon.localMergedStream = myMerger.result
+	  myVideo.srcObject = wrtcCommon.localMergedStream;
+		myVideo.addEventListener( "loadedmetadata", function (e) {
+	    vw = this.videoWidth;
+	    vh = this.videoHeight;
+	    myVideo.width = vw;
+	    myVideo.height = vh;
+	  });
+	}
+
   return {
 		/*
 		newstatusCases,
@@ -9556,11 +10222,13 @@ module.exports = function ( jq ) {
 
 		doCreateHomeTitlePage,
 		onCaseChangeStatusTrigger,
-		doSetupCounter
+		doSetupCounter,
+		doInterruptZoomCallEvt,
+		doInterruptWebRTCCallEvt
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../main.js":8,"./onrefreshtrigger.js":14}],21:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/wrtc-common.js":10,"../main.js":11,"./onrefreshtrigger.js":17}],24:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -20434,10 +21102,12 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRefer = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
@@ -20480,34 +21150,30 @@ module.exports = function ( jq, wsm ) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
       console.log('Ping Data =>', data);
-      /*
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-        */
 		} else if (data.type == 'unlockscreen') {
-      /*
-			let eventName = 'unlockscreen';
-			let evtData = {};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-			document.dispatchEvent(event);
-      */
+
     } else if (data.type == 'message') {
       $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -20536,4 +21202,4 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}]},{},[8]);
+},{"../../case/mod/wrtc-common.js":10}]},{},[11]);

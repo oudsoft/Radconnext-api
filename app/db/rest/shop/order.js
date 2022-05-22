@@ -21,8 +21,8 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}];
-          const orders = await db.orders.findAll({attributes: excludeColumn, include: menuInclude, where: {shopId: shopId}, order: orderby});
+          const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
+          const orders = await db.orders.findAll({include: menuInclude, where: {shopId: shopId}, order: orderby});
           res.json({status: {code: 200}, Records: orders});
         } catch(error) {
           log.error(error);
@@ -50,7 +50,7 @@ app.post('/list/by/user/(:userId)', (req, res) => {
           const orderby = [['id', 'ASC']];
           const userId = req.params.userId;
           const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}];
-          const orders = await db.orders.findAll({attributes: excludeColumn, include: menuInclude, where: {userId: userId}, order: orderby});
+          const orders = await db.orders.findAll({include: menuInclude, where: {userId: userId}, order: orderby});
           res.json({status: {code: 200}, Records: orders});
         } catch(error) {
           log.error(error);
@@ -77,7 +77,8 @@ app.post('/select/(:orderId)', (req, res) => {
       if (ur.length > 0){
         try {
           let orderId = req.params.orderId;
-          const orders = await db.orders.findAll({ attributes: excludeColumn, where: {id: orderId}});
+          const orderInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel', 'Mail']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
+          const orders = await db.orders.findAll({ attributes: excludeColumn, include: orderInclude, where: {id: orderId}});
           res.json({status: {code: 200}, Record: orders[0]});
         } catch(error) {
           log.error(error);
@@ -104,7 +105,7 @@ app.post('/add', async (req, res) => {
       if (ur.length > 0){
         let newOrder = req.body.data;
         let adOrder = await db.orders.create(newOrder);
-        await db.orders.update({shopId: req.body.shopId, customerId: req.body.customerId, userId: req.body.userId}, {where: {id: adOrder.id}});
+        await db.orders.update({shopId: req.body.shopId, customerId: req.body.customerId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adOrder.id}});
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

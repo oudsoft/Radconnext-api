@@ -338,7 +338,7 @@ const doCaseExpireAction = function(tasks, caseId, socket, newcaseStatusId, radi
     if (fromStusId == 1){
       radioMsgFmt = 'ระบบปฏิเสธเคสจากโรงพยาบาล %s\nชื่อ %s\ อัติโนมัติแล้ว เนื่องจากหมดเวลา';
       ownerMsgFmt = 'รังสีแพทย์ไม่ได้ตอบรับเคสชื่อ %s\n%s\n ภายในเวลาที่กำหนด';
-    } else if ((fromStusId == 2) || (fromStusId == 8) || (fromStusId == 9)){
+    } else if ((fromStusId == 2) || (fromStusId == 8)/* || (fromStusId == 9)*/){
       radioMsgFmt = 'ระบบปฏิเสธเคสจากโรงพยาบาล %s\nชื่อ %s\ อัติโนมัติแล้ว เนื่องจากหมดเวลาอ่านผล';
       ownerMsgFmt = 'รังสีแพทย์ไม่ได้เริ่มอ่านผลชื่อ %s\n%s\n ภายในเวลาที่กำหนด';
     }
@@ -398,9 +398,10 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
         let nextList = await doCanNextStatus(nowcaseStatus[0].casestatusId);
         log.info('nextList=> ' + JSON.stringify(nextList.next));
-        let canExpired = (nextList.next.indexOf(4) >= 0);
+        const caseExpireStatusId = 4;
+        let canExpired = (nextList.next.indexOf(caseExpireStatusId) >= 0);
         if (canExpired) {
-          await doCaseExpireAction(tasks, caseId, socket, baseCaseStatusId, radioProfile, userProfile, caseMsgData, userProfile.hospitalName);
+          await doCaseExpireAction(tasks, caseId, socket, caseExpireStatusId, radioProfile, userProfile, caseMsgData, userProfile.hospitalName);
         } else {
           log.info('case ' + caseId + ' can not set to expire because not found its next ' + JSON.stringify(nextList.next));
         }

@@ -65,11 +65,12 @@ mainApp.use('/shop', controlOrigin, express.static(__dirname + '/../shop'));
  */
 
 
-//httpServer = http.createServer( mainApp ).listen(4443);
 httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
 httpsServer.listen(port);
 httpsServer.on('error', onError);
 httpsServer.on('listening', onListening);
+
+//httpServer = http.createServer( mainApp ).listen(3033);
 
 //webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
 //const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);

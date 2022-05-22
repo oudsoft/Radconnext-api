@@ -210,12 +210,14 @@ app.post('/add', async (req, res) => {
   resourceType => {patient/study}
 */
 app.post('/update', async (req, res) => {
+	let id = req.body.id;
   let updateDicomTransferLog = req.body;
   await DicomTransferLog.update(updateDicomTransferLog, { where: { id: id } });
   res.json({Result: "OK"});
 });
 
 app.post('/delete', async (req, res) => {
+	let id = req.body.id;
   await DicomTransferLog.destroy({ where: { id: id } });
   res.json({Result: "OK"});
 });

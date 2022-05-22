@@ -12,27 +12,6 @@ var db, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
-const doGenOptions = function(shopId) {
-  return new Promise(function(resolve, reject) {
-    const promiseList = new Promise(async function(resolve, reject) {
-      const orderby = [['id', 'ASC']];
-      const customers = await db.customers.findAll({ attributes: ['id', 'Name'], where: {shopId: shopId}, order: orderby});
-      const result = [];
-      customers.forEach((customer, i) => {
-        result.push({Value: customer.id, DisplayText: customer.Name});
-      });
-      setTimeout(()=> {
-        resolve({Result: "OK", Options: result});
-      },200);
-    });
-    Promise.all([promiseList]).then((ob)=> {
-      resolve(ob[0]);
-    }).catch((err)=>{
-      reject(err);
-    });
-  });
-}
-
 //List API
 app.post('/list/by/shop/(:shopId)', (req, res) => {
   let token = req.headers.authorization;
@@ -42,8 +21,62 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const customers = await db.customers.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
-          res.json({status: {code: 200}, Records: customers});
+          const bills = await db.bills.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
+          res.json({status: {code: 200}, Records: bills});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/list/by/user/(:userId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const orderby = [['id', 'ASC']];
+          const userId = req.params.userId;
+          const bills = await db.bills.findAll({attributes: excludeColumn, where: {userId: userId}, order: orderby});
+          res.json({status: {code: 200}, Records: bills});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/find/last/billno/(:shopId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const orderby = [['id', 'DESC']];
+          const shopId = req.params.shopId;
+          const bills = await db.bills.findAll({attributes: ['No'], where: {shopId: shopId}, order: orderby, limit: 1});
+          res.json({status: {code: 200}, Records: bills});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -62,14 +95,14 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
 });
 
 //Select API
-app.post('/select/(:customerId)', (req, res) => {
+app.post('/select/(:billId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          let customerId = req.params.customerId;
-          const customers = await db.customers.findAll({ attributes: excludeColumn, where: {id: customerId}});
+          let billId = req.params.billId;
+          const bills = await db.bills.findAll({ attributes: excludeColumn, where: {id: billId}});
           res.json({status: {code: 200}, Record: customers[0]});
         } catch(error) {
           log.error(error);
@@ -94,11 +127,9 @@ app.post('/add', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newCustomer = req.body.data;
-        let adCustomer = await db.customers.create(newCustomer);
-        await db.customers.update({shopId: req.body.shopId},{where: {id: adCustomer.id}});
-        const customers = await db.customers.findAll({ attributes: excludeColumn, where: {id: adCustomer.id}});
-        res.json({Result: "OK", status: {code: 200}, Record: customers[0]});
+        let newbill = req.body.data;
+        let adbill = await db.bills.create(newbill);
+        res.json({Result: "OK", status: {code: 200}, Record: adbill});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -118,8 +149,8 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let updateCustomer = req.body.data;
-        await db.customers.update(updateCustomer, { where: { id: req.body.id } });
+        let updatebill = req.body.data;
+        await db.bills.update(updatebill, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
@@ -140,7 +171,7 @@ app.post('/delete', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        await db.cutomers.destroy({ where: { id: req.body.id } });
+        await db.bills.destroy({ where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -153,20 +184,6 @@ app.post('/delete', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
-});
-
-app.get('/options/(:shopId)', (req, res) => {
-  let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
-    res.json(result);
-  })
-});
-
-app.post('/options/(:shopId)', async (req, res) => {
-  let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
-    res.json(result);
-  })
 });
 
 module.exports = ( dbconn, monitor ) => {

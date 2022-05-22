@@ -56,11 +56,16 @@ const doCreatePlayCmd = function(imageLists, seriesId, playCmdClickCallback){
   return $(playIconCmd);
 }
 const doCreateSponsorBox = function(imageTitle, linkTo){
-  let sponsorBoard = $('<img src="' + imageTitle + '" style="cursor: pointer; width: 100%; height: auto; display: none;"/>');
+  let sponsorBoard = $('<img src="' + imageTitle + '" style="cursor: pointer; width: auto; height: 370px; display: block; text-align: center;"/>');
   $(sponsorBoard).on('click', (evt)=>{
     $(sponsorBoard).parent().focus();
     window.open(linkTo, '_blank');
   });
+  $(sponsorBoard).on('load', (evt)=>{
+    let img = $(evt.currentTarget);
+    $(img).center($(sponsorBoard).parent());
+  });
+
   return $(sponsorBoard);
 }
 /*****************************************************/
@@ -157,7 +162,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     var m = imageFileLower.indexOf("mp4");
     if (n >= 0){
       let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
-      let thumb = $('<img width="65px" height="auto" src="' + src + '"/>');
+      let thumb = $('<img width="65px" height="auto" src="' + src + '" title="' + imageFile + '"/>');
       $(thumb).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
       $(thumb).on('click', (evt)=> {
         let imageCode = imageFile.split('.');
@@ -183,6 +188,14 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     return this[Math.floor((Math.random()*this.length))];
   }
 
+  $.fn.center = function (parent) {
+     let leftPos = ($(parent).width() - this.width()) / 2;
+     let topPos =  ($(parent).height() - this.height()) / 2;
+     this.css("margin-left", leftPos  + "px");
+     this.css("margin-top", topPos  + "px");
+     return this;
+  }
+
   /*****************************************************/
   const defaultTitle = 'Rad Connext Share';
 
@@ -190,21 +203,9 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const params = new URLSearchParams(queryString);
   const id = params.get('id');
 
-  const sponsorBox = $('<div style="position: relative; width: 100%; text-align: center;" tabindex="1"></div>');
+  const sponsorBox = $('<div style="position: relative; min-height: 400px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
-  const imageFiles = [
-    '0000-001.jpg', '0000-002.jpg', '0000-003.jpg', '0000-004.jpg', '0000-005.jpg', '0000-006.jpg', '0000-007.jpg', '0000-008.jpg', '0000-009.jpg', '0000-010.jpg', '0000-011.jpg', '0000-012.jpg', '0000-013.jpg', '0000-014.jpg', '0000-015.jpg', '0000-016.jpg', '0000-017.jpg', '0000-018.jpg', '0000-019.jpg', '0000-020.jpg',
-    '0000-021.jpg', '0000-022.jpg', '0000-023.jpg', '0000-024.jpg', '0000-025.jpg', '0000-026.jpg', '0000-027.jpg', '0000-028.jpg', '0000-029.jpg', '0000-030.jpg', '0000-031.jpg', '0000-032.jpg', '0000-033.jpg', '0000-034.jpg', '0000-035.jpg', '0000-036.jpg', '0000-037.jpg', '0000-038.jpg', '0000-039.jpg', '0000-040.jpg',
-    '0000-041.jpg', '0000-042.jpg', '0000-043.jpg', '0000-044.jpg', '0000-045.jpg', '0000-046.jpg', '0000-047.jpg', '0000-048.jpg', '0000-049.jpg', '0000-050.jpg', '0000-051.jpg', '0000-052.jpg', '0000-053.jpg', '0000-054.jpg', '0000-055.jpg', '0000-056.jpg', '0000-057.jpg', '0000-058.jpg', '0000-059.jpg', '0000-060.jpg',
-    '0000-061.jpg', '0000-062.jpg', '0000-063.jpg', '0000-064.jpg', '0000-065.jpg', '0000-066.jpg', '0000-067.jpg', '0000-068.jpg', '0000-069.jpg', '0000-070.jpg'
-  ];
-
-  for (let i=0; i < imageFiles.length; i++) {
-    let imageLink = imageTitleUrl + imageFiles[i];
-    let sponsorBoard = doCreateSponsorBox(imageLink, linkTo);
-    $(sponsorBox).append($(sponsorBoard))
-  }
 
   let shareBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
   let myLiffUrl = undefined;
@@ -239,6 +240,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $('#app').append($(shareBox));
     //$('#app').prepend($(thumbsWrapper));
     $('#app').prepend($(sponsorBox));
+    //$('#app').find('img').center($(sponsorBox));
   } else {
     let seriesIdParam = params.get('seriesId');
     if (seriesIdParam){
@@ -372,68 +374,108 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     }
   }
 
-  let minimum = 0;
-  let maximum = imageFiles.length - 1;
-  let currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
-  let bannerImages = $(sponsorBox).children('img');
-  let sponsorTimer = undefined;
-  const doPlaySport = function(n){
-    $(bannerImages[n]).css({'display': 'block'});
-    sponsorTimer = window.setTimeout(()=>{
-      $(bannerImages[n]).css({'display': 'none'});
-      /*
-      let i = n + 1;
-      if (n >= (bannerImages.length-1)){
-        i = 0;
-      }
-      currentPlaySportIndex = i;
-      */
-      currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
-      doPlaySport(currentPlaySportIndex);
-    }, 30 * 1000);
+  const doCallSponsorList = function(){
+    return new Promise(async function(resolve, reject) {
+      let seriesUrl = '/api/usr/upload/series/sponsor-001';
+      let resMe = await doCallListSeries(seriesUrl);
+      resolve(resMe);
+    });
   }
 
+  const doCreateMySponsor = function(){
+    return new Promise(async function(resolve, reject) {
+      let sponsorImages = await doCallSponsorList();
+      let imageFiles = await sponsorImages.filter((item, i) => {
+        if (item.indexOf('0000') == 0) {
+          return item;
+        }
+      });
+      let imageLink = imageTitleUrl + imageFiles[0];
+      let sponsorBoard = doCreateSponsorBox(imageLink, linkTo);
+      $(sponsorBox).append($(sponsorBoard)).append($('<span>' + imageFiles[0] + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}))
+      $(sponsorBoard).center($(sponsorBox));
 
-  doPlaySport(currentPlaySportIndex);
+      let minimum = 0;
+      let maximum = imageFiles.length - 1;
+      let currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
 
-  $(sponsorBox).on('keydown', (evt)=>{
-    switch (evt.keyCode) {
-      case 39:
-        /* Arrow Right */
-        $(bannerImages[currentPlaySportIndex]).css({'display': 'none'});
-        ++currentPlaySportIndex;
-        if (currentPlaySportIndex == bannerImages.length) {
-          currentPlaySportIndex = 0;
-        }
-        $(bannerImages[currentPlaySportIndex]).css({'display': 'block'});
-        if (sponsorTimer) {
-          window.clearTimeout(sponsorTimer);
-        }
-      break;
-      case 37:
-        /* Arrow Left */
-        $(bannerImages[currentPlaySportIndex]).css({'display': 'none'});
-        --currentPlaySportIndex;
-        if (currentPlaySportIndex < 0) {
-          currentPlaySportIndex = bannerImages.length - 1;
-        }
-        $(bannerImages[currentPlaySportIndex]).css({'display': 'block'});
-        if (sponsorTimer) {
-          window.clearTimeout(sponsorTimer);
-        }
-      break;
-      case 38:
-        /* Arrow Up */
+      let sponsorTimer = undefined;
+      const doPlaySport = function(n){
+        imageLink = imageTitleUrl + imageFiles[n];
+        $(sponsorBox).find('span').text(imageFiles[n])
+        $(sponsorBox).find('img').attr('src', imageLink);
+        $(sponsorBox).find('img').attr("onclick", "").unbind("click");
+        $(sponsorBox).find('img').on('click', (evt)=>{
+          let imageCode = imageLists[n].split('.');
+          openUrl = linkTo + 'k!' + imageCode[0];
+          window.open(openUrl, '_blank');
+        });
+        sponsorTimer = window.setTimeout(()=>{
+          currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+          doPlaySport(currentPlaySportIndex);
+        }, 30 * 1000);
+      }
+
+      setTimeout(()=>{
+        $(sponsorBoard).center($(sponsorBox));
         doPlaySport(currentPlaySportIndex);
-      break;
-      case 40:
-        /* Arrow Down */
-        doPlaySport(currentPlaySportIndex);
-      break;
-    }
-  });
+      }, 2000);
 
-  $(sponsorBox).focus();
+      $(sponsorBox).on('keydown', (evt)=>{
+        switch (evt.keyCode) {
+          case 39:
+            /* Arrow Right */
+            ++currentPlaySportIndex;
+            if (currentPlaySportIndex == imageFiles.length) {
+              currentPlaySportIndex = 0;
+            }
+            imageLink = imageTitleUrl + imageFiles[currentPlaySportIndex];
+            $(sponsorBox).find('img').attr('src', imageLink);
+            $(sponsorBox).find('img').on('click', (evt)=>{
+              let imageCode = imageLists[currentPlaySportIndex].split('.');
+              openUrl = linkTo + 'k!' + imageCode[0];
+              window.open(openUrl, '_blank');
+            })
+            if (sponsorTimer) {
+              window.clearTimeout(sponsorTimer);
+            }
+          break;
+          case 37:
+            /* Arrow Left */
+            --currentPlaySportIndex;
+            if (currentPlaySportIndex < 0) {
+              currentPlaySportIndex = imageFiles.length - 1;
+            }
+            imageLink = imageTitleUrl + imageFiles[currentPlaySportIndex];
+            $(sponsorBox).find('img').attr('src', imageLink);
+            $(sponsorBox).find('img').on('click', (evt)=>{
+              let imageCode = imageLists[currentPlaySportIndex].split('.');
+              openUrl = linkTo + 'k!' + imageCode[0];
+              window.open(openUrl, '_blank');
+            })
+            if (sponsorTimer) {
+              window.clearTimeout(sponsorTimer);
+            }
+          break;
+          case 38:
+            /* Arrow Up */
+            doPlaySport(currentPlaySportIndex);
+          break;
+          case 40:
+            /* Arrow Down */
+            doPlaySport(currentPlaySportIndex);
+          break;
+        }
+      });
+
+      $(sponsorBox).focus();
+
+      resolve();
+    });
+  }
+
+  doCreateMySponsor();
+
 
   const doCreateImgView = function(seriesId, imageFile){
     let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
@@ -517,6 +559,11 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
     $(myPBox).parent().css({'width': '100%', 'min-height': '100%'});
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
+    $(imgBox).on('load', (evt)=>{
+      let img = $(evt.currentTarget);
+      //console.log(evt);
+      $(img).center($(myPBox));
+    });
     $(myPBox).append($(imgBox));
     let closeCmd = $('<input type="button" value=" Close "/>');
     $(closeCmd).on('click', (evt)=>{
@@ -534,7 +581,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       }
     });
 
-    $(myPBox).append($(closeCmd)).append($(settingTimeCmd));
+
+    $(myPBox).append($('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(closeCmd)).append($(settingTimeCmd)));
     $(myPBox).focus();
 
     let currentPlayPreviewIndex = 0;

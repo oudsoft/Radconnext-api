@@ -81,7 +81,7 @@
     }
 
     const doCreateAlertBox = function(msg){
-      alertBox = $('<div></div>');
+      alertBox = $('<div id="RadAlert"></div>');
       $(alertBox).css(contentStyle);
       $(alertBox).css({width: settings.width, height: settings.heigth});
       let titleBox = doCreateTitleBar();

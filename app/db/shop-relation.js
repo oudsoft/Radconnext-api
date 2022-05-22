@@ -76,16 +76,27 @@ const orders = sequelize.define('orders', Def.ShopOrderDef);
 orders.belongsTo(shops);
 orders.belongsTo(customers);
 orders.belongsTo(users);
+orders.belongsTo(userinfoes);
 
 const invoices = sequelize.define('invoices', Def.ShopInvoiceDef);
 invoices.belongsTo(shops);
 invoices.belongsTo(orders);
 invoices.belongsTo(users);
+invoices.belongsTo(userinfoes);
+
+const paytypes = sequelize.define('paytypes', Def.ShopPaytypeDef);
+
+const payments = sequelize.define('payments', Def.ShopPaymentDef);
+invoices.belongsTo(shops);
+payments.belongsTo(invoices);
+invoices.belongsTo(users);
+invoices.belongsTo(userinfoes);
 
 const bills = sequelize.define('bills', Def.ShopBillDef);
 bills.belongsTo(shops);
 bills.belongsTo(orders);
 bills.belongsTo(users);
+bills.belongsTo(userinfoes);
 
 const templates = sequelize.define('templates', Def.ShopTemplateDef);
 templates.belongsTo(shops);
@@ -103,6 +114,8 @@ module.exports =  {
   customers,
   orders,
   invoices,
+  paytypes,
+  payments,
   bills,
   templates
 }

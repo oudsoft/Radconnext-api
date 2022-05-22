@@ -10,6 +10,7 @@ function RadconWebSocketServer (arg, db, log) {
 	this.socket = wss;
 	this.clients = [];
 	this.db = db;
+	this.unSendDatas = [];
 
 	wss.on('connection', async function (ws, req) {
 		log.info(ws._socket.remoteAddress);
@@ -64,6 +65,23 @@ function RadconWebSocketServer (arg, db, log) {
 			$this.clients.push(ws);
 			allClient = await $this.listClient();
 			log.info('allClient after one connect=> ' + JSON.stringify(allClient));
+
+			let unSendMes = await $this.unSendDatas.filter((item)=>{
+				if (ws.id === item.sendTo) {
+					return item;
+				}
+			});
+			if (unSendMes.length > 0){
+				await unSendMes.forEach(async(item, i) => {
+					await $this.selfSendMessage(ws, item.callData, item.sendTo);
+				});
+				let unSendOthers = await $this.unSendDatas.filter((item)=>{
+					if (ws.id !== item.sendTo) {
+						return item;
+					}
+				});
+				$this.unSendDatas = unSendOthers;
+			}
 		}
 
 		ws.send(JSON.stringify({type: 'test', message: ws.id + '[' + ws.hospitalId +'], You have Connected master websocket success.'}));
@@ -115,7 +133,7 @@ function RadconWebSocketServer (arg, db, log) {
 						hospitalId = data.hospitalId;
 						queryPath = data.queryPath;
 						let cfindResult = {type: "cfindresult", result: data.data, hospitalId: hospitalId, owner: owner, queryPath: queryPath};
-						$this.selfSendMessage(ws, cfindResult, owner);
+						await $this.selfSendMessage(ws, cfindResult, owner);
 					break;
 					case "move":
 						if (data.data) {
@@ -138,7 +156,7 @@ function RadconWebSocketServer (arg, db, log) {
 						hospitalId = data.hospitalId;
 						let patientID = data.PatientID;
 						let cmoveResult = {type: "cmoveresult", result: data.data, patientID: patientID, owner: owner, hospitalId: hospitalId};
-						$this.selfSendMessage(ws, cmoveResult, owner);
+						await $this.selfSendMessage(ws, cmoveResult, owner);
 					break;
 					case "clientrun":
 						if (data.commands) {
@@ -209,21 +227,21 @@ function RadconWebSocketServer (arg, db, log) {
 					break;
 					case "logreturn":
 						let logReturn = {type: 'logreturn', log: data.result.log, sender: data.sender};
-						$this.selfSendMessage(ws, logReturn, data.sender);
+						await $this.selfSendMessage(ws, logReturn, data.sender);
 					break;
 					case "reportlogreturn":
 						let reportLogReturn = {type: 'reportlogreturn', log: data.result.log, sender: data.sender};
-						$this.selfSendMessage(ws, reportLogReturn, data.sender);
+						await $this.selfSendMessage(ws, reportLogReturn, data.sender);
 					break;
 					case "dicomlogreturn":
 						let dicomLogReturn = {type: 'dicomlogreturn', log: data.result.log, sender: data.sender};
-						$this.selfSendMessage(ws, dicomLogReturn, data.sender);
+						await $this.selfSendMessage(ws, dicomLogReturn, data.sender);
 					break;
 
 					case "runresult":
 						owner = data.owner;
 						let runResult = {type: "runresult", result: data.data, owner: owner};
-						$this.selfSendMessage(ws, runResult, owner);
+						await $this.selfSendMessage(ws, runResult, owner);
 					break;
 					case "clientrestart":
 						let clientSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
@@ -242,12 +260,24 @@ function RadconWebSocketServer (arg, db, log) {
 					case "callzoom":
 						let sendTo = data.sendTo;
 						let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
-						$this.selfSendMessage(ws, callData, sendTo);
+						let canSendCallZomm = await $this.selfSendMessage(ws, callData, sendTo);
+						if (!canSendCallZomm) {
+							$this.unSendDatas.push({sendTo: sendTo, callData: callData});
+						} else {
+							let radioCaseUserLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {userId: data.radioId}});
+							let radioLineUserId = radioCaseUserLines[0].UserId;
+							if ((radioLineUserId) && (radioLineUserId !== '')) {
+								let vdoCallReqFmt = 'มี Video Call หัวข้อ %s โดย %s เป็นผู้ขอ โปรดล็อกอินเข้าระบบ เพื่อเปิด Video Call หัวข้อดังกล่าว'
+								let lineVdoCallMsg = uti.fmtStr(vdoCallReqFmt, data.topic, data.senderInfo);
+								let vdoCallMenuQuickReply = lineApi.createBotMenu(lineVdoCallMsg, 'quick', lineApi.radioMainMenu);
+								let vdoCallBotResponse = await lineApi.pushConnect(radioLineUserId, vdoCallMenuQuickReply);
+							}
+						}
 					break;
 					case "callzoomback":
 						let sendBackTo = data.sendTo;
 						let resultData = {type: 'callzoomback', result: data.result};
-						$this.selfSendMessage(ws, resultData, sendBackTo);
+						let canSendCallZommBack = await $this.selfSendMessage(ws, resultData, sendBackTo);
 					break;
 					case "reset":
 						ws.counterping = 0;
@@ -382,15 +412,17 @@ function RadconWebSocketServer (arg, db, log) {
 		});
 	}
 
-	this.selfSendMessage = async function(fromWs, message, sendto) {
-		let userSocket = await $this.findUserSocket(sendto);
-		if (userSocket) {
-			userSocket.send(JSON.stringify(message));
-			return true;
-		} else {
-			log.error('selfSendMessage::Can not find socket of ' + sendto);
-			return false;
-		}
+	this.selfSendMessage = function(fromWs, message, sendto) {
+		return new Promise(async function(resolve, reject) {
+			let userSocket = await $this.findUserSocket(sendto);
+			if (userSocket) {
+				userSocket.send(JSON.stringify(message));
+				resolve(true);
+			} else {
+				log.error('selfSendMessage::Can not find socket of ' + sendto);
+				resolve(false);
+			}
+		});
 	}
 
 	this.sendMessage = function(message, sendto) {

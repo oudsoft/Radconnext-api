@@ -145,6 +145,7 @@ function doLoadMainPage(){
   document.addEventListener("triggercasecounter", casecounter.onCaseChangeStatusTrigger);
   document.addEventListener("triggerconsultcounter", casecounter.onConsultChangeStatusTrigger);
   document.addEventListener("triggernewdicom", onNewDicomTransferTrigger);
+  document.addEventListener("triggercasemisstake", onCaseMisstakeNotifyTrigger);
   document.addEventListener("clientreconnecttrigger", onClientReconnectTrigger);
   document.addEventListener("clientresult", onClientResult);
 
@@ -207,7 +208,7 @@ function doLoadMainPage(){
 				let titleContent = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [เคสใหม่] -รอตอบรับจากรังสีแพทย์</h3></div>');
 				$(titleContent).appendTo($(titlePage));
 				$("#TitleContent").empty().append($(titlePage));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseReadWaitStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseReadWaitStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         }).catch(async (err)=>{
@@ -234,7 +235,7 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ตอบรับแล้ว] -รอผลอ่าน</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.casePositiveStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.casePositiveStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
@@ -247,7 +248,7 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ได้ผลอ่านแล้ว]</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseReadSuccessStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseReadSuccessStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
@@ -259,16 +260,16 @@ function doLoadMainPage(){
 				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>รายการเคสไม่สมบูรณ์/รอคำสั่ง</h3></div>');
 				$(titleResult).appendTo($(resultTitle));
 				$("#TitleContent").empty().append($(resultTitle));
-				let rqParams = { hospitalId: userdata.hospitalId, userId: userdata.id, statusId: common.caseNegativeStatus };
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseNegativeStatus };
 				cases.doLoadCases(rqParams).then(()=>{
           common.doScrollTopPage();
         });
 			});
 			$(document).on('opensearchcase', async (evt, data)=>{
 				$('body').loading('start');
-				let toDayFormat = util.getTodayDevFormat();
-
-				let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
+        let yesterDayFormat = util.getYesterdayDevFormat();
+        let toDayFormat = util.getTodayDevFormat();
+				let defaultSearchKey = {fromDateKeyValue: yesterDayFormat, toDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
 				let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
 
 				let searchTitlePage = cases.doCreateSearchTitlePage();
@@ -487,6 +488,44 @@ const onNewDicomTransferTrigger = function(evt){
   webworker.postMessage(JSON.stringify(synmessageCmd));
 }
 
+const onCaseMisstakeNotifyTrigger = function(evt){
+  let trigerData = evt.detail.data;
+  let msg = trigerData.msg;
+  let from = trigerData.from;
+  let patientFullName = trigerData.caseData.patientFullName;
+  let patientHN = trigerData.caseData.patientHN;
+  let caseScanParts = trigerData.caseData.caseScanParts;
+  let caseScanPartsText = '';
+  caseScanParts.forEach((item, i) => {
+    if (i != (caseScanParts.length - 1)) {
+      caseScanPartsText  += item.Name + ' \ ';
+    } else {
+      caseScanPartsText  += item.Name;
+    }
+  });
+
+  let radAlertMsg = $('<div></div>');
+  let notifyFromromBox = $('<div></div>');
+  $(notifyFromromBox).append($('<p>ผ้ป่วย ชื่อ ' + patientFullName + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>HN ' + patientHN + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ฆScan Part ' + caseScanPartsText + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ผู้แจ้ง ' + from.userfullname + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>สาเหตุเคสผิดพลาด ' + msg.cause + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(notifyFromromBox).append($('<p>ข้อความแจ้งเพิ่มเติม ' + msg.other + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+  $(radAlertMsg).append($(notifyFromromBox));
+
+  const radalertoption = {
+    title: 'ข้อความแจ้งเตือนเตสผิดพลาด',
+    msg: $(radAlertMsg),
+    width: '420px',
+    onOk: function(evt) {
+      radConfirmBox.closeAlert();
+    }
+  }
+  let radAlertBox = $('body').radalert(radalertoption);
+  $(radAlertBox.cancelCmd).hide();
+}
+
 const onClientReconnectTrigger = function(evt){
   let trigerData = evt.detail.data;
   let userdata = doGetUserData();
@@ -618,7 +657,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"./mod/apiconnect.js":2,"./mod/case.js":3,"./mod/casecounter.js":4,"./mod/commonlib.js":5,"./mod/consult.js":6,"./mod/createnewcase.js":7,"./mod/dicomfilter.js":9,"./mod/jquery-ex.js":10,"./mod/master-notify.js":11,"./mod/softphonelib.js":12,"./mod/urgentstd.js":13,"./mod/userinfolib.js":14,"./mod/userprofilelib.js":15,"./mod/utilmod.js":16,"jquery":18}],2:[function(require,module,exports){
+},{"./mod/apiconnect.js":2,"./mod/case.js":3,"./mod/casecounter.js":4,"./mod/commonlib.js":5,"./mod/consult.js":6,"./mod/createnewcase.js":7,"./mod/dicomfilter.js":9,"./mod/jquery-ex.js":10,"./mod/master-notify.js":11,"./mod/softphonelib.js":12,"./mod/urgentstd.js":14,"./mod/userinfolib.js":15,"./mod/userprofilelib.js":16,"./mod/utilmod.js":17,"jquery":21}],2:[function(require,module,exports){
 /* apiconnect.js */
 
 const apiExt = ".php";
@@ -1203,7 +1242,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":16}],3:[function(require,module,exports){
+},{"./utilmod.js":17}],3:[function(require,module,exports){
 /* case.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2256,7 +2295,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../main.js":1,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":7,"./utilmod.js":16}],4:[function(require,module,exports){
+},{"../main.js":1,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":7,"./utilmod.js":17}],4:[function(require,module,exports){
 /* casecounter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2355,10 +2394,10 @@ module.exports = function ( jq ) {
     }
   }
 
-  const doLoadCaseForSetupCounter = function(userId){
+  const doLoadCaseForSetupCounter = function(userId, hospitalId){
 		return new Promise(async function(resolve, reject) {
 			let loadUrl = '/api/cases/load/list/by/status/owner';
-			let rqParams = {userId: userId};
+			let rqParams = {userId: userId, hospitalId: hospitalId};
 			/*
 			rqParams.casestatusIds = [1];
 			let newList = await common.doCallApi(loadUrl, rqParams);
@@ -2393,7 +2432,8 @@ module.exports = function ( jq ) {
 			$('body').loading('start');
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
-			doLoadCaseForSetupCounter(userId).then(async (myList)=>{
+			let hospitalId = userdata.hospitalId;
+			doLoadCaseForSetupCounter(userId, hospitalId).then(async (myList)=>{
 
 				newstatusCases = [];
 			  accstatusCases = [];
@@ -2653,6 +2693,7 @@ module.exports = function ( jq ) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
 				resolve(response);
 			}).catch((err) => {
+				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
 			})
 		});
@@ -3059,7 +3100,7 @@ module.exports = function ( jq ) {
 		rqParams.Case_OrthancStudyID = newCaseData.studyID;
 		rqParams.Case_ACC = newCaseData.acc;
 		rqParams.Case_BodyPart = newCaseData.bodyPart;
-		rqParams.Case_ScanPart = newCaseData.scanpartItem;
+		rqParams.Case_ScanPart = newCaseData.scanpartItems;
 		rqParams.Case_Modality = newCaseData.mdl;
 		rqParams.Case_Manufacturer = newCaseData.manufacturer;
 		rqParams.Case_ProtocolName = newCaseData.protocalName;
@@ -3393,6 +3434,11 @@ module.exports = function ( jq ) {
 					} else {
 						joinText += item.Name;
 					}
+					/*
+					if ((item.DF) && (item.DF !== '')) {
+						joinText += ' ' + item.DF + ' บ.';
+					}
+					*/
 				}
 				$(scanPartBox).append($('<div>' + joinText + '</div>'));
 				setTimeout(()=>{
@@ -3614,6 +3660,37 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doCheckOutTime = function(d){
+		let date = new Date(d);
+		let hh = date.getHours();
+		let mn = date.getMinutes();
+		if (hh < 8) {
+			return true;
+		} else {
+			if (hh == 8) {
+				if (mn == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
+
+	const doCallPriceChart = function(hospitalId, scanpartId){
+    return new Promise(async function(resolve, reject) {
+      const userdata = JSON.parse(localStorage.getItem('userdata'));
+      //let hospitalId = userdata.hospitalId;
+      let userId = userdata.id;
+      let rqParams = {userId: userId, hospitalId: hospitalId, scanpartId: scanpartId};
+      let apiUrl = '/api/pricechart/find';
+			let response = await doGetApi(apiUrl, rqParams);
+			resolve(response);
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -3676,11 +3753,13 @@ module.exports = function ( jq ) {
 		genUniqueID,
 		onSimpleEditorPaste,
 		doCallLoadStudyTags,
-		doReStructureDicom
+		doReStructureDicom,
+		doCheckOutTime,
+		doCallPriceChart
 	}
 }
 
-},{"./apiconnect.js":2,"./utilmod.js":16}],6:[function(require,module,exports){
+},{"./apiconnect.js":2,"./utilmod.js":17}],6:[function(require,module,exports){
 /*consult.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4635,7 +4714,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"../main.js":1,"./commonlib.js":5,"./utilmod.js":16}],7:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"../main.js":1,"./commonlib.js":5,"./utilmod.js":17}],7:[function(require,module,exports){
 /* createnewcase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4749,12 +4828,13 @@ module.exports = function ( jq ) {
 			let scanPart = query.Query.ScanPart;
 
 
-			if (!dicomDBReadyState){
+			//if (!dicomDBReadyState){
 				/* call from api */
 				const userdata = JSON.parse(localStorage.getItem('userdata'));
 				const dicomUrl = '/api/dicomtransferlog/studies/list';
 				let rqParams = {hospitalId: userdata.hospitalId, modality: modality, studyFromDate: studyFromDate, studyToDate: studyToDate, patientName: patientName, patientID: patientID, scanPart: scanPart};
 				let dicomStudiesRes = await common.doCallApi(dicomUrl, rqParams);
+				console.log(dicomStudiesRes);
 				let studies = [];
 				if (dicomStudiesRes.orthancRes) {
 					let dicomSudies = dicomStudiesRes.orthancRes;
@@ -4765,6 +4845,7 @@ module.exports = function ( jq ) {
 					reject({error: {code: 210, cause: 'Token Expired!'}});
 				}
 				/* sync dicom to IndexedDB */
+				/*
 				var req = indexedDB.deleteDatabase('dicomdb');
 				req.onsuccess = function () {
 					console.log("Deleted database successfully");
@@ -4790,10 +4871,12 @@ module.exports = function ( jq ) {
 
 				let synmessageCmd = {type: 'sync', dicoms: studies}
 	      webworker.postMessage(JSON.stringify(synmessageCmd));
-
+				*/
 				resolve(studies);
+			/*
 			} else {
 				/* call from IndexedDB */
+				/*
 				let dicomQuery = query.Query;
 				let openRequest = indexedDB.open("dicomdb", 2);
 				openRequest.onsuccess = async function() {
@@ -4818,6 +4901,7 @@ module.exports = function ( jq ) {
 					}
 				}
 			}
+			*/
 		});
 	}
 
@@ -5422,9 +5506,9 @@ module.exports = function ( jq ) {
 				let patientTargetName = defualtValue.patient.name;
 				let allNewSeries = updateDicom.Series.length;
 				let allNewImageInstances = await doCallCountInstanceImage(updateDicom.Series, patientTargetName);
+				let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
+				console.log(allNewSum);
 				if (allNewSum !== summarySeriesImages){
-					let allNewSum = allNewSeries + ' / ' + allNewImageInstances;
-					console.log(allNewSum);
 					$('#SumSeriesImages').text(allNewSum);
 					$.notify("ปรับปรุงจำนวนซีรีส์และภาพใหม่สำเร็จ", "success");
 				} else {
@@ -5982,73 +6066,95 @@ module.exports = function ( jq ) {
 		return customurgent;
 	}
 
-  function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected){
-		let urgentType = $('.mainfull').find('#Urgenttype').val();
-		let urgenttypeId = defualtValue.urgent;
-		if (urgentType) {
-			urgenttypeId = urgentType;
-		}
-		if (!urgenttypeId) {
-			let content = $('<div></div>');
-			$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
-			const radalertoption = {
-				title: 'ข้อมูลไม่ถูกต้อง',
-				msg: $(content),
-				width: '410px',
-				onOk: function(evt) {
-					radAlertBox.closeAlert();
+  function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
+		return new Promise(function(resolve, reject) {
+			let urgentType = $('.mainfull').find('#Urgenttype').val();
+			let urgenttypeId = defualtValue.urgent;
+			if (urgentType) {
+				urgenttypeId = urgentType;
+			}
+			if (!urgenttypeId) {
+				let content = $('<div></div>');
+				$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
+				const radalertoption = {
+					title: 'ข้อมูลไม่ถูกต้อง',
+					msg: $(content),
+					width: '410px',
+					onOk: function(evt) {
+						radAlertBox.closeAlert();
+					}
 				}
+				let radAlertBox = $('body').radalert(radalertoption);
+				$(radAlertBox.cancelCmd).hide();
+				resolve();
+			} else {
+		    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
+		    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
+		    let patientHistory = phrImages;
+				let scanpartItem = [];
+				let isOutTime = common.doCheckOutTime(new Date());
+				let	promiseList = new Promise(async function(resolve2, reject2){
+					for (let i=0; i < scanparts.length; i++){
+						let thisScanPart = scanparts[i];
+						let dfRes = await common.doCallPriceChart(hospitalId, thisScanPart.id);
+						if (isOutTime) {
+							thisScanPart.DF = {value: dfRes.prdf.df.night, type: 'night'};
+						} else {
+							thisScanPart.DF = {value: dfRes.prdf.df.normal, type: 'normal'};
+						}
+						scanpartItem.push(thisScanPart);
+					}
+					setTimeout(()=>{
+	          resolve2($(scanpartItem));
+	        }, 500);
+				});
+				Promise.all([promiseList]).then((ob)=>{
+					let scanpartItems = JSON.parse(JSON.stringify(ob[0]));
+					//let scanpartItems = scanparts;
+			    let studyID = defualtValue.studyID;
+			    let patientSex = $('.mainfull').find('#Sex').val();
+			    let patientAge = $('.mainfull').find('#Age').val();
+			    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
+					let patientRights = $('.mainfull').find('#Cliameright').val();
+			    let price = 0;
+			    let hn = $('.mainfull').find('#HN').val();
+			    let acc = $('.mainfull').find('#ACC').val();
+			    let department = $('.mainfull').find('#Department').val();
+			    let drOwner = $('.mainfull').find('#Refferal').val();
+			    let bodyPart = $('.mainfull').find('#Bodypart').val();
+					let scanPart = $('.mainfull').find('#Scanpart').val();
+			    //let drReader = $('.mainfull').find('#Radiologist').val();
+					//console.log(radioSelected);
+					let drReader = radioSelected.radioId;
+			    let detail = $('.mainfull').find('#Detail').val();
+					let wantSaveScanpart = 0;
+					let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
+					if (saveScanpartOption) {
+						wantSaveScanpart = 1;
+					}
+			    let mdl = defualtValue.mdl;
+			    let studyDesc = defualtValue.studyDesc;
+			    let protocalName = defualtValue.protocalName;
+			    let manufacturer = defualtValue.manufacturer;
+			    let stationName = defualtValue.stationName;
+			    let studyInstanceUID = defualtValue.studyInstanceUID;
+			    let radioId = drReader;
+					let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
+			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItems, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
+			    resolve(newCase);
+				});
 			}
-			let radAlertBox = $('body').radalert(radalertoption);
-			$(radAlertBox.cancelCmd).hide();
-			return;
-		} else {
-	    let patientNameEN = $('.mainfull').find('#PatientNameEN').val();
-	    let patientNameTH = $('.mainfull').find('#PatientNameTH').val();
-	    let patientHistory = phrImages;
-			let scanpartItem = scanparts;
-	    let studyID = defualtValue.studyID;
-	    let patientSex = $('.mainfull').find('#Sex').val();
-	    let patientAge = $('.mainfull').find('#Age').val();
-	    let patientCitizenID = $('.mainfull').find('#CitizenID').val();
-			let patientRights = $('.mainfull').find('#Cliameright').val();
-	    let price = 0;
-	    let hn = $('.mainfull').find('#HN').val();
-	    let acc = $('.mainfull').find('#ACC').val();
-	    let department = $('.mainfull').find('#Department').val();
-	    let drOwner = $('.mainfull').find('#Refferal').val();
-	    let bodyPart = $('.mainfull').find('#Bodypart').val();
-			let scanPart = $('.mainfull').find('#Scanpart').val();
-	    //let drReader = $('.mainfull').find('#Radiologist').val();
-			console.log(radioSelected);
-			let drReader = radioSelected.radioId;
-	    let detail = $('.mainfull').find('#Detail').val();
-			let wantSaveScanpart = 0;
-			let saveScanpartOption = $('.mainfull').find('#SaveScanpartOption').prop('checked');
-			if (saveScanpartOption) {
-				wantSaveScanpart = 1;
-			}
-	    let mdl = defualtValue.mdl;
-	    let studyDesc = defualtValue.studyDesc;
-	    let protocalName = defualtValue.protocalName;
-	    let manufacturer = defualtValue.manufacturer;
-	    let stationName = defualtValue.stationName;
-	    let studyInstanceUID = defualtValue.studyInstanceUID;
-	    let radioId = drReader;
-			let option = {scanpart: {save: wantSaveScanpart}}; //0 or 1
-	    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItem, studyID, patientSex, patientAge, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
-	    return newCase;
-		}
+		});
   }
 
 	const doSaveNewCaseStep = async function(defualtValue, options, phrImages, scanparts, radioSelected){
-		let newCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected);
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		const hospitalId = userdata.hospitalId;
+		const userId = userdata.id
+		let newCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 		if (newCaseData) {
 	    $('body').loading('start');
 	    try {
-	      const userdata = JSON.parse(localStorage.getItem('userdata'));
-	      const hospitalId = userdata.hospitalId;
-	      const userId = userdata.id
 	      let rqParams = {key: {Patient_HN: newCaseData.hn}};
 	      let patientdb = await common.doCallApi('/api/patient/search', rqParams);
 	      let patientId, patientRes;
@@ -6071,11 +6177,11 @@ module.exports = function ( jq ) {
 	      const urgenttypeId = newCaseData.urgenttypeId;
 	      const cliamerightId = newCaseData.patientRights
 	      let casedata = common.doPrepareCaseParams(newCaseData);
-				console.log(casedata);
 	      rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
+				console.log(rqParams);
 	      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
+				console.log('caseRes=>', caseRes);
 	      if (caseRes.status.code === 200) {
-					console.log('newCase=>', caseRes.Record);
 					console.log('caseActions=>', caseRes.actions);
 					//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
 	        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
@@ -6120,6 +6226,9 @@ module.exports = function ( jq ) {
 	}
 
 	const doSaveUpdateCaseStep = async function (defualtValue, options, phrImages, scanparts, radioSelected){
+		const userdata = JSON.parse(localStorage.getItem('userdata'));
+		const hospitalId = userdata.hospitalId;
+		const userId = userdata.id
 		const goToNextPage = function(statusId){
 			if (statusId == 1) {
 				$('#NewStatusSubCmd').click();
@@ -6131,14 +6240,10 @@ module.exports = function ( jq ) {
 				$('#NegativeStatusSubCmd').click();
 			}
 		}
-		let updateCaseData = doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected);
+		let updateCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 
 		if (updateCaseData) {
 			$('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-			const hospitalId = userdata.hospitalId;
-			const userId = userdata.id
-
 			let patientData =  common.doPreparePatientParams(updateCaseData);
 			let rqParams = {data: patientData, patientId: defualtValue.patientId};
 			let patientRes = await common.doCallApi('/api/patient/update', rqParams);
@@ -6201,7 +6306,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/ai-lib.js":19,"../main.js":1,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":16}],8:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":22,"../main.js":1,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":17}],8:[function(require,module,exports){
 /*createnewrefferal.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6386,7 +6491,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":16}],9:[function(require,module,exports){
+},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":17}],9:[function(require,module,exports){
 /* dicomfilter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6590,7 +6695,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":16}],10:[function(require,module,exports){
+},{"./utilmod.js":17}],10:[function(require,module,exports){
 const $ = require('jquery');
 
 $.ajaxSetup({
@@ -6680,7 +6785,7 @@ $.fn.simplelog = function(dataPairObj){
   this.append($(logMessages));
 }
 
-},{"jquery":18}],11:[function(require,module,exports){
+},{"jquery":21}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -6969,6 +7074,80 @@ module.exports = function ( jq ) {
 }
 
 },{}],13:[function(require,module,exports){
+/* streammergermod.js */
+const streamMerger = require('./video-stream-merger.js');
+
+const CallcenterMerger = function(streams, mergOption) {
+	this.merger = new streamMerger(mergOption);
+	this.merger.addStream(streams[0], {
+		index: 0,
+		x: 0,
+		y: 0,
+		width: this.merger.width,
+		height: this.merger.height,
+		fps: 30,
+		clearRect: true,
+		audioContext: null,
+		mute: true
+	});
+
+	var xmepos = this.merger.width * 0.24;
+	var ymepos = this.merger.height * 0.25;
+
+	this.merger.addStream(streams[1], {
+		index: 1,
+		x: this.merger.width - xmepos,
+		y: this.merger.height - ymepos,
+		width: xmepos,
+		height: ymepos,
+		fps: 30,
+		clearRect: true,
+		mute: false
+	});
+
+	/*
+	var staticTextStream = createStaticTextStream('สด');
+	this.merger.addStream(staticTextStream, {
+		index: 2,
+		x: 5,
+		y: 10,
+		width: 80,
+		height: 50,
+		mute: true
+	});
+	*/
+	this.merger.start();
+	return this.merger;
+}
+
+CallcenterMerger.prototype.getMerger = function() {
+	return this.merger;
+};
+
+const createStaticTextStream = function(text) {
+	$('body').append($('<div id="HiddenDiv"></div>'));
+	var hiddenDiv = document.querySelector('#HiddenDiv');
+	var drawer = document.createElement("canvas");
+	drawer.style.display = 'none';
+	hiddenDiv.appendChild(drawer);
+
+	drawer.width = 80;
+	drawer.height = 50;
+	var ctx = drawer.getContext("2d");
+	ctx.font = 'bold 30px THNiramitAS';
+	ctx.fillStyle = 'red';
+	ctx.textAlign = 'left';
+	ctx.fillText(text, 10, 20);
+	var stream = drawer.captureStream(25);
+	return stream;
+}
+
+module.exports = {
+	CallcenterMerger,
+	createStaticTextStream
+};
+
+},{"./video-stream-merger.js":18}],14:[function(require,module,exports){
 /*urgentstd.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7440,7 +7619,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":16}],14:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":17}],15:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7616,7 +7795,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":16}],15:[function(require,module,exports){
+},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":17}],16:[function(require,module,exports){
 /* userprofilelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -7673,7 +7852,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":16}],16:[function(require,module,exports){
+},{"./apiconnect.js":2,"./commonlib.js":5,"./utilmod.js":17}],17:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -8230,7 +8409,16 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":20,"../../refer/mod/websocketmessage.js":24,"./websocketmessage.js":17}],17:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":23,"../../refer/mod/websocketmessage.js":27,"./websocketmessage.js":19}],18:[function(require,module,exports){
+(function (global){(function (){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
+
+},{}]},{},[1])(1)
+});
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],19:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -8279,6 +8467,11 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'newdicom') {
 			let eventName = 'triggernewdicom'
 			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'casemisstake') {
+			let eventName = 'triggercasemisstake'
+			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
     } else if (data.type == 'notify') {
@@ -8380,7 +8573,462 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
+const streamMerger = require('./streammergermod.js');
+
+const videoInitSize = {width: 437, height: 298};
+const videoConstraints = {video: true, audio: false};
+const mergeOption = {
+  width: 520,
+  height: 310,
+  fps: 25,
+  clearRect: true,
+  audioContext: null
+};
+
+/* https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b */
+const rtcConfiguration = {
+	'iceServers': [
+	 {url: 'stun:stun2.l.google.com:19302'},
+	 {url: 'turn:numb.viagenie.ca',
+		credential: 'muazkh',
+		username: 'webrtc@live.com'
+	 }
+	]
+};
+
+
+let $ = undefined;
+
+let userJoinOption = undefined;
+let userMediaStream = undefined;
+let displayMediaStream = undefined;
+let localMergedStream = undefined;
+let remoteConn = undefined;
+
+const doSetupRemoteConn = function(peerConn){
+  remoteConn = peerConn;
+}
+
+const doSetupUserJoinOption = function(joinOption){
+  userJoinOption = joinOption;
+}
+
+const setupDisplayMediaStream = function(stream){
+  displayMediaStream = stream;
+}
+
+const doInitRTCPeer = function(stream, wsm) {
+	let remoteConn = new RTCPeerConnection(rtcConfiguration);
+
+	// Setup ice handling
+	remoteConn.onicecandidate = function (event) {
+		if (event.candidate) {
+			let sendData = {
+				type: "wrtc",
+				wrtc: "candidate",
+				candidate: event.candidate,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+			};
+			wsm.send(JSON.stringify(sendData));
+		}
+	};
+
+	remoteConn.oniceconnectionstatechange = function(event) {
+		const peerConnection = event.target;
+		console.log('ICE state change event: ', event);
+		remoteConn = peerConnection;
+	};
+
+	remoteConn.onicegatheringstatechange = function() {
+		switch(remoteConn.iceGatheringState) {
+			case "new":
+			case "complete":
+				//label = "Idle";
+				console.log(remoteConn.iceGatheringState);
+			break;
+			case "gathering":
+				//label = "Determining route";
+			break;
+		}
+	};
+
+	stream.getTracks().forEach((track) => {
+		remoteConn.addTrack(track, stream);
+	});
+
+	remoteConn.ontrack = function(event) {
+		if (event.streams[0]) {
+      let myVideo = document.getElementById("MyVideo");
+      userMediaStream = myVideo.srcObject;
+    	let remoteStream = event.streams[0];
+      /*
+      remoteStream.getTracks().forEach(function(track) {
+        console.log(track);
+      });
+      */
+      if (userJoinOption.joinType === 'caller') {
+        let streams = [displayMediaStream, remoteStream];
+        let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+        let remoteMergedStream = myMerger.result
+        myVideo.srcObject = remoteMergedStream;
+        console.log('caller new stream');
+        $('#CommandBox').find('#ShareWebRCTCmd').hide();
+        $('#CommandBox').find('#StartWebRCTCmd').hide();
+        $('#CommandBox').find('#EndWebRCTCmd').show();
+      } else if (userJoinOption.joinType === 'callee') {
+        myVideo.srcObject = remoteStream;
+        console.log('callee new stream');
+        $('#CommandBox').find('#ShareWebRCTCmd').hide();
+        $('#CommandBox').find('#StartWebRCTCmd').hide();
+        $('#CommandBox').find('#EndWebRCTCmd').show();
+      }
+    }
+  }
+  return remoteConn;
+}
+
+const doCreateOffer = function(wsm) {
+  if (remoteConn){
+    //console.log(remoteConn);
+    remoteConn.createOffer(function (offer) {
+    	remoteConn.setLocalDescription(offer);
+      console.log(offer);
+    	let sendData = {
+    		type: "wrtc",
+    		wrtc: "offer",
+    		offer: offer ,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+    	};
+      wsm.send(JSON.stringify(sendData));
+    }, function (error) {
+  		console.log(error);
+  	});
+  }
+}
+
+const doCreateLeave = function(wsm) {
+	let sendData = {
+		type: "wrtc",
+		wrtc: "leave",
+		leave: {reason: 'Stop with cmd.'},
+		sender: userJoinOption.joinName,
+    sendto: userJoinOption.audienceName
+	};
+  wsm.send(JSON.stringify(sendData));
+}
+
+const wsHandleOffer = function(wsm, offer) {
+  remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
+  remoteConn.createAnswer(function (answer) {
+    remoteConn.setLocalDescription(answer);
+    let sendData = {
+      type: "wrtc",
+      wrtc: "answer",
+      answer: answer,
+      sender: userJoinOption.joinName,
+      sendto: userJoinOption.audienceName
+    };
+    wsm.send(JSON.stringify(sendData));
+  }, function (error) {
+    console.log(error);
+  });
+}
+
+const wsHandleAnswer = function(wsm, answer) {
+  if (remoteConn){
+    remoteConn.setRemoteDescription(new RTCSessionDescription(answer)).then(
+      function() {
+        console.log('remoteConn setRemoteDescription success.');
+        //console.log(remoteConn);
+      }, 	function(error) {
+        console.log('remoteConn Failed to setRemoteDescription:=> ' + error.toString() );
+      }
+    );
+  }
+}
+
+const wsHandleCandidate = function(wsm, candidate) {
+  if (remoteConn){
+    remoteConn.addIceCandidate(new RTCIceCandidate(candidate)).then(
+      function() {/* console.log(candidate) */},
+      function(error) {console.log(error)}
+    );
+  }
+}
+
+const wsHandleLeave = function(wsm, leave) {
+  doEndCall(wsm);
+}
+
+const errorMessage = function(message, evt) {
+	console.error(message, typeof evt == 'undefined' ? '' : evt);
+	alert(message);
+}
+
+const doGetScreenSignalError =  function(evt){
+  var error = {
+    name: evt.name || 'UnKnown',
+    message: evt.message || 'UnKnown',
+    stack: evt.stack || 'UnKnown'
+  };
+  console.error(error);
+  if(error.name === 'PermissionDeniedError') {
+    if(location.protocol !== 'https:') {
+      error.message = 'Please use HTTPs.';
+      error.stack   = 'HTTPs is required.';
+    }
+  }
+}
+
+const doCheckBrowser = function() {
+	return new Promise(function(resolve, reject) {
+		if (location.protocol === 'https:') {
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+			if (navigator.getUserMedia) {
+				//const vidOption = {audio: true, video: {facingMode: 'user',frameRate: 30, width : 640, height:480}};
+				const vidOption = { audio: true, video: true };
+				navigator.getUserMedia(vidOption, function (stream) {
+					var mediaStreamTrack = stream.getVideoTracks()[0];
+					if (typeof mediaStreamTrack == "undefined") {
+						errorMessage('Permission denied!');
+						resolve();
+					} else {
+						userMediaStream = stream;
+						resolve(stream);
+					}
+				}, function (e) {
+					var message;
+					switch (e.name) {
+						case 'NotFoundError':
+						case 'DevicesNotFoundError':
+							message = 'Please setup your webcam first.';
+							break;
+						case 'SourceUnavailableError':
+							message = 'Your webcam is busy';
+							break;
+						case 'PermissionDeniedError':
+						case 'SecurityError':
+							message = 'Permission denied!';
+							break;
+						default: errorMessage('Reeeejected!', e);
+							resolve(false);
+					}
+					errorMessage(message);
+					resolve(false);
+				});
+			} else {
+				errorMessage('Uncompatible browser!');
+				resolve(false);
+			}
+		} else {
+			errorMessage('Please use https protocol for open this page.');
+			resolve(false);
+		}
+	});
+}
+
+const doCreateControlCmd = function(id, iconUrl){
+  let hsIcon = new Image();
+  hsIcon.src = iconUrl;
+  hsIcon.id = id;
+  $(hsIcon).css({"width": "40px", "height": "auto", "cursor": "pointer", "padding": "2px"});
+  $(hsIcon).css({'border': '4px solid grey', 'border-radius': '5px', 'margin': '4px'});
+  $(hsIcon).prop('data-toggle', 'tooltip');
+  $(hsIcon).prop('title', "Share Screen");
+  $(hsIcon).hover(()=>{
+    $(hsIcon).css({'border': '4px solid grey'});
+  },()=>{
+    $(hsIcon).css({'border': '4px solid #ddd'});
+  });
+  return $(hsIcon);
+}
+
+const doCreateShareScreenCmd = function(){
+  let shareScreenIconUrl = '/images/screen-capture-icon.png';
+  let shareScreenCmd = doCreateControlCmd('ShareWebRCTCmd', shareScreenIconUrl);;
+  return $(shareScreenCmd);
+}
+
+//  $(shareScreenCmd).on("click", async function(evt){
+const onShareCmdClickCallback = async function(wsm ,callback){
+  let captureStream = await doGetDisplayMedia();
+  onDisplayMediaSuccess(captureStream, wsm, ()=>{
+    let myRemoteConn = doInitRTCPeer(localMergedStream, wsm);
+    //console.log(myRemoteConn);
+    doSetupRemoteConn(myRemoteConn);
+
+    $('#CommandBox').find('#ShareWebRCTCmd').show();
+
+    $('#CommandBox').find('#EndWebRCTCmd').show();
+
+    callback();
+  });
+}
+
+const doCreateStartCallCmd = function(){
+  let callIconUrl = '/images/phone-call-icon-1.png';
+  let callCmd = doCreateControlCmd('StartWebRCTCmd', callIconUrl);
+  return $(callCmd)
+}
+
+const onDisplayMediaSuccess = function(stream, wsm, callback){
+  let vw, vh;
+  let myVideo = document.getElementById("MyVideo");
+  stream.getTracks().forEach(function(track) {
+    track.addEventListener('ended', function() {
+      console.log('Stop Capture Stream.');
+      doCreateLeave(wsm);
+      displayMediaStream = undefined;
+      myVideo.srcObject = userMediaStream;
+    }, false);
+  });
+
+  //setupDisplayMediaStream(stream);
+  displayMediaStream = stream;
+  let streams = [displayMediaStream, userMediaStream];
+  let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
+  localMergedStream = myMerger.result
+  myVideo.srcObject = localMergedStream;
+  myVideo.addEventListener( "loadedmetadata", function (e) {
+    vw = this.videoWidth;
+    vh = this.videoHeight;
+    myVideo.width = vw;
+    myVideo.height = vh;
+  });
+  callback();
+}
+
+const doGetDisplayMedia = function(){
+  return new Promise(async function(resolve, reject) {
+    let captureStream = undefined;
+    if(navigator.mediaDevices.getDisplayMedia) {
+      try {
+        captureStream = await navigator.mediaDevices.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    } else {
+      try {
+        captureStream = await navigator.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    }
+  });
+}
+
+const setScaleDisplay = function( width, height, padding, border ) {
+   var scrWidth = $( window ).width() - 30,
+   scrHeight = $( window ).height() - 30,
+   ifrPadding = 2 * padding,
+   ifrBorder = 2 * border,
+   ifrWidth = width + ifrPadding + ifrBorder,
+   ifrHeight = height + ifrPadding + ifrBorder,
+   h, w;
+
+   if ( ifrWidth < scrWidth && ifrHeight < scrHeight ) {
+	  w = ifrWidth;
+	  h = ifrHeight;
+   } else if ( ( ifrWidth / scrWidth ) > ( ifrHeight / scrHeight ) ) {
+	  w = scrWidth;
+	  h = ( scrWidth / ifrWidth ) * ifrHeight;
+   } else {
+	  h = scrHeight;
+	  w = ( scrHeight / ifrHeight ) * ifrWidth;
+   }
+   return {
+	  width: w - ( ifrPadding + ifrBorder ),
+	  height: h - ( ifrPadding + ifrBorder )
+   };
+}
+
+const doCreateEndCmd = function(){
+  let endIconUrl = '/images/phone-call-icon-3.png';
+  let endCmd = doCreateControlCmd('EndWebRCTCmd', endIconUrl);
+  return $(endCmd);
+}
+
+const doEndCall = function(wsm){
+  let myVideo = document.getElementById("MyVideo");
+  console.log(myVideo);
+  if (myVideo) {
+    doCheckBrowser().then((stream)=>{
+      myVideo.srcObject = stream;
+    });
+  }
+
+  if (displayMediaStream) {
+    displayMediaStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  if (localMergedStream) {
+    localMergedStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  /*
+  if (remoteConn) {
+    remoteConn.close();
+  }
+  */
+  displayMediaStream = undefined;
+  localMergedStream = undefined;
+
+  $('#CommandBox').find('#ShareWebRCTCmd').show();
+  $('#CommandBox').find('#StartWebRCTCmd').hide();
+  $('#CommandBox').find('#EndWebRCTCmd').hide();
+}
+
+
+module.exports = (jq) => {
+  $ = jq;
+  return {
+    streamMerger,
+    videoInitSize,
+    videoConstraints,
+    mergeOption,
+
+    userJoinOption,
+    userMediaStream,
+    displayMediaStream,
+    localMergedStream,
+    remoteConn,
+
+    /************************/
+
+    doSetupRemoteConn,
+    doSetupUserJoinOption,
+    setupDisplayMediaStream,
+    doInitRTCPeer,
+    doCreateOffer,
+    doCreateLeave,
+
+    wsHandleOffer,
+    wsHandleAnswer,
+    wsHandleCandidate,
+    wsHandleLeave,
+    doCheckBrowser,
+    doCreateControlCmd,
+    doCreateShareScreenCmd,
+    onShareCmdClickCallback,
+    doCreateStartCallCmd,
+    doCreateEndCmd,
+    onDisplayMediaSuccess,
+    doGetDisplayMedia,
+    setScaleDisplay,
+    doEndCall
+  }
+}
+
+},{"./streammergermod.js":13}],21:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -19254,7 +19902,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /*ai-lib.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -19544,10 +20192,12 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/utilmod.js":16}],20:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/utilmod.js":17}],23:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRadio = function (msgEvt) {
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -19585,31 +20235,33 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
-			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-			if (minuteLogout > 0){
-				if (data.counterping == minuteLogout) {
-					let eventName = 'autologout';
+			if ((userdata.userprofiles) && (userdata.userprofiles.length > 0)) {
+				let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+				let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
+				let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+				if (data.counterping == minuteLockScreen) {
+					let eventName = 'lockscreen';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				} else if (tryLockModTime == 0) {
+					let eventName = 'lockscreen';
 		      let evtData = {};
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
-			}
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				if (minuteLogout > 0){
+					if (data.counterping == minuteLogout) {
+						let eventName = 'autologout';
+			      let evtData = {};
+			      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			      document.dispatchEvent(event);
+					}
+				}
+				let modPingCounter = Number(data.counterping) % 10;
+				if (modPingCounter == 0) {
+					wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -19641,6 +20293,23 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -19669,7 +20338,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],21:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":20}],24:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -19719,7 +20388,7 @@ $( document ).ready(function() {
                 $('body').append($(mySipPhoneIncomeBox));
              }
            } else {
-             $.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');
+             alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
              doLoadLogin();
            }
         } else {
@@ -19908,7 +20577,7 @@ module.exports = {
   doGetSipUA
 }
 
-},{"../case/mod/apiconnect.js":2,"../case/mod/commonlib.js":5,"../case/mod/jquery-ex.js":10,"../case/mod/softphonelib.js":12,"../case/mod/userinfolib.js":14,"../case/mod/utilmod.js":16,"./mod/orthanc.js":23,"jquery":25}],22:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":2,"../case/mod/commonlib.js":5,"../case/mod/jquery-ex.js":10,"../case/mod/softphonelib.js":12,"../case/mod/userinfolib.js":15,"../case/mod/utilmod.js":17,"./mod/orthanc.js":26,"jquery":28}],25:[function(require,module,exports){
 /* caseviewer.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -19918,6 +20587,7 @@ module.exports = function ( jq ) {
   const common = require('../../case/mod/commonlib.js')($);
 	const createnewcase = require('../../case/mod/createnewcase.js')($);
 	const ai = require('../../radio/mod/ai-lib.js')($);
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')($);
 
 	const backwardCaseStatus = [1, 2, 5, 6, 10, 11, 12, 13, 14];
 	const pageFontStyle = {"font-family": "THSarabunNew", "font-size": "24px"};
@@ -20468,10 +21138,94 @@ module.exports = function ( jq ) {
     $(zoomIcon).attr('src', zoomIconUrl);
 		$(zoomBox).data('zoomData', {caseData: caseItem});
 		$(zoomBox).on('click', (evt)=>{
-			zoomCmdClick(evt, chatHandle);
+			//zoomCmdClick(evt, chatHandle);
+			callWebRCT(evt);
 		});
 		$(zoomIcon).appendTo($(zoomBox));
 		return $(zoomBox);
+	}
+
+	const callWebRCT = async function(evt) {
+		$('body').loading('start');
+		const main = require('../main.js');
+		const wsm = main.doGetWsm();
+		//wrtcCommon.doSetupWsm(wsm);
+
+		let zoomCmd = $(evt.currentTarget);
+		let zoomData = $(zoomCmd).data('zoomData');
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let hospitalName = userdata.hospital.Hos_Name;
+		let caseBodypart = zoomData.caseData.case.Case_BodyPart;
+		let radioId = zoomData.caseData.case.Case_RadiologistId;
+
+		let callSocketUrl = '/api/cases/radio/socket/' + radioId;
+		let radioSockets = await common.doCallApi(callSocketUrl, {});
+		if (radioSockets.length > 0) {
+			let radioUsername = radioSockets[0].id
+
+			wrtcCommon.doCheckBrowser().then((stream)=>{
+				if (stream) {
+					wrtcCommon.userMediaStream = stream;
+					let userJoinOption = {joinType: 'caller', joinName: userdata.username, audienceName: radioUsername, userMediaStream: stream};
+					wrtcCommon.doSetupUserJoinOption(userJoinOption);
+					let patientFullNameEN = zoomData.caseData.case.patient.Patient_NameEN + ' ' + zoomData.caseData.case.patient.Patient_LastNameEN;
+					let patientHN = zoomData.caseData.case.patient.Patient_HN;
+					let joinTopic = 'โรงพยาบาล' + hospitalName + '  ' + patientFullNameEN + '  HN: ' + patientHN;
+					let dlgContent = doCreateWebRCTDlgContent();
+					let radwebrctoption = {
+						title: 'Video Conference [' + joinTopic + ']',
+						msg: $(dlgContent),
+						width: '620px',
+						onOk: function(evt) {
+							webrtcBox.closeAlert();
+						}
+					}
+					let webrtcBox = $('body').radalert(radwebrctoption);
+					$(webrtcBox.cancelCmd).hide();
+
+					let myVideo = document.getElementById("MyVideo");
+					//myVideo.srcObject = stream;
+					myVideo.srcObject = wrtcCommon.userMediaStream;
+
+					let shareCmd = wrtcCommon.doCreateShareScreenCmd();
+					$(shareCmd).on('click', (evt)=>{
+						wrtcCommon.onShareCmdClickCallback( wsm, ()=>{
+							let myInfo = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+							let callZoomMsg = {type: 'callzoom', sendTo: radioUsername, topic: joinTopic, sender: userdata.username, senderInfo: myInfo, bodyPart: caseBodypart, radioId: radioId};
+							wsm.send(JSON.stringify(callZoomMsg));
+							$.notify('ระบบฯได้ส่งคำขอแจ้งเปิด Viedo Conference ไปยังรังสีแพทย์สำเร็จ โปรดรอให้รังสีแพทย์เตรียมความพร้อม', 'succes');
+						});
+					});
+					let startCmd = wrtcCommon.doCreateStartCallCmd();
+					$(startCmd).on('click', (evt)=>{
+						wrtcCommon.doCreateOffer(wsm);
+					})
+					let endCmd = wrtcCommon.doCreateEndCmd();
+					$(endCmd).on('click', async (evt)=>{
+						wrtcCommon.userMediaStream = await wrtcCommon.doCheckBrowser();
+						myVideo.srcObject = wrtcCommon.userMediaStream;
+						wrtcCommon.doEndCall(wsm);
+						wrtcCommon.doCreateLeave(wsm);
+					})
+					$(dlgContent).find('#CommandBox').append($(shareCmd));
+					$(dlgContent).find('#CommandBox').append($(startCmd).hide());
+					$(dlgContent).find('#CommandBox').append($(endCmd).hide());
+					$('body').loading('stop');
+				} else {
+					$.notify('ขออภัย เว็บบราวเซอร์ของคุณไม่รองรับการใช้งานฟังก์ชั่นนี้', 'error');
+					$('body').loading('stop');
+				}
+			});
+		} else {
+			$('body').loading('stop');
+		}
+	}
+
+	const doCreateWebRCTDlgContent = function(){
+		let wrapper = $('<div  id="WebRCTBox" style="width: 100%"></div>');
+		let myVideoElem = $('<video id="MyVideo" width="620" height="350" autoplay/>')/*.css({'border': '1px solid blue'})*/;
+		let videoCmdBox = $('<div id="CommandBox" style="width: 100%; text-align: center;"></div>');
+		return $(wrapper).append($(myVideoElem)).append($(videoCmdBox));
 	}
 
 	const zoomCmdClick = async function(evt, chatHandle){
@@ -20922,7 +21676,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/createnewcase.js":7,"../../case/mod/utilmod.js":16,"../../radio/mod/ai-lib.js":19,"../main.js":21}],23:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/createnewcase.js":7,"../../case/mod/utilmod.js":17,"../../case/mod/wrtc-common.js":20,"../../radio/mod/ai-lib.js":22,"../main.js":24}],26:[function(require,module,exports){
 /* orthanc.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -21350,10 +22104,12 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/createnewrefferal.js":8,"../../case/mod/utilmod.js":16,"./caseviewer.js":22}],24:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/createnewrefferal.js":8,"../../case/mod/utilmod.js":17,"./caseviewer.js":25}],27:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRefer = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
@@ -21396,34 +22152,30 @@ module.exports = function ( jq, wsm ) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
       console.log('Ping Data =>', data);
-      /*
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-        */
 		} else if (data.type == 'unlockscreen') {
-      /*
-			let eventName = 'unlockscreen';
-			let evtData = {};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-			document.dispatchEvent(event);
-      */
+
     } else if (data.type == 'message') {
       $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -21452,6 +22204,6 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],25:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}]},{},[21]);
+},{"../../case/mod/wrtc-common.js":20}],28:[function(require,module,exports){
+arguments[4][21][0].apply(exports,arguments)
+},{"dup":21}]},{},[24]);

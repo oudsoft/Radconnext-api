@@ -230,43 +230,59 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           break;
           case 'x401':
             /* radio accept new case*/
-            let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'Accept by Line Bot');
-            if (changeRes.change.status == true) {
-              action = 'quick';
-              let actionReturnText = await common.doCreateTriggerChatBotMessage(data, changeRes.triggerDate);
-              await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+            let targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: data}});
+            let nowCaseStatus = targetCases[0].casestatusId;
+            if (nowCaseStatus == 1) {
+              let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'Accept by Line Bot');
+              if (changeRes.change.status == true) {
+                action = 'quick';
+                let actionReturnText = await common.doCreateTriggerChatBotMessage(data, changeRes.triggerDate);
+                await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+              } else {
+                action = 'quick';
+                actionReturnText = 'ไม่สามารถดำเนินการตอบรับเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
+                await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+              }
             } else {
               action = 'quick';
-              actionReturnText = 'ไม่สามารถดำเนินการตอบรับเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
+              actionReturnText = 'เตสที่กำลังตอบรับไม่อยู่ในสถานะให้ตอบรับหรือปฏิเสธได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
               await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
             }
-            resolve(changeRes);
+            resolve(targetCases);
           break;
           case 'x402':
             /* radio not accept new cse*/
-            let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'Reject by Line Bot');
-            if (changeResNotAcc.change.status == true) {
-              caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
-              targetCases = await db.cases.findAll({include: caseInclude, where: {id: data}});
-              targetCase = targetCases[0];
-              hospitalName = targetCase.hospital.Hos_Name;
-              patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-              /*
-              let studyDesc = targetCase.Case_StudyDescription;
-              let modality = targetCase.Case_Modality;
-              actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s\nStudy Desc. %s\nModality %s แล้ว\n แล้ว';
-              actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN, studyDesc, modality);
-              */
-              actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s แล้ว';
-              actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN);
-              action = 'quick';
-              await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+            targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: data}});
+            nowCaseStatus = targetCases[0].casestatusId;
+            if (nowCaseStatus == 1) {
+              let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'Reject by Line Bot');
+              if (changeResNotAcc.change.status == true) {
+                caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
+                targetCases = await db.cases.findAll({include: caseInclude, where: {id: data}});
+                targetCase = targetCases[0];
+                hospitalName = targetCase.hospital.Hos_Name;
+                patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+                /*
+                let studyDesc = targetCase.Case_StudyDescription;
+                let modality = targetCase.Case_Modality;
+                actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s\nStudy Desc. %s\nModality %s แล้ว\n แล้ว';
+                actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN, studyDesc, modality);
+                */
+                actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s แล้ว';
+                actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN);
+                action = 'quick';
+                await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+              } else {
+                action = 'quick';
+                actionReturnText = 'ไม่สามารถดำเนินการปฏิเสธเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
+                await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
+              }
             } else {
               action = 'quick';
-              actionReturnText = 'ไม่สามารถดำเนินการปฏิเสธเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
+              actionReturnText = 'เตสที่กำลังตอบรับไม่อยู่ในสถานะให้ตอบรับหรือปฏิเสธได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
               await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
             }
-            resolve(changeResNotAcc);
+            resolve(targetCases);
           break;
           case 'x501':
             action = 'quick';

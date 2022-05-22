@@ -97,7 +97,9 @@ app.post('/add', async (req, res) => {
         let newItem = req.body.data;
         let adItem = await db.menuitems.create(newItem);
         await db.menuitems.update({shopId: req.body.shopId, menugroupId: req.body.groupId}, {where: {id: adItem.id}});
-        res.json({Result: "OK", status: {code: 200}});
+        const menuInclude = [{model: db.menugroups, attributes: ['id', 'GroupName']}];
+        const menuitems = await db.menuitems.findAll({ attributes: excludeColumn, include: menuInclude, where: {id: adItem.id}});
+        res.json({Result: "OK", status: {code: 200}, Record: menuitems[0]});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {

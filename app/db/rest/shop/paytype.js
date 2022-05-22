@@ -12,14 +12,14 @@ var db, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
-const doGenOptions = function(shopId) {
+const doGenOptions = function() {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
       const orderby = [['id', 'ASC']];
-      const customers = await db.customers.findAll({ attributes: ['id', 'Name'], where: {shopId: shopId}, order: orderby});
+      const paytypes = await db.paytypes.findAll({ attributes: ['id', 'NameTH'], order: orderby});
       const result = [];
-      customers.forEach((customer, i) => {
-        result.push({Value: customer.id, DisplayText: customer.Name});
+      paytypes.forEach((paytype, i) => {
+        result.push({Value: paytype.id, DisplayText: paytype.NameTH});
       });
       setTimeout(()=> {
         resolve({Result: "OK", Options: result});
@@ -33,43 +33,15 @@ const doGenOptions = function(shopId) {
   });
 }
 
-//List API
-app.post('/list/by/shop/(:shopId)', (req, res) => {
-  let token = req.headers.authorization;
-  if (token) {
-    auth.doDecodeToken(token).then(async (ur) => {
-      if (ur.length > 0){
-        try {
-          const orderby = [['id', 'ASC']];
-          const shopId = req.params.shopId;
-          const customers = await db.customers.findAll({attributes: excludeColumn, where: {shopId: shopId}, order: orderby});
-          res.json({status: {code: 200}, Records: customers});
-        } catch(error) {
-          log.error(error);
-          res.json({status: {code: 500}, error: error});
-        }
-      } else if (ur.token.expired){
-        res.json({ status: {code: 210}, token: {expired: true}});
-      } else {
-        log.info('Can not found user from token.');
-        res.json({status: {code: 203}, error: 'Your token lost.'});
-      }
-    });
-  } else {
-    log.info('Authorization Wrong.');
-    res.json({status: {code: 400}, error: 'Your authorization wrong'});
-  }
-});
-
 //Select API
-app.post('/select/(:customerId)', (req, res) => {
+app.post('/select/(:paytypeId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          let customerId = req.params.customerId;
-          const customers = await db.customers.findAll({ attributes: excludeColumn, where: {id: customerId}});
+          let paytypeId = req.params.paytypeId;
+          const paytypes = await db.paytypes.findAll({ attributes: excludeColumn, where: {id: paytypeId}});
           res.json({status: {code: 200}, Record: customers[0]});
         } catch(error) {
           log.error(error);
@@ -94,11 +66,9 @@ app.post('/add', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newCustomer = req.body.data;
-        let adCustomer = await db.customers.create(newCustomer);
-        await db.customers.update({shopId: req.body.shopId},{where: {id: adCustomer.id}});
-        const customers = await db.customers.findAll({ attributes: excludeColumn, where: {id: adCustomer.id}});
-        res.json({Result: "OK", status: {code: 200}, Record: customers[0]});
+        let newPaytype = req.body.data;
+        let adPaytype = await db.paytypes.create(newPaytype);
+        res.json({Result: "OK", status: {code: 200}, Record: adPaytype});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -118,8 +88,8 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let updateCustomer = req.body.data;
-        await db.customers.update(updateCustomer, { where: { id: req.body.id } });
+        let updatePaytype = req.body.data;
+        await db.paytypes.update(updatePaytype, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
@@ -140,7 +110,7 @@ app.post('/delete', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        await db.cutomers.destroy({ where: { id: req.body.id } });
+        await db.paytypes.destroy({ where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -155,18 +125,16 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.get('/options/(:shopId)', (req, res) => {
-  let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
+app.get('/options', (req, res) => {
+  doGenOptions().then((result) => {
     res.json(result);
-  })
+  });
 });
 
-app.post('/options/(:shopId)', async (req, res) => {
-  let shopId = req.params.shopId;
-  doGenOptions(shopId).then((result) => {
+app.post('/options', async (req, res) => {
+  doGenOptions().then((result) => {
     res.json(result);
-  })
+  });
 });
 
 module.exports = ( dbconn, monitor ) => {
