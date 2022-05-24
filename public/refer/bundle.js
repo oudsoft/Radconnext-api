@@ -21164,8 +21164,9 @@ module.exports = function ( jq ) {
 		let callSocketUrl = '/api/cases/radio/socket/' + radioId;
 		let radioSockets = await common.doCallApi(callSocketUrl, {});
 		console.log(zoomData.caseData.Radiologist);
-		if (radioSockets.length > 0) {
-			let radioUsername = radioSockets[0].id
+		let radioUsername = zoomData.caseData.Radiologist.username;
+		//if (radioSockets.length > 0) {
+			//let radioUsername = radioSockets[0].id
 
 			wrtcCommon.doCheckBrowser().then((stream)=>{
 				if (stream) {
@@ -21222,9 +21223,11 @@ module.exports = function ( jq ) {
 					$('body').loading('stop');
 				}
 			});
+		/*
 		} else {
 			$('body').loading('stop');
 		}
+		*/
 	}
 
 	const doCreateWebRCTDlgContent = function(){
