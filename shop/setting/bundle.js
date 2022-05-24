@@ -555,13 +555,18 @@ module.exports = function ( jq ) {
 			}
 		} else {
 			//triggerCommandBox for remove tr Element
-			$('#selectable').find('#tr-element').remov();
+			$('#selectable').find('#tr-element').remove();
 		}
 		let isTrElement = $(element).hasClass('trElement');
+		let newTdColCmd = $('<li class="ui-widget-content" id="td-element"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">ช่องข้อมูล</span></li>')
 		if (isTrElement) {
-
+			let countTdCmd = $('#td-element').length;
+			if (countTdCmd == 0) {
+				$(newTdColCmd).data({type: "td"});
+				$('#selectable').append($(newTdColCmd));
+			}
 		} else {
-
+			$('#selectable').find('#td-element').remove();
 		}
   }
 
@@ -634,6 +639,20 @@ module.exports = function ( jq ) {
     resetPropForm(event.target, prop);
   }
   const trResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+
+	const tdElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const tdElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const tdResizeStop = function(event, data){
     let prop = data.options;
     resetPropForm(event.target, prop);
   }
@@ -961,6 +980,9 @@ module.exports = function ( jq ) {
 		trElementSelect,
 		trElementDrop,
 		trResizeStop,
+		tdElementSelect,
+		tdElementDrop,
+		tdResizeStop,
 
   	createElementPropertyForm
 	}
@@ -2916,7 +2938,6 @@ module.exports = function ( jq ) {
   }
 
   const doCreateElement = function(wrapper, elemType, prop){
-		console.log(elemType);
     let defHeight = 50;
     switch (elemType) {
       case "text":
@@ -3009,7 +3030,6 @@ module.exports = function ( jq ) {
 			break;
 			case "tr":
 				var trLength = $(".trElement").length;
-				console.log(trLength);
 				var oProp;
 				if (prop) {
 					//oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
@@ -3021,16 +3041,38 @@ module.exports = function ( jq ) {
 						*/
 						'border': '1px solid black',
 						'background-color': '#ddd',
-						id: 'tr-element-' + (imageTypeLength + 1)
+						id: 'tr-element-' + (trLength + 1)
 					}
 				}
 				//}
 				oProp.elementselect = elementProperty.trElementSelect;
 				oProp.elementdrop = elementProperty.trElementDrop;
 				oProp.elementresizestop = elementProperty.trResizeStop;
-				var trbox = $('<tr><td width="100%">Simply</td></tr>');
+				var trbox = $('<tr></td></tr>');
 				$(trbox).trelement( oProp );
-				console.log(trbox);
+				$(wrapper).append($(trbox));
+			break;
+			case "td":
+				var tdLength = $(".tdElement").length;
+				var oProp;
+				if (prop) {
+					//oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
+					oProp = {'border': prop.border, 'background-color': prop.backgroundColor, width: prop.width, 'minHeight': prop.minHeight};
+				} else {
+					//defHeight = 60;
+					oProp = {
+						'width': '60px', 'minHeight': '25px',
+						'border': '1px solid black',
+						'background-color': '#ddd',
+						id: 'td-element-' + (tdLength + 1)
+					}
+				}
+				//}
+				oProp.elementselect = elementProperty.tdElementSelect;
+				oProp.elementdrop = elementProperty.tdElementDrop;
+				oProp.elementresizestop = elementProperty.tdResizeStop;
+				var tdbox = $('<td width="100%"></td>');
+				$(trbox).trelement( oProp );
 				$(wrapper).append($(trbox));
 			break;
     }

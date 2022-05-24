@@ -4223,7 +4223,7 @@ module.exports = function ( jq ) {
 	        let diffTime = Math.abs(caseTriggerAt - new Date());
 	        let hh = parseInt(diffTime/(1000*60*60));
 	        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
-	        let clockCountdownDiv = $('<div></div>');
+	        let clockCountdownDiv = $('<div></div>').css({'width': '100%', 'text-align': 'center'});
 	        $(clockCountdownDiv).countdownclock({countToHH: hh, countToMN: mn});
 	        $(caseColumn).append($(clockCountdownDiv));
 					let totalMinus = (hh*60) + mn;
@@ -5325,7 +5325,7 @@ module.exports = function ( jq ) {
 	        let diffTime = Math.abs(caseTriggerAt - new Date());
 	        let hh = parseInt(diffTime/(1000*60*60));
 	        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
-	        let clockCountdownDiv = $('<div></div>');
+	        let clockCountdownDiv = $('<div></div>').css({'width': '100%', 'text-align': 'center'});;
 	        $(clockCountdownDiv).countdownclock({countToHH: hh, countToMN: mn});
 	        $(caseColumn).append($(clockCountdownDiv));
 	      //} else {
@@ -7153,7 +7153,7 @@ module.exports = function ( jq ) {
 			}
 			let nameCell = $('<td width="80%" align="left">' + dfName + '</td>');
 			let priceCell = $('<td width="20%" align="right" style="padding-right: 80px;">' + df[i].DF.value + '</td>');
-			total += Number(df[i].DF);
+			total += Number(df[i].DF.value);
 			$(row).append($(nameCell)).append($(priceCell));
 			$(summaryTable).append($(row));
 		}

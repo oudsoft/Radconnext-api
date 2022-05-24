@@ -348,7 +348,7 @@
 
     let settings = $.extend({
       // These are the defaults.
-      elementType: 'hr',
+      elementType: 'table',
       x: 0,
       y: 0,
       width: '100%',
@@ -463,21 +463,14 @@
 
     let settings = $.extend({
       // These are the defaults.
-      elementType: 'hr',
-      /*
-      x: 0,
-      y: 0,
-      width: '100%',
-      height: '20',
-      */
+      elementType: 'tr',
       border: "1px solid black;",
       backgroundColor: "#ddd",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        //$this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width + "px", "height": settings.height + "px"});
-        $this.css({"border": settings.border, 'background-color': settings.backgroundColor});
+        $this.css({"border": settings.border, 'background-color': settings.backgroundColor, 'height': '25px'});
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -504,14 +497,8 @@
       $(element).addClass("ui-widget-content");
       $(element).addClass("reportElement");
       $(element).addClass("trElement");
-      $(element).css(/*{
-        "left": settings.x + "px",
-        "top": settings.y + "px",
-        "width": settings.width + "px",
-        "height": settings.height + "px"}*/
-      {'border': settings.border, 'background-color': settings.backgroundColor});
-      //$(element).append($('<tr></tr>'));
-      //$(element > "table").css({"border": settings.border});
+      $(element).css(
+      {'border': settings.border, 'background-color': settings.backgroundColor, 'height': '25px'});
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -539,8 +526,6 @@
     }
 
     const elementResizeStopEvt = function(evt, ui) {
-      //setOption("width", evt.target.clientWidth);
-      //setOption("height", evt.target.clientHeight);
       let elementData = $(evt.target).data('custom-trelement');
       settings.elementresizestop(evt, elementData);
       $(evt.target).click();
@@ -548,8 +533,6 @@
     }
 
     const elementDragStopEvt = function(evt, ui) {
-      //setOption("x", evt.target.offsetLeft);
-      //setOption("y", evt.target.offsetTop);
       settings.refresh();
       let elementData = $(evt.target).data('custom-trelement');
       settings.elementdrop(evt, elementData);
@@ -579,4 +562,114 @@
 
   };
 
+  $.fn.tdelement = function( options ) {
+
+    let settings = $.extend({
+      // These are the defaults.
+      elementType: 'td',
+      x: 0,
+      y: 0,
+      width: '60px',
+      minHeight: '25px',
+      border: "1px solid black;",
+      backgroundColor: "#ddd",
+      refresh: function() {
+        let elementData = {options: settings};
+        $this.resizable('destroy');
+        $this.draggable('destroy');
+        $this.css({"border": settings.border, 'background-color': settings.backgroundColor, 'width': settings.width, 'min-height': settings.minHeight});
+        $this.resizable({
+          containment: "parent",
+          stop: function(evt) {
+            elementResizeStopEvt(evt, elementData);
+            settings.refresh();
+          }
+        });
+        $this.draggable({
+          containment: "parent",
+          stop: function(evt) {
+            elementDragStopEvt(evt, elementData);
+            settings.refresh();
+          }
+        });
+      }
+    }, options );
+
+    let $this = this;
+
+    const doCreateTdElement = function(){
+      let element = $this
+      let elementData = {options: settings};
+      $(element).data( "custom-tdelement", elementData );
+      $(element).addClass("ui-widget-content");
+      $(element).addClass("reportElement");
+      $(element).addClass("tdElement");
+      $(element).css(
+      {'border': settings.border, 'background-color': settings.backgroundColor,  'width': settings.width, 'min-height': settings.minHeight});
+      $(element).draggable({
+        containment: "parent",
+        stop: function(evt) {
+          elementDragStopEvt(evt, elementData);
+          settings.refresh();
+        }
+      });
+      $(element).resizable({
+        containment: "parent",
+        stop: function(evt) {
+          elementResizeStopEvt(evt, elementData);
+          settings.refresh();
+        }
+      });
+
+      $(element).on('click', function(evt, ui) {
+        settings.elementselect(evt, elementData);
+      });
+
+      return $(element);
+    }
+
+    const setOption = function(key, value){
+      settings[key] = value;
+    }
+
+    const elementResizeStopEvt = function(evt, ui) {
+      setOption("width", evt.target.clientWidth);
+      setOption("height", evt.target.clientHeight);
+      let elementData = $(evt.target).data('custom-tdelement');
+      settings.elementresizestop(evt, elementData);
+      $(evt.target).click();
+      evt.preventDefault();
+    }
+
+    const elementDragStopEvt = function(evt, ui)
+      setOption("x", evt.target.offsetLeft);
+      setOption("y", evt.target.offsetTop);
+      settings.refresh();
+      let elementData = $(evt.target).data('custom-tdelement');
+      settings.elementdrop(evt, elementData);
+      $(evt.target).click();
+      evt.preventDefault();
+    }
+
+    const init = function() {
+      let tdElement = doCreateTdElement();
+      return $(tdElement);
+    }
+
+    const tdElement = init();
+    this.append($(tdElement));
+    $(tdElement).resizable({
+      containment: "parent",
+      stop: elementResizeStopEvt
+    });
+
+    /* public method of plugin */
+    var output = {
+      settings: $this.settings,
+      elementHandle: tdElement,
+    }
+
+    return output;
+
+  };
 }( jQuery ));
