@@ -127,6 +127,7 @@ $( document ).ready(function() {
     let printjs = '../lib/print/print.min.js';
     let jquerySimpleUploadUrl = '../lib/simpleUpload.min.js';
     let utilityPlugin = "../lib/plugin/jquery-radutil-plugin.js";
+    let reportElementPlugin = "../lib/plugin/jquery-report-element-plugin.js";
 
     $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
   	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -140,7 +141,8 @@ $( document ).ready(function() {
     $('head').append('<script src="' + jquerySimpleUploadUrl + '"></script>');
 
     $('head').append('<script src="' + utilityPlugin + '"></script>');
-
+    $('head').append('<script src="' + reportElementPlugin + '"></script>');
+    
     $('head').append('<link rel="stylesheet" href="../stylesheets/style.css" type="text/css" />');
     $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
 
@@ -164,7 +166,7 @@ module.exports = {
   doShowShopItems,
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":10,"jquery":13}],3:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":11,"jquery":15}],3:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -535,6 +537,439 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
+	const resetActive = function(element) {
+    $(".reportElement").each((index, elem)=>{
+      $(elem).removeClass("elementActive");
+    })
+    $(element).addClass("elementActive");
+    $("#remove-item-cmd").prop('disabled', false);
+		let isTableElement = $(element).hasClass('tableElement');
+		let newTrRowCmd = $('<li class="ui-widget-content" id="tr-element"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">แถวรายการออร์เดอร์</span></li>')
+		if (isTableElement) {
+			//triggerCommandBox for append tr Element
+			let countTrCmd = $('#tr-element').length;
+			//console.log(countTrCmd);
+			if (countTrCmd == 0) {
+				$(newTrRowCmd).data({type: "tr"});
+				$('#selectable').append($(newTrRowCmd));
+			}
+		} else {
+			//triggerCommandBox for remove tr Element
+			$('#selectable').find('#tr-element').remov();
+		}
+		let isTrElement = $(element).hasClass('trElement');
+		if (isTrElement) {
+
+		} else {
+
+		}
+  }
+
+	const resetPropForm = function(target, data){
+    let propform = createElementPropertyForm(target, data);
+    $("#report-property").empty();
+    $("#report-property").append($(propform));
+  }
+
+  const textElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const textElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const textResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const hrElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const hrElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const hrResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const imageElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const imageElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const imageResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+	const tableElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const tableElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const tableResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+
+	const trElementSelect = function(event, data){
+    resetActive(event.target);
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const trElementDrop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+  const trResizeStop = function(event, data){
+    let prop = data.options;
+    resetPropForm(event.target, prop);
+  }
+
+  function createPropEditFragment(fragParent, fragTarget, key, label, oValue, type){
+    let fragProp = $("<tr></tr>");
+    $(fragProp).appendTo($(fragParent));
+    let fragLabel = $("<td align='left'>" + label + "</td>");
+    $(fragLabel).appendTo($(fragProp));
+    let fragValue = $("<input type='text' size='8'/>");
+    $(fragValue).val(oValue);
+    $(fragValue).on('keyup', (e)=> {
+      if (e.keyCode == 13){
+        let value = $(e.currentTarget).val();
+        if (!(isNaN(value))) {
+          let targetData = $(fragTarget).data();
+          switch (type) {
+            case "text":
+              targetData.customTextelement.options[key] = value;
+              targetData.customTextelement.options.refresh();
+            break;
+            case "hr":
+              targetData.customHrelement.options[key] = value;
+              targetData.customHrelement.options.refresh();
+            break;
+            case "image":
+              targetData.customImageelement.options[key] = value;
+              targetData.customImageelement.options.refresh();
+            break;
+          }
+        } else {
+          $(e.currentTarget).css({border: "2px solid red"})
+        }
+      }
+    });
+    let fragEditor = $("<td align='left'></td>");
+    $(fragEditor).append($(fragValue));
+    $(fragValue).appendTo($(fragProp));
+    return $(fragProp);
+  }
+
+  function createPropContentFragment(fragParent, fragTarget, data) {
+    let targetData = $(fragTarget).data();
+    //console.log(targetData);
+    let fragProp = $("<tr></tr>");
+    $(fragProp).appendTo($(fragParent));
+    let fragLabel = $("<td align='left'>Type</td>");
+    $(fragLabel).appendTo($(fragProp));
+    let fragValue = $("<select><option value='static'>Static</option><option value='dynamic'>Dynamic</option></select>");
+    let contentLabelFrag, contentDataFrag, updateContentCmdFrag;
+    let dynamicFrag;
+
+    $(fragValue).on('change', ()=> {
+      let newValue = $(fragValue).val();
+      if (newValue === 'static') {
+        targetData.customTextelement.options['type'] = 'static';
+        $(dynamicFrag).remove();
+
+        contentLabelFrag = $("<tr></tr>");
+        $(contentLabelFrag).appendTo($(fragParent));
+        let contentlabel = $("<td colspan='2' align='left'>Text</td>");
+        $(contentlabel).appendTo($(contentLabelFrag));
+
+        contentDataFrag = $("<tr></tr>");
+        $(contentDataFrag).appendTo($(fragParent));
+        let textEditorFrag = $("<td colspan='2' align='left'></td>");
+        $(textEditorFrag).appendTo($(contentDataFrag));
+        let textEditor = $("<textarea cols='12' rows='8'></textarea>");
+        $(textEditor).css({"width": "98%"});
+        $(textEditor).val(data.title);
+        $(textEditor).appendTo($(textEditorFrag));
+        updateContentCmdFrag = $("<tr></tr>");
+        $(updateContentCmdFrag).appendTo($(fragParent));
+        let updateCmdFrag = $("<td colspan='2' align='right'></td>");
+        $(updateCmdFrag).appendTo($(updateContentCmdFrag));
+        let updateCmd = $("<input type='button' value=' Update '/>");
+        $(updateCmd).appendTo($(updateCmdFrag));
+        $(updateCmd).on('click', ()=>{
+          let newContent = $(textEditor).val();
+          targetData.customTextelement.options['title'] = newContent;
+          targetData.customTextelement.options.refresh();
+        });
+				$(textEditor).on('keyup', (e)=> {
+					$(updateCmd).click();
+				});
+      } else if (newValue === 'dynamic') {
+        targetData.customTextelement.options['type'] = 'dynamic';
+        $(contentLabelFrag).remove();
+        $(contentDataFrag).remove();
+        $(updateContentCmdFrag).remove();
+
+        dynamicFrag = $("<tr></tr>");
+        $(dynamicFrag).appendTo($(fragParent));
+
+        let dynamicFieldlabel = $("<td align='left'>Field</td>");
+        $(dynamicFieldlabel).appendTo($(dynamicFrag));
+
+        let dynamicFieldValue = $("<td align='left'></td>");
+        $(dynamicFieldValue).appendTo($(dynamicFrag));
+
+        let dynamicFieldOption = $("<select></select>");
+        $(dynamicFieldOption).appendTo($(dynamicFieldValue));
+        fieldOptions.forEach((item, i) => {
+          $(dynamicFieldOption).append("<option value='" + item.name_en + "'>" + item.name_th + "</option>");
+        });
+        $(dynamicFieldOption).on('change', ()=> {
+          let newContent = $(dynamicFieldOption).val();
+          targetData.customTextelement.options['title'] = '$' + newContent;
+          targetData.customTextelement.options.refresh();
+        });
+        let currentVal = data.title.substring(1);
+        $(dynamicFieldOption).val(currentVal).change();
+      }
+    });
+    let fragEditor = $("<td align='left'></td>");
+    $(fragEditor).append($(fragValue));
+    $(fragValue).appendTo($(fragProp));
+    $(fragValue).val(data.type).change();
+    return $(fragProp);
+  }
+
+  function createFontSizeFragment(fragParent, fragTarget, data) {
+    const fontSizes = [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,32, 34, 36, 38, 40];
+
+    let targetData = $(fragTarget).data();
+    //console.log(targetData);
+
+    let fragFontSize = $("<tr></tr>");
+    $(fragFontSize).appendTo($(fragParent));
+    let fragFontSizeLabel = $("<td align='left'>Font Size</td>");
+    $(fragFontSizeLabel).appendTo($(fragFontSize));
+    let fragFontSizeOption = $("<td align='left'></td>");
+    $(fragFontSizeOption).appendTo($(fragFontSize));
+    let fragFontSizeValue = $("<select></select>");
+    $(fragFontSizeValue).appendTo($(fragFontSizeOption));
+    fontSizes.forEach((item, i) => {
+      $(fragFontSizeValue).append("<option value='" + item + "'>" + item + "</option>");
+    });
+    $(fragFontSizeValue).on('change', ()=>{
+      let newSize = $(fragFontSizeValue).val();
+      targetData.customTextelement.options['fontsize'] = newSize;
+      targetData.customTextelement.options.refresh();
+    });
+    $(fragFontSizeValue).val(data.fontsize).change();
+    return $(fragFontSize);
+  }
+
+  function createFontWeightFragment(fragParent, fragTarget, data) {
+    const fontWeight = ["normal", "bold"];
+
+    let targetData = $(fragTarget).data();
+
+    let fragFontWeight = $("<tr></tr>");
+    $(fragFontWeight).appendTo($(fragParent));
+    let fragFontWeightLabel = $("<td align='left'>Font Weight</td>");
+    $(fragFontWeightLabel).appendTo($(fragFontWeight));
+
+    let fragFontWeightOption = $("<td align='left'></td>");
+    $(fragFontWeightOption).appendTo($(fragFontWeight));
+    let fragFontWeightValue = $("<select></select>");
+    $(fragFontWeightValue).appendTo($(fragFontWeightOption));
+    fontWeight.forEach((item, i) => {
+      $(fragFontWeightValue).append("<option value='" + item + "'>" + item + "</option>");
+    });
+    $(fragFontWeightValue).on('change', ()=>{
+      let newWeight = $(fragFontWeightValue).val();
+      targetData.customTextelement.options['fontweight'] = newWeight;
+      targetData.customTextelement.options.refresh();
+    });
+    $(fragFontWeightValue).val(data.fontweight).change();
+    return $(fragFontWeight);
+  }
+
+  function createFontStyleFragment(fragParent, fragTarget, data) {
+    const fontStyle = ["normal", "italic"];
+
+    let targetData = $(fragTarget).data();
+
+    let fragFontStyle = $("<tr></tr>");
+    $(fragFontStyle).appendTo($(fragParent));
+    let fragFontStyleLabel = $("<td align='left'>Font Style</td>");
+    $(fragFontStyleLabel).appendTo($(fragFontStyle));
+
+    let fragFontStyleOption = $("<td align='left'></td>");
+    $(fragFontStyleOption).appendTo($(fragFontStyle));
+    let fragFontStyleValue = $("<select></select>");
+    $(fragFontStyleValue).appendTo($(fragFontStyleOption));
+    fontStyle.forEach((item, i) => {
+      $(fragFontStyleValue).append("<option value='" + item + "'>" + item + "</option>");
+    });
+    $(fragFontStyleValue).on('change', ()=>{
+      let newStyle = $(fragFontStyleValue).val();
+      targetData.customTextelement.options['fontstyle'] = newStyle;
+      targetData.customTextelement.options.refresh();
+    });
+    $(fragFontStyleValue).val(data.fontstyle).change();
+    return $(fragFontStyle);
+  }
+
+  function createFontAlignFragment(fragParent, fragTarget, data) {
+    const fontAlign = ["left", "center", "right"];
+
+    let targetData = $(fragTarget).data();
+
+    let fragFontAlign = $("<tr></tr>");
+    $(fragFontAlign).appendTo($(fragParent));
+    let fragFontAlignLabel = $("<td align='left'>Align</td>");
+    $(fragFontAlignLabel).appendTo($(fragFontAlign));
+
+    let fragFontAlignOption = $("<td align='left'></td>");
+    $(fragFontAlignOption).appendTo($(fragFontAlign));
+    let fragFontAlignValue = $("<select></select>");
+    $(fragFontAlignValue).appendTo($(fragFontAlignOption));
+    fontAlign.forEach((item, i) => {
+      $(fragFontAlignValue).append("<option value='" + item + "'>" + item + "</option>");
+    });
+    $(fragFontAlignValue).on('change', ()=>{
+      let newAlign = $(fragFontAlignValue).val();
+      targetData.customTextelement.options['fontalign'] = newAlign;
+      targetData.customTextelement.options.refresh();
+    });
+    $(fragFontAlignValue).val(data.fontalign).change();
+    return $(fragFontAlign);
+  }
+
+  function createPropImageSrcFragment(fragParent, fragTarget, data) {
+    let targetData = $(fragTarget).data();
+    //console.log(targetData);
+    let fragImageSrc = $("<tr></tr>");
+    $(fragImageSrc).appendTo($(fragParent));
+    let fragImageSrcLabel = $("<td align='left'>Image Url</td>");
+    $(fragImageSrcLabel).appendTo($(fragImageSrc));
+
+    let fragImageSrcInput = $("<td align='left'><input type='text' id='urltext' size='10' value='" + data.url + "'/></td>");
+    $(fragImageSrcInput).appendTo($(fragImageSrc));
+
+    let openSelectFileCmd = $("<input type='button' value=' ... ' />");
+    $(openSelectFileCmd).appendTo($(fragImageSrcInput));
+    $(openSelectFileCmd).on('click', (evt) => {
+      let fileBrowser = $('<input type="file"/>');
+      $(fileBrowser).attr("id", 'fileupload');
+      $(fileBrowser).attr("name", 'patienthistory');
+      $(fileBrowser).attr("multiple", true);
+      $(fileBrowser).css('display', 'none');
+      $(fileBrowser).on('change', function(e) {
+        const defSize = 10000000;
+        var fileSize = e.currentTarget.files[0].size;
+        var fileType = e.currentTarget.files[0].type;
+        if (fileSize <= defSize) {
+          var uploadUrl = "/api/uploadpatienthistory";
+          $('#fileupload').simpleUpload(uploadUrl, {
+            progress: function(progress){
+  						console.log("ดำเนินการได้ : " + Math.round(progress) + "%");
+  					},
+            success: function(data){
+  						//console.log('Uploaded.', data);
+              var imageUrl = data.link;
+              $("#urltext").val(imageUrl);
+              targetData.customImageelement.options['url'] = imageUrl;
+              targetData.customImageelement.options.refresh();
+            }
+          });
+        }
+      });
+      $(fileBrowser).appendTo($(fragImageSrcInput));
+      $(fileBrowser).click();
+    });
+    return $(fragImageSrc);
+  }
+
+	const createPropTableColsNumber = function(fragParent, fragTarget, data) {
+    let targetData = $(fragTarget).data();
+		let fragCols = $("<tr></tr>");
+		$(fragParent).append($(fragCols));
+		$(fragCols).append($('<td align="left">จำนวนคอลัมน์</td>'));
+		let colsInput = $('<input type="number"/>').css({'width': '50px'});
+		$(colsInput).on('keyup', (e)=> {
+			let newValue = $(colsInput).val();
+			targetData.customTableelement.options['cols'] = newValue;
+			targetData.customTableelement.options.refresh();
+		});
+		let colsFieldValue = $('<td align="left"></td>');
+		$(colsFieldValue).append($(colsInput));
+		$(fragCols).append($(colsFieldValue));
+		return $(fragCols);
+	}
+
+  const createElementPropertyForm = function(target, data) {
+    let formbox = $("<table width='100%' cellspacing='0' cellpadding='2' border='0'></table>");
+    $(formbox).append("<tr><td align='left' width='40%'>id</td><td align='left' width='*'>" + data.id + "</td></tr>");
+    let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
+    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
+    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
+    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
+    if (data.elementType === 'text') {
+      let contentFontSize = createFontSizeFragment(formbox, target, data);
+      let contentFontWeight = createFontWeightFragment(formbox, target, data);
+      let contentFontStyle = createFontStyleFragment(formbox, target, data);
+      let contentFontAlign = createFontAlignFragment(formbox, target, data);
+      let contentProp = createPropContentFragment(formbox, target, data);
+    } else if (data.elementType === 'image') {
+      let imageSrcProp = createPropImageSrcFragment(formbox, target, data);
+		} else if (data.elementType === 'table') {
+			let colsProp = createPropTableColsNumber(formbox, target, data);
+    }
+    return $(formbox);
+  }
+
+
+  return {
+		resetActive,
+		resetPropForm,
+		textElementSelect,
+		textElementDrop,
+		textResizeStop,
+		hrElementSelect,
+		hrElementDrop,
+		hrResizeStop,
+		imageElementSelect,
+		imageElementDrop,
+		imageResizeStop,
+		tableElementSelect,
+		tableElementDrop,
+		tableResizeStop,
+		trElementSelect,
+		trElementDrop,
+		trResizeStop,
+
+  	createElementPropertyForm
+	}
+}
+
+},{}],6:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
 	//const welcome = require('./welcome.js')($);
 	//const login = require('./login.js')($);
   const common = require('../../../home/mod/common-lib.js')($);
@@ -719,13 +1154,20 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
   const common = require('../../../home/mod/common-lib.js')($);
 
-  const doCreateFormDlg = function(shopData, orderTotal, successCallback) {
+  String.prototype.lpad = function(padString, length) {
+      var str = this;
+      while (str.length < length)
+          str = padString + str;
+      return str;
+  }
+
+  const doCreateFormDlg = function(shopData, orderTotal, orderId, successCallback) {
     return new Promise(async function(resolve, reject) {
       let payAmountInput = undefined;
       let createTaxInvoiceCmd = undefined;
@@ -817,8 +1259,23 @@ module.exports = function ( jq ) {
         let createBillCmd = common.doCreateTextCmd('พิมพ์ใบเสร็จ', 'green', 'white');
         $(commandCell).append($(createBillCmd));
 
-        $(createBillCmd).on('click', (evt)=>{
-
+        $(createBillCmd).on('click', async(evt)=>{
+          let shopId = shopData.id;
+          let nextInvoiceNo = '000000001';
+          let lastinvoicenoRes = await common.doCallApi('/api/shop/invoice/find/last/invioceno/' + shopId, {});
+          if (lastinvoicenoRes.Records.length > 0) {
+            let lastinvoiceno = lastinvoicenoRes.Records[0].No;
+            let nextNo = Number(lastinvoiceno);
+            nextNo = nextNo + 1;
+            nextInvoiceNo = nextNo.lpad("0", 9);
+            console.log(nextInvoiceNo);
+            let filename = shopId.lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
+            let discountValue = $(discountInput).val();
+            let vatValue = $(vatInput).val();
+            let payAmountValue = $(payAmountInput).val();
+            let paymentData = {Amount: payAmountValue};
+            let billData = {No: nextInvoiceNo, Discount: discountValue, Vat:vatValue, Filename: filename}
+          }
         });
 
         if (shopData.Shop_VatNo !== '') {
@@ -841,7 +1298,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1113,7 +1570,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],9:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1421,7 +1878,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],9:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],10:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1471,6 +1928,7 @@ module.exports = function ( jq ) {
     let titleText = 'เปิดออร์เดอร์ใหม่';
     if (orderData) {
       titleText = 'แก้ไขออร์เดอร์';
+			orderObj.id = orderData.id;
     }
     let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
     let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
@@ -1520,7 +1978,7 @@ module.exports = function ( jq ) {
 		$(callCreateInvoiceCmd).on('click', async (evt)=>{
 			let total = await doCalOrderTotal(orderObj.gooditems);
 			if (total > 0) {
-      	dlgHandle = await doOpenCreateInvoiceDlg(shopData, total, invoiceCallback);
+      	dlgHandle = await doOpenCreateInvoiceDlg(shopData, total, orderObj.id, invoiceCallback);
 			} else {
 				$.notify("ออร์เดอร์ยังไม่สมบูรณ์โปรดเพิ่มรายการสินค้าก่อน", "error");
 			}
@@ -1644,9 +2102,9 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doOpenCreateInvoiceDlg = function(shopData, orderTotal, callback) {
+	const doOpenCreateInvoiceDlg = function(shopData, orderTotal, orderId, callback) {
 		return new Promise(async function(resolve, reject) {
-      const invoiceDlgContent = await invoicedlg.doCreateFormDlg(shopData, orderTotal, callback);
+      const invoiceDlgContent = await invoicedlg.doCreateFormDlg(shopData, orderTotal, orderId, callback);
       $(invoiceDlgContent).css({'margin-top': '10px'});
       const invoiceformoption = {
   			title: 'ป้อนข้อมูลเพื่อออกใบแจ้งหนี้',
@@ -1851,7 +2309,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./customer-dlg.js":3,"./gooditem-dlg.js":5,"./invoice-dlg.js":6}],10:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./customer-dlg.js":3,"./gooditem-dlg.js":6,"./invoice-dlg.js":7}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2161,7 +2619,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":11}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":12}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2173,6 +2631,7 @@ module.exports = function ( jq ) {
 	const menugroup = require('./menugroup-mng.js')($);
 	const menuitem = require('./menuitem-mng.js')($);
 	const order = require('./order-mng.js')($);
+	const template = require('./template-design.js')($);
 
   const doCreateTitlePage = function(shopData){
     let shopLogoIcon = new Image();
@@ -2232,7 +2691,12 @@ module.exports = function ( jq ) {
       doOrderMngClickCallBack(evt, shopData);
     });
 
-    return $(commandsBox).append($(orderMngCmd)).append($(menuitemMngCmd)).append($(menugroupMngCmd)).append($(customerMngCmd)).append($(userMngCmd));
+		let templateMngCmd = $('<input type="button" value=" รูปแบบเอกสาร " class="action-btn"/>').css({'margin-left': '10px'});
+    $(templateMngCmd).on('click', (evt)=>{
+      doTemplateMngClickCallBack(evt, shopData);
+    });
+
+    return $(commandsBox).append($(orderMngCmd)).append($(menuitemMngCmd)).append($(menugroupMngCmd)).append($(customerMngCmd)).append($(userMngCmd)).append($(templateMngCmd));
   }
 
   const doShowShopMhg = function(shopData){
@@ -2271,12 +2735,355 @@ module.exports = function ( jq ) {
 		await order.doShowOrderList(shopData, workingAreaBox)
   }
 
+	const doTemplateMngClickCallBack = async function(evt, shopData){
+		let workingAreaBox = $('#WorkingAreaBox');
+		await template.doShowTemplateDesign(shopData, workingAreaBox)
+	}
+
   return {
     doShowShopMhg
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./customer-mng.js":4,"./menugroup-mng.js":7,"./menuitem-mng.js":8,"./order-mng.js":9,"./user-mng.js":12}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./customer-mng.js":4,"./menugroup-mng.js":8,"./menuitem-mng.js":9,"./order-mng.js":10,"./template-design.js":13,"./user-mng.js":14}],13:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	//const welcome = require('./welcome.js')($);
+	//const login = require('./login.js')($);
+  const common = require('../../../home/mod/common-lib.js')($);
+  const elementProperty = require('./element-property-lib.js')($);
+  let activeType, activeElement;
+
+  const A4Width = 1004;
+  const A4Height = 1410;
+
+  const templateTypes = [
+    {id: 1, NameEN: 'Invoice', NameTH: 'ใบแจ้งหนี้'},
+    {id: 2, NameEN: 'Bill', NameTH: 'บิลเงินสด/ใบเสร็จรับเงิน'},
+    {id: 3, NameEN: 'Tax-Invoice', NameTH: 'ใบกำกับภาษี'}
+  ];
+
+	const paperSizes = [
+		{id: 1, NameEN: 'A4', NameTH: 'A4'},
+		{id: 1, NameEN: 'Slip', NameTH: 'Slip'}
+	];
+
+  const doCalRatio = function(){
+    let containerWidth = $('#report-container').width();
+    return containerWidth/A4Width;
+  }
+
+  const resetContainer = function(){
+    let newRatio = doCalRatio();
+    let newHeight = A4Height * newRatio;
+    $('#report-container').css('height', newHeight);
+    $('#report-container').css('max-height', newHeight);
+    /*
+    doCollectElement().then((reportElements)=>{
+      if (reportElements.length > 0) {
+        let wrapper = $('#report-container');
+        $(wrapper).empty();
+        reportElements.forEach(async (item, i) => {
+          let reportElem = {};
+          await Object.getOwnPropertyNames(item).forEach((tag) => {
+            reportElem[tag] = item[tag];
+          });
+          doCreateElement(wrapper, item.elementType, item);
+        });
+      }
+    });
+    */
+  }
+
+  const doCreateTemplateTypeSelector = function(shopData, workAreaBox, onChangeCallBack){
+    let selector = $('<select></select>');
+    templateTypes.forEach((item, i) => {
+      $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
+    });
+    $(selector).on('change', (evt)=>{
+      let selectValue = $(selector).val();
+      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
+    });
+    return $(selector);
+  }
+
+  const doCreateShopTemplateSelector = function(templates, shopData, workAreaBox, onChangeCallBack){
+    let selector = $('<select></select>');
+    templates.forEach((item, i) => {
+      $(selector).append($('<option value="' + item.id + '">' + item.Name + '</option>'));
+    });
+    $(selector).on('change', (evt)=>{
+      let selectValue = $(selector).val();
+      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
+    });
+    return $(selector);
+  }
+
+	const doCreatePaperSizeSelector = function(shopData, workAreaBox, onChangeCallBack){
+		let selector = $('<select></select>');
+		paperSizes.forEach((item, i) => {
+      $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
+    });
+    $(selector).on('change', (evt)=>{
+      let selectValue = $(selector).val();
+      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
+    });
+    return $(selector);
+	}
+
+  const doCreateTemplateDesignArea = function(){
+    let wrapper = $('<div class="row" id="WorkRow"></div>');
+    let columnSideBox = $('<div class="column side"></div>');
+    let reportItemBox = $('<div id="report-item"></div>');
+    let selectableBox = $('<ol id="selectable"></ol>');
+    $(selectableBox).append('<li class="ui-widget-content" id="text-element"><img src="/images/text-icon.png" class="icon-element"/><span class="text-element">กล่องข้อความ</span></li>');
+    $(selectableBox).append('<li class="ui-widget-content" id="hr-element"><img src="/images/hr-line-icon.png" class="icon-element"/><span class="text-element">เส้นแนวนอน</span></li>');
+    $(selectableBox).append('<li class="ui-widget-content" id="image-element"><img src="/images/image-icon.png" class="icon-element"/><span class="text-element">กล่องรูปภาพ</span></li>');
+		var tableTypeLength = $(".tableElement").length;
+		if (tableTypeLength == 0) {
+			$(selectableBox).append('<li class="ui-widget-content" id="table-element"><img src="/images/item-list-icon.png" class="icon-element"/><span class="text-element">ตารางออร์เดอร์</span></li>');
+		}
+    let reportItemCmdBox = $('<div id="report-item-cmd" style="padding:5px; text-align: center; margin-top: 20px;"></div>');
+    let addElementCmd = $('<input type="button" id="add-item-cmd" value=" เพิ่ม "/>');
+    let removeElementCmd = $('<input type="button" id="remove-item-cmd" value=" ลบ "/>');
+    $(reportItemCmdBox).append($(addElementCmd)).append($(removeElementCmd));
+    let reportPropertyBox = $('<div id="report-property"></div>') ;
+
+    $(reportItemBox).append($(selectableBox)).append($(reportItemCmdBox)).append($(reportPropertyBox));
+    $(columnSideBox).append($(reportItemBox));
+
+    let columnMiddleBox = $('<div class="column middle"></div>');
+    let reportcontainerBox = $('<div id="report-container"></div>');
+    $(columnMiddleBox).append($(reportcontainerBox));
+
+    return $(wrapper).append($(columnSideBox)).append($(columnMiddleBox))
+  }
+
+	const doLoadCommandAction = function(){
+    $("#add-item-cmd").prop('disabled', true);
+    $("#remove-item-cmd").prop('disabled', true);
+    $("#text-element").data({type: "text"});
+    $("#hr-element").data({type: "hr"});
+    $("#image-element").data({type: "image"});
+		$("#table-element").data({type: "table"});
+		$("#tr-element").data({type: "tr"});
+    $("#selectable").selectable({
+      stop: function() {
+        $( ".ui-selected", this ).each(function() {
+          activeType = $(this).data();
+          $("#add-item-cmd").prop('disabled', false);
+        });
+      },
+      selected: function(event, ui) {
+        $(ui.selected).addClass("ui-selected").siblings().removeClass("ui-selected");
+      }
+    });
+    $("#report-container").droppable({
+      accept: ".reportElement",
+      drop: function( event, ui ) {
+      }
+    });
+		$('.tableElement').droppable({
+      accept: ".trElement",
+      drop: function( event, ui ) {
+      }
+    });
+		$('.trElement').droppable({
+      accept: ".tdElement",
+      drop: function( event, ui ) {
+      }
+    });
+    $("#add-item-cmd").click((event) => {
+      let elemType = activeType.type;
+      let wrapper = $("#report-container");
+			if (elemType == 'tr') {
+				wrapper = $(wrapper).find('table');
+			}
+      doCreateElement(wrapper, elemType);
+    });
+
+    $("#remove-item-cmd").click((event) => {
+      $(".reportElement").each((index, elem)=>{
+        let isActive = $(elem).hasClass("elementActive");
+        if (isActive) {
+          $(elem).remove();
+          $("#remove-item-cmd").prop('disabled', true);
+          $("#report-property").empty();
+        }
+      });
+    });
+  }
+
+  const doCreateElement = function(wrapper, elemType, prop){
+		console.log(elemType);
+    let defHeight = 50;
+    switch (elemType) {
+      case "text":
+        var textTypeLength = $(".textElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {
+            x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, type: prop.type, title: prop.title,
+            fontsize: prop.fontsize,
+            fontweight: prop.fontweight,
+            fontstyle: prop.fontstyle,
+            fontalign: prop.fontalign
+          };
+        } else {
+          defHeight = 50;
+          oProp = {x:0, y: (defHeight * textTypeLength),
+            width: '150', height: defHeight,
+            id: 'text-element-' + (textTypeLength + 1),
+            title: 'Text Element ' + (textTypeLength + 1)
+          }
+        }
+        oProp.elementselect = elementProperty.textElementSelect;
+        oProp.elementdrop = elementProperty.textElementDrop;
+        oProp.elementresizestop = elementProperty.textResizeStop;
+        var textbox = $( "<div></div>" );
+        $(textbox).textelement( oProp );
+        $(wrapper).append($(textbox));
+      break;
+      case "hr":
+        var hrTypeLength = $(".hrElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id};
+        } else {
+          defHeight = 20;
+          oProp = {x:0, y: (defHeight * hrTypeLength),
+            width: '100%', height: defHeight,
+            id: 'hr-element-' + (hrTypeLength + 1)
+          }
+        }
+        oProp.elementselect = elementProperty.hrElementSelect;
+        oProp.elementdrop = elementProperty.hrElementDrop;
+        oProp.elementresizestop = elementProperty.hrResizeStop;
+        var hrbox = $( "<div><hr/></div>" );
+        $(hrbox).hrelement( oProp );
+        $(wrapper).append($(hrbox));
+      break;
+      case "image":
+        var imageTypeLength = $(".imageElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, url: prop.url};
+        } else {
+          defHeight = 60;
+          oProp = {x:0, y: (defHeight * imageTypeLength),
+            width: '100', height: defHeight,
+            id: 'image-element-' + (imageTypeLength + 1),
+            url: '../../icon.png'
+          }
+        }
+        oProp.elementselect = elementProperty.imageElementSelect;
+        oProp.elementdrop = elementProperty.imageElementDrop;
+        oProp.elementresizestop = elementProperty.imageResizeStop;
+        var imagebox = $( "<div></div>" )
+        $(imagebox).imageelement( oProp );
+        $(wrapper).append($(imagebox));
+      break;
+			case "table":
+				var imageTypeLength = $(".tableElement").length;
+				//console.log(imageTypeLength);
+				if (imageTypeLength == 0) {
+					var oProp;
+					if (prop) {
+						oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
+					} else {
+						defHeight = 60;
+						oProp = {x:0, y: (defHeight * imageTypeLength),
+							width: '100%', height: defHeight,
+							id: 'table-element-' + (imageTypeLength + 1),
+							cols: 5
+						}
+					}
+					oProp.elementselect = elementProperty.tableElementSelect;
+					oProp.elementdrop = elementProperty.tableElementDrop;
+					oProp.elementresizestop = elementProperty.tableResizeStop;
+					var tablebox = $( "<div></div>" )
+					$(tablebox).tableelement( oProp );
+					$(wrapper).append($(tablebox));
+				}
+			break;
+			case "tr":
+				var trLength = $(".trElement").length;
+				console.log(trLength);
+				var oProp;
+				if (prop) {
+					//oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
+					oProp = {'border': prop.border, 'background-color': prop.backgroundColor};
+				} else {
+					//defHeight = 60;
+					oProp = {/*x:0, y: (defHeight * imageTypeLength),
+						width: '100%', height: defHeight,
+						*/
+						'border': '1px solid black',
+						'background-color': '#ddd',
+						id: 'tr-element-' + (imageTypeLength + 1)
+					}
+				}
+				//}
+				oProp.elementselect = elementProperty.trElementSelect;
+				oProp.elementdrop = elementProperty.trElementDrop;
+				oProp.elementresizestop = elementProperty.trResizeStop;
+				var trbox = $('<tr><td width="100%">Simply</td></tr>');
+				$(trbox).trelement( oProp );
+				console.log(trbox);
+				$(wrapper).append($(trbox));
+			break;
+    }
+  }
+
+  const doShowTemplateDesign = function(shopData, workAreaBox){
+    return new Promise(async function(resolve, reject) {
+      $(workAreaBox).empty();
+
+
+      let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
+      let templateItems = templateRes.Records;
+      if (templateItems.lenght > 0) {
+
+      } else {
+        let controlNewTemplateForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+        let controlRow = $('<tr></tr>').css({'background-color': '#ddd', 'border': '2px solid grey'});
+        $(controlNewTemplateForm).append($(controlRow));
+        let templatTypeSelector = doCreateTemplateTypeSelector(shopData, workAreaBox, onTemplateTypeChange);
+				let paperSizeSelector = doCreatePaperSizeSelector(shopData, workAreaBox, onPaperSizeChange);
+        let templateNameInput = $('<input type="text"/>').css({'width': '220px'});
+        let saveNewTemplateCmd = $('<input type="button" value=" บันทึก "/>');
+        $(controlRow).append($('<td width="10%" align="left"><b>ประเภทเอกสาร</b></td>'));
+        $(controlRow).append($('<td width="20%" align="left"></td>').append($(templatTypeSelector)));
+        $(controlRow).append($('<td width="10%" align="left"><b>ชื่อเอกสารใหม่</b></td>'));
+        $(controlRow).append($('<td width="30%" align="left"></td>').append($(templateNameInput)));
+				$(controlRow).append($('<td width="10%" align="left"><b>ขนาดกระดาษ</b></td>'));
+        $(controlRow).append($('<td width="15%" align="center"></td>').append($(paperSizeSelector)));
+				$(controlRow).append($('<td width="*" align="center"></td>').append($(saveNewTemplateCmd)));
+        $(workAreaBox).empty().append($(controlNewTemplateForm));
+        let designAreaBox = doCreateTemplateDesignArea();
+        $(workAreaBox).append($(designAreaBox));
+        resetContainer();
+        doLoadCommandAction();
+
+      }
+      resolve();
+    });
+  }
+
+  const onTemplateTypeChange = function(evt, typeValue, shopData, workAreaBox){
+
+  }
+
+	const onPaperSizeChange = function(evt, typeValue, shopData, workAreaBox){
+
+	}
+  return {
+    doShowTemplateDesign
+	}
+}
+
+},{"../../../home/mod/common-lib.js":1,"./element-property-lib.js":5}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2714,7 +3521,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],15:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/

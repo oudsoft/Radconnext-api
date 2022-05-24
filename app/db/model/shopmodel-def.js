@@ -127,7 +127,7 @@ const ShopOrderDef = {
     allowNull: false
   },
   Status : {
-    type: Sequelize.INTEGER, // <- 0=cancel, 1=active
+    type: Sequelize.INTEGER, // <- 0=cancel, 1=active, 2=onInvoice, 3=onBill, 4=Acrchive
     defaultValue: 1
   }
 };
@@ -182,6 +182,9 @@ const ShopPaymentDef = {
 const ShopTemplateDef = {
   Name : {
     type: Sequelize.STRING(80)
+  },
+  TypeId : {
+    type: Sequelize.INTEGER, // <- 1=Invoice, 2=Bill, 3=TaxInvoice
   },
   Content : {
     type: Sequelize.JSON,

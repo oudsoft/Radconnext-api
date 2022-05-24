@@ -8668,8 +8668,10 @@ const doInitRTCPeer = function(stream, wsm) {
         console.log(track);
       });
       */
+      console.log(userJoinOption);
       if (userJoinOption.joinType === 'caller') {
         let streams = [displayMediaStream, remoteStream];
+        console.log(streams);
         let myMerger = streamMerger.CallcenterMerger(streams, mergeOption);
         let remoteMergedStream = myMerger.result
         myVideo.srcObject = remoteMergedStream;
@@ -8678,6 +8680,7 @@ const doInitRTCPeer = function(stream, wsm) {
         $('#CommandBox').find('#StartWebRCTCmd').hide();
         $('#CommandBox').find('#EndWebRCTCmd').show();
       } else if (userJoinOption.joinType === 'callee') {
+        console.log(remoteStream);
         myVideo.srcObject = remoteStream;
         console.log('callee new stream');
         $('#CommandBox').find('#ShareWebRCTCmd').hide();
@@ -8732,6 +8735,7 @@ const wsHandleOffer = function(wsm, offer) {
       sendto: userJoinOption.audienceName
     };
     wsm.send(JSON.stringify(sendData));
+    userJoinOption.joinType = 'callee';
   }, function (error) {
     console.log(error);
   });
@@ -8856,6 +8860,7 @@ const doCreateShareScreenCmd = function(){
 const onShareCmdClickCallback = async function(wsm ,callback){
   let captureStream = await doGetDisplayMedia();
   onDisplayMediaSuccess(captureStream, wsm, ()=>{
+    userJoinOption.joinType = 'caller';    
     let myRemoteConn = doInitRTCPeer(localMergedStream, wsm);
     //console.log(myRemoteConn);
     doSetupRemoteConn(myRemoteConn);
@@ -8974,11 +8979,9 @@ const doEndCall = function(wsm){
   		track.stop();
   	});
   }
-  /*
   if (remoteConn) {
     remoteConn.close();
   }
-  */
   displayMediaStream = undefined;
   localMergedStream = undefined;
 
@@ -21206,6 +21209,8 @@ module.exports = function ( jq ) {
 						myVideo.srcObject = wrtcCommon.userMediaStream;
 						wrtcCommon.doEndCall(wsm);
 						wrtcCommon.doCreateLeave(wsm);
+						let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
+						wrtcCommon.doSetupRemoteConn(myRemoteConn);						
 					})
 					$(dlgContent).find('#CommandBox').append($(shareCmd));
 					$(dlgContent).find('#CommandBox').append($(startCmd).hide());

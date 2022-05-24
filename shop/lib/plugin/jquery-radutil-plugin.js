@@ -110,15 +110,6 @@
     let radalert = init();
     this.append($(radalert));
 
-    /*
-    input options
-    {
-      title,
-      msg,
-      onOk,
-      onCancel
-    }
-    */
     /* public method of plugin */
     let output = {
       overlay: overlay,

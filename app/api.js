@@ -124,6 +124,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const shoppaytype = require('./db/rest/shop/paytype.js')(shopdb, log);
 	const shoppayment = require('./db/rest/shop/payment.js')(shopdb, log);
 	const shopbill = require('./db/rest/shop/bill.js')(shopdb, log);
+	const shoptemplate = require('./db/rest/shop/template.js')(shopdb, log);
 	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
 
 	apiApp.use('/external', externalapiproxy);
@@ -181,6 +182,7 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/shop/paytype', shoppaytype);
 	apiApp.use('/shop/payment', shoppayment);
 	apiApp.use('/shop/bill', shopbill);
+	apiApp.use('/shop/template', shoptemplate);
 
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;

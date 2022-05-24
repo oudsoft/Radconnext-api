@@ -406,7 +406,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         $(sponsorBox).find('img').attr('src', imageLink);
         $(sponsorBox).find('img').attr("onclick", "").unbind("click");
         $(sponsorBox).find('img').on('click', (evt)=>{
-          let imageCode = imageLists[n].split('.');
+          let imageCode = imageFiles[n].split('.');
           openUrl = linkTo + 'k!' + imageCode[0];
           window.open(openUrl, '_blank');
         });
