@@ -154,7 +154,7 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 					const reportPdfFilePath = usrPdfPath + '/' + pdfFileName;
 					const reportPdfLinkPath = process.env.USRPDF_PATH + '/' + pdfFileName;
 
-					const creatReportCommand = uti.fmtStr('wkhtmltopdf -s A4 http://localhost:8080/%s %s', reportHtmlLinkPath, reportPdfFilePath);
+					const creatReportCommand = uti.fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
 
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					uti.runcommand(creatReportCommand).then(async (cmdout) => {
