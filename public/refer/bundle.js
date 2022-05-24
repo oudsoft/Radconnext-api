@@ -21163,6 +21163,7 @@ module.exports = function ( jq ) {
 
 		let callSocketUrl = '/api/cases/radio/socket/' + radioId;
 		let radioSockets = await common.doCallApi(callSocketUrl, {});
+		console.log(zoomData.caseData.Radiologist);
 		if (radioSockets.length > 0) {
 			let radioUsername = radioSockets[0].id
 
@@ -21210,7 +21211,7 @@ module.exports = function ( jq ) {
 						wrtcCommon.doEndCall(wsm);
 						wrtcCommon.doCreateLeave(wsm);
 						let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
-						wrtcCommon.doSetupRemoteConn(myRemoteConn);						
+						wrtcCommon.doSetupRemoteConn(myRemoteConn);
 					})
 					$(dlgContent).find('#CommandBox').append($(shareCmd));
 					$(dlgContent).find('#CommandBox').append($(startCmd).hide());
