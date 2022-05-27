@@ -19,6 +19,10 @@
         $this.resizable('destroy');
         $this.draggable('destroy');
         $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width + "px", "height": settings.height + "px"});
+        $this.css({"font-size": settings.fontsize + "px"});
+        $this.css({"font-weight": settings.fontweight});
+        $this.css({"font-style": settings.fontstyle});
+        $this.css({"text-align": settings.fontalign});
         $this.text(settings.title);
         $this.resizable({
           containment: "parent",
@@ -50,6 +54,7 @@
         "width": settings.width + "px",
         "height": settings.height + "px"});
       $(element).text(settings.title);
+      $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -153,12 +158,22 @@
       $(element).addClass("ui-widget-content");
       $(element).addClass("reportElement");
       $(element).addClass("hrElement");
+      let hrw = settings.width;
+      if (hrw.indexOf("%") >= 0) {
+        let parentWidth = $('#report-container').width();;
+        //parentWidth = Number(parentWidth.replace(/\%$/, ''));
+        hrw = (Number(hrw.slice(0, (hrw.length-1)))/100) * parentWidth;
+      } else if (hrw.indexOf("px") >= 0) {
+        hrw = hrw.replace(/px$/, '');
+      }
+      settings.width = hrw;
       $(element).css({
         "left": settings.x + "px",
         "top": settings.y + "px",
-        "width": settings.width + "px",
+        "width": hrw + "px",
         "height": settings.height + "px"});
       $(element > "hr").css({"border": settings.border});
+      $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -238,6 +253,31 @@
     }, options );
 
     let $this = this;
+
+    settings.refresh = function() {
+      $this.resizable('destroy');
+      $this.draggable('destroy');
+      $this.empty();
+      $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width + "px", "height": settings.width + "px"});
+      $this.css({"background": "url(" + settings.url + ") no-repeat", "background-size": "contain"});
+      $this.resizable({
+        containment: "parent",
+        stop: function(evt) {
+          let elementData = {options: settings};
+          elementResizeStopEvt(evt, elementData);
+          settings.refresh();
+        }
+      });
+      $this.draggable({
+        containment: "parent",
+        stop: function(evt) {
+          let elementData = {options: settings};
+          elementDragStopEvt(evt, elementData);
+          settings.refresh();
+        }
+      });
+    }
+
     const doCreateimageElement = function(){
       let element = $this;
       let elementData = {options: settings};
@@ -249,12 +289,10 @@
         "left": settings.x + "px",
         "top": settings.y + "px",
         "width": settings.width + "px",
-        "height": "auto"
+        "height": settings.width + "px"
       });
-      let newImage = new Image();
-      newImage.src = settings.url;
-      newImage.setAttribute("width", settings.width);
-      $(element).append(newImage);
+      $(element).attr("tabindex", 1);
+      $(element).css({"background": "url(" + settings.url + ") no-repeat", "background-size": "auto"});
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -269,31 +307,6 @@
           settings.refresh();
         }
       });
-      settings.refresh = function() {
-        $this.resizable('destroy');
-        $this.draggable('destroy');
-        $this.empty();
-        let newImage = new Image();
-        newImage.src = settings.url;
-        newImage.setAttribute("width", settings.width);
-        $this.append(newImage);
-        $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width, "height": "auto"});
-        $this.resizable({
-          containment: "parent",
-          stop: function(evt) {
-            elementResizeStopEvt(evt, elementData);
-            settings.refresh();
-          }
-        });
-        $this.draggable({
-          containment: "parent",
-          stop: function(evt) {
-            elementDragStopEvt(evt, elementData);
-            settings.refresh();
-          }
-        });
-      }
-
       $(element).on('click', function(evt, ui) {
         settings.elementselect(evt, elementData);
       });
@@ -306,7 +319,7 @@
 
     const elementResizeStopEvt = function(evt, ui) {
       setOption("width", evt.target.clientWidth);
-      setOption("height", evt.target.clientHeight);
+      setOption("height", "auto");
       let elementData = $(evt.target).data('custom-imageelement');
       settings.elementresizestop(evt, elementData);
       $(evt.target).click();
@@ -351,14 +364,14 @@
       elementType: 'table',
       x: 0,
       y: 0,
-      width: '100%',
+      width: '99.1%',
       height: '20',
-      border: "1px solid black;",
+      //border: "1px solid black;",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width + "px", "height": settings.height + "px"});
+        $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width, "height": settings.height + "px"});
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -385,13 +398,15 @@
       $(element).addClass("ui-widget-content");
       $(element).addClass("reportElement");
       $(element).addClass("tableElement");
+      $(element).css({'display': 'table', 'width': '100%', 'border-collapse': 'collapse'});
       $(element).css({
         "left": settings.x + "px",
         "top": settings.y + "px",
-        "width": settings.width + "px",
-        "height": settings.height + "px"});
-      $(element).append($('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>'));
-      $(element > "table").css({"border": settings.border});
+        "width": settings.width,
+        "height": settings.height + "px",
+        "border": settings.border
+      });
+      $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -419,7 +434,7 @@
     }
 
     const elementResizeStopEvt = function(evt, ui) {
-      setOption("width", evt.target.clientWidth);
+      //setOption("width", evt.target.clientWidth);
       setOption("height", evt.target.clientHeight);
       let elementData = $(evt.target).data('custom-tableelement');
       settings.elementresizestop(evt, elementData);
@@ -428,7 +443,7 @@
     }
 
     const elementDragStopEvt = function(evt, ui) {
-      setOption("x", evt.target.offsetLeft);
+      //setOption("x", evt.target.offsetLeft);
       setOption("y", evt.target.offsetTop);
       settings.refresh();
       let elementData = $(evt.target).data('custom-tableelement');
@@ -451,12 +466,12 @@
 
     /* public method of plugin */
     var output = {
-      settings: $this.settings,
+      settings: settings,
       elementHandle: tableElement,
     }
 
-    return output;
-
+    //return output;
+    return tableElement;
   };
 
   $.fn.trelement = function( options ) {
@@ -464,13 +479,16 @@
     let settings = $.extend({
       // These are the defaults.
       elementType: 'tr',
-      border: "1px solid black;",
+      x: 0,
+      y: 0,
+      width: '95%',
+      heigth: '25px',
       backgroundColor: "#ddd",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        $this.css({"border": settings.border, 'background-color': settings.backgroundColor, 'height': '25px'});
+        $this.css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor});
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -497,8 +515,9 @@
       $(element).addClass("ui-widget-content");
       $(element).addClass("reportElement");
       $(element).addClass("trElement");
-      $(element).css(
-      {'border': settings.border, 'background-color': settings.backgroundColor, 'height': '25px'});
+      $(element).css({'position': 'relative'});
+      $(element).css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor, "width": settings.width, "height": settings.height, "float": "left", "min-height": "30px"});
+      $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -516,6 +535,7 @@
 
       $(element).on('click', function(evt, ui) {
         settings.elementselect(evt, elementData);
+        evt.stopPropagation();
       });
 
       return $(element);
@@ -526,6 +546,8 @@
     }
 
     const elementResizeStopEvt = function(evt, ui) {
+      setOption("width", evt.target.clientWidth);
+      setOption("height", evt.target.clientHeight);
       let elementData = $(evt.target).data('custom-trelement');
       settings.elementresizestop(evt, elementData);
       $(evt.target).click();
@@ -533,6 +555,8 @@
     }
 
     const elementDragStopEvt = function(evt, ui) {
+      setOption("x", evt.target.offsetLeft);
+      setOption("y", evt.target.offsetTop);
       settings.refresh();
       let elementData = $(evt.target).data('custom-trelement');
       settings.elementdrop(evt, elementData);
@@ -554,12 +578,12 @@
 
     /* public method of plugin */
     var output = {
-      settings: $this.settings,
+      settings: settings,
       elementHandle: trElement,
     }
 
-    return output;
-
+    //return output;
+    return trElement;
   };
 
   $.fn.tdelement = function( options ) {
@@ -567,17 +591,26 @@
     let settings = $.extend({
       // These are the defaults.
       elementType: 'td',
+      type: 'static',
       x: 0,
       y: 0,
-      width: '60px',
-      minHeight: '25px',
-      border: "1px solid black;",
-      backgroundColor: "#ddd",
+      width: '90',
+      height: '35',
+      fontsize: 20,
+      fontweight: 'normal',
+      fontstyle: 'normal',
+      fontalign: 'left',
+      cellData: 'ช่องข้อมูล',
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        $this.css({"border": settings.border, 'background-color': settings.backgroundColor, 'width': settings.width, 'min-height': settings.minHeight});
+        $this.css({"left": settings.x + "px", "top": settings.y + "px", 'width': settings.width + 'px', 'height': settings.height + 'px'});
+        $this.css({"font-size": settings.fontsize + "px"});
+        $this.css({"font-weight": settings.fontweight});
+        $this.css({"font-style": settings.fontstyle});
+        $this.css({"text-align": settings.fontalign});
+        $this.text(settings.cellData);
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -604,8 +637,10 @@
       $(element).addClass("ui-widget-content");
       $(element).addClass("reportElement");
       $(element).addClass("tdElement");
-      $(element).css(
-      {'border': settings.border, 'background-color': settings.backgroundColor,  'width': settings.width, 'min-height': settings.minHeight});
+      $(element).css({'position': 'relative', 'display': 'inline-block'});
+      $(element).css({"left": settings.x + "px", "top": settings.y + "px", 'width': settings.width + 'px', 'height': settings.height + 'px'});
+      $(element).text(settings.cellData);
+      $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
@@ -623,6 +658,7 @@
 
       $(element).on('click', function(evt, ui) {
         settings.elementselect(evt, elementData);
+        evt.stopPropagation();
       });
 
       return $(element);
@@ -641,7 +677,7 @@
       evt.preventDefault();
     }
 
-    const elementDragStopEvt = function(evt, ui)
+    const elementDragStopEvt = function(evt, ui) {
       setOption("x", evt.target.offsetLeft);
       setOption("y", evt.target.offsetTop);
       settings.refresh();
@@ -665,11 +701,11 @@
 
     /* public method of plugin */
     var output = {
-      settings: $this.settings,
+      settings: settings,
       elementHandle: tdElement,
     }
 
-    return output;
-
+    //return output;
+    return tdElement;
   };
 }( jQuery ));

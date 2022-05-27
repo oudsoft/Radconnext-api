@@ -90,8 +90,11 @@ input[type='text'], input[type='number'], select, textarea {
 
 #report-container {
   position: relative;
-  border: 2px solid red;
+  border: 2px solid grey;
   width: 100%;
+	/*
+	z-index: 10;
+	*/
 }
 
 #report-item {
@@ -118,12 +121,13 @@ input[type='text'], input[type='number'], select, textarea {
 #selectable { list-style-type: none; margin: 0; padding: 0; width: 96%; }
 #selectable li { margin: 2px; padding: 0.2em; font-size: 1.0em; height: 23px; text-align: center;}
 
-.reportElement {position: absolute; padding: 0px; overflow: visible; /* font-family: THSarabunNew;*/ line-height: 22px;}
+.reportElement {position: absolute; padding: 0px; overflow: visible; /* font-family: THSarabunNew;*/ /*line-height: 22px;*/ }
 .textElement {border: 2px solid yellow;}
 .hrElement {border: 2px solid yellow;}
 .imageElement {border: 2px solid yellow;}
 .tableElement {border: 2px solid yellow;}
 .trElement {border: 2px solid yellow;}
+.tdElement {border: 2px solid yellow;}
 
 .elementActive {border: 2px dashed red;}
 .cmd-link {position: relative; min-width: 100px;}

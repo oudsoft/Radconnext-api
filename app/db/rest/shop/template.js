@@ -134,6 +134,41 @@ app.post('/update', (req, res) => {
   }
 });
 
+//Save Template API
+app.post('/save', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        const shopId = req.params.shopId;
+        const typeId = req.params.data.TypeId;
+        const templates = await db.templates.findAll({attributes: excludeColumn, where: {shopId: shopId, TypeId: typeId}});
+        if ( templates.length == 0) {
+          let newtemplate = req.body.data;
+          let adtemplate = await db.templates.create(newtemplate);
+          await db.templates.update({shopId: req.body.shopId},{where: {id: adtemplate.id}});
+          templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: adtemplate.id}});
+          res.json({Result: "OK", status: {code: 200}, Record: templates[0]});
+        } else {
+          let templateId = templates[0].id;
+          let updatetemplate = req.body.data;
+          await db.templates.update(updatetemplate, {where: {id: templateId}});
+          templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: templateId}});
+          res.json({Result: "OK", status: {code: 200}, Record: templates[0]});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //Deltete Hospital API
 app.post('/delete', (req, res) => {
   let token = req.headers.authorization;

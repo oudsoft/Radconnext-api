@@ -98,7 +98,7 @@
       overlay = doCreateOverlay();
       let msgBox = doCreateAlertBox(settings.msg);
       $(overlay).append($(msgBox));
-      return $(overlay);
+      return $(msgBox);
     }
 
     const doCloseAlert = function(){
@@ -117,7 +117,8 @@
       okCmd: okCmd,
       cancelCmd: cancelCmd,
       settings: settings,
-      closeAlert: doCloseAlert
+      closeAlert: doCloseAlert,
+			handle: radalert
     }
 
     return output;

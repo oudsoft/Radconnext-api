@@ -110,7 +110,7 @@ $.widget( "custom.imageitem", {
 		});
     $(imgDiv).append($(hsImage));
 
-    let removeLink = $('<span>x</span>').css({'cursor': 'pointer'});
+    let removeLink = $('<span>x</span>').css({'cursor': 'pointer', 'font-size': '30px'});
 		$(removeLink).addClass('remove');
 		$(removeLink).on("click", function(e){
 			//$(imgDiv).remove();

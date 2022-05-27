@@ -105,6 +105,105 @@ module.exports = function ( jq ) {
 }
 
 },{}],2:[function(require,module,exports){
+const A4Width = 1004;
+const A4Height = 1410;
+
+const templateTypes = [
+  {id: 1, NameEN: 'Invoice', NameTH: 'ใบแจ้งหนี้'},
+  {id: 2, NameEN: 'Bill', NameTH: 'บิลเงินสด/ใบเสร็จรับเงิน'},
+  {id: 3, NameEN: 'Tax-Invoice', NameTH: 'ใบกำกับภาษี'}
+];
+
+const paperSizes = [
+  {id: 1, NameEN: 'A4', NameTH: 'A4'},
+  {id: 1, NameEN: 'Slip', NameTH: 'Slip'}
+];
+
+const defaultTableData = [
+  {id: 'headerRow', backgroundColor: '#ddd', fields: [
+      {id: 'headerCell_1', cellData: 'ลำดับที่', fontweight: 'bold', fontalign: 'center', width: '10%'},
+      {id: 'headerCell_2', cellData: 'รายการสินค้า', fontweight: 'bold', fontalign: 'center', width: '34%'},
+      {id: 'headerCell_3', cellData: 'ราคาต่อหน่วย', fontweight: 'bold', fontalign: 'center', width: '20%'},
+      {id: 'headerCell_4', cellData: 'จำนวน', fontweight: 'bold', fontalign: 'center', width: '13%'},
+      {id: 'headerCell_5', cellData: 'รวม', fontweight: 'bold', fontalign: 'center', width: '19%'}
+    ]
+  },
+  {id: 'dataRow', fields: [
+      {id: 'dataCell_1', cellData: '1', fontweight: 'normal', fontalign: 'center', width: '10%'},
+      {id: 'dataCell_2', cellData: 'ชื่อสินค้า', fontweight: 'normal', fontalign: 'left', width: '34%'},
+      {id: 'dataCell_3', cellData: '100.00', fontweight: 'normal', fontalign: 'center', width: '20%'},
+      {id: 'dataCell_4', cellData: '1', fontweight: 'normal', fontalign: 'center', width: '13%'},
+      {id: 'dataCell_5', cellData: '100.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+    ]
+  },
+  {id: 'totalRow', fields: [
+      {id: 'totalCell_1', cellData: 'รวมค่าสินค้า', fontweight: 'normal', fontalign: 'center', width: '78%'},
+      {id: 'totalCell_2', cellData: '100.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+    ]
+  },
+  {id: 'discountRow', fields: [
+      {id: 'discountCell_1', cellData: 'ส่วนลด', fontweight: 'normal', fontalign: 'center', width: '78%'},
+      {id: 'discountCell_2', cellData: '0.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+    ]
+  },
+  {id: 'vatRow', fields: [
+      {id: 'vatCell_1', cellData: 'ภาษีมูลค่าเพิ่ม 7%', fontweight: 'normal', fontalign: 'center', width: '78%'},
+      {id: 'vatCell_2', cellData: '0.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+    ]
+  },
+  {id: 'grandTotalRow', backgroundColor: '#ddd', fields: [
+      {id: 'grandTotalCell_1', cellData: 'รวมทั้งหมด', fontweight: 'bold', fontalign: 'center', width: '78%'},
+      {id: 'grandTotalCell_2', cellData: '100.00', fontweight: 'bold', fontalign: 'right', width: '19%'}
+    ]
+  }
+]
+
+const billFieldOptions = [
+  {name_en: 'shop_name', name_th: 'ชื่อร้านค้า'},
+  {name_en: 'shop_address', name_th: 'ที่อยู่ร้านค้า'},
+  {name_en: 'shop_tel', name_th: 'เบอร์โทรศัพท์ร้านค้า'},
+  {name_en: 'shop_mail', name_th: 'อีเมล์ร้านค้า'},
+  {name_en: 'shop_vatno', name_th: 'หมายเลขผู้เสียภาษีร้านค้า'},
+
+  {name_en: 'customer_name', name_th: 'ชื่อลูกค้า'},
+  {name_en: 'customer_address', name_th: 'ที่อยู่ลูกค้า'},
+  {name_en: 'customer_tel', name_th: 'เบอร์โทรศัพท์ลูกค้า'},
+
+  {name_en: 'order_no', name_th: 'หมายเลขออร์เดอร์'},
+  {name_en: 'order_by', name_th: 'ผู้สั่งออร์เดอร์'},
+  {name_en: 'order_datetime', name_th: 'วันเวลาสั่งออร์เดอร์'},
+
+  {name_en: 'print_no', name_th: 'หมายเลขใบแจ้งหนี้/ใบเสร็จ/ใบกำกับภาษี'},
+  {name_en: 'print_by', name_th: 'ผู้ออกเอกสาร'},
+  {name_en: 'print_datetime', name_th: 'วันเวลาออกเอกสาร'},
+
+  {name_en: 'gooditem_no', name_th: 'เลขลำดับที่'},
+  {name_en: 'gooditem_name', name_th: 'ชื่อสินค้า'},
+  {name_en: 'gooditem_unit', name_th: 'หน่วยขายสินค้า'},
+  {name_en: 'gooditem_price', name_th: 'ราคาสินค้าต่อหน่วย'},
+  {name_en: 'gooditem_qty', name_th: 'จำนวนสินค้า'},
+  {name_en: 'gooditem_total', name_th: 'จำนวนเงินของรายการสินค้า'},
+
+  {name_en: 'total', name_th: 'รวมค่าสินค้า'},
+  {name_en: 'discount', name_th: 'ส่วนลด'},
+  {name_en: 'vat', name_th: 'ภาษีมูลค่าเพิ่ม 7%'},
+  {name_en: 'grandtotal', name_th: 'รวมทั้งหมด'},
+
+  {name_en: 'paytype', name_th: 'ชำระโดย'},
+  {name_en: 'payamount', name_th: 'จำนวนเงินที่ชำระ'},
+  {name_en: 'cashchange', name_th: 'เงินทอน'}
+]
+
+module.exports = {
+  A4Width,
+  A4Height,
+  templateTypes,
+  paperSizes,
+  defaultTableData,
+  billFieldOptions
+}
+
+},{}],3:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -166,7 +265,7 @@ module.exports = {
   doShowShopItems,
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":11,"jquery":15}],3:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":12,"jquery":16}],4:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -309,7 +408,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],4:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -533,40 +632,61 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
+
+	const constant = require('../../../home/mod/constant-lib.js');
 
 	const resetActive = function(element) {
     $(".reportElement").each((index, elem)=>{
       $(elem).removeClass("elementActive");
     })
     $(element).addClass("elementActive");
+		//$(element).focus();
+		$(element).on('keyup', (e)=> {
+			if (e.keyCode == 46){
+				removeActiveElement();
+			}
+		});
+
     $("#remove-item-cmd").prop('disabled', false);
+		let tableElement = $('.tableElement');
+		let tableCount = $(tableElement).length;
+		if(tableCount >= 1) {
+			$('#selectable').find('#table-element-cmd').remove();
+		}
 		let isTableElement = $(element).hasClass('tableElement');
-		let newTrRowCmd = $('<li class="ui-widget-content" id="tr-element"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">แถวรายการออร์เดอร์</span></li>')
+		let newTrRowCmd = $('<li class="ui-widget-content" id="tr-element-cmd"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">แถวรายการ</span></li>')
 		if (isTableElement) {
-			//triggerCommandBox for append tr Element
-			let countTrCmd = $('#tr-element').length;
-			//console.log(countTrCmd);
-			if (countTrCmd == 0) {
+			if ($('#tr-element-cmd').length == 0) {
 				$(newTrRowCmd).data({type: "tr"});
 				$('#selectable').append($(newTrRowCmd));
+				$('#selectable').find('#td-element-cmd').remove();
+				$(newTrRowCmd).on('click', (evt)=>{
+					let reportcontainerBox = $("#report-container");
+					doCreateElement(tableElement, 'tr');
+				});
 			}
 		} else {
-			//triggerCommandBox for remove tr Element
-			$('#selectable').find('#tr-element').remove();
+			$('#selectable').find('#tr-element-cmd').remove();
+			$('#selectable').find('#td-element-cmd').remove();
 		}
 		let isTrElement = $(element).hasClass('trElement');
-		let newTdColCmd = $('<li class="ui-widget-content" id="td-element"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">ช่องข้อมูล</span></li>')
+		let newTdColCmd = $('<li class="ui-widget-content" id="td-element-cmd"><img src="/images/list-item-icom.png" class="icon-element"/><span class="text-element">ช่องข้อมูล</span></li>')
 		if (isTrElement) {
-			let countTdCmd = $('#td-element').length;
-			if (countTdCmd == 0) {
+			if ($('#td-element-cmd').length == 0) {
 				$(newTdColCmd).data({type: "td"});
 				$('#selectable').append($(newTdColCmd));
+				$('#selectable').find('#tr-element-cmd').remove();
+
+				$(newTdColCmd).on('click', (evt)=>{
+					let activeRow = $(tableElement).find('.elementActive');
+					doCreateElement(activeRow, 'td');
+				});
 			}
 		} else {
-			$('#selectable').find('#td-element').remove();
+			$('#selectable').find('.tdElement').remove();
 		}
   }
 
@@ -576,86 +696,220 @@ module.exports = function ( jq ) {
     $("#report-property").append($(propform));
   }
 
-  const textElementSelect = function(event, data){
+	const removeActiveElement = function(){
+		$(".reportElement").each((index, elem)=>{
+			let isActive = $(elem).hasClass("elementActive");
+			if (isActive) {
+				$(elem).remove();
+				$("#remove-item-cmd").prop('disabled', true);
+				$("#report-property").empty();
+			}
+			let tableCount = $('.tableElement').length;
+			if(tableCount == 0) {
+				let tableElementCmdCount = $('#table-element-cmd').length;
+				if(tableElementCmdCount == 0){
+					let addTableElementCmd = $('<li class="ui-widget-content" id="table-element-cmd"><img src="/images/item-list-icon.png" class="icon-element"/><span class="text-element">ตารางออร์เดอร์</span></li>')
+					$("#selectable").append($(addTableElementCmd));
+					$('#tr-element-cmd').remove();
+					$('#td-element-cmd').remove();
+					$(addTableElementCmd).on('click', (evt)=>{
+						let reportcontainerBox = $("#report-container");
+						doCreateElement(reportcontainerBox, 'table');
+					});
+				}
+			}
+		});
+	}
+
+  const elementSelect = function(event, data){
     resetActive(event.target);
     let prop = data.options;
     resetPropForm(event.target, prop);
   }
-  const textElementDrop = function(event, data){
+  const elementDrop = function(event, data){
     let prop = data.options;
     resetPropForm(event.target, prop);
   }
-  const textResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const hrElementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const hrElementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const hrResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const imageElementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const imageElementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const imageResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-	const tableElementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const tableElementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const tableResizeStop = function(event, data){
+  const elementResizeStop = function(event, data){
     let prop = data.options;
     resetPropForm(event.target, prop);
   }
 
-	const trElementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const trElementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const trResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
+	const doCreateElement = function(wrapper, elemType, prop){
+    let defHeight = 50;
+    switch (elemType) {
+      case "text":
+        var textTypeLength = $(".textElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {
+            x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, type: prop.type, title: prop.title,
+            fontsize: prop.fontsize,
+            fontweight: prop.fontweight,
+            fontstyle: prop.fontstyle,
+            fontalign: prop.fontalign
+          };
+        } else {
+          defHeight = 50;
+          oProp = {x:0, y: (defHeight * textTypeLength),
+            width: '150', height: defHeight,
+            id: 'text-element-' + (textTypeLength + 1),
+            title: 'Text Element ' + (textTypeLength + 1)
+          }
+        }
+        oProp.elementselect = elementSelect;
+        oProp.elementdrop = elementDrop;
+        oProp.elementresizestop = elementResizeStop;
+        var textbox = $( "<div></div>" );
+        $(textbox).textelement( oProp );
+        $(wrapper).append($(textbox));
+				return $(textbox).css({'position': 'absolute'});
+      break;
+      case "hr":
+        var hrTypeLength = $(".hrElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id};
+        } else {
+          defHeight = 20;
+					let parentWidth = $(wrapper).width();
+          oProp = {x:0, y: (defHeight * hrTypeLength),
+            width: parentWidth.toString(),
+						height: defHeight,
+            id: 'hr-element-' + (hrTypeLength + 1)
+          }
+        }
+        oProp.elementselect = elementSelect;
+        oProp.elementdrop = elementDrop;
+        oProp.elementresizestop = elementResizeStop;
+        var hrbox = $( "<div><hr/></div>" );
+        $(hrbox).hrelement( oProp );
+        $(wrapper).append($(hrbox));
+				return $(hrbox).css({'position': 'absolute'});
+      break;
+      case "image":
+        var imageTypeLength = $(".imageElement").length;
+        var oProp;
+        if (prop) {
+          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, url: prop.url};
+        } else {
+          defHeight = 60;
+          oProp = {x:0, y: (defHeight * imageTypeLength),
+            width: '100', height: defHeight,
+            id: 'image-element-' + (imageTypeLength + 1),
+            url: '../../icon.png'
+          }
+        }
+        oProp.elementselect = elementSelect;
+        oProp.elementdrop = elementDrop;
+        oProp.elementresizestop = elementResizeStop;
+        var imagebox = $( "<div></div>" )
+        $(imagebox).imageelement( oProp );
+        $(wrapper).append($(imagebox));
+				return $(imagebox).css({'position': 'absolute'});
+      break;
+			case "table":
+				var tableTypeLength = $(".tableElement").length;
+				let tableBox = undefined;
+				//console.log(imageTypeLength);
+				if (tableTypeLength == 0) {
+					var oProp;
+					if (prop) {
+						oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
+						/*
+						load content from DB for render it
+						*/
+					} else {
+						tableBox = doCreateTable(wrapper, constant.defaultTableData);
+					}
+				}
+				return $(tableBox).css({'position': 'absolute'});
+			break;
+			case "tr":
+				var trLength = $(".trElement").length;
+				var oProp;
+				if (prop) {
+					oProp = {'backgroundColor': prop.backgroundColor};
+				} else {
+					oProp = {/*x:0, y: (defHeight * imageTypeLength),
+						width: '100%', height: defHeight,
+						*/
+						'backgroundColor': '#ddd',
+						id: 'tr-element-' + (trLength + 1)
+					}
+				}
+				//}
+				oProp.elementselect = elementSelect;
+				oProp.elementdrop = elementDrop;
+				oProp.elementresizestop = elementResizeStop;
+				var trbox = $('<div></div>');
+				$(trbox).trelement( oProp );
+				$(wrapper).append($(trbox));
+				$(trbox).click();
+				return $(trbox);
+			break;
+			case "td":
+				var tdLength = $(".tdElement").length;
+				var oProp;
+				if (prop) {
+					oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id};
+				} else {
+					//defHeight = 60;
+					oProp = {
+						'width': '90', 'height': '35',
+						id: 'td-element-' + (tdLength + 1)
+					}
+				}
+				//}
+				oProp.elementselect = elementSelect;
+				oProp.elementdrop = elementDrop;
+				oProp.elementresizestop = elementResizeStop;
+				var tdbox = $('<span></span>');
+				$(tdbox).tdelement( oProp );
+				$(wrapper).append($(tdbox));
+				$(wrapper).click();
+				return $(tdbox);
+			break;
+    }
   }
 
-	const tdElementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const tdElementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
-  const tdResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
-  }
+	const doCreateTable = function(wrapper, tableData){
+		let wrapperWidth = $(wrapper).width();
+		let tableProp = {id: 'table-element-1', x: 0, y: 60, width: '100%', cols: 5};
+		tableProp.elementselect = elementSelect;
+		tableProp.elementdrop = elementDrop;
+		tableProp.elementresizestop = elementResizeStop;
+		let rowWidth = wrapperWidth * 0.95;
+		let tableBox = $('<div></div>').tableelement( tableProp );
+		$(wrapper).append($(tableBox));
+		$(tableBox).click();
+		for (let i=0; i < tableData.length; i++){
+			let row = tableData[i];
+			let rowProp = {id: row.id};
+			if (row.backgroundColor) {
+				rowProp.backgroundColor = row.backgroundColor;
+			}
+			rowProp.elementselect = elementSelect;
+			rowProp.elementdrop = elementDrop;
+			rowProp.elementresizestop = elementResizeStop;
+			let rowBox = $('<div></div>').trelement( rowProp );
+			$(tableBox).append($(rowBox));
+			$(rowBox).click();
+			for (let j=0; j < row.fields.length; j++){
+				let field = row.fields[j];
+				let cellProp = {id: field.id, width: '90', height: '35', cellData: field.cellData, fontweight: field.fontweight, fontalign: field.fontalign};
+				let percentValue = field.width.slice(0, (field.width.length-1));
+				cellProp.width = (rowWidth * (percentValue/100)).toFixed(2);
+				cellProp.elementselect = elementSelect;
+				cellProp.elementdrop = elementDrop;
+				cellProp.elementresizestop = elementResizeStop;
+				let cellBox = $('<div></div>').tdelement( cellProp );
+				$(rowBox).append($(cellBox));
+				$(cellBox).click();
+			}
+		}
+		return $(tableBox);
+	}
 
   function createPropEditFragment(fragParent, fragTarget, key, label, oValue, type){
     let fragProp = $("<tr></tr>");
@@ -682,6 +936,18 @@ module.exports = function ( jq ) {
               targetData.customImageelement.options[key] = value;
               targetData.customImageelement.options.refresh();
             break;
+						case "table":
+              targetData.customTableelement.options[key] = value;
+              targetData.customTableelement.options.refresh();
+            break;
+						case "tr":
+              targetData.customTrelement.options[key] = value;
+              targetData.customTrelement.options.refresh();
+            break;
+						case "td":
+              targetData.customTdelement.options[key] = value;
+              targetData.customTdelement.options.refresh();
+            break;
           }
         } else {
           $(e.currentTarget).css({border: "2px solid red"})
@@ -697,6 +963,12 @@ module.exports = function ( jq ) {
   function createPropContentFragment(fragParent, fragTarget, data) {
     let targetData = $(fragTarget).data();
     //console.log(targetData);
+		let elementDataName = undefined;
+		if (data.elementType == 'text') {
+			elementDataName = 'customTextelement';
+		} else if (data.elementType == 'td') {
+			elementDataName = 'customTdelement';
+		}
     let fragProp = $("<tr></tr>");
     $(fragProp).appendTo($(fragParent));
     let fragLabel = $("<td align='left'>Type</td>");
@@ -708,7 +980,7 @@ module.exports = function ( jq ) {
     $(fragValue).on('change', ()=> {
       let newValue = $(fragValue).val();
       if (newValue === 'static') {
-        targetData.customTextelement.options['type'] = 'static';
+        targetData[elementDataName].options['type'] = 'static';
         $(dynamicFrag).remove();
 
         contentLabelFrag = $("<tr></tr>");
@@ -720,26 +992,30 @@ module.exports = function ( jq ) {
         $(contentDataFrag).appendTo($(fragParent));
         let textEditorFrag = $("<td colspan='2' align='left'></td>");
         $(textEditorFrag).appendTo($(contentDataFrag));
-        let textEditor = $("<textarea cols='12' rows='8'></textarea>");
+        let textEditor = $("<input type='text'/>").css({'width': '60px'});
         $(textEditor).css({"width": "98%"});
-        $(textEditor).val(data.title);
+
+				if (data.elementType == 'text') {
+					$(textEditor).val(data.title);
+				} else if (data.elementType == 'td') {
+					$(textEditor).val(data.cellData);
+				}
         $(textEditor).appendTo($(textEditorFrag));
         updateContentCmdFrag = $("<tr></tr>");
         $(updateContentCmdFrag).appendTo($(fragParent));
         let updateCmdFrag = $("<td colspan='2' align='right'></td>");
         $(updateCmdFrag).appendTo($(updateContentCmdFrag));
-        let updateCmd = $("<input type='button' value=' Update '/>");
-        $(updateCmd).appendTo($(updateCmdFrag));
-        $(updateCmd).on('click', ()=>{
-          let newContent = $(textEditor).val();
-          targetData.customTextelement.options['title'] = newContent;
-          targetData.customTextelement.options.refresh();
-        });
 				$(textEditor).on('keyup', (e)=> {
-					$(updateCmd).click();
+					let newContent = $(textEditor).val();
+					if (data.elementType == 'text') {
+          	targetData[elementDataName].options['title'] = newContent;
+					} else if (data.elementType == 'td') {
+						targetData[elementDataName].options['cellData'] = newContent;
+					}
+          targetData[elementDataName].options.refresh();
 				});
       } else if (newValue === 'dynamic') {
-        targetData.customTextelement.options['type'] = 'dynamic';
+        targetData[elementDataName].options['type'] = 'dynamic';
         $(contentLabelFrag).remove();
         $(contentDataFrag).remove();
         $(updateContentCmdFrag).remove();
@@ -755,16 +1031,31 @@ module.exports = function ( jq ) {
 
         let dynamicFieldOption = $("<select></select>");
         $(dynamicFieldOption).appendTo($(dynamicFieldValue));
-        fieldOptions.forEach((item, i) => {
-          $(dynamicFieldOption).append("<option value='" + item.name_en + "'>" + item.name_th + "</option>");
-        });
+				if ((targetData[elementDataName].options.elementType == 'text') || (targetData[elementDataName].options.elementType == 'td')) {
+	        constant.billFieldOptions.forEach((item, i) => {
+	          $(dynamicFieldOption).append("<option value='" + item.name_en + "'>" + item.name_th + "</option>");
+	        });
+				}
         $(dynamicFieldOption).on('change', ()=> {
           let newContent = $(dynamicFieldOption).val();
-          targetData.customTextelement.options['title'] = '$' + newContent;
-          targetData.customTextelement.options.refresh();
+					if (data.elementType == 'text') {
+          	targetData[elementDataName].options['title'] = '$' + newContent;
+					} else if (data.elementType == 'td') {
+						targetData[elementDataName].options['cellData'] = '$' + newContent;
+					}
+          targetData[elementDataName].options.refresh();
         });
-        let currentVal = data.title.substring(1);
-        $(dynamicFieldOption).val(currentVal).change();
+				if (data.elementType == 'text') {
+					if (data.title) {
+						let currentVal = data.title.substring(1);
+						$(dynamicFieldOption).val(currentVal).change();
+					}
+				} else if (data.elementType == 'td') {
+					if (data.cellData) {
+						let currentVal = data.cellData.substring(1);
+						$(dynamicFieldOption).val(currentVal).change();
+					}
+				}
       }
     });
     let fragEditor = $("<td align='left'></td>");
@@ -778,8 +1069,12 @@ module.exports = function ( jq ) {
     const fontSizes = [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,32, 34, 36, 38, 40];
 
     let targetData = $(fragTarget).data();
-    //console.log(targetData);
-
+		let elementDataName = undefined;
+		if (data.elementType == 'text') {
+			elementDataName = 'customTextelement';
+		} else if (data.elementType == 'td') {
+			elementDataName = 'customTdelement';
+		}
     let fragFontSize = $("<tr></tr>");
     $(fragFontSize).appendTo($(fragParent));
     let fragFontSizeLabel = $("<td align='left'>Font Size</td>");
@@ -793,8 +1088,8 @@ module.exports = function ( jq ) {
     });
     $(fragFontSizeValue).on('change', ()=>{
       let newSize = $(fragFontSizeValue).val();
-      targetData.customTextelement.options['fontsize'] = newSize;
-      targetData.customTextelement.options.refresh();
+			targetData[elementDataName].options['fontsize'] = newSize;
+      targetData[elementDataName].options.refresh();
     });
     $(fragFontSizeValue).val(data.fontsize).change();
     return $(fragFontSize);
@@ -804,6 +1099,12 @@ module.exports = function ( jq ) {
     const fontWeight = ["normal", "bold"];
 
     let targetData = $(fragTarget).data();
+		let elementDataName = undefined;
+		if (data.elementType == 'text') {
+			elementDataName = 'customTextelement';
+		} else if (data.elementType == 'td') {
+			elementDataName = 'customTdelement';
+		}
 
     let fragFontWeight = $("<tr></tr>");
     $(fragFontWeight).appendTo($(fragParent));
@@ -819,8 +1120,8 @@ module.exports = function ( jq ) {
     });
     $(fragFontWeightValue).on('change', ()=>{
       let newWeight = $(fragFontWeightValue).val();
-      targetData.customTextelement.options['fontweight'] = newWeight;
-      targetData.customTextelement.options.refresh();
+      targetData[elementDataName].options['fontweight'] = newWeight;
+      targetData[elementDataName].options.refresh();
     });
     $(fragFontWeightValue).val(data.fontweight).change();
     return $(fragFontWeight);
@@ -830,7 +1131,12 @@ module.exports = function ( jq ) {
     const fontStyle = ["normal", "italic"];
 
     let targetData = $(fragTarget).data();
-
+		let elementDataName = undefined;
+		if (data.elementType == 'text') {
+			elementDataName = 'customTextelement';
+		} else if (data.elementType == 'td') {
+			elementDataName = 'customTdelement';
+		}
     let fragFontStyle = $("<tr></tr>");
     $(fragFontStyle).appendTo($(fragParent));
     let fragFontStyleLabel = $("<td align='left'>Font Style</td>");
@@ -845,8 +1151,8 @@ module.exports = function ( jq ) {
     });
     $(fragFontStyleValue).on('change', ()=>{
       let newStyle = $(fragFontStyleValue).val();
-      targetData.customTextelement.options['fontstyle'] = newStyle;
-      targetData.customTextelement.options.refresh();
+      targetData[elementDataName].options['fontstyle'] = newStyle;
+      targetData[elementDataName].options.refresh();
     });
     $(fragFontStyleValue).val(data.fontstyle).change();
     return $(fragFontStyle);
@@ -856,6 +1162,11 @@ module.exports = function ( jq ) {
     const fontAlign = ["left", "center", "right"];
 
     let targetData = $(fragTarget).data();
+		if (data.elementType == 'text') {
+			elementDataName = 'customTextelement';
+		} else if (data.elementType == 'td') {
+			elementDataName = 'customTdelement';
+		}
 
     let fragFontAlign = $("<tr></tr>");
     $(fragFontAlign).appendTo($(fragParent));
@@ -871,8 +1182,8 @@ module.exports = function ( jq ) {
     });
     $(fragFontAlignValue).on('change', ()=>{
       let newAlign = $(fragFontAlignValue).val();
-      targetData.customTextelement.options['fontalign'] = newAlign;
-      targetData.customTextelement.options.refresh();
+      targetData[elementDataName].options['fontalign'] = newAlign;
+      targetData[elementDataName].options.refresh();
     });
     $(fragFontAlignValue).val(data.fontalign).change();
     return $(fragFontAlign);
@@ -880,7 +1191,6 @@ module.exports = function ( jq ) {
 
   function createPropImageSrcFragment(fragParent, fragTarget, data) {
     let targetData = $(fragTarget).data();
-    //console.log(targetData);
     let fragImageSrc = $("<tr></tr>");
     $(fragImageSrc).appendTo($(fragParent));
     let fragImageSrcLabel = $("<td align='left'>Image Url</td>");
@@ -907,9 +1217,9 @@ module.exports = function ( jq ) {
             progress: function(progress){
   						console.log("ดำเนินการได้ : " + Math.round(progress) + "%");
   					},
-            success: function(data){
+            success: function(uploaddata){
   						//console.log('Uploaded.', data);
-              var imageUrl = data.link;
+              var imageUrl = uploaddata.link;
               $("#urltext").val(imageUrl);
               targetData.customImageelement.options['url'] = imageUrl;
               targetData.customImageelement.options.refresh();
@@ -923,40 +1233,87 @@ module.exports = function ( jq ) {
     return $(fragImageSrc);
   }
 
-	const createPropTableColsNumber = function(fragParent, fragTarget, data) {
+	const createTablePropFragment = function(fragParent, fragTarget, data) {
     let targetData = $(fragTarget).data();
-		let fragCols = $("<tr></tr>");
-		$(fragParent).append($(fragCols));
-		$(fragCols).append($('<td align="left">จำนวนคอลัมน์</td>'));
-		let colsInput = $('<input type="number"/>').css({'width': '50px'});
-		$(colsInput).on('keyup', (e)=> {
-			let newValue = $(colsInput).val();
-			targetData.customTableelement.options['cols'] = newValue;
-			targetData.customTableelement.options.refresh();
-		});
-		let colsFieldValue = $('<td align="left"></td>');
-		$(colsFieldValue).append($(colsInput));
-		$(fragCols).append($(colsFieldValue));
-		return $(fragCols);
+		if (targetData.customTableelement) {
+			let fragCols = $("<tr></tr>");
+			$(fragParent).append($(fragCols));
+			$(fragCols).append($('<td align="left">จำนวนคอลัมน์</td>'));
+			let colsInput = $('<input type="number"/>').css({'width': '50px'});
+			$(colsInput).on('keyup', (e)=> {
+				if (e.keyCode == 13){
+					let newValue = $(colsInput).val();
+					targetData.customTableelement.options['cols'] = newValue;
+					targetData.customTableelement.options.refresh();
+				}
+			});
+			$(colsInput).val(targetData.customTableelement.options['cols']);
+			let colsFieldValue = $('<td align="left"></td>');
+			$(colsFieldValue).append($(colsInput));
+			$(fragCols).append($(colsFieldValue));
+			/*
+				ควบคุมการแสดงเส้นขอบ border ของตาราง
+			*/
+			return $(fragCols);
+		} else return;
+	}
+
+	const createTrPropFragment = function(fragParent, fragTarget, data) {
+    let targetData = $(fragTarget).data();
+		if (targetData.customTrelement) {
+			let fragRow = $("<tr></tr>");
+			$(fragParent).append($(fragRow));
+			$(fragRow).append($('<td align="left">สีพื้นหลัง</td>'));
+			let colorInput = $('<input type="text"/>').css({'width': '70px'});
+			$(colorInput).on('keyup', (e)=> {
+				if (e.keyCode == 13){
+					let newValue = $(colorInput).val();
+					targetData.customTrelement.options['backgroundColor'] = newValue;
+					targetData.customTrelement.options.refresh();
+				}
+			});
+			$(colorInput).val(targetData.customTrelement.options['backgroundColor']);
+			let colorFieldValue = $('<td align="left"></td>');
+			$(colorFieldValue).append($(colorInput));
+			$(fragRow).append($(colorFieldValue));
+			return $(fragRow);
+		} else {
+			return;
+		}
 	}
 
   const createElementPropertyForm = function(target, data) {
     let formbox = $("<table width='100%' cellspacing='0' cellpadding='2' border='0'></table>");
     $(formbox).append("<tr><td align='left' width='40%'>id</td><td align='left' width='*'>" + data.id + "</td></tr>");
-    let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
-    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
-    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
-    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
-    if (data.elementType === 'text') {
+    if ((data.elementType === 'text') || (data.elementType === 'td')) {
+			let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
+	    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
+	    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
+	    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
+      let contentProp = createPropContentFragment(formbox, target, data);
       let contentFontSize = createFontSizeFragment(formbox, target, data);
       let contentFontWeight = createFontWeightFragment(formbox, target, data);
       let contentFontStyle = createFontStyleFragment(formbox, target, data);
       let contentFontAlign = createFontAlignFragment(formbox, target, data);
-      let contentProp = createPropContentFragment(formbox, target, data);
+		} else if (data.elementType === 'hr') {
+			let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
+	    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
+	    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
+	    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
     } else if (data.elementType === 'image') {
+			let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
+	    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
+	    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
+	    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
       let imageSrcProp = createPropImageSrcFragment(formbox, target, data);
 		} else if (data.elementType === 'table') {
-			let colsProp = createPropTableColsNumber(formbox, target, data);
+			let topProp = createPropEditFragment(formbox, target, 'y', 'Top', data.y, data.elementType);
+	    let leftProp = createPropEditFragment(formbox, target, 'x', 'Left', data.x, data.elementType);
+	    let widthProp = createPropEditFragment(formbox, target, 'width', 'Width', data.width, data.elementType);
+	    let heightProp = createPropEditFragment(formbox, target, 'height', 'Height', data.height, data.elementType);
+			let tableProp = createTablePropFragment(formbox, target, data);
+		} else if (data.elementType === 'tr') {
+			let trProp = createTrPropFragment(formbox, target, data);
     }
     return $(formbox);
   }
@@ -965,30 +1322,18 @@ module.exports = function ( jq ) {
   return {
 		resetActive,
 		resetPropForm,
-		textElementSelect,
-		textElementDrop,
-		textResizeStop,
-		hrElementSelect,
-		hrElementDrop,
-		hrResizeStop,
-		imageElementSelect,
-		imageElementDrop,
-		imageResizeStop,
-		tableElementSelect,
-		tableElementDrop,
-		tableResizeStop,
-		trElementSelect,
-		trElementDrop,
-		trResizeStop,
-		tdElementSelect,
-		tdElementDrop,
-		tdResizeStop,
+		removeActiveElement,
+		elementSelect,
+		elementDrop,
+		elementResizeStop,
+		doCreateElement,
 
   	createElementPropertyForm
+
 	}
 }
 
-},{}],6:[function(require,module,exports){
+},{"../../../home/mod/constant-lib.js":2}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1176,7 +1521,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1320,7 +1665,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],9:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1592,7 +1937,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],9:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],10:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1900,7 +2245,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],10:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2331,7 +2676,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./customer-dlg.js":3,"./gooditem-dlg.js":6,"./invoice-dlg.js":7}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./customer-dlg.js":4,"./gooditem-dlg.js":7,"./invoice-dlg.js":8}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2641,7 +2986,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":12}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":13}],13:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2767,38 +3112,25 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":2,"./customer-mng.js":4,"./menugroup-mng.js":8,"./menuitem-mng.js":9,"./order-mng.js":10,"./template-design.js":13,"./user-mng.js":14}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":5,"./menugroup-mng.js":9,"./menuitem-mng.js":10,"./order-mng.js":11,"./template-design.js":14,"./user-mng.js":15}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
 	//const welcome = require('./welcome.js')($);
 	//const login = require('./login.js')($);
   const common = require('../../../home/mod/common-lib.js')($);
+	const constant = require('../../../home/mod/constant-lib.js');
   const elementProperty = require('./element-property-lib.js')($);
   let activeType, activeElement;
 
-  const A4Width = 1004;
-  const A4Height = 1410;
-
-  const templateTypes = [
-    {id: 1, NameEN: 'Invoice', NameTH: 'ใบแจ้งหนี้'},
-    {id: 2, NameEN: 'Bill', NameTH: 'บิลเงินสด/ใบเสร็จรับเงิน'},
-    {id: 3, NameEN: 'Tax-Invoice', NameTH: 'ใบกำกับภาษี'}
-  ];
-
-	const paperSizes = [
-		{id: 1, NameEN: 'A4', NameTH: 'A4'},
-		{id: 1, NameEN: 'Slip', NameTH: 'Slip'}
-	];
-
   const doCalRatio = function(){
     let containerWidth = $('#report-container').width();
-    return containerWidth/A4Width;
+    return containerWidth/constant.A4Width;
   }
 
   const resetContainer = function(){
     let newRatio = doCalRatio();
-    let newHeight = A4Height * newRatio;
+    let newHeight = constant.A4Height * newRatio;
     $('#report-container').css('height', newHeight);
     $('#report-container').css('max-height', newHeight);
     /*
@@ -2811,7 +3143,7 @@ module.exports = function ( jq ) {
           await Object.getOwnPropertyNames(item).forEach((tag) => {
             reportElem[tag] = item[tag];
           });
-          doCreateElement(wrapper, item.elementType, item);
+          elementProperty.doCreateElement(wrapper, item.elementType, item);
         });
       }
     });
@@ -2820,7 +3152,7 @@ module.exports = function ( jq ) {
 
   const doCreateTemplateTypeSelector = function(shopData, workAreaBox, onChangeCallBack){
     let selector = $('<select></select>');
-    templateTypes.forEach((item, i) => {
+    constant.templateTypes.forEach((item, i) => {
       $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
     });
     $(selector).on('change', (evt)=>{
@@ -2844,7 +3176,7 @@ module.exports = function ( jq ) {
 
 	const doCreatePaperSizeSelector = function(shopData, workAreaBox, onChangeCallBack){
 		let selector = $('<select></select>');
-		paperSizes.forEach((item, i) => {
+		constant.paperSizes.forEach((item, i) => {
       $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
     });
     $(selector).on('change', (evt)=>{
@@ -2859,12 +3191,19 @@ module.exports = function ( jq ) {
     let columnSideBox = $('<div class="column side"></div>');
     let reportItemBox = $('<div id="report-item"></div>');
     let selectableBox = $('<ol id="selectable"></ol>');
-    $(selectableBox).append('<li class="ui-widget-content" id="text-element"><img src="/images/text-icon.png" class="icon-element"/><span class="text-element">กล่องข้อความ</span></li>');
-    $(selectableBox).append('<li class="ui-widget-content" id="hr-element"><img src="/images/hr-line-icon.png" class="icon-element"/><span class="text-element">เส้นแนวนอน</span></li>');
-    $(selectableBox).append('<li class="ui-widget-content" id="image-element"><img src="/images/image-icon.png" class="icon-element"/><span class="text-element">กล่องรูปภาพ</span></li>');
+		let addTextElementCmd = $('<li class="ui-widget-content" id="text-element-cmd"><img src="/images/text-icon.png" class="icon-element"/><span class="text-element">กล่องข้อความ</span></li>');
+		let addHrElementCmd = $('<li class="ui-widget-content" id="hr-element-cmd"><img src="/images/hr-line-icon.png" class="icon-element"/><span class="text-element">เส้นแนวนอน</span></li>');
+		let addImageElementCmd = $('<li class="ui-widget-content" id="image-element-cmd"><img src="/images/image-icon.png" class="icon-element"/><span class="text-element">กล่องรูปภาพ</span></li>');
+    $(selectableBox).append($(addTextElementCmd));
+    $(selectableBox).append($(addHrElementCmd));
+    $(selectableBox).append($(addImageElementCmd));
 		var tableTypeLength = $(".tableElement").length;
 		if (tableTypeLength == 0) {
-			$(selectableBox).append('<li class="ui-widget-content" id="table-element"><img src="/images/item-list-icon.png" class="icon-element"/><span class="text-element">ตารางออร์เดอร์</span></li>');
+			let addTableElementCmd = $('<li class="ui-widget-content" id="table-element-cmd"><img src="/images/item-list-icon.png" class="icon-element"/><span class="text-element">ตารางออร์เดอร์</span></li>');
+			$(selectableBox).append($(addTableElementCmd));
+			$(addTableElementCmd).on('click', (evt)=>{
+				elementProperty.doCreateElement(reportcontainerBox, 'table');
+			});
 		}
     let reportItemCmdBox = $('<div id="report-item-cmd" style="padding:5px; text-align: center; margin-top: 20px;"></div>');
     let addElementCmd = $('<input type="button" id="add-item-cmd" value=" เพิ่ม "/>');
@@ -2879,17 +3218,30 @@ module.exports = function ( jq ) {
     let reportcontainerBox = $('<div id="report-container"></div>');
     $(columnMiddleBox).append($(reportcontainerBox));
 
+		$(addTextElementCmd).on('click', (evt)=>{
+			let newElement = elementProperty.doCreateElement(reportcontainerBox, 'text');
+		});
+		$(addHrElementCmd).on('click', (evt)=>{
+			elementProperty.doCreateElement(reportcontainerBox, 'hr');
+		});
+		$(addImageElementCmd).on('click', (evt)=>{
+			elementProperty.doCreateElement(reportcontainerBox, 'image');
+		});
+
     return $(wrapper).append($(columnSideBox)).append($(columnMiddleBox))
   }
 
 	const doLoadCommandAction = function(){
     $("#add-item-cmd").prop('disabled', true);
     $("#remove-item-cmd").prop('disabled', true);
-    $("#text-element").data({type: "text"});
-    $("#hr-element").data({type: "hr"});
-    $("#image-element").data({type: "image"});
-		$("#table-element").data({type: "table"});
-		$("#tr-element").data({type: "tr"});
+    $("#text-element-cmd").data({type: "text"});
+    $("#hr-element-cmd").data({type: "hr"});
+    $("#image-element-cmd").data({type: "image"});
+		$("#table-element-cmd").data({type: "table"});
+		$("#tr-element-cmd").data({type: "tr"});
+		$("#td-element-cmd").data({type: "td"});
+		let activeType = undefined;
+		/*
     $("#selectable").selectable({
       stop: function() {
         $( ".ui-selected", this ).each(function() {
@@ -2901,6 +3253,7 @@ module.exports = function ( jq ) {
         $(ui.selected).addClass("ui-selected").siblings().removeClass("ui-selected");
       }
     });
+		*/
     $("#report-container").droppable({
       accept: ".reportElement",
       drop: function( event, ui ) {
@@ -2920,168 +3273,53 @@ module.exports = function ( jq ) {
       let elemType = activeType.type;
       let wrapper = $("#report-container");
 			if (elemType == 'tr') {
-				wrapper = $(wrapper).find('table');
+				wrapper = $(wrapper).find('.tableElement');
+			} else if (elemType == 'td') {
+				let myTable = $(wrapper).find('.tableElement');
+				//console.log($(myTable).data());
+				let activeRow = $(myTable).find('.elementActive');
+				//console.log($(activeRow).data());
+				wrapper = $(activeRow)
 			}
-      doCreateElement(wrapper, elemType);
+      elementProperty.doCreateElement(wrapper, elemType);
     });
-
     $("#remove-item-cmd").click((event) => {
-      $(".reportElement").each((index, elem)=>{
-        let isActive = $(elem).hasClass("elementActive");
-        if (isActive) {
-          $(elem).remove();
-          $("#remove-item-cmd").prop('disabled', true);
-          $("#report-property").empty();
-        }
-      });
+			elementProperty.removeActiveElement()
     });
   }
 
-  const doCreateElement = function(wrapper, elemType, prop){
-    let defHeight = 50;
-    switch (elemType) {
-      case "text":
-        var textTypeLength = $(".textElement").length;
-        var oProp;
-        if (prop) {
-          oProp = {
-            x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, type: prop.type, title: prop.title,
-            fontsize: prop.fontsize,
-            fontweight: prop.fontweight,
-            fontstyle: prop.fontstyle,
-            fontalign: prop.fontalign
-          };
-        } else {
-          defHeight = 50;
-          oProp = {x:0, y: (defHeight * textTypeLength),
-            width: '150', height: defHeight,
-            id: 'text-element-' + (textTypeLength + 1),
-            title: 'Text Element ' + (textTypeLength + 1)
-          }
-        }
-        oProp.elementselect = elementProperty.textElementSelect;
-        oProp.elementdrop = elementProperty.textElementDrop;
-        oProp.elementresizestop = elementProperty.textResizeStop;
-        var textbox = $( "<div></div>" );
-        $(textbox).textelement( oProp );
-        $(wrapper).append($(textbox));
-      break;
-      case "hr":
-        var hrTypeLength = $(".hrElement").length;
-        var oProp;
-        if (prop) {
-          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id};
-        } else {
-          defHeight = 20;
-          oProp = {x:0, y: (defHeight * hrTypeLength),
-            width: '100%', height: defHeight,
-            id: 'hr-element-' + (hrTypeLength + 1)
-          }
-        }
-        oProp.elementselect = elementProperty.hrElementSelect;
-        oProp.elementdrop = elementProperty.hrElementDrop;
-        oProp.elementresizestop = elementProperty.hrResizeStop;
-        var hrbox = $( "<div><hr/></div>" );
-        $(hrbox).hrelement( oProp );
-        $(wrapper).append($(hrbox));
-      break;
-      case "image":
-        var imageTypeLength = $(".imageElement").length;
-        var oProp;
-        if (prop) {
-          oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, url: prop.url};
-        } else {
-          defHeight = 60;
-          oProp = {x:0, y: (defHeight * imageTypeLength),
-            width: '100', height: defHeight,
-            id: 'image-element-' + (imageTypeLength + 1),
-            url: '../../icon.png'
-          }
-        }
-        oProp.elementselect = elementProperty.imageElementSelect;
-        oProp.elementdrop = elementProperty.imageElementDrop;
-        oProp.elementresizestop = elementProperty.imageResizeStop;
-        var imagebox = $( "<div></div>" )
-        $(imagebox).imageelement( oProp );
-        $(wrapper).append($(imagebox));
-      break;
-			case "table":
-				var imageTypeLength = $(".tableElement").length;
-				//console.log(imageTypeLength);
-				if (imageTypeLength == 0) {
-					var oProp;
-					if (prop) {
-						oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
-					} else {
-						defHeight = 60;
-						oProp = {x:0, y: (defHeight * imageTypeLength),
-							width: '100%', height: defHeight,
-							id: 'table-element-' + (imageTypeLength + 1),
-							cols: 5
-						}
-					}
-					oProp.elementselect = elementProperty.tableElementSelect;
-					oProp.elementdrop = elementProperty.tableElementDrop;
-					oProp.elementresizestop = elementProperty.tableResizeStop;
-					var tablebox = $( "<div></div>" )
-					$(tablebox).tableelement( oProp );
-					$(wrapper).append($(tablebox));
-				}
-			break;
-			case "tr":
-				var trLength = $(".trElement").length;
-				var oProp;
-				if (prop) {
-					//oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
-					oProp = {'border': prop.border, 'background-color': prop.backgroundColor};
-				} else {
-					//defHeight = 60;
-					oProp = {/*x:0, y: (defHeight * imageTypeLength),
-						width: '100%', height: defHeight,
-						*/
-						'border': '1px solid black',
-						'background-color': '#ddd',
-						id: 'tr-element-' + (trLength + 1)
-					}
-				}
-				//}
-				oProp.elementselect = elementProperty.trElementSelect;
-				oProp.elementdrop = elementProperty.trElementDrop;
-				oProp.elementresizestop = elementProperty.trResizeStop;
-				var trbox = $('<tr></td></tr>');
-				$(trbox).trelement( oProp );
-				$(wrapper).append($(trbox));
-			break;
-			case "td":
-				var tdLength = $(".tdElement").length;
-				var oProp;
-				if (prop) {
-					//oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
-					oProp = {'border': prop.border, 'background-color': prop.backgroundColor, width: prop.width, 'minHeight': prop.minHeight};
-				} else {
-					//defHeight = 60;
-					oProp = {
-						'width': '60px', 'minHeight': '25px',
-						'border': '1px solid black',
-						'background-color': '#ddd',
-						id: 'td-element-' + (tdLength + 1)
-					}
-				}
-				//}
-				oProp.elementselect = elementProperty.tdElementSelect;
-				oProp.elementdrop = elementProperty.tdElementDrop;
-				oProp.elementresizestop = elementProperty.tdResizeStop;
-				var tdbox = $('<td width="100%"></td>');
-				$(trbox).trelement( oProp );
-				$(wrapper).append($(trbox));
-			break;
-    }
-  }
+	const doReadTableData = function(){
+		let tableBox = $("#report-container").find('.tableElement');
+		let tableWidth = $(tableBox).width();
+		let rowWidth = tableWidth * 0.94;
+		//console.log(tableWidth);
+		//console.log(rowWidth);
+		let tableData = $(tableBox).data().customTableelement.options;
+		//console.log(tableData);
+		//console.log(tableData.customTableelement.options);
+		let tableDesignData = {elementType: 'table', id: tableData.id, x: tableData.x, y: tableData.y, cols: tableData.cols, rows: []};
+		let trs = $(tableBox).find('.trElement');
+		$(trs).each((i, tr)=>{
+			let trData = $(tr).data().customTrelement.options;
+			//console.log(trData);
+			let trDesignData = {elementType: 'tr', id: trData.id, backgroundColor: trData.backgroundColor, fields: []};
+			let tds  = $(tr).find('.tdElement');
+			//console.log(tds);
+			$(tds).each((i, td)=>{
+				let tdData = $(td).data().customTdelement.options;
+				let fieldData = {elementType: 'td', id: tdData.id, height: tdData.height, cellData: tdData.cellData, fontweight: tdData.fontweight, fontalign: tdData.fontalign, fontsize: tdData.fontsize, fontstyle: tdData.fontstyle};
+				let percentWidth = ((tdData.width / rowWidth) * 100).toFixed(2);
+				fieldData.width = percentWidth + 'px';
+				trDesignData.fields.push(fieldData);
+			});
+			tableDesignData.rows.push(trDesignData);
+		});
+		return tableDesignData;
+	}
 
   const doShowTemplateDesign = function(shopData, workAreaBox){
     return new Promise(async function(resolve, reject) {
       $(workAreaBox).empty();
-
 
       let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
       let templateItems = templateRes.Records;
@@ -3093,21 +3331,64 @@ module.exports = function ( jq ) {
         $(controlNewTemplateForm).append($(controlRow));
         let templatTypeSelector = doCreateTemplateTypeSelector(shopData, workAreaBox, onTemplateTypeChange);
 				let paperSizeSelector = doCreatePaperSizeSelector(shopData, workAreaBox, onPaperSizeChange);
-        let templateNameInput = $('<input type="text"/>').css({'width': '220px'});
+        let templateNameInput = $('<input type="text"/>').css({'width': '260px'});
+				let previewTemplateCmd = $('<input type="button" value=" ดูตัวอย่าง "/>');
         let saveNewTemplateCmd = $('<input type="button" value=" บันทึก "/>');
         $(controlRow).append($('<td width="10%" align="left"><b>ประเภทเอกสาร</b></td>'));
-        $(controlRow).append($('<td width="20%" align="left"></td>').append($(templatTypeSelector)));
+        $(controlRow).append($('<td width="15%" align="left"></td>').append($(templatTypeSelector)));
         $(controlRow).append($('<td width="10%" align="left"><b>ชื่อเอกสารใหม่</b></td>'));
-        $(controlRow).append($('<td width="30%" align="left"></td>').append($(templateNameInput)));
-				$(controlRow).append($('<td width="10%" align="left"><b>ขนาดกระดาษ</b></td>'));
-        $(controlRow).append($('<td width="15%" align="center"></td>').append($(paperSizeSelector)));
-				$(controlRow).append($('<td width="*" align="center"></td>').append($(saveNewTemplateCmd)));
+        $(controlRow).append($('<td width="25%" align="left"></td>').append($(templateNameInput)));
+				$(controlRow).append($('<td width="6%" align="left"><b>ขนาดกระดาษ</b></td>'));
+        $(controlRow).append($('<td width="10%" align="center"></td>').append($(paperSizeSelector)));
+				$(controlRow).append($('<td width="*" align="center"></td>').append($(previewTemplateCmd)).append($(saveNewTemplateCmd).css({'margin-left': '10px'})));
         $(workAreaBox).empty().append($(controlNewTemplateForm));
         let designAreaBox = doCreateTemplateDesignArea();
         $(workAreaBox).append($(designAreaBox));
         resetContainer();
         doLoadCommandAction();
 
+				$(previewTemplateCmd).on('click', async (evt)=>{
+					let reportWrapperWidth = $("#report-container").width();
+					let templateDesignElements = await doCollectElement();
+					let wrapperBoxWidth = 760;
+					let wrapperBox = $("<div></div>");
+			    $(wrapperBox).css({"width": "100%", "position": "relative", "height": "100vh"});
+					let renderRatio = wrapperBoxWidth / reportWrapperWidth;
+					doRenderElement(wrapperBox, templateDesignElements, renderRatio);
+					const radalertoption = {
+			      title: 'ตัวอย่างเอกสาร',
+			      msg: $(wrapperBox),
+			      width: wrapperBoxWidth + 'px',
+			      onOk: function(evt) {
+		          radAlertBox.closeAlert();
+			      }
+			    }
+					let radAlertBox = $('body').radalert(radalertoption);
+			    $(radAlertBox.cancelCmd).hide();
+
+					$(radAlertBox.handle).draggable({
+						containment: "parent"
+					});
+
+				});
+				$(saveNewTemplateCmd).on('click', async(evt)=>{
+					let templateDesignElements = await doCollectElement();
+					console.log(templateDesignElements);
+
+					let templatType = $(templatTypeSelector).val();
+					let paperSize = $(paperSizeSelector).val();
+					let templateName = $(templateNameInput).val();
+					templateDesignElements.paperSize = paperSize;
+					let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
+					let templateRes = await common.doCallApi('/api/shop/template/save', params);
+	        if (templateRes.status.code == 200) {
+	          $.notify("บันทึกเอกสารสำเร็จ", "success");
+	        } else if (templateRes.status.code == 201) {
+	          $.notify("ไม่สามารถบันทึกเอกสารได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+	        } else {
+	          $.notify("เกิดข้อผิดพลาด ไม่สามารถบันทึกเอกสารได้", "error");
+	        }
+				});
       }
       resolve();
     });
@@ -3120,12 +3401,118 @@ module.exports = function ( jq ) {
 	const onPaperSizeChange = function(evt, typeValue, shopData, workAreaBox){
 
 	}
+
+	const doCollectElement = function() {
+    return new Promise(function(resolve, reject){
+      let newRatio = doCalRatio();
+      let htmlElements = $("#report-container").children();
+      let reportElements = [];
+      var promiseList = new Promise(function(resolve, reject){
+        htmlElements.each(async (index, elem) => {
+          let elemData = $(elem).data();
+          let data;
+          if (elemData.customTextelement) {
+            data = elemData.customTextelement.options;
+          } else if (elemData.customHrelement) {
+            data = elemData.customHrelement.options;
+          } else if (elemData.customImageelement) {
+            data = elemData.customImageelement.options;
+					} else if (elemData.customTableelement) {
+						data = doReadTableData();
+          } else {
+            data = {};
+          }
+
+          let reportElem = {};
+          await Object.getOwnPropertyNames(data).forEach((tag) => {
+            reportElem[tag] = data[tag];
+          });
+          reportElements.push(reportElem);
+        });
+        setTimeout(()=> {
+          resolve(reportElements);
+        }, 500);
+      });
+      Promise.all([promiseList]).then((ob)=>{
+        resolve(ob[0]);
+      });
+    });
+  }
+
+	const doRenderElement = function(wrapper, reportElements, ratio){
+		let newRatio = 1;
+		if (ratio) {
+			newRatio = ratio;
+		}
+    reportElements.forEach((elem, i) => {
+      let element;
+      switch (elem.elementType) {
+        case "text":
+          element = $("<div></div>").css({'position': 'absolute'});
+          //$(element).addClass("reportElement");
+          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+          $(element).css({"font-size": elem.fontsize + "px"});
+          $(element).css({"font-weight": elem.fontweight});
+          $(element).css({"font-style": elem.fontstyle});
+          $(element).css({"text-align": elem.fontalign});
+          $(element).text(elem.title);
+        break;
+        case "hr":
+          element = $("<div><hr/></div>").css({'position': 'absolute'});
+          //$(element).addClass("reportElement");
+          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+          $(element > "hr").css({"border": elem.border});
+        break;
+        case "image":
+          element = $("<div></div>").css({'position': 'absolute'});
+          //$(element).addClass("reportElement");
+          let newImage = new Image();
+          newImage.src = elem.url;
+          newImage.setAttribute("width", Number(elem.width)*newRatio);
+          $(element).append(newImage);
+          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
+        break;
+				case "table":
+					//doCreateTable(wrapper, elem.rows);
+					doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
+				break;
+      }
+			if (element) {
+      	$(wrapper).append($(element));
+			}
+    });
+    return $(wrapper);
+  }
+
+	const doRenderTable = function(wrapper, tableRows, left, top, ratio){
+		let table = $('<table cellpadding="0" cellspacing="0" width="100%" border="1"></tble>');
+		for (let i=0; i < tableRows.length; i++){
+			let row = $('<tr></tr>');
+			if (tableRows[i].backgroundColor) {
+				$(row).css({'background-color': tableRows[i].backgroundColor})
+			}
+			$(table).append($(row));
+			for (let j=0; j < tableRows[i].fields.length; j++) {
+				let cell = $('<td></td>');
+				if (tableRows[i].fields.length == 2) {
+					$(cell).attr("colspan", (tableRows[0].fields.length - 1).toString());
+				}
+				$(cell).attr({'align': tableRows[i].fields[j].fontalign, 'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio) + 'px'});
+				$(cell).css({'font-size': tableRows[i].fields[j].fontsize, 'font-weight': tableRows[i].fields[j].fontweight, 'font-style': tableRows[i].fields[j].fontstyle});
+				$(cell).text(tableRows[i].fields[j].cellData);
+				$(row).append($(cell));
+			}
+		}
+		$(wrapper).append($(table).css({'position': 'absolute', 'left': left+'px', 'top': top+'px'}));
+		return $(wrapper);
+	}
+
   return {
     doShowTemplateDesign
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./element-property-lib.js":5}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":6}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3563,7 +3950,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],16:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -14446,4 +14833,4 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}]},{},[2]);
+},{}]},{},[3]);
