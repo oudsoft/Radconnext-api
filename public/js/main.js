@@ -13,8 +13,7 @@ setTimeout(()=>{
 	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/lib/simpleUpload.min.js"></script>');
 	$('head').append('<script type="text/javascript" src="' + domainNameUrl + '/setting/plugin/jqury-readystate-plugin.js"></script>');
 
-	$('head').append('<script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.5.9/RecordRTC.js"></script>');
-	$('head').append('<script src="https://www.webrtc-experiment.com/screenshot.js"></script>');
+	$('head').append('<script src="' + domainNameUrl + '/lib/RecordRTC.min.js"></script>');
 
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/case/css/scanpart.css" type="text/css" />');

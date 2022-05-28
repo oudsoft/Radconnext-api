@@ -107,6 +107,7 @@ module.exports = function ( jq ) {
 },{}],2:[function(require,module,exports){
 const A4Width = 1004;
 const A4Height = 1410;
+const SlipWidth = 374;
 
 const templateTypes = [
   {id: 1, NameEN: 'Invoice', NameTH: 'ใบแจ้งหนี้'},
@@ -115,8 +116,8 @@ const templateTypes = [
 ];
 
 const paperSizes = [
-  {id: 1, NameEN: 'A4', NameTH: 'A4'},
-  {id: 1, NameEN: 'Slip', NameTH: 'Slip'}
+  {id: 1, NameEN: 'A4', NameTH: 'A4', width: A4Width},
+  {id: 2, NameEN: 'Slip', NameTH: 'Slip', width: SlipWidth}
 ];
 
 const defaultTableData = [
@@ -197,6 +198,7 @@ const billFieldOptions = [
 module.exports = {
   A4Width,
   A4Height,
+  SlipWidth,
   templateTypes,
   paperSizes,
   defaultTableData,
@@ -821,10 +823,7 @@ module.exports = function ( jq ) {
 				if (tableTypeLength == 0) {
 					var oProp;
 					if (prop) {
-						oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, cols: prop.cols};
-						/*
-						load content from DB for render it
-						*/
+						tableBox = doCreateTable(wrapper, prop.rows, prop.x, prop.y);
 					} else {
 						tableBox = doCreateTable(wrapper, constant.defaultTableData);
 					}
@@ -879,9 +878,9 @@ module.exports = function ( jq ) {
     }
   }
 
-	const doCreateTable = function(wrapper, tableData){
+	const doCreateTable = function(wrapper, tableData, x, y){
 		let wrapperWidth = $(wrapper).width();
-		let tableProp = {id: 'table-element-1', x: 0, y: 60, width: '100%', cols: 5};
+		let tableProp = {id: 'table-element-1', x: x?x:0, y: y?y:60, width: '100%', cols: 5};
 		tableProp.elementselect = elementSelect;
 		tableProp.elementdrop = elementDrop;
 		tableProp.elementresizestop = elementResizeStop;
@@ -903,7 +902,7 @@ module.exports = function ( jq ) {
 			$(rowBox).click();
 			for (let j=0; j < row.fields.length; j++){
 				let field = row.fields[j];
-				let cellProp = {id: field.id, width: '90', height: '35', cellData: field.cellData, fontweight: field.fontweight, fontalign: field.fontalign};
+				let cellProp = {id: field.id, height: '35', cellData: field.cellData, fontweight: field.fontweight, fontalign: field.fontalign};
 				let percentValue = field.width.slice(0, (field.width.length-1));
 				cellProp.width = (rowWidth * (percentValue/100)).toFixed(2);
 				cellProp.elementselect = elementSelect;
@@ -3156,38 +3155,26 @@ module.exports = function ( jq ) {
     */
   }
 
-  const doCreateTemplateTypeSelector = function(shopData, workAreaBox, onChangeCallBack){
+  const doCreateTemplateTypeSelector = function(){
     let selector = $('<select></select>');
     constant.templateTypes.forEach((item, i) => {
       $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
     });
-    $(selector).on('change', (evt)=>{
-      let selectValue = $(selector).val();
-      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
-    });
     return $(selector);
   }
 
-  const doCreateShopTemplateSelector = function(templates, shopData, workAreaBox, onChangeCallBack){
+  const doCreateShopTemplateSelector = function(templates){
     let selector = $('<select></select>');
     templates.forEach((item, i) => {
       $(selector).append($('<option value="' + item.id + '">' + item.Name + '</option>'));
     });
-    $(selector).on('change', (evt)=>{
-      let selectValue = $(selector).val();
-      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
-    });
     return $(selector);
   }
 
-	const doCreatePaperSizeSelector = function(shopData, workAreaBox, onChangeCallBack){
+	const doCreatePaperSizeSelector = function(){
 		let selector = $('<select></select>');
 		constant.paperSizes.forEach((item, i) => {
       $(selector).append($('<option value="' + item.id + '">' + item.NameTH + '</option>'));
-    });
-    $(selector).on('change', (evt)=>{
-      let selectValue = $(selector).val();
-      onChangeCallBack(evt, selectValue, shopData, workAreaBox);
     });
     return $(selector);
 	}
@@ -3315,98 +3302,12 @@ module.exports = function ( jq ) {
 				let tdData = $(td).data().customTdelement.options;
 				let fieldData = {elementType: 'td', id: tdData.id, height: tdData.height, cellData: tdData.cellData, fontweight: tdData.fontweight, fontalign: tdData.fontalign, fontsize: tdData.fontsize, fontstyle: tdData.fontstyle};
 				let percentWidth = ((tdData.width / rowWidth) * 100).toFixed(2);
-				fieldData.width = percentWidth + 'px';
+				fieldData.width = percentWidth;
 				trDesignData.fields.push(fieldData);
 			});
 			tableDesignData.rows.push(trDesignData);
 		});
 		return tableDesignData;
-	}
-
-  const doShowTemplateDesign = function(shopData, workAreaBox){
-    return new Promise(async function(resolve, reject) {
-      $(workAreaBox).empty();
-
-      let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
-      let templateItems = templateRes.Records;
-      if (templateItems.lenght > 0) {
-
-      } else {
-        let controlNewTemplateForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
-        let controlRow = $('<tr></tr>').css({'background-color': '#ddd', 'border': '2px solid grey'});
-        $(controlNewTemplateForm).append($(controlRow));
-        let templatTypeSelector = doCreateTemplateTypeSelector(shopData, workAreaBox, onTemplateTypeChange);
-				let paperSizeSelector = doCreatePaperSizeSelector(shopData, workAreaBox, onPaperSizeChange);
-        let templateNameInput = $('<input type="text"/>').css({'width': '260px'});
-				let previewTemplateCmd = $('<input type="button" value=" ดูตัวอย่าง "/>');
-        let saveNewTemplateCmd = $('<input type="button" value=" บันทึก "/>');
-        $(controlRow).append($('<td width="10%" align="left"><b>ประเภทเอกสาร</b></td>'));
-        $(controlRow).append($('<td width="15%" align="left"></td>').append($(templatTypeSelector)));
-        $(controlRow).append($('<td width="10%" align="left"><b>ชื่อเอกสารใหม่</b></td>'));
-        $(controlRow).append($('<td width="25%" align="left"></td>').append($(templateNameInput)));
-				$(controlRow).append($('<td width="6%" align="left"><b>ขนาดกระดาษ</b></td>'));
-        $(controlRow).append($('<td width="10%" align="center"></td>').append($(paperSizeSelector)));
-				$(controlRow).append($('<td width="*" align="center"></td>').append($(previewTemplateCmd)).append($(saveNewTemplateCmd).css({'margin-left': '10px'})));
-        $(workAreaBox).empty().append($(controlNewTemplateForm));
-        let designAreaBox = doCreateTemplateDesignArea();
-        $(workAreaBox).append($(designAreaBox));
-        resetContainer();
-        doLoadCommandAction();
-
-				$(previewTemplateCmd).on('click', async (evt)=>{
-					let reportWrapperWidth = $("#report-container").width();
-					let templateDesignElements = await doCollectElement();
-					let wrapperBoxWidth = 760;
-					let wrapperBox = $("<div></div>");
-			    $(wrapperBox).css({"width": "100%", "position": "relative", "height": "100vh"});
-					let renderRatio = wrapperBoxWidth / reportWrapperWidth;
-					doRenderElement(wrapperBox, templateDesignElements, renderRatio);
-					const radalertoption = {
-			      title: 'ตัวอย่างเอกสาร',
-			      msg: $(wrapperBox),
-			      width: wrapperBoxWidth + 'px',
-			      onOk: function(evt) {
-		          radAlertBox.closeAlert();
-			      }
-			    }
-					let radAlertBox = $('body').radalert(radalertoption);
-			    $(radAlertBox.cancelCmd).hide();
-
-					$(radAlertBox.handle).draggable({
-						containment: "parent"
-					});
-
-				});
-				$(saveNewTemplateCmd).on('click', async(evt)=>{
-					let templateDesignElements = await doCollectElement();
-					console.log(templateDesignElements);
-
-					let templatType = $(templatTypeSelector).val();
-					let paperSize = $(paperSizeSelector).val();
-					let templateName = $(templateNameInput).val();
-					templateDesignElements.paperSize = paperSize;
-					let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
-					console.log(params);
-					let templateRes = await common.doCallApi('/api/shop/template/save', params);
-	        if (templateRes.status.code == 200) {
-	          $.notify("บันทึกเอกสารสำเร็จ", "success");
-	        } else if (templateRes.status.code == 201) {
-	          $.notify("ไม่สามารถบันทึกเอกสารได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-	        } else {
-	          $.notify("เกิดข้อผิดพลาด ไม่สามารถบันทึกเอกสารได้", "error");
-	        }
-				});
-      }
-      resolve();
-    });
-  }
-
-  const onTemplateTypeChange = function(evt, typeValue, shopData, workAreaBox){
-
-  }
-
-	const onPaperSizeChange = function(evt, typeValue, shopData, workAreaBox){
-
 	}
 
 	const doCollectElement = function() {
@@ -3512,6 +3413,146 @@ module.exports = function ( jq ) {
 		}
 		$(wrapper).append($(table).css({'position': 'absolute', 'left': left+'px', 'top': top+'px'}));
 		return $(wrapper);
+	}
+
+  const doShowTemplateDesign = function(shopData, workAreaBox){
+    return new Promise(async function(resolve, reject) {
+      $(workAreaBox).empty();
+
+      let controlTemplateForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+      let controlRow = $('<tr></tr>').css({'background-color': '#ddd', 'border': '2px solid grey'});
+      $(controlTemplateForm).append($(controlRow));
+      let templatTypeSelector = doCreateTemplateTypeSelector();
+
+			let paperSizeSelector = doCreatePaperSizeSelector();
+
+      let templateNameInput = $('<input type="text"/>').css({'width': '260px'});
+			let previewTemplateCmd = $('<input type="button" value=" ดูตัวอย่าง "/>');
+      let saveNewTemplateCmd = $('<input type="button" value=" บันทึก "/>');
+      $(controlRow).append($('<td width="10%" align="left"><b>ประเภทเอกสาร</b></td>'));
+      $(controlRow).append($('<td width="15%" align="left"></td>').append($(templatTypeSelector)));
+      $(controlRow).append($('<td width="10%" align="left"><b>ชื่อเอกสารใหม่</b></td>'));
+      $(controlRow).append($('<td width="25%" align="left"></td>').append($(templateNameInput)));
+			$(controlRow).append($('<td width="8%" align="left"><b>ขนาดกระดาษ</b></td>'));
+      $(controlRow).append($('<td width="10%" align="center"></td>').append($(paperSizeSelector)));
+			$(controlRow).append($('<td width="*" align="center"></td>').append($(previewTemplateCmd)).append($(saveNewTemplateCmd).css({'margin-left': '10px'})));
+      $(workAreaBox).empty().append($(controlTemplateForm));
+      let designAreaBox = doCreateTemplateDesignArea();
+      $(workAreaBox).append($(designAreaBox));
+      resetContainer();
+      doLoadCommandAction();
+
+			let wrapper = $(designAreaBox).find('#report-container');
+
+			$(templatTypeSelector).on('change', (evt)=>{
+				let selectValue = $(templatTypeSelector).val();
+				onTemplateTypeChange(evt, selectValue, shopData, templateNameInput, wrapper)
+			});
+
+			$(paperSizeSelector).on('change', (evt)=>{
+				let selectValue = $(paperSizeSelector).val();
+				console.log(selectValue);
+				onPaperSizeChange(evt, selectValue, shopData, wrapper)
+			});
+
+			$(previewTemplateCmd).on('click', async (evt)=>{
+				let reportWrapperWidth = $("#report-container").width();
+				let templateDesignElements = await doCollectElement();
+				let wrapperBoxWidth = 760;
+				let wrapperBox = $("<div></div>");
+		    $(wrapperBox).css({"width": "100%", "position": "relative", "height": "100vh"});
+				let renderRatio = wrapperBoxWidth / reportWrapperWidth;
+				doRenderElement(wrapperBox, templateDesignElements, renderRatio);
+				const radalertoption = {
+		      title: 'ตัวอย่างเอกสาร',
+		      msg: $(wrapperBox),
+		      width: wrapperBoxWidth + 'px',
+		      onOk: function(evt) {
+	          radAlertBox.closeAlert();
+		      }
+		    }
+				let radAlertBox = $('body').radalert(radalertoption);
+		    $(radAlertBox.cancelCmd).hide();
+
+				$(radAlertBox.handle).draggable({
+					containment: "parent"
+				});
+			});
+			$(saveNewTemplateCmd).on('click', async(evt)=>{
+				let templateDesignElements = await doCollectElement();
+				console.log(templateDesignElements);
+
+				let templatType = $(templatTypeSelector).val();
+				let paperSize = $(paperSizeSelector).val();
+				let templateName = $(templateNameInput).val();
+				templateDesignElements.paperSize = paperSize;
+				let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
+				console.log(params);
+				let templateRes = await common.doCallApi('/api/shop/template/save', params);
+        if (templateRes.status.code == 200) {
+          $.notify("บันทึกรูปแบบเอกสารสำเร็จ", "success");
+        } else if (templateRes.status.code == 201) {
+          $.notify("ไม่สามารถบันทึกรูปแบบเอกสารได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+        } else {
+          $.notify("เกิดข้อผิดพลาด ไม่สามารถบันทึกรูปแบบเอกสารได้", "error");
+        }
+			});
+
+			let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
+      let templateItems = templateRes.Records;
+			let typeSelect = $(templatTypeSelector).val();
+      if (templateItems.length > 0) {
+				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, wrapper)
+      } else {
+				//doCreateDefualTemplate
+				templateRes = await common.doCallApi('/api/shop/template/select/1', {});
+				templateItems = templateRes.Records;
+				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, wrapper);
+      }
+      resolve();
+    });
+  }
+
+	const doShowTemplateLoaded = async function(shopData, templateItems, typeSelect, templateNameInput, wrapper) {
+		let typeFilters = await templateItems.filter((template)=>{
+			if (typeSelect == template.TypeId) {
+				return template;
+			}
+		});
+		if (typeFilters.length > 0) {
+			let elements = typeFilters[0].Content;
+			$(templateNameInput).val(typeFilters[0].Name)
+			for (let i=0; i < elements.length; i++){
+				let element = elements[i];
+				let elementType = element.elementType;
+				if (element.title) {
+					let field = element.title.substring(1);
+					if (field == 'shop_name') {
+						element.title = shopData.Shop_Name;
+					} else if (field == 'shop_address') {
+					element.title = shopData.Shop_Address;
+					}
+				}
+				elementProperty.doCreateElement(wrapper, elementType, element);
+			}
+		}
+	}
+
+  const onTemplateTypeChange = async function(evt, typeValue, shopData, templateNameInput, wrapper){
+		let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
+		let templateItems = templateRes.Records;
+		if (templateItems.length > 0) {
+			doShowTemplateLoaded(shopData, templateItems, typeValue, templateNameInput, wrapper)
+		} else {
+			//doCreateDefualTemplate
+			templateRes = await common.doCallApi('/api/shop/template/select/1', {});
+			templateItems = templateRes.Records;
+			doShowTemplateLoaded(shopData, templateItems, typeValue, templateNameInput, wrapper);
+		}
+  }
+
+	const onPaperSizeChange = function(evt, selectValue, shopData, wrapper){
+
 	}
 
   return {

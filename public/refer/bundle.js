@@ -21218,8 +21218,7 @@ module.exports = function ( jq ) {
 						wsm.send(JSON.stringify(callZoomMsg));
 						$.notify('ระบบฯได้ส่งคำขอแจ้งเปิด Viedo Conference ไปยังรังสีแพทย์สำเร็จ โปรดรอให้รังสีแพทย์เตรียมความพร้อม', 'succes');
 						recorder = new RecordRTCPromisesHandler(localMergedStream, {
-							type: 'video',
-							mimeType: 'video/x-m4v'
+							type: 'video'
 						});
 						recorder.startRecording();
 					});

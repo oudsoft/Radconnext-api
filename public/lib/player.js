@@ -609,7 +609,7 @@
 
     const doStartRecord = function(){
       let imgBox = $(playerViewBox).find('.imgbox');
-      imgCanvas = $('<canvas id="ImageCanvas"></canvas>');
+      let imgCanvas = $('<canvas id="ImageCanvas"></canvas>');
       $(imgCanvas).css({'Width': (settings.imgSize + 'px'), 'Height':  'auto', 'cursor': 'pointer'});
 
       let fileURL = $(imgBox).find('img').prop('src');
@@ -638,17 +638,14 @@
         } else {
           $(imgCanvas).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
         }
-        /*
-        recorder = new RecordRTC(imgCanvas, {
-          type: 'canvas',
-          disableLogs: false
-        });
-
-        recorder.startRecording();
-        */
       }
-
+      recorder = new RecordRTCPromisesHandler(imgCanvas, {
+        type: 'canvas',
+        disableLogs: false
+      });
       $(imgBox).append($(imgCanvas));
+      
+      recorder.startRecording();
     }
     const doStopRecord = function(){
       $('#ImagePreview').show();

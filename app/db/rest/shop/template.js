@@ -140,9 +140,9 @@ app.post('/save', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        const shopId = req.body.shopId;
-        const typeId = req.body.data.TypeId;
-        const templates = await db.templates.findAll({attributes: excludeColumn, where: {shopId: shopId, TypeId: typeId}});
+        let shopId = req.body.shopId;
+        let typeId = req.body.data.TypeId;
+        let templates = await db.templates.findAll({attributes: excludeColumn, where: {shopId: shopId, TypeId: typeId}});
         if ( templates.length == 0) {
           let newtemplate = req.body.data;
           let adtemplate = await db.templates.create(newtemplate);

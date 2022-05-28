@@ -53,6 +53,10 @@
         "top": settings.y + "px",
         "width": settings.width + "px",
         "height": settings.height + "px"});
+      $(element).css({"font-size": settings.fontsize + "px"});
+      $(element).css({"font-weight": settings.fontweight});
+      $(element).css({"font-style": settings.fontstyle});
+      $(element).css({"text-align": settings.fontalign});
       $(element).text(settings.title);
       $(element).attr("tabindex", 1);
       $(element).draggable({
@@ -292,7 +296,7 @@
         "height": settings.width + "px"
       });
       $(element).attr("tabindex", 1);
-      $(element).css({"background": "url(" + settings.url + ") no-repeat", "background-size": "auto"});
+      $(element).css({"background": "url(" + settings.url + ") no-repeat", "background-size": "contain"});
       $(element).draggable({
         containment: "parent",
         stop: function(evt) {
