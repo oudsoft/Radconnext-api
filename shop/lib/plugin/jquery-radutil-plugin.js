@@ -98,7 +98,7 @@
       overlay = doCreateOverlay();
       let msgBox = doCreateAlertBox(settings.msg);
       $(overlay).append($(msgBox));
-      return $(msgBox);
+      return $(overlay);
     }
 
     const doCloseAlert = function(){

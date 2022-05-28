@@ -722,17 +722,23 @@ module.exports = function ( jq ) {
 	}
 
   const elementSelect = function(event, data){
-    resetActive(event.target);
-    let prop = data.options;
-    resetPropForm(event.target, prop);
+		if ((event) && (event.target)) {
+    	resetActive(event.target);
+    	let prop = data.options;
+    	resetPropForm(event.target, prop);
+		}
   }
   const elementDrop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
+		if ((data) && (data.options)) {
+    	let prop = data.options;
+    	resetPropForm(event.target, prop);
+		}
   }
   const elementResizeStop = function(event, data){
-    let prop = data.options;
-    resetPropForm(event.target, prop);
+		if ((data) && (data.options)) {
+	    let prop = data.options;
+	    resetPropForm(event.target, prop);
+		}
   }
 
 	const doCreateElement = function(wrapper, elemType, prop){
@@ -3380,6 +3386,7 @@ module.exports = function ( jq ) {
 					let templateName = $(templateNameInput).val();
 					templateDesignElements.paperSize = paperSize;
 					let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
+					console.log(params);
 					let templateRes = await common.doCallApi('/api/shop/template/save', params);
 	        if (templateRes.status.code == 200) {
 	          $.notify("บันทึกเอกสารสำเร็จ", "success");
