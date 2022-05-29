@@ -224,7 +224,8 @@
 
           let recordState = recordSwitch.getState();
           if (recordState == true){
-            let ctx = $(imgCanvas)[0].getContext("2d");
+            let imageCanvas = $('#ImageCanvas')[0];
+            let ctx = $(imageCanvas).getContext("2d");
             ctx.drawImage(playImg, 0, 0, w, h);
             $(imgCanvas).on('click', (evt)=>{
               window.open(fileURL, '_blank');
@@ -644,7 +645,7 @@
         disableLogs: false
       });
       $(imgBox).append($(imgCanvas));
-      
+
       recorder.startRecording();
     }
     const doStopRecord = function(){

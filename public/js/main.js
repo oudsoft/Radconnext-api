@@ -18,7 +18,7 @@ setTimeout(()=>{
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/case/css/scanpart.css" type="text/css" />');
 	//$('head').append('<script src="' + domainNameUrl + '/lib/player.js?t=jyoky"></script>');
-	$('head').append('<script src="' + domainNameUrl + '/lib/player.js?ty=mjxokyh"></script>');
+	$('head').append('<script src="' + domainNameUrl + '/lib/player.js?ty=5111kyh"></script>');
 
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');

@@ -108,6 +108,7 @@ module.exports = function ( jq ) {
 const A4Width = 1004;
 const A4Height = 1410;
 const SlipWidth = 374;
+const SlipHeight = 1410;
 
 const templateTypes = [
   {id: 1, NameEN: 'Invoice', NameTH: 'ใบแจ้งหนี้'},
@@ -199,6 +200,7 @@ module.exports = {
   A4Width,
   A4Height,
   SlipWidth,
+  SlipHeight,
   templateTypes,
   paperSizes,
   defaultTableData,
@@ -3128,18 +3130,30 @@ module.exports = function ( jq ) {
   const elementProperty = require('./element-property-lib.js')($);
   let activeType, activeElement;
 
-  const doCalRatio = function(){
+  const doCalRatio = function(paperType){
     let containerWidth = $('#report-container').width();
-    return containerWidth/constant.A4Width;
+		if (paperType == 1) {
+    	return containerWidth/constant.A4Width;
+		} else if (paperType == 2) {
+			return containerWidth/constant.SlipWidth;
+		}
   }
 
-  const resetContainer = function(){
-    let newRatio = doCalRatio();
-    let newHeight = constant.A4Height * newRatio;
+  const resetContainer = function(paperType){
+    let newRatio = doCalRatio(paperType);
+    let newHeight = undefined;
+		if (paperType == 1){
+			newHeight = constant.A4Height * newRatio;
+			$('#report-container').css('width', constant.A4Width);
+		} else if (paperType == 2){
+			$('#report-container').css('width', constant.SlipWidth);
+			newHeight = constant.SlipHeight * newRatio;
+		}
     $('#report-container').css('height', newHeight);
     $('#report-container').css('max-height', newHeight);
-    /*
+
     doCollectElement().then((reportElements)=>{
+			console.log(reportElements);
       if (reportElements.length > 0) {
         let wrapper = $('#report-container');
         $(wrapper).empty();
@@ -3148,11 +3162,11 @@ module.exports = function ( jq ) {
           await Object.getOwnPropertyNames(item).forEach((tag) => {
             reportElem[tag] = item[tag];
           });
-          elementProperty.doCreateElement(wrapper, item.elementType, item);
+          elementProperty.doCreateElement(wrapper, item.elementType, reportElem);
         });
       }
     });
-    */
+
   }
 
   const doCreateTemplateTypeSelector = function(){
@@ -3439,7 +3453,8 @@ module.exports = function ( jq ) {
       $(workAreaBox).empty().append($(controlTemplateForm));
       let designAreaBox = doCreateTemplateDesignArea();
       $(workAreaBox).append($(designAreaBox));
-      resetContainer();
+			let paperSizeValue = $(paperSizeSelector).val();
+      resetContainer(paperSizeValue);
       doLoadCommandAction();
 
 			let wrapper = $(designAreaBox).find('#report-container');
@@ -3480,14 +3495,11 @@ module.exports = function ( jq ) {
 			});
 			$(saveNewTemplateCmd).on('click', async(evt)=>{
 				let templateDesignElements = await doCollectElement();
-				console.log(templateDesignElements);
-
 				let templatType = $(templatTypeSelector).val();
 				let paperSize = $(paperSizeSelector).val();
 				let templateName = $(templateNameInput).val();
 				templateDesignElements.paperSize = paperSize;
 				let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
-				console.log(params);
 				let templateRes = await common.doCallApi('/api/shop/template/save', params);
         if (templateRes.status.code == 200) {
           $.notify("บันทึกรูปแบบเอกสารสำเร็จ", "success");
@@ -3552,7 +3564,7 @@ module.exports = function ( jq ) {
   }
 
 	const onPaperSizeChange = function(evt, selectValue, shopData, wrapper){
-
+		resetContainer(selectValue);
 	}
 
   return {

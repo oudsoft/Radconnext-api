@@ -21208,7 +21208,9 @@ module.exports = function ( jq ) {
 				//myVideo.srcObject = stream;
 				myVideo.srcObject = wrtcCommon.userMediaStream;
 
-				let recorder = undefined;
+				//let recorder = undefined;
+				let recorder = new RecordRTCPromisesHandler(myVideo.srcObject, {type: 'video'	});
+				recorder.startRecording();
 
 				let shareCmd = wrtcCommon.doCreateShareScreenCmd();
 				$(shareCmd).on('click', (evt)=>{
@@ -21217,31 +21219,53 @@ module.exports = function ( jq ) {
 						let callZoomMsg = {type: 'callzoom', sendTo: radioUsername, topic: joinTopic, sender: userdata.username, senderInfo: myInfo, bodyPart: caseBodypart, radioId: radioId};
 						wsm.send(JSON.stringify(callZoomMsg));
 						$.notify('ระบบฯได้ส่งคำขอแจ้งเปิด Viedo Conference ไปยังรังสีแพทย์สำเร็จ โปรดรอให้รังสีแพทย์เตรียมความพร้อม', 'succes');
-						recorder = new RecordRTCPromisesHandler(localMergedStream, {
-							type: 'video'
-						});
-						recorder.startRecording();
+						$(shareCmd).hide();
+						$(startCmd).show();
+						$(endCmd).hide();
+						//recorder = new RecordRTCPromisesHandler(localMergedStream, {type: 'video'	});
+						//recorder.startRecording();
 					});
 				});
 				let startCmd = wrtcCommon.doCreateStartCallCmd();
 				$(startCmd).on('click', (evt)=>{
+					userJoinOption.joinType = 'caller'
+					wrtcCommon.doSetupUserJoinOption(userJoinOption);
 					wrtcCommon.doCreateOffer(wsm);
+					$(shareCmd).hide();
+					$(startCmd).hide();
+					$(endCmd).show();
 				})
 				let endCmd = wrtcCommon.doCreateEndCmd();
 				$(endCmd).on('click', async (evt)=>{
+					let lastStream = myVideo.srcObject;
 					wrtcCommon.userMediaStream = await wrtcCommon.doCheckBrowser();
 					myVideo.srcObject = wrtcCommon.userMediaStream;
 					wrtcCommon.doEndCall(wsm);
 					wrtcCommon.doCreateLeave(wsm);
-					let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
-					wrtcCommon.doSetupRemoteConn(myRemoteConn);
-					if (recorder) {
-						await recorder.stopRecording();
-						let blob = await recorder.getBlob();
-						invokeSaveAsDialog(blob);
+
+					if (lastStream !== wrtcCommon.userMediaStream) {
+						let myRemoteConn = wrtcCommon.doInitRTCPeer(wrtcCommon.userMediaStream, wsm);
+						wrtcCommon.doSetupRemoteConn(myRemoteConn);
+						$(startCmd).click();
+						$(shareCmd).show();
+						$(startCmd).hide();
+						$(endCmd).show();
+					} else {
+						$(shareCmd).show();
+						$(startCmd).hide();
+						$(endCmd).show();
+
+						if (recorder) {
+							await recorder.stopRecording();
+							let blob = await recorder.getBlob();
+							invokeSaveAsDialog(blob);
+						}
+
+						webrtcBox.closeAlert();
 					}
+					
 				});
-				$(dlgContent).find('#CommandBox').append($(shareCmd));
+				$(dlgContent).find('#CommandBox').append($(shareCmd).show());
 				$(dlgContent).find('#CommandBox').append($(startCmd).hide());
 				$(dlgContent).find('#CommandBox').append($(endCmd).hide());
 
