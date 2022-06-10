@@ -64,7 +64,7 @@ setTimeout(()=>{
 
 		$(myPBox).focus();
 	}, 1500);
-}, 3300);
+}, 1500);
 
 /*
 $.getScript( "' + domainNameUrl + '/js/main.js", function( code, textStatus, jqxhr ) {

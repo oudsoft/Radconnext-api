@@ -366,6 +366,7 @@
     let settings = $.extend({
       // These are the defaults.
       elementType: 'table',
+      type: "dynamic",
       x: 0,
       y: 0,
       width: '99.1%',
@@ -487,7 +488,6 @@
       y: 0,
       width: '95%',
       heigth: '25px',
-      backgroundColor: "#ddd",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');

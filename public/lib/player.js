@@ -368,18 +368,17 @@
         $(playerViewBox).find('.imgbox').remove();
         $(playerViewBox).find('#AutoPlayCmd').attr('src', pluginUrl+ '/images/start-play-icon.png');
         $(playerViewBox).find('#LocalVideo').remove();
-        /*
-        if (timer) {
-          window.clearTimeout(timer);
-          $('#AuotoPlayCmd').click();
-        }
-        */
         let filesArray = selectedFiles.toArray();
         filesArray.forEach((item, i) => {
           let fileOption = $('<option value="' + item.type + '">' + (i+1) + '. ' + item.name + '</option>');
           $(srcFileListBox).find('select').append($(fileOption))
         });
         $(playerViewBox).append($(srcFileListBox));
+        $(playerViewBox).prop('selectedIndex', 0);
+        if (timer) {
+          window.clearTimeout(timer);
+          $('#AuotoPlayCmd').click();
+        }
       });
 
       $(fileChooser).click();

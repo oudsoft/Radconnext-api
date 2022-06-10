@@ -20,6 +20,11 @@ const upload = multer({
   limits: {fileSize: 100000000}
 });
 
+const uploadTemplate = multer({
+  dest: path.join(__dirname, '../../../', process.env.USRUPLOAD_DIR),
+  limits: {fileSize: 100000000}
+});
+
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, usrUploadDir);
@@ -129,6 +134,32 @@ module.exports = function (app) {
       res.status(500).send({status: {code: 500}, error: ree});
     });
   });
+
+  app.post('/shop/upload/image/template', uploadTemplate.array('imagetemplate'), function(req, res) {
+		//const token = req.cookies[process.env.COOKIE_NAME].token;
+		//console.log('token from cookie', token);
+
+		const rootname = req.originalUrl.split('/')[1];
+
+		var filename = req.files[0].originalname;
+		var fullnames = filename.split('.');
+
+		var newFileName = genUniqueID() + '.' + fullnames[1];
+		var imgPath = req.files[0].destination + '/' + req.files[0].filename;
+		var newPath = req.files[0].destination + '/template/'  + newFileName;
+		var readStream = fs.createReadStream(imgPath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+
+		var command = parseStr(' rm %s', imgPath);
+		runcommand(command).then((stdout) => {
+			var link =  process.env.USRUPLOAD_PATH + '/template/' + newFileName;
+			res.status(200).send({status: {code: 200}, text: 'ok upload image on template.', link: link});
+		}).catch((err) => {
+			console.log('err: 500 >>', err);
+      res.status(500).send({status: {code: 500}, error: ree});
+		});
+	});
 
 	return {
 		genUniqueID,

@@ -100,7 +100,7 @@ app.post('/list', (req, res) => {
       }
     });
   } else {
-    log.info('dicomtranser lis API => Authorization Wrong.');
+    log.info('dicomtransfer lis API => Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
 });
@@ -178,6 +178,7 @@ app.post('/add', async (req, res) => {
 	const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
 	let studyTags = {};
 	if (orthancRes.length == 0){
+		res.json({Result: "OK", result: 'add'});
 	  if (resourceType === 'study') {
 	    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
 	  }
@@ -189,8 +190,9 @@ app.post('/add', async (req, res) => {
 			let socketTrigger = {type: 'newdicom', dicom: studyTags};
 			let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
 	  }
-	  res.json({Result: "OK", Record: adDicomTransferLog});
+	  //res.json({Result: "OK", Record: adDicomTransferLog});
 	} else {
+		res.json({Result: "OK", result: 'update'});
 		let logId = orthancRes[0].id;
 		if (resourceType === 'study') {
 	    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
@@ -202,7 +204,7 @@ app.post('/add', async (req, res) => {
 			let socketTrigger = {type: 'newdicom', dicom: studyTags};
 			let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
 	  }
-		res.json({Result: "OK", Record: orthancUpdateRes[0]});
+		//res.json({Result: "OK", Record: orthancUpdateRes[0]});
 	}
 });
 /*

@@ -91,6 +91,9 @@ module.exports = function ( jq ) {
     return $(textCmd)
   }
 
+	const delay = function(ms) {
+  	return new Promise(resolve => setTimeout(resolve, ms));
+	}
 
   return {
     doCallApi,
@@ -100,7 +103,8 @@ module.exports = function ( jq ) {
 		doFormatDateStr,
 		doFormatTimeStr,
 		doCreateImageCmd,
-		doCreateTextCmd
+		doCreateTextCmd,
+		delay
 	}
 }
 
@@ -130,7 +134,7 @@ const defaultTableData = [
       {id: 'headerCell_5', cellData: 'รวม', fontweight: 'bold', fontalign: 'center', width: '19%'}
     ]
   },
-  {id: 'dataRow', fields: [
+  {id: 'dataRow', class: 'gooditem', fields: [
       {id: 'dataCell_1', cellData: '1', fontweight: 'normal', fontalign: 'center', width: '10%'},
       {id: 'dataCell_2', cellData: 'ชื่อสินค้า', fontweight: 'normal', fontalign: 'left', width: '34%'},
       {id: 'dataCell_3', cellData: '100.00', fontweight: 'normal', fontalign: 'center', width: '20%'},
@@ -160,42 +164,6 @@ const defaultTableData = [
   }
 ]
 
-const billFieldOptions = [
-  {name_en: 'shop_name', name_th: 'ชื่อร้านค้า'},
-  {name_en: 'shop_address', name_th: 'ที่อยู่ร้านค้า'},
-  {name_en: 'shop_tel', name_th: 'เบอร์โทรศัพท์ร้านค้า'},
-  {name_en: 'shop_mail', name_th: 'อีเมล์ร้านค้า'},
-  {name_en: 'shop_vatno', name_th: 'หมายเลขผู้เสียภาษีร้านค้า'},
-
-  {name_en: 'customer_name', name_th: 'ชื่อลูกค้า'},
-  {name_en: 'customer_address', name_th: 'ที่อยู่ลูกค้า'},
-  {name_en: 'customer_tel', name_th: 'เบอร์โทรศัพท์ลูกค้า'},
-
-  {name_en: 'order_no', name_th: 'หมายเลขออร์เดอร์'},
-  {name_en: 'order_by', name_th: 'ผู้สั่งออร์เดอร์'},
-  {name_en: 'order_datetime', name_th: 'วันเวลาสั่งออร์เดอร์'},
-
-  {name_en: 'print_no', name_th: 'หมายเลขใบแจ้งหนี้/ใบเสร็จ/ใบกำกับภาษี'},
-  {name_en: 'print_by', name_th: 'ผู้ออกเอกสาร'},
-  {name_en: 'print_datetime', name_th: 'วันเวลาออกเอกสาร'},
-
-  {name_en: 'gooditem_no', name_th: 'เลขลำดับที่'},
-  {name_en: 'gooditem_name', name_th: 'ชื่อสินค้า'},
-  {name_en: 'gooditem_unit', name_th: 'หน่วยขายสินค้า'},
-  {name_en: 'gooditem_price', name_th: 'ราคาสินค้าต่อหน่วย'},
-  {name_en: 'gooditem_qty', name_th: 'จำนวนสินค้า'},
-  {name_en: 'gooditem_total', name_th: 'จำนวนเงินของรายการสินค้า'},
-
-  {name_en: 'total', name_th: 'รวมค่าสินค้า'},
-  {name_en: 'discount', name_th: 'ส่วนลด'},
-  {name_en: 'vat', name_th: 'ภาษีมูลค่าเพิ่ม 7%'},
-  {name_en: 'grandtotal', name_th: 'รวมทั้งหมด'},
-
-  {name_en: 'paytype', name_th: 'ชำระโดย'},
-  {name_en: 'payamount', name_th: 'จำนวนเงินที่ชำระ'},
-  {name_en: 'cashchange', name_th: 'เงินทอน'}
-]
-
 module.exports = {
   A4Width,
   A4Height,
@@ -203,8 +171,7 @@ module.exports = {
   SlipHeight,
   templateTypes,
   paperSizes,
-  defaultTableData,
-  billFieldOptions
+  defaultTableData
 }
 
 },{}],3:[function(require,module,exports){
@@ -270,6 +237,181 @@ module.exports = {
 }
 
 },{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":12,"jquery":16}],4:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  String.prototype.lpad = function(padString, length) {
+      var str = this;
+      while (str.length < length)
+          str = padString + str;
+      return str;
+  }
+
+  const doCreateFormDlg = function(shopData, orderTotal, orderId, invoiceSuccessCallback, billSuccessCallback, taxinvoiceSuccessCallback) {
+    return new Promise(async function(resolve, reject) {
+      let payAmountInput = undefined;
+      let createTaxInvoiceCmd = undefined;
+
+      const keyChangeValue = function(evt){
+        let discountValue = $(discountInput).val();
+        let vatValue = $(vatInput).val();
+        let grandTotal = (Number(orderTotal) - Number(discountValue)) + Number(vatValue);
+        $(granTotalCell).empty().append($('<span><b>' + common.doFormatNumber(grandTotal) + '</b></span>'));
+        if ($(payAmountInput)) {
+          $(payAmountInput).val(common.doFormatNumber(grandTotal));
+        }
+        if ((vatValue == '') || (vatValue == 0)) {
+          if ($(createTaxInvoiceCmd)) {
+            $(createTaxInvoiceCmd).hide();
+          } else {
+            $(createTaxInvoiceCmd).show();
+          }
+        }
+      }
+
+      let wrapperBox = $('<div></div>');
+      let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+      let dataRow = $('<tr></tr>').css({'height': '40px'});
+      $(dataRow).append($('<td width="40%" align="left"><b>ยอดรวมค่าสินค้า</b></td>'));
+      $(dataRow).append($('<td width="*" align="right"><b>' + common.doFormatNumber(orderTotal) + '</b></td>'));
+      $(closeOrderTable).append($(dataRow));
+      dataRow = $('<tr></tr>').css({'height': '40px'});
+      $(dataRow).append($('<td align="left">ส่วนลด</td>'));
+      let discountInputCell = $('<td align="right"></td>');
+      let discountInput = $('<input type="number" value="0"/>').css({'width': '80px'});
+      $(discountInput).on('keyup', keyChangeValue);
+      $(discountInputCell).append($(discountInput));
+      $(dataRow).append($(discountInputCell));
+      $(closeOrderTable).append($(dataRow));
+
+      let vatInput = $('<input type="number" value="0"/>').css({'width': '80px'});
+      if (shopData.Shop_VatNo !== '') {
+        $(vatInput).on('keyup', keyChangeValue);
+        dataRow = $('<tr></tr>').css({'height': '40px'});
+        $(dataRow).append($('<td align="left">ภาษีมูลค่าเพิ่ม (7%)</td>'));
+        $(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+        $(dataRow).append($('<td align="right"></td>').append($(vatInput)));
+        $(closeOrderTable).append($(dataRow));
+      }
+      dataRow = $('<tr></tr>').css({'background-color': '#ddd', 'height': '40px'});
+      $(dataRow).append($('<td width="40%" align="left"><b>รวมทั้งสิ้น</b></td>'));
+      let discountValue = $(discountInput).val();
+      let vatValue = $(vatInput).val();
+      let grandTotal = (Number(orderTotal) - Number(discountValue)) + Number(vatValue);
+      let granTotalCell = $('<td width="*" align="right"></td>');
+      $(granTotalCell).empty().append($('<span><b>' + common.doFormatNumber(grandTotal) + '</b></span>'));
+      $(dataRow).append(granTotalCell);
+      $(closeOrderTable).append($(dataRow));
+
+      let middleActionCmdRow = $('<tr></tr>').css({'height': '40px'});
+      let commandCell = $('<td colspan="2" align="center"></td>');
+      $(middleActionCmdRow).append($(commandCell));
+      $(closeOrderTable).append($(middleActionCmdRow));
+
+      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์แจ้งหนี้', 'orange', 'white');
+      let closeOrderCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
+      $(closeOrderCmd).css({'margin-left': '10px'});
+      $(commandCell).append($(createInvoiceCmd)).append($(closeOrderCmd));
+
+			$(createInvoiceCmd).on('click', async(evt)=>{
+				let shopId = shopData.id;
+				let nextInvoiceNo = '000000001';
+				let filename = shopId.toString().lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
+				let discountValue = parseFloat($(discountInput).val());
+				let vatValue = parseFloat($(vatInput).val());
+
+				let lastinvoicenoRes = await common.doCallApi('/api/shop/invoice/find/last/invioceno/' + shopId, {});
+				console.log(lastinvoicenoRes);
+				if (lastinvoicenoRes.Records.length > 0) {
+					let lastinvoiceno = lastinvoicenoRes.Records[0].No;
+					let nextNo = Number(lastinvoiceno);
+					nextNo = nextNo + 1;
+					nextInvoiceNo = nextNo.toString().lpad("0", 9);
+					filename = shopId.toString().lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
+					let invoiceData = {No: nextInvoiceNo, Discount: discountValue, Vat: vatValue, Filename: filename};
+					invoiceSuccessCallback(invoiceData);
+				} else {
+					let invoiceData = {No: nextInvoiceNo, Discount: discountValue, Vat:vatValue, Filename: filename};
+					invoiceSuccessCallback(invoiceData);
+				}
+			});
+
+      $(closeOrderCmd).on('click', async(evt)=>{
+        let paytypeRes = await common.doCallApi('/api/shop/paytype/options', {});
+        $(middleActionCmdRow).remove();
+        let paytypeSelect = $('<select></select>');
+        paytypeRes.Options.forEach((item, i) => {
+          $(paytypeSelect).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+        });
+        payAmountInput = $('<input type="number" value="0"/>').css({'width': '120px'});
+        $(payAmountInput).val(grandTotal);
+        dataRow = $('<tr></tr>').css({'height': '40px'});
+        $(dataRow).append($('<td align="left">วิธีชำระ</td>'));
+        $(dataRow).append($('<td align="right"></td>').append($(paytypeSelect)));
+        $(closeOrderTable).append($(dataRow));
+        dataRow = $('<tr></tr>').css({'height': '40px'});
+        $(dataRow).append($('<td align="left">จำนวนที่ชำระ</td>'));
+        $(dataRow).append($('<td align="right"></td>').append($(payAmountInput)));
+        $(closeOrderTable).append($(dataRow));
+
+        let finalActionCmdRow = $('<tr></tr>').css({'height': '40px'});
+        let commandCell = $('<td colspan="2" align="center"></td>');
+        $(finalActionCmdRow).append($(commandCell));
+        $(closeOrderTable).append($(finalActionCmdRow));
+
+        let createBillCmd = common.doCreateTextCmd('พิมพ์ใบเสร็จ', 'green', 'white');
+        $(commandCell).append($(createBillCmd));
+
+        $(createBillCmd).on('click', async(evt)=>{
+          let shopId = shopData.id;
+          let nextฺBillNo = '000000001';
+					let filename = shopId.toString().lpad("0", 5) + '-' + nextBillNo + '.pdf';
+					let discountValue = parseFloat($(discountInput).val());
+					let vatValue = parseFloat($(vatInput).val());
+
+					let payAmountValue = parseFloat($(payAmountInput).val());
+					let payType = parseInt($(paytypeSelect).val());
+					let paymentData = {Amount: payAmountValue, PayType: payType};
+
+          let lastbillnoRes = await common.doCallApi('/api/shop/bill/find/last/billno/' + shopId, {});
+					console.log(lastbillnoRes);
+          if (lastbillnoRes.Records.length > 0) {
+            let lastbillno = lastbillnoRes.Records[0].No;
+            let nextNo = Number(lastbillno);
+            nextNo = nextNo + 1;
+            nextBillNo = nextNo.toString().lpad("0", 9);
+            filename = shopId.toString().lpad("0", 5) + '-' + nextBillNo + '.pdf';
+            let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
+						billSuccessCallback(billData, paymentData);
+          } else {
+						let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
+						billSuccessCallback(billData, paymentData);
+					}
+        });
+
+        if (shopData.Shop_VatNo !== '') {
+          createTaxInvoiceCmd = common.doCreateTextCmd('พิมพ์กำกับภาษี', 'green', 'white');
+          $(createTaxInvoiceCmd).css({'margin-left': '10px'});
+          $(commandCell).append($(createTaxInvoiceCmd));
+          $(createTaxInvoiceCmd).on('click', (evt)=>{
+
+          });
+        }
+      });
+
+      $(wrapperBox).append($(closeOrderTable))
+      resolve($(wrapperBox));
+    });
+  }
+
+  return {
+    doCreateFormDlg
+	}
+}
+
+},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -412,7 +554,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -636,7 +778,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -893,6 +1035,9 @@ module.exports = function ( jq ) {
 		for (let i=0; i < tableData.length; i++){
 			let row = tableData[i];
 			let rowProp = {id: row.id};
+			if (row.class){
+				rowProp.class = row.class;
+			}
 			if (row.backgroundColor) {
 				rowProp.backgroundColor = row.backgroundColor;
 			}
@@ -984,6 +1129,8 @@ module.exports = function ( jq ) {
     let contentLabelFrag, contentDataFrag, updateContentCmdFrag;
     let dynamicFrag;
 
+		let billFieldOptions = JSON.parse(localStorage.getItem('billFieldOptions'));
+
     $(fragValue).on('change', ()=> {
       let newValue = $(fragValue).val();
       if (newValue === 'static') {
@@ -1039,7 +1186,7 @@ module.exports = function ( jq ) {
         let dynamicFieldOption = $("<select></select>");
         $(dynamicFieldOption).appendTo($(dynamicFieldValue));
 				if ((targetData[elementDataName].options.elementType == 'text') || (targetData[elementDataName].options.elementType == 'td')) {
-	        constant.billFieldOptions.forEach((item, i) => {
+	        billFieldOptions.forEach((item, i) => {
 	          $(dynamicFieldOption).append("<option value='" + item.name_en + "'>" + item.name_th + "</option>");
 	        });
 				}
@@ -1211,7 +1358,7 @@ module.exports = function ( jq ) {
     $(openSelectFileCmd).on('click', (evt) => {
       let fileBrowser = $('<input type="file"/>');
       $(fileBrowser).attr("id", 'fileupload');
-      $(fileBrowser).attr("name", 'patienthistory');
+      $(fileBrowser).attr("name", 'imagetemplate');
       $(fileBrowser).attr("multiple", true);
       $(fileBrowser).css('display', 'none');
       $(fileBrowser).on('change', function(e) {
@@ -1219,7 +1366,7 @@ module.exports = function ( jq ) {
         var fileSize = e.currentTarget.files[0].size;
         var fileType = e.currentTarget.files[0].type;
         if (fileSize <= defSize) {
-          var uploadUrl = "/api/uploadpatienthistory";
+          var uploadUrl = "/api/shop/upload/image/template";
           $('#fileupload').simpleUpload(uploadUrl, {
             progress: function(progress){
   						console.log("ดำเนินการได้ : " + Math.round(progress) + "%");
@@ -1340,7 +1487,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/constant-lib.js":2}],7:[function(require,module,exports){
+},{"../../../home/mod/constant-lib.js":2}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1521,150 +1668,6 @@ module.exports = function ( jq ) {
     $(commandCell).append($(saveCmd));
     $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell)).append($(commandCell));
     return $(form).append($(formRow));
-  }
-
-  return {
-    doCreateFormDlg
-	}
-}
-
-},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
-module.exports = function ( jq ) {
-	const $ = jq;
-
-  const common = require('../../../home/mod/common-lib.js')($);
-
-  String.prototype.lpad = function(padString, length) {
-      var str = this;
-      while (str.length < length)
-          str = padString + str;
-      return str;
-  }
-
-  const doCreateFormDlg = function(shopData, orderTotal, orderId, successCallback) {
-    return new Promise(async function(resolve, reject) {
-      let payAmountInput = undefined;
-      let createTaxInvoiceCmd = undefined;
-
-      const keyChangeValue = function(evt){
-        let discountValue = $(discountInput).val();
-        let vatValue = $(vatInput).val();
-        let grandTotal = (Number(orderTotal) - Number(discountValue)) + Number(vatValue);
-        $(granTotalCell).empty().append($('<span><b>' + common.doFormatNumber(grandTotal) + '</b></span>'));
-        if ($(payAmountInput)) {
-          $(payAmountInput).val(common.doFormatNumber(grandTotal));
-        }
-        if ((vatValue == '') || (vatValue == 0)) {
-          if ($(createTaxInvoiceCmd)) {
-            $(createTaxInvoiceCmd).hide();
-          } else {
-            $(createTaxInvoiceCmd).show();
-          }
-        }
-      }
-
-      let wrapperBox = $('<div></div>');
-      let invoiceDataTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
-      let dataRow = $('<tr></tr>').css({'height': '40px'});
-      $(dataRow).append($('<td width="40%" align="left"><b>ยอดรวมค่าสินค้า</b></td>'));
-      $(dataRow).append($('<td width="*" align="right"><b>' + common.doFormatNumber(orderTotal) + '</b></td>'));
-      $(invoiceDataTable).append($(dataRow));
-      dataRow = $('<tr></tr>').css({'height': '40px'});
-      $(dataRow).append($('<td align="left">ส่วนลด</td>'));
-      let discountInputCell = $('<td align="right"></td>');
-      let discountInput = $('<input type="number" value="0"/>').css({'width': '80px'});
-      $(discountInput).on('keyup', keyChangeValue);
-      $(discountInputCell).append($(discountInput));
-      $(dataRow).append($(discountInputCell));
-      $(invoiceDataTable).append($(dataRow));
-
-      let vatInput = $('<input type="number" value="0"/>').css({'width': '80px'});
-      if (shopData.Shop_VatNo !== '') {
-        $(vatInput).on('keyup', keyChangeValue);
-        dataRow = $('<tr></tr>').css({'height': '40px'});
-        $(dataRow).append($('<td align="left">ภาษีมูลค่าเพิ่ม (7%)</td>'));
-        $(vatInput).val(common.doFormatNumber(0.07*orderTotal));
-        $(dataRow).append($('<td align="right"></td>').append($(vatInput)));
-        $(invoiceDataTable).append($(dataRow));
-      }
-      dataRow = $('<tr></tr>').css({'background-color': '#ddd', 'height': '40px'});
-      $(dataRow).append($('<td width="40%" align="left"><b>รวมทั้งสิ้น</b></td>'));
-      let discountValue = $(discountInput).val();
-      let vatValue = $(vatInput).val();
-      let grandTotal = (Number(orderTotal) - Number(discountValue)) + Number(vatValue);
-      let granTotalCell = $('<td width="*" align="right"></td>');
-      $(granTotalCell).empty().append($('<span><b>' + common.doFormatNumber(grandTotal) + '</b></span>'));
-      $(dataRow).append(granTotalCell);
-      $(invoiceDataTable).append($(dataRow));
-
-      let middleActionCmdRow = $('<tr></tr>').css({'height': '40px'});
-      let commandCell = $('<td colspan="2" align="center"></td>');
-      $(middleActionCmdRow).append($(commandCell));
-      $(invoiceDataTable).append($(middleActionCmdRow));
-
-      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์แจ้งหนี้', 'orange', 'white');
-      let createBillCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
-      $(createBillCmd).css({'margin-left': '10px'});
-      $(commandCell).append($(createInvoiceCmd)).append($(createBillCmd));
-
-      $(createBillCmd).on('click', async(evt)=>{
-        let paytypeRes = await common.doCallApi('/api/shop/paytype/options', {});
-        $(middleActionCmdRow).remove();
-        let paytypeSelect = $('<select></select>');
-        paytypeRes.Options.forEach((item, i) => {
-          $(paytypeSelect).append($('<option value="' + item.id + '">' + item.DisplayText + '</option>'));
-        });
-        payAmountInput = $('<input type="number" value="0"/>').css({'width': '120px'});
-        $(payAmountInput).val(grandTotal);
-        dataRow = $('<tr></tr>').css({'height': '40px'});
-        $(dataRow).append($('<td align="left">วิธีชำระ</td>'));
-        $(dataRow).append($('<td align="right"></td>').append($(paytypeSelect)));
-        $(invoiceDataTable).append($(dataRow));
-        dataRow = $('<tr></tr>').css({'height': '40px'});
-        $(dataRow).append($('<td align="left">จำนวนที่ชำระ</td>'));
-        $(dataRow).append($('<td align="right"></td>').append($(payAmountInput)));
-        $(invoiceDataTable).append($(dataRow));
-
-        let finalActionCmdRow = $('<tr></tr>').css({'height': '40px'});
-        let commandCell = $('<td colspan="2" align="center"></td>');
-        $(finalActionCmdRow).append($(commandCell));
-        $(invoiceDataTable).append($(finalActionCmdRow));
-
-        let createBillCmd = common.doCreateTextCmd('พิมพ์ใบเสร็จ', 'green', 'white');
-        $(commandCell).append($(createBillCmd));
-
-        $(createBillCmd).on('click', async(evt)=>{
-          let shopId = shopData.id;
-          let nextInvoiceNo = '000000001';
-          let lastinvoicenoRes = await common.doCallApi('/api/shop/invoice/find/last/invioceno/' + shopId, {});
-          if (lastinvoicenoRes.Records.length > 0) {
-            let lastinvoiceno = lastinvoicenoRes.Records[0].No;
-            let nextNo = Number(lastinvoiceno);
-            nextNo = nextNo + 1;
-            nextInvoiceNo = nextNo.lpad("0", 9);
-            console.log(nextInvoiceNo);
-            let filename = shopId.lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
-            let discountValue = $(discountInput).val();
-            let vatValue = $(vatInput).val();
-            let payAmountValue = $(payAmountInput).val();
-            let paymentData = {Amount: payAmountValue};
-            let billData = {No: nextInvoiceNo, Discount: discountValue, Vat:vatValue, Filename: filename}
-          }
-        });
-
-        if (shopData.Shop_VatNo !== '') {
-          createTaxInvoiceCmd = common.doCreateTextCmd('พิมพ์กำกับภาษี', 'green', 'white');
-          $(createTaxInvoiceCmd).css({'margin-left': '10px'});
-          $(commandCell).append($(createTaxInvoiceCmd));
-          $(createTaxInvoiceCmd).on('click', (evt)=>{
-
-          });
-        }
-      });
-
-      $(wrapperBox).append($(invoiceDataTable))
-      resolve($(wrapperBox));
-    });
   }
 
   return {
@@ -2261,7 +2264,7 @@ module.exports = function ( jq ) {
   const common = require('../../../home/mod/common-lib.js')($);
   const customerdlg = require('./customer-dlg.js')($);
   const gooditemdlg = require('./gooditem-dlg.js')($);
-	const invoicedlg = require('./invoice-dlg.js')($);
+	const closeorderdlg = require('./closeorder-dlg.js')($);
 
   const doShowOrderList = function(shopData, workAreaBox){
     return new Promise(async function(resolve, reject) {
@@ -2348,11 +2351,11 @@ module.exports = function ( jq ) {
       dlgHandle = await doOpenGoodItemMngDlg(shopData, gooditemSelectedCallback);
     });
 
-		let callCreateInvoiceCmd = common.doCreateTextCmd('คิดเงิน', 'orange', 'white');
-		$(callCreateInvoiceCmd).on('click', async (evt)=>{
+		let callCreateCloseOrderCmd = common.doCreateTextCmd('คิดเงิน', 'orange', 'white');
+		$(callCreateCloseOrderCmd).on('click', async (evt)=>{
 			let total = await doCalOrderTotal(orderObj.gooditems);
 			if (total > 0) {
-      	dlgHandle = await doOpenCreateInvoiceDlg(shopData, total, orderObj.id, invoiceCallback);
+      	dlgHandle = await doOpenCreateCloseOrderDlg(shopData, total, orderObj.id, invoiceCallback, billCallback, taxinvoiceCallback);
 			} else {
 				$.notify("ออร์เดอร์ยังไม่สมบูรณ์โปรดเพิ่มรายการสินค้าก่อน", "error");
 			}
@@ -2363,7 +2366,7 @@ module.exports = function ( jq ) {
 			let lastCell = $(goodItemTable).children(":first").children(":last");
 			$(lastCell).append($(addNewGoodItemCmd));
 			lastCell = $(goodItemTable).children(":last").children(":last");
-			$(lastCell).append($(callCreateInvoiceCmd));
+			$(lastCell).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).append($(goodItemTable));
     }
 
@@ -2419,7 +2422,7 @@ module.exports = function ( jq ) {
 			let lastCell = $(goodItemTable).children(":first").children(":last");
 			$(lastCell).append($(addNewGoodItemCmd));
 			lastCell = $(goodItemTable).children(":last").children(":last");
-			$(lastCell).append($(callCreateInvoiceCmd));
+			$(lastCell).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).empty().append($(goodItemTable));
       if (dlgHandle) {
         dlgHandle.closeAlert();
@@ -2427,6 +2430,85 @@ module.exports = function ( jq ) {
     }
 
 		const invoiceCallback = async function(newInvoiceData){
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let userinfoId = userdata.userinfoId;
+			/*
+			newInvoiceData.shopId = shopData.id;
+			newInvoiceData.orderId = orderData.id;
+			newInvoiceData.userId = userId;
+			newInvoiceData.userinfoId = userinfoId;
+			*/
+			console.log(newInvoiceData);
+			let invoiceParams = {data: newInvoiceData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
+			let invoiceRes = await common.doCallApi('/api/shop/invoice/add', invoiceParams);
+
+			if (invoiceRes.status.code == 200) {
+				let invoiceId = invoiceRes.Record.id;
+				let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename, No: newInvoiceData.No};
+				let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
+				console.log(docRes);
+				window.open(docRes.result.link, '_blank');
+				$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
+			} else {
+				$.notify("บันทึกใบแจ้งหนี้ไม่สำเร็จ", "error");
+			}
+
+			if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+		}
+
+		const billCallback = async function(newBillData, paymentData){
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let userinfoId = userdata.userinfoId;
+
+			let billParams = {data: newBillData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
+			let billRes = await common.doCallApi('/api/shop/bill/add', billParams);
+
+			if (billRes.status.code == 200) {
+				let billId = billRes.Record.id;
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderId, userId: userId, userinfoId: userinfoId};
+				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
+				if (paymentRes.status.code == 200) {
+					let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename};
+					let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
+					console.log(docRes);
+				} else {
+					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
+				}
+			} else {
+				$.notify("บันทึกบิลไม่สำเร็จ", "error");
+			}
+
+			if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+		}
+
+		const taxinvoiceCallback = async function(newTaxInvoiceData, paymentData){
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let userinfoId = userdata.userinfoId;
+
+			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
+			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', invoiceParams);
+
+			if (taxinvoiceRes.status.code == 200) {
+				let taxinvoiceId = taxinvoiceRes.Record.id;
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderId, userId: userId, userinfoId: userinfoId};
+				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
+				if (paymentRes.status.code == 200) {
+					let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename};
+					let docRes = await common.doCallApi('/api/shop/taxinvoice/create/report', docParams);
+					console.log(docRes);
+				} else {
+					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
+				}
+			} else {
+				$.notify("บันทึกใบกำกับภาษีไม่สำเร็จ", "error");
+			}
 
 			if (dlgHandle) {
         dlgHandle.closeAlert();
@@ -2476,24 +2558,24 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doOpenCreateInvoiceDlg = function(shopData, orderTotal, orderId, callback) {
+	const doOpenCreateCloseOrderDlg = function(shopData, orderTotal, orderId, invoiceCallback, billCallback, taxinvoiceCallback) {
 		return new Promise(async function(resolve, reject) {
-      const invoiceDlgContent = await invoicedlg.doCreateFormDlg(shopData, orderTotal, orderId, callback);
-      $(invoiceDlgContent).css({'margin-top': '10px'});
-      const invoiceformoption = {
-  			title: 'ป้อนข้อมูลเพื่อออกใบแจ้งหนี้',
-  			msg: $(invoiceDlgContent),
+      const closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(shopData, orderTotal, orderId, invoiceCallback, billCallback, taxinvoiceCallback);
+      $(closeOrderDlgContent).css({'margin-top': '10px'});
+      const closeOrderformoption = {
+  			title: 'ป้อนข้อมูลเพื่อเตรียมออกใบแจ้งหนี้',
+  			msg: $(closeOrderDlgContent),
   			width: '420px',
   			onOk: async function(evt) {
-          invoiceFormBoxHandle.closeAlert();
+          closeOrderFormBoxHandle.closeAlert();
   			},
   			onCancel: function(evt){
-  				invoiceFormBoxHandle.closeAlert();
+  				closeOrderFormBoxHandle.closeAlert();
   			}
   		}
-  		let invoiceFormBoxHandle = $('body').radalert(invoiceformoption);
-      $(invoiceFormBoxHandle.okCmd).hide();
-      resolve(invoiceFormBoxHandle)
+  		let closeOrderFormBoxHandle = $('body').radalert(closeOrderformoption);
+      $(closeOrderFormBoxHandle.okCmd).hide();
+      resolve(closeOrderFormBoxHandle)
     });
 	}
 
@@ -2683,7 +2765,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./customer-dlg.js":4,"./gooditem-dlg.js":7,"./invoice-dlg.js":8}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./closeorder-dlg.js":4,"./customer-dlg.js":5,"./gooditem-dlg.js":8}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3119,41 +3201,41 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":5,"./menugroup-mng.js":9,"./menuitem-mng.js":10,"./order-mng.js":11,"./template-design.js":14,"./user-mng.js":15}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":6,"./menugroup-mng.js":9,"./menuitem-mng.js":10,"./order-mng.js":11,"./template-design.js":14,"./user-mng.js":15}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	//const welcome = require('./welcome.js')($);
-	//const login = require('./login.js')($);
   const common = require('../../../home/mod/common-lib.js')($);
 	const constant = require('../../../home/mod/constant-lib.js');
   const elementProperty = require('./element-property-lib.js')($);
   let activeType, activeElement;
 
-  const doCalRatio = function(paperType){
+  const doCalRatio = function(paperSize){
     let containerWidth = $('#report-container').width();
-		if (paperType == 1) {
+		if (paperSize == 1) {
     	return containerWidth/constant.A4Width;
-		} else if (paperType == 2) {
+		} else if (paperSize == 2) {
 			return containerWidth/constant.SlipWidth;
 		}
   }
 
-  const resetContainer = function(paperType){
-    let newRatio = doCalRatio(paperType);
+  const resetContainer = function(paperSize){
+    let newRatio = doCalRatio(paperSize);
     let newHeight = undefined;
-		if (paperType == 1){
+		if (paperSize == 1){
 			newHeight = constant.A4Height * newRatio;
-			$('#report-container').css('width', constant.A4Width);
-		} else if (paperType == 2){
-			$('#report-container').css('width', constant.SlipWidth);
+			$('#report-container').css({'width': constant.A4Width, 'margin-left': '0px'});
+		} else if (paperSize == 2){
 			newHeight = constant.SlipHeight * newRatio;
+			let parentWidth = $('#report-container').parent().width();
+			let adjustLeft = (parentWidth - constant.SlipWidth) / 2;
+			$('#report-container').css({'width': constant.SlipWidth, 'margin-left': adjustLeft+'px'});
 		}
-    $('#report-container').css('height', newHeight);
-    $('#report-container').css('max-height', newHeight);
+    $('#report-container').css('height', newHeight + 'px');
+    $('#report-container').css('max-height', newHeight + 'px');
 
-    doCollectElement().then((reportElements)=>{
-			console.log(reportElements);
+    doCollectElement(paperSize).then((reportElements)=>{
+			//console.log(reportElements);
       if (reportElements.length > 0) {
         let wrapper = $('#report-container');
         $(wrapper).empty();
@@ -3162,11 +3244,11 @@ module.exports = function ( jq ) {
           await Object.getOwnPropertyNames(item).forEach((tag) => {
             reportElem[tag] = item[tag];
           });
-          elementProperty.doCreateElement(wrapper, item.elementType, reportElem);
+          let element = elementProperty.doCreateElement(wrapper, item.elementType, reportElem);
+					$(element).click();
         });
       }
     });
-
   }
 
   const doCreateTemplateTypeSelector = function(){
@@ -3324,9 +3406,9 @@ module.exports = function ( jq ) {
 		return tableDesignData;
 	}
 
-	const doCollectElement = function() {
+	const doCollectElement = function(paperSize) {
     return new Promise(function(resolve, reject){
-      let newRatio = doCalRatio();
+      let newRatio = doCalRatio(paperSize);
       let htmlElements = $("#report-container").children();
       let reportElements = [];
       var promiseList = new Promise(function(resolve, reject){
@@ -3361,23 +3443,31 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doRenderElement = function(wrapper, reportElements, ratio){
+	const doRenderElement = function(shopData, wrapper, reportElements, ratio){
 		let newRatio = 1;
 		if (ratio) {
 			newRatio = ratio;
 		}
+		let wrapperWidth = $(wrapper).width();
     reportElements.forEach((elem, i) => {
       let element;
       switch (elem.elementType) {
         case "text":
           element = $("<div></div>").css({'position': 'absolute'});
           //$(element).addClass("reportElement");
-          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
-          $(element).css({"font-size": elem.fontsize + "px"});
+          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": wrapperWidth + "px", "height": Number(elem.height)*newRatio + "px"});
+          $(element).css({"font-size": Number(elem.fontsize)*newRatio + "px"});
           $(element).css({"font-weight": elem.fontweight});
           $(element).css({"font-style": elem.fontstyle});
           $(element).css({"text-align": elem.fontalign});
-          $(element).text(elem.title);
+					let field = elem.title.substring(1);
+					if (field == 'shop_name') {
+						$(element).text(shopData.Shop_Name);
+					} else if (field == 'shop_address') {
+						$(element).text(shopData.Shop_Address);
+					} else {
+						$(element).text(elem.title);
+					}
         break;
         case "hr":
           element = $("<div><hr/></div>").css({'position': 'absolute'});
@@ -3419,18 +3509,20 @@ module.exports = function ( jq ) {
 				if (tableRows[i].fields.length == 2) {
 					$(cell).attr("colspan", (tableRows[0].fields.length - 1).toString());
 				}
-				$(cell).attr({'align': tableRows[i].fields[j].fontalign, 'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio) + 'px'});
-				$(cell).css({'font-size': tableRows[i].fields[j].fontsize, 'font-weight': tableRows[i].fields[j].fontweight, 'font-style': tableRows[i].fields[j].fontstyle});
+				$(cell).attr({'align': tableRows[i].fields[j].fontalign, 'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio)/* + 'px'*/});
+				$(cell).css({'font-size': Number(tableRows[i].fields[j].fontsize)*ratio + "px", 'font-weight': tableRows[i].fields[j].fontweight, 'font-style': tableRows[i].fields[j].fontstyle});
 				$(cell).text(tableRows[i].fields[j].cellData);
 				$(row).append($(cell));
 			}
 		}
-		$(wrapper).append($(table).css({'position': 'absolute', 'left': left+'px', 'top': top+'px'}));
+		$(wrapper).append($(table).css({'position': 'absolute', 'left': Number(left)*ratio+'px', 'top': Number(top)*ratio+'px'}));
 		return $(wrapper);
 	}
 
   const doShowTemplateDesign = function(shopData, workAreaBox){
     return new Promise(async function(resolve, reject) {
+			let billFieldOptions = await common.doGetApi('/api/shop/template/billFieldOptions', {});
+			localStorage.setItem('billFieldOptions', JSON.stringify(billFieldOptions));
       $(workAreaBox).empty();
 
       let controlTemplateForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
@@ -3454,30 +3546,45 @@ module.exports = function ( jq ) {
       let designAreaBox = doCreateTemplateDesignArea();
       $(workAreaBox).append($(designAreaBox));
 			let paperSizeValue = $(paperSizeSelector).val();
-      resetContainer(paperSizeValue);
+
       doLoadCommandAction();
 
 			let wrapper = $(designAreaBox).find('#report-container');
 
 			$(templatTypeSelector).on('change', (evt)=>{
 				let selectValue = $(templatTypeSelector).val();
-				onTemplateTypeChange(evt, selectValue, shopData, templateNameInput, wrapper)
+				onTemplateTypeChange(evt, selectValue, shopData, templateNameInput, paperSizeSelector, wrapper);
 			});
 
 			$(paperSizeSelector).on('change', (evt)=>{
-				let selectValue = $(paperSizeSelector).val();
-				console.log(selectValue);
-				onPaperSizeChange(evt, selectValue, shopData, wrapper)
+				let paperSize = $(paperSizeSelector).val();
+				onPaperSizeChange(evt, paperSize, shopData, wrapper)
 			});
 
 			$(previewTemplateCmd).on('click', async (evt)=>{
+				let paperSize = $(paperSizeSelector).val();
 				let reportWrapperWidth = $("#report-container").width();
-				let templateDesignElements = await doCollectElement();
+				let templateDesignElements = await doCollectElement(paperSize);
 				let wrapperBoxWidth = 760;
+		    let newHeight = undefined;
+				let renderRatio = undefined;
+				let newRatio = doCalRatio(paperSize);
+
 				let wrapperBox = $("<div></div>");
-		    $(wrapperBox).css({"width": "100%", "position": "relative", "height": "100vh"});
-				let renderRatio = wrapperBoxWidth / reportWrapperWidth;
-				doRenderElement(wrapperBox, templateDesignElements, renderRatio);
+		    $(wrapperBox).css({"position": "relative", "height": "100vh"});
+				if (paperSize == 1){
+					renderRatio = wrapperBoxWidth / reportWrapperWidth;
+					newHeight = constant.A4Height * newRatio;
+					$(wrapperBox).css({'margin-left': '0px', 'width': '100%'});
+				}  else if (paperSize == 2){
+					renderRatio = reportWrapperWidth / wrapperBoxWidth;
+					newHeight = constant.SlipHeight * newRatio;
+					let adjustLeft = (wrapperBoxWidth - constant.SlipWidth) / 2;
+					$(wrapperBox).css({'margin-left': adjustLeft+'px', 'width': reportWrapperWidth+'px'});
+				}
+				$(wrapperBox).css({'height': newHeight+'px', 'max-height': newHeight + 'px'});
+
+				doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio);
 				const radalertoption = {
 		      title: 'ตัวอย่างเอกสาร',
 		      msg: $(wrapperBox),
@@ -3494,12 +3601,11 @@ module.exports = function ( jq ) {
 				});
 			});
 			$(saveNewTemplateCmd).on('click', async(evt)=>{
-				let templateDesignElements = await doCollectElement();
-				let templatType = $(templatTypeSelector).val();
 				let paperSize = $(paperSizeSelector).val();
+				let templateDesignElements = await doCollectElement(paperSize);
 				let templateName = $(templateNameInput).val();
-				templateDesignElements.paperSize = paperSize;
-				let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements}, shopId: shopData.id};
+				let templatType = $(templatTypeSelector).val();
+				let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements, PaperSize: paperSize}, shopId: shopData.id};
 				let templateRes = await common.doCallApi('/api/shop/template/save', params);
         if (templateRes.status.code == 200) {
           $.notify("บันทึกรูปแบบเอกสารสำเร็จ", "success");
@@ -3514,18 +3620,17 @@ module.exports = function ( jq ) {
       let templateItems = templateRes.Records;
 			let typeSelect = $(templatTypeSelector).val();
       if (templateItems.length > 0) {
-				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, wrapper)
+				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, paperSizeSelector, wrapper);
       } else {
-				//doCreateDefualTemplate
 				templateRes = await common.doCallApi('/api/shop/template/select/1', {});
 				templateItems = templateRes.Records;
-				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, wrapper);
+				doShowTemplateLoaded(shopData, templateItems, typeSelect, templateNameInput, paperSizeSelector, wrapper);
       }
       resolve();
     });
   }
 
-	const doShowTemplateLoaded = async function(shopData, templateItems, typeSelect, templateNameInput, wrapper) {
+	const doShowTemplateLoaded = async function(shopData, templateItems, typeSelect, templateNameInput, paperSizeSelector, wrapper) {
 		let typeFilters = await templateItems.filter((template)=>{
 			if (typeSelect == template.TypeId) {
 				return template;
@@ -3533,28 +3638,26 @@ module.exports = function ( jq ) {
 		});
 		if (typeFilters.length > 0) {
 			let elements = typeFilters[0].Content;
-			$(templateNameInput).val(typeFilters[0].Name)
-			for (let i=0; i < elements.length; i++){
-				let element = elements[i];
-				let elementType = element.elementType;
-				if (element.title) {
-					let field = element.title.substring(1);
-					if (field == 'shop_name') {
-						element.title = shopData.Shop_Name;
-					} else if (field == 'shop_address') {
-					element.title = shopData.Shop_Address;
-					}
+			$(templateNameInput).val(typeFilters[0].Name);
+			const promiseList = new Promise(async function(resolve2, reject2){
+				for (let i=0; i < elements.length; i++){
+					let element = elements[i];
+					let elementType = element.elementType;
+					let elementCreated = elementProperty.doCreateElement(wrapper, elementType, element);
 				}
-				elementProperty.doCreateElement(wrapper, elementType, element);
-			}
+				common.delay(900).then(()=>resolve2());
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				$(paperSizeSelector).val(typeFilters[0].PaperSize).change();
+			});
 		}
 	}
 
-  const onTemplateTypeChange = async function(evt, typeValue, shopData, templateNameInput, wrapper){
+  const onTemplateTypeChange = async function(evt, typeValue, shopData, templateNameInput, paperSizeSelector, wrapper){
 		let templateRes = await common.doCallApi('/api/shop/template/list/by/shop/' + shopData.id, {});
 		let templateItems = templateRes.Records;
 		if (templateItems.length > 0) {
-			doShowTemplateLoaded(shopData, templateItems, typeValue, templateNameInput, wrapper)
+			doShowTemplateLoaded(shopData, templateItems, typeValue, templateNameInput, paperSizeSelector, wrapper)
 		} else {
 			//doCreateDefualTemplate
 			templateRes = await common.doCallApi('/api/shop/template/select/1', {});
@@ -3563,8 +3666,8 @@ module.exports = function ( jq ) {
 		}
   }
 
-	const onPaperSizeChange = function(evt, selectValue, shopData, wrapper){
-		resetContainer(selectValue);
+	const onPaperSizeChange = function(evt, paperSize, shopData, wrapper){
+		resetContainer(paperSize);
 	}
 
   return {
@@ -3572,7 +3675,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":6}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":7}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 

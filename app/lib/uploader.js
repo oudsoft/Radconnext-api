@@ -122,11 +122,10 @@ module.exports = function (app) {
 		readStream.pipe(writeStream);
 
 		var command = parseStr('rm %s', imgPath);
-		runcommand(command).then((stdout) => {
+		runcommand(command).then(async (stdout) => {
+      await runcommand(parseStr('mogrify -format jpg %s', newPath));
 			var link =  DWLD + '/' + newFileName;
-
       res.status(200).send({status: {code: 200}, text: 'ok captureupload.', link: link});
-
 		}).catch((err) => {
 			console.log('err: 500 >>', err);
 			res.status(500).send({status: {code: 500}, error: err});

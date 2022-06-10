@@ -165,6 +165,23 @@ const ShopBillDef = {
     type: Sequelize.STRING(80)
   }
 };
+const ShopTaxInvoiceDef = {
+  No : {
+    type: Sequelize.STRING(80),
+    allowNull: false
+  },
+  Discount : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  },
+  Vat : {
+    type: Sequelize.FLOAT,
+    defaultValue: 0
+  },
+  Filename : {
+    type: Sequelize.STRING(80)
+  }
+};
 const ShopPaytypeDef = {
   NameTH : {
     type: Sequelize.STRING(80)
@@ -177,6 +194,10 @@ const ShopPaymentDef = {
   Amount : {
     type: Sequelize.FLOAT,
     defaultValue: 0
+  },
+  PayType : {
+    type: Sequelize.INTEGER,
+    defaultValue: 1
   }
 };
 const ShopTemplateDef = {
@@ -189,6 +210,10 @@ const ShopTemplateDef = {
   Content : {
     type: Sequelize.JSON,
     allowNull: false
+  },
+  PaperSize : {
+    type: Sequelize.INTEGER, // <- 1=A4, 2=Slip
+    defaultValue: 1
   }
 };
 
@@ -201,8 +226,9 @@ module.exports = {
   ShopMenuItemDef,
   ShopCustomerDef,
   ShopOrderDef,
-  ShopBillDef,
   ShopInvoiceDef,
+  ShopBillDef,
+  ShopTaxInvoiceDef,
   ShopPaytypeDef,
   ShopPaymentDef,
   ShopTemplateDef

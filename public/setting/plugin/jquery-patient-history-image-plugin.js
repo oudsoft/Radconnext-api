@@ -438,6 +438,9 @@ $.widget( "custom.imagehistory", {
     let saveCmd = $('<input type="button" id="SaveEdit-Cmd" value=" Save Image "/>');
     $(saveCmd).appendTo($(modalFooter));
     $(saveCmd).on('click', (e)=>{ $this.doSaveCaptureImage(e) });
+    let downloadCmd = $('<input type="button" id="DownloadEdit-Cmd" value=" Download Image "/>');
+    $(downloadCmd).appendTo($(modalFooter));
+    $(downloadCmd).on('click', (e)=>{ $this.doDownloadCaptureImage(e) });
     let closeCmd = $('<input type="Button" value=" Cancel "/>');
     $(closeCmd).appendTo($(modalFooter));
     $(closeCmd).on('click', (e)=>{$(mainModal).remove()});
@@ -488,6 +491,7 @@ $.widget( "custom.imagehistory", {
     var dataURL = tuiCanvas.toDataURL("image/jpeg", 1.0);
 
     var base64ImageContent = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+    //var base64ImageContent = dataURL.replace("image/jpg", "image/octet-stream");
     var blob = $this.base64ToBlob(base64ImageContent, 'image/jpg');
 
     var formData = new FormData();
@@ -515,5 +519,42 @@ $.widget( "custom.imagehistory", {
         }, 400);
       }
     );
+  },
+  doDownloadCaptureImage: function(e){
+    let $this = imagehistory;
+    let imageEditor = $this.options.imageEditor;
+    var tuiCanvas = imageEditor._graphics.getCanvas();
+
+    //var dataURL = tuiCanvas.toDataURL('image/jpeg', 1.0);
+    //var base64ImageContent = dataURL.replace("/^data:image/png;base64,/", "");
+    var dataURL = tuiCanvas.toDataURL();
+    var blob = dataURItoBlob(dataURL);
+    const file = new File([blob], 'edited-4you.jpg', {
+      type: "image/jpeg",
+      lastModified: new Date(),
+    });
+
+    var fr = new FileReader();
+
+    fr.onload = function(evt){
+       document.body.innerHTML = evt.target.result + "<br><a href="+URL.createObjectURL(file)+" download=" + file.name + ">Download " + file.name + "</a><br>type: "+file.type+"<br>last modified: "+ file.lastModifiedDate
+    }
+
+    fr.readAsDataURL(file);
+    //debugBase64(file);
+    function debugBase64(base64URL){
+      var win = window.open();
+      win.document.write('<iframe src="' + base64URL  + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+    }
+    function dataURItoBlob(dataURI) {
+      var byteString = window.atob(dataURI.split(",")[1]);
+      var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+      var ab = new ArrayBuffer(byteString.length);
+      var ia = new Uint8Array(ab);
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
+    }
   }
 });

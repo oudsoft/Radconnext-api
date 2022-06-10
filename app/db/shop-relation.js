@@ -87,16 +87,23 @@ invoices.belongsTo(userinfoes);
 const paytypes = sequelize.define('paytypes', Def.ShopPaytypeDef);
 
 const payments = sequelize.define('payments', Def.ShopPaymentDef);
-invoices.belongsTo(shops);
-payments.belongsTo(invoices);
-invoices.belongsTo(users);
-invoices.belongsTo(userinfoes);
+payments.belongsTo(shops);
+payments.belongsTo(orders);
+payments.belongsTo(paytypes);
+payments.belongsTo(users);
+payments.belongsTo(userinfoes);
 
 const bills = sequelize.define('bills', Def.ShopBillDef);
 bills.belongsTo(shops);
 bills.belongsTo(orders);
 bills.belongsTo(users);
 bills.belongsTo(userinfoes);
+
+const taxinvoices = sequelize.define('taxinvoices', Def.ShopTaxInvoiceDef);
+taxinvoices.belongsTo(shops);
+taxinvoices.belongsTo(orders);
+taxinvoices.belongsTo(users);
+taxinvoices.belongsTo(userinfoes);
 
 const templates = sequelize.define('templates', Def.ShopTemplateDef);
 templates.belongsTo(shops);
@@ -113,9 +120,10 @@ module.exports =  {
   menuitems,
   customers,
   orders,
-  invoices,
   paytypes,
   payments,
+  invoices,
   bills,
+  taxinvoices,
   templates
 }

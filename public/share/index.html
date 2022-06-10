@@ -120,7 +120,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
   const doCreateUsrUploadThumb = function(usrUploadList){
     return new Promise(async function(resolve, reject) {
-      let thumbWrapper = $('<div style="position: relative; width: 100%;"></div>');
+      let thumbWrapper = $('<div id ="ThumbBox" style="position: relative; width: 100%;"></div>');
       await usrUploadList.forEach((item, i) => {
         let thumbPrev = doCreateThumb(item);
         $(thumbWrapper).append($(thumbPrev));
@@ -207,7 +207,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
 
-  let shareBox = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
+  let shareBox = $('<div id="ShareCmdBox" style="position: relative; width: 100%; text-align: center; top: 25px;"></div>');
   let myLiffUrl = undefined;
   let imgSrc = undefined;
   if (id != null && id != '') {
@@ -399,6 +399,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       let maximum = imageFiles.length - 1;
       let currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
 
+      let sponsorDeley = 30;
       let sponsorTimer = undefined;
       const doPlaySport = function(n){
         imageLink = imageTitleUrl + imageFiles[n];
@@ -413,7 +414,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         sponsorTimer = window.setTimeout(()=>{
           currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
           doPlaySport(currentPlaySportIndex);
-        }, 30 * 1000);
+        }, sponsorDeley * 1000);
       }
 
       setTimeout(()=>{
@@ -463,7 +464,10 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           break;
           case 40:
             /* Arrow Down */
-            doPlaySport(currentPlaySportIndex);
+            let newValue = prompt("Please enter your new delay time value", sponsorDeley);
+            if (Number(newValue) > 0) {
+              sponsorDeley = Number(newValue);
+            }
           break;
         }
       });

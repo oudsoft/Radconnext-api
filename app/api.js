@@ -124,6 +124,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const shoppaytype = require('./db/rest/shop/paytype.js')(shopdb, log);
 	const shoppayment = require('./db/rest/shop/payment.js')(shopdb, log);
 	const shopbill = require('./db/rest/shop/bill.js')(shopdb, log);
+	const shoptaxinvoice = require('./db/rest/shop/taxinvoice.js')(shopdb, log);
 	const shoptemplate = require('./db/rest/shop/template.js')(shopdb, log);
 	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
 
@@ -182,12 +183,13 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/shop/paytype', shoppaytype);
 	apiApp.use('/shop/payment', shoppayment);
 	apiApp.use('/shop/bill', shopbill);
+	apiApp.use('/shop/taxinvoice', shoptaxinvoice);
 	apiApp.use('/shop/template', shoptemplate);
 
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;
 	log.info('Create Internal HTTP Server with command=>' + internalHTTP);
-	uploader.runcommand(internalHTTP).then((result)=>{
+	uploader.runcommand(internalHTTP).then(async (result)=>{
 		log.info('result=>' + result);
 	}).catch((err) => {
 		log.error('error=>' + err);

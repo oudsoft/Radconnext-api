@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, auth, commonreport;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -204,9 +204,14 @@ app.post('/options/(:shopId)', async (req, res) => {
   })
 });
 
+app.get('/billFieldOptions', (req, res) => {
+  res.json(commonreport.billFieldOptions);
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
+  commonreport = require('./commonreport.js')(db, log);
   return app;
 }
