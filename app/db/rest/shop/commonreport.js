@@ -42,7 +42,9 @@ const billFieldOptions = [
 
   {name_en: 'print_no', name_th: 'หมายเลขใบแจ้งหนี้/ใบเสร็จ/ใบกำกับภาษี'},
   {name_en: 'print_by', name_th: 'ผู้ออกเอกสาร'},
-  {name_en: 'print_datetime', name_th: 'วันเวลาออกเอกสาร'},
+  {name_en: 'print_datetime', name_th: 'วันที่เวลาออกเอกสาร'},
+	{name_en: 'print_date', name_th: 'วันที่ออกเอกสาร'},
+	{name_en: 'print_time', name_th: 'เวลาออกเอกสาร'},
 
   {name_en: 'gooditem_no', name_th: 'เลขลำดับที่'},
   {name_en: 'gooditem_name', name_th: 'ชื่อสินค้า'},
@@ -107,15 +109,41 @@ const formatDateTimeStr = function(dt){
 }
 
 const doFormateDateTimeThaiZone = function(unFormatDateTime){
-	//log.info('unFormatDateTime=>' + unFormatDateTime);
 	let fmtDate = formatDateTimeStr(unFormatDateTime);
-	//log.info('fmtDate=>' + fmtDate);
 	let datetime = fmtDate.split('T');
 	let dateSegment = datetime[0].split('-');
 	dateSegment = dateSegment.join('');
 	let date = formatStudyDate(dateSegment);
 	let time = formatStudyTime(datetime[1].split(':').join(''));
 	return fmtStr('%s %s', date, time);
+}
+
+const doFormateDateThaiZone = function(unFormatDateTime){
+	let fmtDate = formatDateTimeStr(unFormatDateTime);
+	let datetime = fmtDate.split('T');
+	let dateSegment = datetime[0].split('-');
+	dateSegment = dateSegment.join('');
+	let date = formatStudyDate(dateSegment);
+	return date;
+	/*
+	let time = formatStudyTime(datetime[1].split(':').join(''));
+	return fmtStr('%s %s', date, time);
+	*/
+}
+
+const doFormateTimeThaiZone = function(unFormatDateTime){
+	let fmtDate = formatDateTimeStr(unFormatDateTime);
+	let datetime = fmtDate.split('T');
+	/*
+	let dateSegment = datetime[0].split('-');
+	dateSegment = dateSegment.join('');
+	let date = formatStudyDate(dateSegment);
+	*/
+	let time = formatStudyTime(datetime[1].split(':').join(''));
+	return time;
+	/*
+	return fmtStr('%s %s', date, time);
+	*/
 }
 
 const formatStudyDate = function(studydateStr){
@@ -161,20 +189,24 @@ const doFindGooditemTableHight = function(shopId, docType, googItems){
       if (element.elementType == 'table'){
         return element;
       }
-    })
+    });
+		const tableTop = gooditemsTable.y;
     const compensatValue = 6;
     const gooditemRows = gooditemsTable.rows;
+		let tableHeight = 0;
     let totalHeight = 0;
     const promiseList = new Promise(async function(resolve2, reject2) {
       for (let i=0; i < gooditemRows.length; i++){
         if (gooditemRows[i].id == 'dataRow') {
+					tableHeight += Number(gooditemRows[i].fields[0].height);
           totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue) * googItems.length;
         } else {
+					tableHeight += Number(gooditemRows[i].fields[0].height);
           totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue);
         }
       }
       setTimeout(()=> {
-        resolve2(totalHeight);
+        resolve2({top: tableTop, height: {real: totalHeight, template: tableHeight}});
       },1800);
     });
     Promise.all([promiseList]).then((ob)=> {
@@ -206,7 +238,7 @@ const doLoadVariable = function(docType, orderId, docNo){
       } else if (docType == 2) {
         docs = await db.bills.findAll({include: docInclude, where: {orderId: orderId}});
       } else if (docType == 3) {
-        docs = await db.bills.findAll({include: docInclude, where: {orderId: orderId}});
+        docs = await db.taxinvoices.findAll({include: docInclude, where: {orderId: orderId}});
       }
       let payments = await db.payments.findAll({include: paymentInclude, where: {orderId: orderId}});
       let total = 0;
@@ -215,7 +247,7 @@ const doLoadVariable = function(docType, orderId, docNo){
       });
 
       let grandtotal = (total - Number(docs[0].Discount)) + Number(docs[0].Vat)
-      let rsH = await doFindGooditemTableHight(orders[0].shopId, docType, orders[0].Items);
+      let rs = await doFindGooditemTableHight(orders[0].shopId, docType, orders[0].Items);
 
       const variable = {
         shop_name: orders[0].shop.Shop_Name,
@@ -230,9 +262,13 @@ const doLoadVariable = function(docType, orderId, docNo){
         order_by: orders[0].userinfo.User_NameTH + ' ' + orders[0].userinfo.User_LastNameTH,
         order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
 
-        print_no: docNo,
+        print_no: docs[0].No,
         print_by: docs[0].userinfo.User_NameTH + ' ' + docs[0].userinfo.User_LastNameTH,
         print_datetime: doFormateDateTimeThaiZone(docs[0].createdAt),
+				print_date: doFormateDateThaiZone(docs[0].createdAt),
+				print_time: doFormateTimeThaiZone(docs[0].createdAt),
+				print_filename: docs[0].Filename,
+				print_status: orders[0].Status,
         /*
         gooditem_no', name_th: 'เลขลำดับที่'},
         gooditem_name', name_th: 'ชื่อสินค้า'},
@@ -248,7 +284,7 @@ const doLoadVariable = function(docType, orderId, docNo){
         vat: docs[0].Vat,
         grandtotal: grandtotal,
 
-        rsH: rsH
+        rsDimension: rs
       };
 
       if ((payments) && (payments.length > 0)) {
@@ -265,7 +301,7 @@ const doLoadVariable = function(docType, orderId, docNo){
   });
 }
 
-const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, paperSize){
+const reportCreator = function(elements, variable, pdfFileName, orderId, paperSize){
 	return new Promise(async function(resolve, reject) {
 		const publicDir = path.normalize(__dirname + '/../../../../public');
     const shopDir = path.normalize(__dirname + '/../../../../shop');
@@ -329,7 +365,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, pa
 			//_window.sayBye('OK Boy'); // prints "say-hello.js says: Good bye!"
 			//_window.doSetReportParams(hospitalId, caseId, userId);
 			log.info("Start Create Html Report.");
-			_window.doCreateReportDOM(elements, variable, qrlink, orderId, rsH, paperSize, async (reportHTML, reportPages) =>{
+			_window.doCreateReportDOM(elements, variable, qrlink, orderId, paperSize, async (reportHTML, maxTop) =>{
 				/******/
         let htmlFilePath = usrPdfPath + '/' + htmlFileName;
 				var writerStream = fs.createWriteStream(htmlFilePath);
@@ -346,8 +382,12 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, pa
 					const reportPdfFilePath = shopPdfPath + '/' + pdfFileName;
 					const reportPdfLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pdfFileName;
 
-					const creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
-
+					let creatReportCommand = undefined;
+					if (paperSize == 1){
+						creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
+					} else if (paperSize = 2) {
+						creatReportCommand = fmtStr('wkhtmltopdf --page-width 80 --page-height %s http://localhost:8080%s %s', maxTop, reportHtmlLinkPath, reportPdfFilePath);
+					}
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					runcommand(creatReportCommand).then(async (cmdout) => {
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
@@ -366,17 +406,58 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, pa
 	});
 }
 
-const doCreateReport = function(orderId, docType, shopId, pdfFileName, docNo){
+const doCanUpdateOrederStatus = function(from, docType){
+	if (from == 1) {
+		return true;
+	} else if (from == 2) {
+		if (docType == 1) {
+			return false
+		} else {
+			return true;
+		}
+	} else if (from == 3) {
+		if (docType == 3) {
+			return true
+		} else {
+			return false;
+		}
+	} else if (from == 4) {
+		return false;
+	}
+}
+
+const doFindNewOrderStatus = function(docType){
+	let orderNewStatus = 1;
+	if (docType == 1) {
+		orderNewStatus = 2;
+	} else if (docType == 2) {
+		orderNewStatus = 3;
+	} else if (docType == 3) {
+		orderNewStatus = 4;
+	}
+	return orderNewStatus;
+}
+
+const doCreateReport = function(orderId, docType, shopId){
   return new Promise(async function(resolve, reject) {
     const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
     const reportElements = templates[0].Content;
     const paperSize = templates[0].PaperSize;
-    const reportVar = await doLoadVariable(docType, orderId, docNo);
+    const reportVar = await doLoadVariable(docType, orderId);
     const rsH = parseFloat(reportVar.rsH);
+		const rsT = parseFloat(reportVar.rsT);
+		const pdfFileName = reportVar.print_filename;
 
-    let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, paperSize);
+    let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 
     resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages}});
+
+		let from = reportVar.print_status;
+		let canUpdateStatus = doCanUpdateOrederStatus(from, docType);
+		if (canUpdateStatus) {
+			let orderNewStatus = doFindNewOrderStatus(docType);
+			await db.orders.update({Status: orderNewStatus}, { where: { id: orderId } });
+		}
   });
 }
 

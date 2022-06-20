@@ -586,6 +586,7 @@ const onClientResult = async function(evt){
     $(radAlertBox.cancelCmd).hide();
     $('body').loading('stop');
   } else {
+    /*
     let cloudModality = clientDataObject.hasOwnProperty('cloud');
     if (cloudModality) {
       /*
@@ -600,6 +601,7 @@ const onClientResult = async function(evt){
       let cloudPort = clientDataObject.cloud.Port;
       let changeCloudCommand = 'curl -v --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\\"AET\\" : \\"' + cloudAET + '\\", \\"Host\\": \\"' + newCloudHost +'\\", \\"Port\\": ' + cloudPort + '}"';
       */
+      /*
       let changeCloudCommand = 'curl -v --user demo:demo -X POST http://localhost:8042/tools/reset';
       let lines = [changeCloudCommand];
       wsm.send(JSON.stringify({type: 'clientrun', hospitalId: hospitalId, commands: lines, sender: username, sendto: 'orthanc'}));
@@ -625,6 +627,8 @@ const onClientResult = async function(evt){
       }, 8500)
       $('body').loading('stop');
     }
+
+    */
   }
 
 }
@@ -8667,8 +8671,16 @@ const doGetRemoteTracks = function(){
 }
 
 const doMixStream = function(streams){
-  streammerger = streammergerlib.CallcenterMerger(streams, mergeOption);
-  return streammerger.result
+  if (streams.length > 0) {
+    if ((streams[0].getVideoTracks()) && (streams[1].getVideoTracks())) {
+      streammerger = streammergerlib.CallcenterMerger(streams, mergeOption);
+      return streammerger.result;
+    } else {
+      return;
+    }
+  } else {
+    return;
+  }
 }
 
 const doSetupUserMediaStream = function(stream){
@@ -8703,15 +8715,6 @@ const doInitRTCPeer = function(stream, wsm) {
 	remoteConn.oniceconnectionstatechange = function(event) {
 		const peerConnection = event.target;
 		console.log('ICE state change event: ', event);
-    /*
-    if (userJoinOption.joinType === 'callee') {
-      if (userMediaStream) {
-        userMediaStream.getTracks().forEach((track) => {
-          peerConnection.addTrack(track, userMediaStream);
-        });
-      }
-    }
-    */
 		remoteConn = peerConnection;
 	};
 
@@ -8728,6 +8731,12 @@ const doInitRTCPeer = function(stream, wsm) {
 		}
 	};
 
+  if ((trackSenders) && (trackSenders.length > 0)) {
+    trackSenders.forEach((sender, i) => {
+      remoteConn.removeTrack(sender);
+    });
+  }
+
   trackSenders = [];
 	stream.getTracks().forEach((track) => {
 		let sender = remoteConn.addTrack(track, stream);
@@ -8741,14 +8750,17 @@ const doInitRTCPeer = function(stream, wsm) {
 
 const remoteConnOnTrackEvent = function(event) {
   if (event.streams[0]) {
+    /*
     if (recorder) {
       recorder.stopRecording().then(async()=>{
         let blob = await recorder.getBlob();
-        invokeSaveAsDialog(blob);
-        recorder = undefined;
+        if ((blob) && (blob.size > 0)) {
+          invokeSaveAsDialog(blob);
+          recorder = undefined;
+        }
       });
     }
-
+    */
     let myVideo = document.getElementById("MyVideo");
 
     let remoteStream = event.streams[0];
@@ -8759,36 +8771,35 @@ const remoteConnOnTrackEvent = function(event) {
       remoteTracks.push(track);
     });
 
-    let shareCmdState = $('#CommandBox').find('#ShareWebRCTCmd').css('display');
-    let endCmdState = $('#CommandBox').find('#EndWebRCTCmd').css('display');
+    console.log(remoteTracks.length);
 
     let remoteMergedStream = undefined;
-    if ((shareCmdState !== 'none') && (endCmdState !== 'none')) {
-      if (userJoinOption.joinType === 'caller') {
+
+    if (userJoinOption.joinType === 'caller') {
+      if (displayMediaStream) {
         let streams = [displayMediaStream, remoteStream];
         remoteMergedStream = doMixStream(streams);
-      } else if (userJoinOption.joinType === 'callee') {
+      } else {
+        let streams = [remoteStream, userMediaStream];
+        remoteMergedStream = doMixStream(streams);
+      }
+    } else if (userJoinOption.joinType === 'callee') {
+      if((userJoinOption.joinMode) && (userJoinOption.joinMode == 'face')) {
+        let streams = [remoteStream, userMediaStream];
+        remoteMergedStream = doMixStream(streams);
+      } else {
+        //share screen mode
         remoteMergedStream = remoteStream;
       }
-      myVideo.srcObject = remoteMergedStream;
-    } else {
-      let streams = [remoteStream, userMediaStream];
-      remoteMergedStream = doMixStream(streams);
-      myVideo.srcObject = remoteMergedStream;
     }
+    myVideo.srcObject = remoteMergedStream;
     $('#CommandBox').find('#ShareWebRCTCmd').show();
     $('#CommandBox').find('#EndWebRCTCmd').show();
-
-    if (remoteMergedStream) {
-      recorder = new RecordRTCPromisesHandler(remoteMergedStream, {type: 'video'	});
-      recorder.startRecording();
-    }
   }
 }
 
 const doCreateOffer = function(wsm) {
   if (remoteConn){
-    //console.log(remoteConn);
     remoteConn.createOffer(function (offer) {
     	remoteConn.setLocalDescription(offer);
       console.log(offer);
@@ -8800,6 +8811,7 @@ const doCreateOffer = function(wsm) {
         sendto: userJoinOption.audienceName
     	};
       wsm.send(JSON.stringify(sendData));
+      userJoinOption.joinType = 'caller';
     }, function (error) {
   		console.log(error);
   	});
@@ -8816,6 +8828,7 @@ const doCreateInterChange = function(wsm) {
     sendto: userJoinOption.audienceName
 	};
   wsm.send(JSON.stringify(sendData));
+  userJoinOption.joinMode = 'face';
 }
 
 const doCreateLeave = function(wsm) {
@@ -8830,21 +8843,23 @@ const doCreateLeave = function(wsm) {
 }
 
 const wsHandleOffer = function(wsm, offer) {
-  remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
-  remoteConn.createAnswer(function (answer) {
-    remoteConn.setLocalDescription(answer);
-    let sendData = {
-      type: "wrtc",
-      wrtc: "answer",
-      answer: answer,
-      sender: userJoinOption.joinName,
-      sendto: userJoinOption.audienceName
-    };
-    wsm.send(JSON.stringify(sendData));
-    userJoinOption.joinType = 'callee';
-  }, function (error) {
-    console.log(error);
-  });
+  if (remoteConn) {
+    remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
+    remoteConn.createAnswer(function (answer) {
+      remoteConn.setLocalDescription(answer);
+      let sendData = {
+        type: "wrtc",
+        wrtc: "answer",
+        answer: answer,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+      };
+      wsm.send(JSON.stringify(sendData));
+      userJoinOption.joinType = 'callee';
+    }, function (error) {
+      console.log(error);
+    });
+  }
 }
 
 const wsHandleAnswer = function(wsm, answer) {
@@ -8853,13 +8868,17 @@ const wsHandleAnswer = function(wsm, answer) {
       function() {
         console.log('remoteConn setRemoteDescription on wsHandleAnswer success.');
         if (userJoinOption.joinType === 'caller') {
-          let newStream = new MediaStream();
-          doGetRemoteTracks().forEach((track) => {
-            newStream.addTrack(track)
-          });
-          let myVideo = document.getElementById("MyVideo");
-          let streams = [displayMediaStream, newStream];
-          myVideo.srcObject = doMixStream(streams);
+          if (displayMediaStream) {
+            let newStream = new MediaStream();
+            doGetRemoteTracks().forEach((track) => {
+              newStream.addTrack(track)
+            });
+            let myVideo = document.getElementById("MyVideo");
+            let streams = [displayMediaStream, newStream];
+            myVideo.srcObject = doMixStream(streams);
+          } else {
+            console.log('Your displayMediaStream is undefined!!');
+          }
         } else if (userJoinOption.joinType === 'callee') {
           console.log('The callee request get share screen, Please wait and go on.');
         }
@@ -8882,15 +8901,18 @@ const wsHandleCandidate = function(wsm, candidate) {
 const wsHandleInterchange = function(wsm, interchange) {
   //มีปัญหาเรื่อง
   //bundle.js:8846 Uncaught DOMException: Failed to execute 'addTrack' on 'RTCPeerConnection': A sender already exists for the track.
+  userJoinOption.joinMode = 'face';
   if ((trackSenders) && (trackSenders.length > 0)) {
     trackSenders.forEach((sender, i) => {
       remoteConn.removeTrack(sender);
     });
   }
-  userMediaStream.getTracks().forEach((track) => {
-    remoteConn.addTrack(track, userMediaStream);
-  });
-  doCreateOffer(wsm);
+  if (userMediaStream) {
+    userMediaStream.getTracks().forEach((track) => {
+      remoteConn.addTrack(track, userMediaStream);
+    });
+    doCreateOffer(wsm);
+  }
 }
 
 const wsHandleLeave = function(wsm, leave) {
@@ -8992,7 +9014,6 @@ const doCreateStartCallCmd = function(){
   return $(callCmd)
 }
 
-//  $(shareScreenCmd).on("click", async function(evt){
 const onShareCmdClickCallback = async function(callback){
   let captureStream = await doGetDisplayMedia();
   onDisplayMediaSuccess(captureStream, (stream)=>{
@@ -9066,14 +9087,16 @@ const doCreateEndCmd = function(){
 }
 
 const doEndCall = async function(wsm){
+  /*
   if (recorder) {
     await recorder.stopRecording();
     let blob = await recorder.getBlob();
-    if (blob) {
+    if ((blob) && (blob.size > 0)) {
       invokeSaveAsDialog(blob);
+      recorder = undefined;
     }
   }
-
+  */
   let myVideo = document.getElementById("MyVideo");
 
   if (myVideo) {
@@ -21298,7 +21321,7 @@ module.exports = function ( jq ) {
 			if (stream) {
 				$('head').append('<script src="../lib/RecordRTC.min.js"></script>');
 				wrtcCommon.doSetupUserMediaStream(stream);
-				let userJoinOption = {joinType: 'caller', joinName: userdata.username, audienceName: radioUsername, userMediaStream: stream};
+				let userJoinOption = {joinType: 'caller', joinMode: 'share', joinName: userdata.username, audienceName: radioUsername, userMediaStream: stream};
 				wrtcCommon.doSetupUserJoinOption(userJoinOption);
 				let patientFullNameEN = zoomData.caseData.case.patient.Patient_NameEN + ' ' + zoomData.caseData.case.patient.Patient_LastNameEN;
 				let patientHN = zoomData.caseData.case.patient.Patient_HN;
@@ -21309,6 +21332,29 @@ module.exports = function ( jq ) {
 					msg: $(dlgContent),
 					width: '620px',
 					onOk: function(evt) {
+						/*
+						if (wrtcCommon.doGetRecorder()) {
+							await wrtcCommon.doGetRecorder().stopRecording();
+							let blob = await wrtcCommon.doGetRecorder().getBlob();
+							if ((blob) && (blob.size > 0)) {
+			          invokeSaveAsDialog(blob);
+			        }
+						}
+						*/
+						if (wrtcCommon.doGetDisplayMediaStream()){
+							wrtcCommon.doGetDisplayMediaStream().getTracks().forEach(function(track) {
+	  						track.stop();
+							});
+						}
+						if (wrtcCommon.doGetUserMediaStream()){
+							wrtcCommon.doGetUserMediaStream().getTracks().forEach(function(track) {
+	  						track.stop();
+							});
+						}
+						if (wrtcCommon.doGetRemoteConn()) {
+							wrtcCommon.doGetRemoteConn().close();
+						}
+						wrtcCommon.doCreateLeave(wsm);
 						webrtcBox.closeAlert();
 					}
 				}
@@ -21316,7 +21362,7 @@ module.exports = function ( jq ) {
 				$(webrtcBox.cancelCmd).hide();
 
 				let myVideo = document.getElementById("MyVideo");
-				//myVideo.srcObject = stream;
+
 				myVideo.srcObject = wrtcCommon.doGetUserMediaStream();
 
 				let shareCmd = wrtcCommon.doCreateShareScreenCmd();
@@ -21327,7 +21373,7 @@ module.exports = function ( jq ) {
 								track.stop();
 							});
 						}
-						wrtcCommon.doCreateInterChange(wsm);
+						//wrtcCommon.doCreateInterChange(wsm);
 						wrtcCommon.doSetupDisplayMediaStream(myDisplayMediaStream);
 					  let streams = [wrtcCommon.doGetDisplayMediaStream(), wrtcCommon.doGetUserMediaStream()];
 						let localMergedStream = wrtcCommon.doMixStream(streams);
@@ -21367,56 +21413,37 @@ module.exports = function ( jq ) {
 				})
 				let endCmd = wrtcCommon.doCreateEndCmd();
 				$(endCmd).on('click', async (evt)=>{
-					let shareCmdState = $('#CommandBox').find('#ShareWebRCTCmd').css('display');
-					if (shareCmdState !== 'none') {
-						if (wrtcCommon.doGetRecorder()) {
-							await wrtcCommon.doGetRecorder().stopRecording();
-							let blob = await wrtcCommon.doGetRecorder().getBlob();
-							invokeSaveAsDialog(blob);
-						}
-						if (wrtcCommon.doGetDisplayMediaStream()){
-							wrtcCommon.doGetDisplayMediaStream().getTracks().forEach(function(track) {
-	  						track.stop();
-							});
-						}
-						if (wrtcCommon.doGetUserMediaStream()){
-							wrtcCommon.doGetUserMediaStream().getTracks().forEach(function(track) {
-	  						track.stop();
-							});
-						}
-						if (wrtcCommon.doGetRemoteConn()) {
-							wrtcCommon.doGetRemoteConn().close();
-						}
-						wrtcCommon.doCreateLeave(wsm);
-						webrtcBox.closeAlert();
-					} else {
-						if (wrtcCommon.doGetDisplayMediaStream()) {
-							wrtcCommon.doGetDisplayMediaStream().getTracks().forEach((track) => {
-					      track.stop();
-					    });
-						}
-						let lastStream = myVideo.srcObject;
-						let remoteConn = wrtcCommon.doGetRemoteConn();
-						remoteConn.removeStream(lastStream);
-						wrtcCommon.userMediaStream.getTracks().forEach((track) => {
-				      remoteConn.addTrack(track, wrtcCommon.userMediaStream);
+					if (wrtcCommon.doGetDisplayMediaStream()) {
+						wrtcCommon.doGetDisplayMediaStream().getTracks().forEach((track) => {
+				      track.stop();
+				    });
+					}
+					let lastStream = myVideo.srcObject;
+					let remoteConn = wrtcCommon.doGetRemoteConn();
+					remoteConn.removeStream(lastStream);
+					let myUserMediaStream = wrtcCommon.doGetUserMediaStream();
+
+					if (myUserMediaStream) {
+						myUserMediaStream.getTracks().forEach((track) => {
+				      remoteConn.addTrack(track, myUserMediaStream);
 				    });
 
-						//wrtcCommon.doCreateInterChange(wsm);
-						$(startCmd).click();
-
-						let myUserMediaStream = wrtcCommon.doGetUserMediaStream();
 						let newStream = new MediaStream();
 						wrtcCommon.doGetRemoteTracks().forEach((track) => {
+							console.log(track);
 							newStream.addTrack(track)
 				    });
-
+						console.log(newStream);
 						myVideo.srcObject = wrtcCommon.doMixStream([newStream, myUserMediaStream]);
 
 						$(shareCmd).show();
 						$(startCmd).hide();
 						$(endCmd).show();
+
+						wrtcCommon.doCreateInterChange(wsm);
+						//$(startCmd).click();
 					}
+
 				});
 
 				$(dlgContent).find('#CommandBox').append($(shareCmd).show());

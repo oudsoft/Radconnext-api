@@ -23,7 +23,64 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
           const shopId = req.params.shopId;
           const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
           const orders = await db.orders.findAll({include: menuInclude, where: {shopId: shopId}, order: orderby});
-          res.json({status: {code: 200}, Records: orders});
+          const promiseList = new Promise(async function(resolve2, reject2) {
+            let orderList = [];
+            for (let i=0; i < orders.length; i++){
+              let order = orders[i];
+              let newOrder = {};
+              if (order.Status == 1) {
+                newOrder = order
+                orderList.push(newOrder);
+              } else if (order.Status == 2) {
+                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                newOrder = JSON.parse(JSON.stringify(order));
+                if (invoices.length > 0) {
+                  newOrder.invoice = invoices[0];
+                }
+                orderList.push(newOrder);
+              } else if (order.Status == 3) {
+                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                newOrder = JSON.parse(JSON.stringify(order));
+                if (invoices.length > 0) {
+                  newOrder.invoice = invoices[0];
+                }
+                if (bills.length > 0) {
+                  newOrder.bill = bills[0];
+                }
+                if (payments.length > 0) {
+                  newOrder.payment = payments[0];
+                }
+                oderpayment.push(newOrder);
+              } else if (order.Status == 4) {
+                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                let taxinvoices = await db.taxinvoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+                newOrder = JSON.parse(JSON.stringify(order));
+                if (invoices.length > 0) {
+                  newOrder.invoice = invoices[0];
+                }
+                if (bills.length > 0) {
+                  newOrder.bill = bills[0];
+                }
+                if (taxinvoices.length > 0) {
+                  newOrder.taxinvoice = taxinvoices[0];
+                }
+                if (payments.length > 0) {
+                  newOrder.payment = payments[0];
+                }                
+                orderList.push(newOrder);
+              }
+            }
+            setTimeout(()=> {
+              resolve2(orderList);
+            },800);
+          });
+          Promise.all([promiseList]).then((ob)=> {
+            res.json({status: {code: 200}, Records: ob[0]});
+          });
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

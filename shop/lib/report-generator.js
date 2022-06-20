@@ -45,7 +45,7 @@ function doFormatNumber(num){
   return Number(num).toLocaleString('en', options);
 }
 
-function doFindContent(variable, field) {
+function doReplaceDynamicContent(variable, field) {
   switch (field) {
     case 'shop_name':
       return variable.shop_name;
@@ -104,7 +104,7 @@ function doFindContent(variable, field) {
   }
 }
 
-function doFindFieldContent(gooditem, field, itemNo) {
+function doReplaceDynamicGooditem(gooditem, field, itemNo) {
   switch (field) {
     case 'gooditem_no':
       return itemNo.toString();
@@ -133,7 +133,7 @@ function doMapGooditemCell(mapCells, gooditems, tableRow, row) {
       let newFields = []
       for (let k=0; k < mapCells.length; k++){
         let field = mapCells[k].substring(1);
-        let value = doFindFieldContent(gooditems[row], field, (row+1));
+        let value = doReplaceDynamicGooditem(gooditems[row], field, (row+1));
         let layoutField = {};
         await Object.getOwnPropertyNames(tableRow.fields[k]).forEach((tag) => {
           if (tag !== 'cellData') {
@@ -207,7 +207,7 @@ function doMapGoodItem(variable, table){
           for (let j=0; j < tableRow.fields.length; j++) {
             if (tableRow.fields[j].cellData.substring(0, 1) === '$'){
               let field = tableRow.fields[j].cellData.substring(1);
-              let realValue = doFindContent(variable, field);
+              let realValue = doReplaceDynamicContent(variable, field);
               tableRow.fields[j].cellData = realValue;
             }
           }
@@ -235,7 +235,7 @@ function doMapContent(elements, variable){
         if (item.elementType === 'text'){
           if (item.type === 'dynamic'){
             field = item.title.substring(1);
-            realValue = doFindContent(variable, field);
+            realValue = doReplaceDynamicContent(variable, field);
             item.title = realValue;
             successElements.push(item);
           } else {
@@ -258,61 +258,50 @@ function doMapContent(elements, variable){
   });
 }
 
-function doCreateReportDOM(elements, variable, qrcodeLink, orderId, rsH, paperSize, cb){
+function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, cb){
   let wrapper = $("#report-wrapper").empty();
   let formatedContents = elements;
   doMapContent(elements, variable).then(async (formatedContents)=>{
+    let maxTop = 0;
     await formatedContents.forEach((item, i) => {
-      doCreateElement(wrapper, item.elementType, item, paperSize);
+      let newTop = doCreateElement(wrapper, item.elementType, item, paperSize, variable.rsDimension);
+      if (newTop > maxTop) {
+        maxTop = newTop;
+      }
     });
 
-    let resultTopPosition = 0;
-
-    const a4Height = 1182;
-    const underResultH = 410;
-
-    console.log('resultHeigth=> ' + rsH);
-    console.log('resultTopPosition=> ' + resultTopPosition);
-
-    let endResultAt = parseFloat(rsH) + parseFloat(resultTopPosition); // 1380;
-    let eff = 0.2;
-    endResultAt += (endResultAt * eff);
-    console.log('endResultAt=>' + endResultAt);
-
-
-
-    let startUnderResultAt = endResultAt;
-    console.log('startUnderResultAt=> ' + startUnderResultAt);
-
-
-    let atY = startUnderResultAt;
-
-    console.log('atY=> ' + atY);
-    let pages = Math.trunc(atY/a4Height);
-    console.log('pages with trunc=> ' + pages);
-    let rem = atY % a4Height;
-    if (rem > 0){
-      pages += 1;
-    }
-    console.log('pages=> ' + pages);
-
-    cb($(wrapper).html(), pages);
+    console.log('maxTop=>' + maxTop);
+    cb($(wrapper).html(), maxTop);
   });
 }
 
-function doCreateElement(wrapper, elemType, elem, paperSize){
+function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
+  /*
+  rsDimension = {top: tableTop, height: {real: totalHeight, template: tableHeight}}
+  */
   const newRatio = 1.0;
+  /*
   let wrapperWidth = undefined;
   if (paperSize == 1){
     wrapperWidth = A4Width;
   } else if (paperSize == 2){
     wrapperWidth = SlipWidth;
   }
-  let element;
+  */
+  let rsH = Number(rsDimension.top) + Number(rsDimension.height.template);
+  let element, beforeTop, newTop;
   switch (elemType) {
     case "text":
       element = $("<div></div>").css({'position': 'absolute'});
-      $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": wrapperWidth + "px", "height": Number(elem.height)*newRatio + "px"});
+      $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+      if (Number(elem.y) < (Number(rsDimension.top))) {
+        newTop = Number(elem.y)*newRatio;
+        $(element).css({"top": newTop + "px"});
+      } else {
+        beforeTop = Number(elem.y) - rsH;
+        newTop = Number(rsDimension.top) + Number(rsDimension.height.real) + beforeTop;
+        $(element).css({"top": newTop*newRatio + "px"});
+      }
       $(element).css({"font-size": Number(elem.fontsize)*newRatio + "px"});
       $(element).css({"font-weight": elem.fontweight});
       $(element).css({"font-style": elem.fontstyle});
@@ -321,24 +310,39 @@ function doCreateElement(wrapper, elemType, elem, paperSize){
     break;
     case "hr":
       element = $("<div><hr/></div>").css({'position': 'absolute'});
-      $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+      $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+      if (Number(elem.y) < (Number(rsDimension.top))) {
+        newTop = Number(elem.y)*newRatio;
+        $(element).css({"top": newTop + "px"});
+      } else {
+        beforeTop = Number(elem.y) - (Number(rsDimension.top) + Number(rsDimension.height.template));
+        newTop = Number(rsDimension.top) + Number(rsDimension.height.real) + beforeTop;
+        $(element).css({"top": newTop*newRatio + "px"});
+      }
       $(element > "hr").css({"border": elem.border});
     break;
     case "image":
-      console.log(elem);
       element = $("<div></div>").css({'position': 'absolute'});
       let newImage = new Image();
       newImage.src = elem.url;
       newImage.setAttribute("width", Number(elem.width)*newRatio);
       $(element).append(newImage);
-      $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
-      //$(element).css({"background": "url(" + elem.url + ") no-repeat", "background-size": "contain"});
+      $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
+      if (Number(elem.y) < (Number(rsDimension.top))) {
+        newTop = Number(elem.y)*newRatio;
+        $(element).css({"top": newTop + "px"});
+      } else {
+        beforeTop = Number(elem.y) - (Number(rsDimension.top) + Number(rsDimension.height.template));
+        newTop = Number(rsDimension.top) + Number(rsDimension.height.real) + beforeTop;
+        $(element).css({"top": newTop*newRatio + "px"});
+      }
     break;
     case "table":
-      doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
+      newTop = doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
     break;
   }
   $(element).appendTo($(wrapper));
+  return newTop;
 }
 
 const doRenderTable = function(wrapper, tableRows, left, top, ratio){
@@ -360,8 +364,9 @@ const doRenderTable = function(wrapper, tableRows, left, top, ratio){
     }
     $(table).append($(row));
   }
-  $(wrapper).append($(table).css({'position': 'absolute', 'left': Number(left)*ratio+'px', 'top': Number(top)*ratio+'px'}));
-  return $(wrapper);
+  let topPos = Number(top)*ratio;
+  $(wrapper).append($(table).css({'position': 'absolute', 'left': Number(left)*ratio+'px', 'top': topPos+'px'}));
+  return topPos;
 }
 
 $( document ).ready(function() {

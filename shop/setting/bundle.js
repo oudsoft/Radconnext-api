@@ -69,25 +69,41 @@ module.exports = function ( jq ) {
 		return td;
 	}
 
-	const doCreateImageCmd = function(imageUrl) {
+	const doCreateImageCmd = function(imageUrl, title) {
     let imgCmd = $('<img src="' + imageUrl + '"/>').css({'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'border': '2px solid #ddd'});
     $(imgCmd).hover(()=>{
 			$(imgCmd).css({'border': '2px solid grey'});
 		},()=>{
 			$(imgCmd).css({'border': '2px solid #ddd'});
 		});
+		if (title) {
+			$(imgCmd).attr('title', title);
+		}
     return $(imgCmd)
   }
 
-	const doCreateTextCmd = function(text, bgcolor, textcolor) {
-    let textCmd = $('<span></span>').css({'min-height': '35px', 'line-height': '30px', 'cursor': 'pointer', 'border': '2px solid #ddd', 'border-radius': '4px', 'padding': '4px'});
+	const doCreateTextCmd = function(text, bgcolor, textcolor, bordercolor, hovercolor) {
+    let textCmd = $('<span></span>').css({'min-height': '35px', 'line-height': '30px', 'cursor': 'pointer', 'border-radius': '4px', 'padding': '4px'});
 		$(textCmd).text(text);
 		$(textCmd).css({'background-color': bgcolor, 'color': textcolor});
-    $(textCmd).hover(()=>{
-			$(textCmd).css({'border': '2px solid grey'});
-		},()=>{
+		if (bordercolor){
+			$(textCmd).css({'border': '2px solid ' + bordercolor});
+		} else {
 			$(textCmd).css({'border': '2px solid #ddd'});
-		});
+		}
+		if ((bordercolor) && (hovercolor)) {
+			$(textCmd).hover(()=>{
+				$(textCmd).css({'border': '2px solid ' + hovercolor});
+			},()=>{
+				$(textCmd).css({'border': '2px solid ' + bordercolor});
+			});
+		} else {
+    	$(textCmd).hover(()=>{
+				$(textCmd).css({'border': '2px solid grey'});
+			},()=>{
+				$(textCmd).css({'border': '2px solid #ddd'});
+			});
+		}
     return $(textCmd)
   }
 
@@ -310,7 +326,7 @@ module.exports = function ( jq ) {
       $(middleActionCmdRow).append($(commandCell));
       $(closeOrderTable).append($(middleActionCmdRow));
 
-      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์แจ้งหนี้', 'orange', 'white');
+      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์ใบแจ้งหนี้', '#F5500E', 'white', '#5D6D7E', '#FF5733');
       let closeOrderCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
       $(closeOrderCmd).css({'margin-left': '10px'});
       $(commandCell).append($(createInvoiceCmd)).append($(closeOrderCmd));
@@ -318,7 +334,7 @@ module.exports = function ( jq ) {
 			$(createInvoiceCmd).on('click', async(evt)=>{
 				let shopId = shopData.id;
 				let nextInvoiceNo = '000000001';
-				let filename = shopId.toString().lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
+				let filename = shopId.toString().lpad("0", 5) + '-1-' + nextInvoiceNo + '.pdf';
 				let discountValue = parseFloat($(discountInput).val());
 				let vatValue = parseFloat($(vatInput).val());
 
@@ -329,7 +345,7 @@ module.exports = function ( jq ) {
 					let nextNo = Number(lastinvoiceno);
 					nextNo = nextNo + 1;
 					nextInvoiceNo = nextNo.toString().lpad("0", 9);
-					filename = shopId.toString().lpad("0", 5) + '-' + nextInvoiceNo + '.pdf';
+					filename = shopId.toString().lpad("0", 5) + '-1-' + nextInvoiceNo + '.pdf';
 					let invoiceData = {No: nextInvoiceNo, Discount: discountValue, Vat: vatValue, Filename: filename};
 					invoiceSuccessCallback(invoiceData);
 				} else {
@@ -366,8 +382,8 @@ module.exports = function ( jq ) {
 
         $(createBillCmd).on('click', async(evt)=>{
           let shopId = shopData.id;
-          let nextฺBillNo = '000000001';
-					let filename = shopId.toString().lpad("0", 5) + '-' + nextBillNo + '.pdf';
+          let nextBillNo = '000000001';
+					let filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
 					let discountValue = parseFloat($(discountInput).val());
 					let vatValue = parseFloat($(vatInput).val());
 
@@ -382,7 +398,7 @@ module.exports = function ( jq ) {
             let nextNo = Number(lastbillno);
             nextNo = nextNo + 1;
             nextBillNo = nextNo.toString().lpad("0", 9);
-            filename = shopId.toString().lpad("0", 5) + '-' + nextBillNo + '.pdf';
+            filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
             let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
 						billSuccessCallback(billData, paymentData);
           } else {
@@ -395,8 +411,31 @@ module.exports = function ( jq ) {
           createTaxInvoiceCmd = common.doCreateTextCmd('พิมพ์กำกับภาษี', 'green', 'white');
           $(createTaxInvoiceCmd).css({'margin-left': '10px'});
           $(commandCell).append($(createTaxInvoiceCmd));
-          $(createTaxInvoiceCmd).on('click', (evt)=>{
+          $(createTaxInvoiceCmd).on('click', async (evt)=>{
+						let shopId = shopData.id;
+	          let nextTaxInvoiceNo = '000000001';
+						let filename = shopId.toString().lpad("0", 5) + '-3-' + nextTaxInvoiceNo + '.pdf';
+						let discountValue = parseFloat($(discountInput).val());
+						let vatValue = parseFloat($(vatInput).val());
 
+						let payAmountValue = parseFloat($(payAmountInput).val());
+						let payType = parseInt($(paytypeSelect).val());
+						let paymentData = {Amount: payAmountValue, PayType: payType};
+
+	          let lasttaxinvoicenoRes = await common.doCallApi('/api/shop/taxinvoice/find/last/taxinvioceno/' + shopId, {});
+						console.log(lasttaxinvoicenoRes);
+	          if (lasttaxinvoicenoRes.Records.length > 0) {
+	            let lasttaxinvoiceno = lasttaxinvoicenoRes.Records[0].No;
+	            let nextNo = Number(lasttaxinvoiceno);
+	            nextNo = nextNo + 1;
+	            nextTaxInvoiceNo = nextNo.toString().lpad("0", 9);
+	            filename = shopId.toString().lpad("0", 5) + '-3-' + nextTaxInvoiceNo + '.pdf';
+	            let taxinvoicenoData = {No: nextTaxInvoiceNo, Discount: discountValue, Vat: vatValue, Filename: filename};
+							taxinvoiceSuccessCallback(taxinvoicenoData, paymentData);
+	          } else {
+							let taxinvoicenoData = {No: nextTaxInvoiceNo, Discount: discountValue, Vat: vatValue, Filename: filename};
+							taxinvoiceSuccessCallback(taxinvoicenoData, paymentData);
+						}
           });
         }
       });
@@ -2300,7 +2339,7 @@ module.exports = function ( jq ) {
   }
 
   const doOpenOrderForm = async function(shopData, workAreaBox, orderData){
-    let orderObj = {};
+    let orderObj = {Status: orderData.Status};
     $(workAreaBox).empty();
     let titleText = 'เปิดออร์เดอร์ใหม่';
     if (orderData) {
@@ -2340,18 +2379,20 @@ module.exports = function ( jq ) {
       orderObj.gooditems = [];
     }
 
+		console.log(orderObj);
+
     $(customerControlCmd).append($(editCustomerCmd));
     let dlgHandle = undefined;
     $(editCustomerCmd).on('click', async (evt)=>{
       dlgHandle = await doOpenCustomerMngDlg(shopData, customerSelectedCallback);
     });
 
-		let addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มสินค้า', 'green', 'white');
+		let addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
     $(addNewGoodItemCmd).on('click', async (evt)=>{
       dlgHandle = await doOpenGoodItemMngDlg(shopData, gooditemSelectedCallback);
     });
 
-		let callCreateCloseOrderCmd = common.doCreateTextCmd('คิดเงิน', 'orange', 'white');
+		let callCreateCloseOrderCmd = common.doCreateTextCmd(' คิดเงิน ', '#F5500E', 'white', '#5D6D7E', '#FF5733');
 		$(callCreateCloseOrderCmd).on('click', async (evt)=>{
 			let total = await doCalOrderTotal(orderObj.gooditems);
 			if (total > 0) {
@@ -2370,7 +2411,7 @@ module.exports = function ( jq ) {
       $(itemlistWorkingBox).append($(goodItemTable));
     }
 
-    let cancelCmd = $('<input type="button" value=" ยกเลิก "/>').css({'margin-left': '10px'});
+    let cancelCmd = $('<input type="button" value=" กลับ "/>').css({'margin-left': '10px'});
     $(cancelCmd).on('click', async(evt)=>{
       await doShowOrderList(shopData, workAreaBox);
     });
@@ -2445,7 +2486,7 @@ module.exports = function ( jq ) {
 
 			if (invoiceRes.status.code == 200) {
 				let invoiceId = invoiceRes.Record.id;
-				let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename, No: newInvoiceData.No};
+				let docParams = {orderId: orderData.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
 				let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 				console.log(docRes);
 				window.open(docRes.result.link, '_blank');
@@ -2469,12 +2510,14 @@ module.exports = function ( jq ) {
 
 			if (billRes.status.code == 200) {
 				let billId = billRes.Record.id;
-				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderId, userId: userId, userinfoId: userinfoId};
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
 				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
 				if (paymentRes.status.code == 200) {
-					let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename};
+					let docParams = {orderId: orderData.id, shopId: shopData.id/*, filename: newBillData.Filename, No: newBillData.No*/};
 					let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
 					console.log(docRes);
+					window.open(docRes.result.link, '_blank');
+					$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
 				} else {
 					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
 				}
@@ -2493,16 +2536,18 @@ module.exports = function ( jq ) {
 			let userinfoId = userdata.userinfoId;
 
 			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
-			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', invoiceParams);
+			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
 
 			if (taxinvoiceRes.status.code == 200) {
 				let taxinvoiceId = taxinvoiceRes.Record.id;
-				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderId, userId: userId, userinfoId: userinfoId};
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderData.id, userId: userId, userinfoId: userinfoId};
 				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
 				if (paymentRes.status.code == 200) {
-					let docParams = {orderId: orderData.id, shopId: shopData.id, filename: newInvoiceData.Filename};
+					let docParams = {orderId: orderData.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
 					let docRes = await common.doCallApi('/api/shop/taxinvoice/create/report', docParams);
 					console.log(docRes);
+					window.open(docRes.result.link, '_blank');
+					$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
 				} else {
 					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
 				}
@@ -2563,7 +2608,7 @@ module.exports = function ( jq ) {
       const closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(shopData, orderTotal, orderId, invoiceCallback, billCallback, taxinvoiceCallback);
       $(closeOrderDlgContent).css({'margin-top': '10px'});
       const closeOrderformoption = {
-  			title: 'ป้อนข้อมูลเพื่อเตรียมออกใบแจ้งหนี้',
+  			title: 'ป้อนข้อมูลเพื่อเตรียมออกใบแจ้งหนี้ หรือ เก็บเงิน',
   			msg: $(closeOrderDlgContent),
   			width: '420px',
   			onOk: async function(evt) {
@@ -2637,7 +2682,7 @@ module.exports = function ( jq ) {
             let commandCell = $('<td align="center"></td>');
             $(goodItemRow).append($(commandCell));
 
-            let increaseBtnCmd = common.doCreateImageCmd('../../images/plus-sign-icon.png');
+            let increaseBtnCmd = common.doCreateImageCmd('../../images/plus-sign-icon.png', 'เพิ่มจำนวน');
             $(increaseBtnCmd).on('click', async(evt)=>{
               let oldQty = $(goodItemQtyCell).text();
               oldQty = Number(oldQty);
@@ -2649,7 +2694,7 @@ module.exports = function ( jq ) {
               let total = await doCalOrderTotal(orderData.gooditems);
               $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
             });
-            let decreaseBtnCmd = common.doCreateImageCmd('../../images/minus-sign-icon.png');
+            let decreaseBtnCmd = common.doCreateImageCmd('../../images/minus-sign-icon.png', 'ลดจำนวน');
             $(decreaseBtnCmd).on('click', async(evt)=>{
               let oldQty = $(goodItemQtyCell).text();
               oldQty = Number(oldQty);
@@ -2666,7 +2711,7 @@ module.exports = function ( jq ) {
               }
             });
 
-            let deleteGoodItemCmd = common.doCreateImageCmd('../../images/cross-red-icon.png');
+            let deleteGoodItemCmd = common.doCreateImageCmd('../../images/cross-red-icon.png', 'ลบรายการ');
             $(deleteGoodItemCmd).on('click', async (evt)=>{
 							$(goodItemRow).remove();
               let newGoodItems = await doDeleteGoodItem(i, orderData);
@@ -2734,13 +2779,45 @@ module.exports = function ( jq ) {
             let fmtTime = common.doFormatTimeStr(orderDate);
             let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
             let orderBox = $('<div></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'float': 'left', 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
-            $(orderBox).css({'background-color': 'yellow'});
             $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ผู้รับออร์เดอร์ :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
+						if (orders[i].Status == 1) {
+							$(orderBox).css({'background-color': 'yellow'});
+						} else if (orders[i].Status == 2) {
+							$(orderBox).css({'background-color': 'orange'});
+							let invoiceBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210'});
+							$(invoiceBox).append($('<span>' + orders[i].invoice.No + '</span>').css({'font-weight': 'bold'}));
+							$(invoiceBox).on('click', (evt)=>{
+								evt.stopPropagation();
+								window.open('/shop/img/usr/pdf/' + orders[i].invoice.Filename, '_blank');
+							});
+							$(orderBox).append($(invoiceBox));
+						} else if ((orders[i].Status == 3) || (orders[i].Status == 4)) {
+							$(orderBox).css({'background-color': 'green'});
+							if (orders[i].bill){
+								let billBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210'});
+								$(billBox).append($('<span>' + orders[i].bill.No + '</span>').css({'font-weight': 'bold'}));
+								$(billBox).on('click', (evt)=>{
+									evt.stopPropagation();
+									window.open('/shop/img/usr/pdf/' + orders[i].bill.Filename, '_blank');
+								});
+								$(orderBox).append($(billBox));
+							}
+							if (orders[i].taxinvoice){
+								let taxinvoiceBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210'});
+								$(taxinvoiceBox).append($('<span>' + orders[i].taxinvoice.No + '</span>').css({'font-weight': 'bold'}));
+								$(taxinvoiceBox).on('click', (evt)=>{
+									evt.stopPropagation();
+									window.open('/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename, '_blank');
+								});
+								$(orderBox).append($(taxinvoiceBox));
+							}
+						}
             $(orderBox).on('click', (evt)=>{
-              let orderData = {customer: orders[i].customer, gooditems: orders[i].Items, id: orders[i].id, status: orders[i].Status};
+							evt.stopPropagation();
+              let orderData = {customer: orders[i].customer, gooditems: orders[i].Items, id: orders[i].id, Status: orders[i].Status};
               $(orderListBox).remove();
               doOpenOrderForm(shopData, workAreaBox, orderData);
             });
@@ -3386,7 +3463,7 @@ module.exports = function ( jq ) {
 		let tableData = $(tableBox).data().customTableelement.options;
 		//console.log(tableData);
 		//console.log(tableData.customTableelement.options);
-		let tableDesignData = {elementType: 'table', id: tableData.id, x: tableData.x, y: tableData.y, cols: tableData.cols, rows: []};
+		let tableDesignData = {elementType: 'table', id: tableData.id, x: tableData.x, y: tableData.y, width: tableData.width, height: tableData.height, cols: tableData.cols, rows: []};
 		let trs = $(tableBox).find('.trElement');
 		$(trs).each((i, tr)=>{
 			let trData = $(tr).data().customTrelement.options;
@@ -3443,19 +3520,19 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doRenderElement = function(shopData, wrapper, reportElements, ratio){
+	const doRenderElement = function(shopData, wrapper, reportElements, ratio, paperSize){
 		let newRatio = 1;
 		if (ratio) {
 			newRatio = ratio;
 		}
-		let wrapperWidth = $(wrapper).width();
+		console.log(newRatio);
     reportElements.forEach((elem, i) => {
       let element;
       switch (elem.elementType) {
         case "text":
           element = $("<div></div>").css({'position': 'absolute'});
           //$(element).addClass("reportElement");
-          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": wrapperWidth + "px", "height": Number(elem.height)*newRatio + "px"});
+          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
           $(element).css({"font-size": Number(elem.fontsize)*newRatio + "px"});
           $(element).css({"font-weight": elem.fontweight});
           $(element).css({"font-style": elem.fontstyle});
@@ -3584,7 +3661,7 @@ module.exports = function ( jq ) {
 				}
 				$(wrapperBox).css({'height': newHeight+'px', 'max-height': newHeight + 'px'});
 
-				doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio);
+				doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio, paperSize);
 				const radalertoption = {
 		      title: 'ตัวอย่างเอกสาร',
 		      msg: $(wrapperBox),

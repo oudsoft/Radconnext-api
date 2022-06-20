@@ -487,7 +487,7 @@
       x: 0,
       y: 0,
       width: '95%',
-      heigth: '25px',
+      heigth: '25',
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');

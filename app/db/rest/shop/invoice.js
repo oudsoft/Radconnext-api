@@ -202,9 +202,7 @@ app.post('/create/report', (req, res) => {
         let orderId = req.body.orderId;
         let docType = 1;
         let shopId = req.body.shopId;
-        let pdfFileName = req.body.filename;
-        let invoiceNo = req.body.No;
-        let docRes = await commonReport.doCreateReport(orderId, docType, shopId, pdfFileName, invoiceNo);
+        let docRes = await commonReport.doCreateReport(orderId, docType, shopId);
         res.json({status: {code: 200}, result: docRes.doc});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

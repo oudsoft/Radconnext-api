@@ -7,6 +7,19 @@ const multer = require('multer');
 const base64Img = require('base64-img');
 const exec = require('child_process').exec;
 
+const {pipeline} = require('stream');
+const {promisify} = require('util');
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
+const getFiles = async function(dir) {
+	const subdirs = await readdir(dir);
+	const files = await Promise.all(subdirs.map(async (subdir) => {
+		const res = resolve(dir, subdir);
+		return (await stat(res)).isDirectory() ? getFiles(res) : res;
+	}));
+	return files.reduce((a, f) => a.concat(f), []);
+}
+
 const DWLD = process.env.USRUPLOAD_PATH;
 const USRUPLOAD_DIR = process.env.USRUPLOAD_DIR;
 const currentDir = __dirname;
@@ -36,7 +49,6 @@ const importer = multer({
 */
 const tempDicomDir = usrUploadDir + '/temp';
 const importer = multer({dest: tempDicomDir, limits: {fileSize: maxUploadSize}});
-
 
 const parseStr = function (str) {
   var args = [].slice.call(arguments, 1),

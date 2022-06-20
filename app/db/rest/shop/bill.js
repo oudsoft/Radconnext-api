@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, auth, commonReport;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -128,8 +128,14 @@ app.post('/add', async (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         let newbill = req.body.data;
-        let adbill = await db.bills.create(newbill);
-        res.json({Result: "OK", status: {code: 200}, Record: adbill});
+        log.info('newbill=>'+JSON.stringify(newbill));
+        try {
+          let adbill = await db.bills.create({No: newbill.No, Discount: parseFloat(newbill.Discount), Vat: parseFloat(newbill.Vat), Filename: newbill.Filename});
+          await db.bills.update({shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adbill.id}});
+          res.json({Result: "OK", status: {code: 200}, Record: adbill});
+        } catch(error) {
+          log.error('Bill Add Error=>' + JSON.stringify(error))
+        }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -186,9 +192,35 @@ app.post('/delete', (req, res) => {
   }
 });
 
+//Create Pdf Report API
+app.post('/create/report', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        log.info(JSON.stringify(req.body))
+        let orderId = req.body.orderId;
+        let docType = 2;
+        let shopId = req.body.shopId;
+        let docRes = await commonReport.doCreateReport(orderId, docType, shopId);
+        res.json({status: {code: 200}, result: docRes.doc});
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
+  commonReport = require('./commonreport.js')(db, log);
   return app;
 }

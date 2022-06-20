@@ -529,16 +529,16 @@ app.post('/convert/ai/report', function(req, res) {
 	});
 });
 
-app.post('/importarchive', function(req, res) {
-	let hospitalId = req.body.hospitalId;
+app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req, res) {
+	let hospitalId = req.params.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async (orthanc) => {
 		let cloud = JSON.parse(orthanc.Orthanc_Cloud);
 		let orthancUrl = 'http://' + cloud.ip + ':' + cloud.httpport;
-		let archiveCode = req.body.archivecode;
-		let username = req.body.username;
+		let archiveCode = req.params.archivecode;
+		let username = req.params.username;
     let pacsImportOption = req.body.pacsImportOption;
     log.info('option=>' + pacsImportOption);
-		let archiveFilcdeName = archiveCode + '.zip';
+		let archiveFileName = archiveCode + '.zip';
 		let archiveParh = usrUploadDir + '/' + archiveFileName;
 		let archiveDir = formatStr('%s/%s', usrUploadDir, archiveCode);
 		let command = formatStr('mkdir %s', archiveDir);
@@ -587,7 +587,10 @@ app.post('/importarchive', function(req, res) {
 				Promise.all([promiseList]).then(async (ob)=>{
           let instanceTag = ob[0][0];
           let importResult = {type: 'importresult', result: instanceTag};
-          await socket.sendMessage(importResult, username);
+          if (username) {
+            await socket.sendMessage(importResult, username);
+          }
+          res.status(200).send({result: instanceTag});
 				});
 			}).catch((error) => {
 				log.error('Error=>'+ JSON.stringify(error));
@@ -637,7 +640,10 @@ app.post('/importdicom', function(req, res) {
     Promise.all([promiseList]).then(async (ob)=>{
       let instanceTag = ob[0][0];
       let importResult = {type: 'importresult', result: instanceTag};
-      await socket.sendMessage(importResult, username);
+      if (username){
+        await socket.sendMessage(importResult, username);
+      }
+      res.status(200).send({result: instanceTag});
     });
   });
 });
