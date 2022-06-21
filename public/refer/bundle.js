@@ -21920,7 +21920,7 @@ module.exports = function ( jq ) {
 
 
 	const doCreateRadioSateCmd = function(){
-		const stateIconUrl = '/images/doctor-icon.png';
+		const stateIconUrl = '/images/doctor-icon-wh.png';
 		let stateBox = $('<div style="position: relative; display: inline-block; text-align: center; margin-right: 20px; bottom: 10px;"></div>');
     let stateIcon = $('<img style="postion: absolute; width: 30px; height: auto; cursor: pointer;"/>');
     $(stateIcon).attr('src', stateIconUrl);
