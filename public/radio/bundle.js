@@ -3123,7 +3123,7 @@ const remoteConnOnTrackEvent = function(event) {
     console.log(remoteTracks.length);
 
     let remoteMergedStream = undefined;
-
+    /*
     if (userJoinOption.joinType === 'caller') {
       if (displayMediaStream) {
         let streams = [displayMediaStream, remoteStream];
@@ -3140,6 +3140,13 @@ const remoteConnOnTrackEvent = function(event) {
         //share screen mode
         remoteMergedStream = remoteStream;
       }
+    }
+    */
+    if (userJoinOption.joinMode == 'share') {
+      remoteMergedStream = remoteStream;
+    } else if (userJoinOption.joinMode == 'face') {
+      let streams = [remoteStream, userMediaStream];
+      remoteMergedStream = doMixStream(streams);      
     }
     myVideo.srcObject = remoteMergedStream;
     $('#CommandBox').find('#ShareWebRCTCmd').show();
@@ -3574,7 +3581,6 @@ $( document ).ready(function() {
     			  doLoadMainPage();
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
-            /*
             if (userdata.userinfo.User_SipPhone){
               let sipPhoneNumber = userdata.userinfo.User_SipPhone;
               let sipPhoneSecret = userdata.userinfo.User_SipSecret;
@@ -3587,7 +3593,6 @@ $( document ).ready(function() {
               let mySipPhone = $(mySipPhoneIncomeBox).sipphoneincome(sipPhoneOptions);
               $('body').append($(mySipPhoneIncomeBox));
             }
-            */
           } else {
             //$.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');
             alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
@@ -9986,16 +9991,18 @@ module.exports = function ( jq ) {
 					let lastStream = myVideo.srcObject;
 					let remoteConn = wrtcCommon.doGetRemoteConn();
 					remoteConn.removeStream(lastStream);
-					wrtcCommon.doGetUserMediaStream().getTracks().forEach((track) => {
-			      remoteConn.addTrack(track, wrtcCommon.doGetUserMediaStream());
-			    });
-
+					let myUserMediaStream = wrtcCommon.doGetUserMediaStream();
+					if (myUserMediaStream) {
+						myUserMediaStream.getTracks().forEach((track) => {
+				      remoteConn.addTrack(track, myUserMediaStream);
+				    });
+					}
 					wrtcCommon.doCreateInterChange(wsm);
 					//$(startCmd).click();
 
-					let myUserMediaStream = wrtcCommon.doGetUserMediaStream();
+					let myRemoteTracks = wrtcCommon.doGetRemoteTracks();
 					let newStream = new MediaStream();
-					wrtcCommon.doGetRemoteTracks().forEach((track) => {
+					myRemoteTracks.forEach((track) => {
 						newStream.addTrack(track)
 			    });
 
