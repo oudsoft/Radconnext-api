@@ -88,13 +88,17 @@ app.post('/select/(:shopId)', (req, res) => {
 
 //Add New Hospital API
 app.post('/add', async (req, res) => {
+/*
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+*/
+        
         let newShop = req.body;
         let adShop = await db.shops.create(newShop);
-        res.json({Result: "OK", status: {code: 200}});
+        res.json({Result: "OK", status: {code: 200}, Records: [adShop]});
+/*
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -106,6 +110,7 @@ app.post('/add', async (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+*/
 });
 
 //Update Hospital API

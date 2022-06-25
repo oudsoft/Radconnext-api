@@ -21,8 +21,16 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
+          const orderDate = req.body.orderDate;
+          const whereCluase = {shopId: shopId};
+          if (orderDate) {
+            let fromDateWithZ = new Date(orderDate);
+            let toDateWithZ = new Date(orderDate);
+            toDateWithZ.setDate(toDateWithZ.getDate() + 1);
+            whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+          }
           const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
-          const orders = await db.orders.findAll({include: menuInclude, where: {shopId: shopId}, order: orderby});
+          const orders = await db.orders.findAll({include: menuInclude, where: whereCluase, order: orderby});
           const promiseList = new Promise(async function(resolve2, reject2) {
             let orderList = [];
             for (let i=0; i < orders.length; i++){
@@ -52,7 +60,7 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
                 if (payments.length > 0) {
                   newOrder.payment = payments[0];
                 }
-                oderpayment.push(newOrder);
+                orderList.push(newOrder);
               } else if (order.Status == 4) {
                 let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
                 let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
@@ -70,7 +78,7 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
                 }
                 if (payments.length > 0) {
                   newOrder.payment = payments[0];
-                }                
+                }
                 orderList.push(newOrder);
               }
             }
@@ -163,7 +171,7 @@ app.post('/add', async (req, res) => {
         let newOrder = req.body.data;
         let adOrder = await db.orders.create(newOrder);
         await db.orders.update({shopId: req.body.shopId, customerId: req.body.customerId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adOrder.id}});
-        res.json({Result: "OK", status: {code: 200}});
+        res.json({Result: "OK", status: {code: 200}, Records: [adOrder]});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {

@@ -128,10 +128,12 @@ app.post('/list', (req, res) => {
 
 //add api
 app.post('/add', (req, res) => {
+/*
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+*/
         try {
           let newUsername = req.body.username;
           auth.doExistUser(newUsername).then(async (users) => {
@@ -175,6 +177,7 @@ app.post('/add', (req, res) => {
       		log.error(error);
           res.json({ status: {code: 500}, error: error });
       	}
+/*
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -186,6 +189,7 @@ app.post('/add', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+*/
 });
 
 //update api

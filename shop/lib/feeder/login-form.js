@@ -67,12 +67,15 @@
         break;
         case 2:
           //window.location.replace('/case/index.html');
+          window.location.replace('/shop/setting/admin.html');
         break;
         case 3:
   				//window.location.replace('/biller/index.html');
+          window.location.replace('/shop/setting/admin.html');
         break;
         case 4:
           //window.location.replace('/radio/index.html');
+          window.location.replace('/shop/setting/admin.html');
         break;
         case 5:
           //window.location.replace('/refer/index.html');
