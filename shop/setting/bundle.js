@@ -1662,6 +1662,9 @@ module.exports = function ( jq ) {
             $(resultRow).css({'background-color': '#ddd', 'color': 'black'});
           });
           let qtyInput = $('<input type="text" value="1" tabindex="3"/>').css({'width': '40px'});
+					$(qtyInput).on('click', (evt)=>{
+						evt.stopPropagation();
+					});
           $(qtyInput).on('keyup', (evt)=>{
             if (evt.keyCode == 13) {
               $(resultRow).click();
@@ -2687,7 +2690,7 @@ module.exports = function ( jq ) {
       const gooditemDlgContent = await gooditemdlg.doCreateFormDlg(shopData, callback);
       $(gooditemDlgContent).css({'margin-top': '10px'});
       const gooditemformoption = {
-  			title: 'เลือกรายการสินต้า',
+  			title: 'เลือกรายการสินค้า',
   			msg: $(gooditemDlgContent),
   			width: '720px',
   			onOk: async function(evt) {

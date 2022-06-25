@@ -15,6 +15,7 @@
     let errorMessageBox = undefined;
     let rememberMeOptionBox = undefined;
     let loginButtonCmd = undefined;
+    let registerButtonCmd = undefined;
     let tryLoginCount = 0;
 
     const doCallLoginApi = function(user) {
@@ -173,6 +174,15 @@
       return $(loginButtonCmd);
     }
 
+    const doCreateRegisterButtonCmd = function(){
+      let registerButtonCmd = $('<input type="button" value=" ลงทะเบียน " style="width: 100%; margin-top: 44px;"/>');
+      $(registerButtonCmd).css({'background-color': '#184175', 'color': 'white'}); //#2F4646
+      $(registerButtonCmd).on('click', (evt)=>{
+        window.location.replace('/shop/reg/');
+      });
+      return $(registerButtonCmd);
+    }
+
     const doCreateForgotMyPassword = function(username, userEmail, userId){
       let linkCmd = $('<a href="#" style="position: relative; line-height: 0px; margin-top: 60px;">I have forgot my password.</a>');
       $(linkCmd).on('click', (evt)=>{
@@ -280,9 +290,10 @@
       errorMessageBox = doCreateLoginErrorMessageBox();
       rememberMeOptionBox = doCreateRememberMeOptionBox();
       loginButtonCmd = doCreateLoginButtonCmd();
+      registerButtonCmd = doCreateRegisterButtonCmd();
       $this.append($(signinTextBox)).append($(signinYourAccountTextBox));
       $this.append($(usernameInputBox)).append($(passwordInputBox));
-      return $this.append($(errorMessageBox)).append($(rememberMeOptionBox)).append($(loginButtonCmd));
+      return $this.append($(errorMessageBox)).append($(rememberMeOptionBox)).append($(loginButtonCmd)).append($(registerButtonCmd));
     }
 
     init();
