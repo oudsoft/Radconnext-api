@@ -1,4 +1,6 @@
 /* websocket.js */
+const fs = require('fs');
+const path = require('path');
 
 function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
@@ -353,13 +355,12 @@ function RadconWebSocketServer (arg, db, log) {
 						let controlRes = await $this.doControlWrtcMessage(data);
 					break;
 					case "dicombinary":
-						const fs = require('fs');
-						const path = require('path');
-						const usrUploadDir = path.join(__dirname, '../../', process.env.USRUPLOAD_DIR);
-						const tempDicomDir = usrUploadDir + '/temp/';
-
-						let outputFile = tempDicomDir + '1bd04cdf-5ec5de56-c6b9e29e-ebc87813-30979450.zip';
-						let binaryContents = new Buffer(data.binary, 'base64');
+						let usrUploadDir = path.join(__dirname, '../../', process.env.USRUPLOAD_DIR);
+						let tempDicomDir = usrUploadDir + '/temp';
+						let zipFilename = data.zipFilename;
+						let outputFile = tempDicomDir + '/' + zipFilename;
+						//let binaryContents = new Buffer(data.binary, 'base64');
+						let binaryContents = Buffer.from(data.binary, 'base64');
 						fs.writeFile(outputFile, binaryContents, (err) => {
   						if (err) return console.error(err)
   						console.log('file saved to ', outputFile);
