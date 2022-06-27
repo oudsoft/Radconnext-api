@@ -94,9 +94,14 @@ app.post('/add', async (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
 */
-        
+
         let newShop = req.body;
         let adShop = await db.shops.create(newShop);
+
+        let newGroup = {GroupName: 'Default Group', GroupPicture: '/shop/favicon.ico'};
+        let adGroup = await db.menugroups.create(newGroup);
+        await db.menugroups.update({shopId: adShop.id}, {where: {id: adGroup.id}});
+
         res.json({Result: "OK", status: {code: 200}, Records: [adShop]});
 /*
       } else if (ur.token.expired){

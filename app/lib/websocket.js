@@ -352,6 +352,19 @@ function RadconWebSocketServer (arg, db, log) {
 					case "wrtc":
 						let controlRes = await $this.doControlWrtcMessage(data);
 					break;
+					case "dicombinary":
+						const fs = require('fs');
+						const path = require('path');
+						const usrUploadDir = path.join(__dirname, '../../', process.env.USRUPLOAD_DIR);
+						const tempDicomDir = usrUploadDir + '/temp/';
+
+						let outputFile = tempDicomDir + '1bd04cdf-5ec5de56-c6b9e29e-ebc87813-30979450.zip';
+						let binaryContents = new Buffer(data.binary, 'base64');
+						fs.writeFile(outputFile, binaryContents, (err) => {
+  						if (err) return console.error(err)
+  						console.log('file saved to ', outputFile);
+						});
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
