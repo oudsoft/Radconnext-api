@@ -99,7 +99,7 @@ function RadconWebSocketServer (arg, db, log) {
 				data = {};
 			}
 
-			log.info('socket data => ' + JSON.stringify(data));
+			//log.info('socket data => ' + JSON.stringify(data));
 			let hospitalId, owner, localSocket;
 			if (data.type) {
 				switch (data.type) {
@@ -364,6 +364,8 @@ function RadconWebSocketServer (arg, db, log) {
 						fs.writeFile(outputFile, binaryContents, (err) => {
   						if (err) return console.error(err)
   						console.log('file saved to ', outputFile);
+							let dicomZipPath = process.env.USRUPLOAD_PATH + '/' + zipFilename;
+							ws.send(JSON.stringify({type: 'dicombinary-result', size: binaryContents.length, link: dicomZipPath}));
 						});
 					break;
 				}
