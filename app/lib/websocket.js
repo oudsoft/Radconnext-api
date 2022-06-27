@@ -8,8 +8,8 @@ function RadconWebSocketServer (arg, db, log) {
 	const uti = require('./mod/util.js')(db, log);
 	this.httpsServer = arg;
 	const WebSocketServer = require('ws').Server;
-	const wss = new WebSocketServer({server: this.httpsServer/*, path: '/' + roomname */});
-	this.socket = wss;
+	const wss = new WebSocketServer({server: this.httpsServer, /*path: '/' + roomname */ maxPayload: 202560039});
+	this.socket = wss;202560039
 	this.clients = [];
 	this.db = db;
 	this.unSendDatas = [];
