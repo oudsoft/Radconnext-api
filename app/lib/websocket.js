@@ -1,6 +1,7 @@
 /* websocket.js */
 const fs = require('fs');
 const path = require('path');
+const splitFile = require('split-file');
 
 function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
@@ -8,8 +9,8 @@ function RadconWebSocketServer (arg, db, log) {
 	const uti = require('./mod/util.js')(db, log);
 	this.httpsServer = arg;
 	const WebSocketServer = require('ws').Server;
-	const wss = new WebSocketServer({server: this.httpsServer, /*path: '/' + roomname */ maxPayload: 502560039*1024});
-	this.socket = wss;202560039
+	const wss = new WebSocketServer({server: this.httpsServer, /*path: '/' + roomname */ maxPayload: 502560039});
+	this.socket = wss;
 	this.clients = [];
 	this.db = db;
 	this.unSendDatas = [];
@@ -99,7 +100,7 @@ function RadconWebSocketServer (arg, db, log) {
 				data = {};
 			}
 
-			//log.info('socket data => ' + JSON.stringify(data));
+			log.info('socket data => ' + JSON.stringify(data));
 			let hospitalId, owner, localSocket;
 			if (data.type) {
 				switch (data.type) {
