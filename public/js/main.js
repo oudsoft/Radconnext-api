@@ -1,4 +1,6 @@
 let domainNameUrl = 'https://' + window.location.hostname;
+//let domainNameUrl = 'https://localhost:4443'
+//console.log(domainNameUrl);
 //$('head').append('<script src="' + domainNameUrl + '/lib/jquery.js"></script>');
 $('head').append('<script src="' + domainNameUrl + '/lib/jquery-ui.min.js"></script>');
 $('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/lib/jquery-ui.min.css" type="text/css" />');
@@ -18,7 +20,7 @@ setTimeout(()=>{
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="' + domainNameUrl + '/case/css/scanpart.css" type="text/css" />');
 	//$('head').append('<script src="' + domainNameUrl + '/lib/player.js?t=jyoky"></script>');
-	$('head').append('<script src="' + domainNameUrl + '/lib/player.js?ty=5111kyh"></script>');
+	$('head').append('<script src="' + domainNameUrl + '/lib/player.js?ty=5111k10"></script>');
 
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');

@@ -13,6 +13,8 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const TZ = 'Asia/Bangkok';
 
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const proxyRequest = function(rqParam) {
 	return new Promise(function(resolve, reject) {
 		let rqBody = JSON.stringify(rqParam.body);

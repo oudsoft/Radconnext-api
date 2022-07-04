@@ -309,6 +309,52 @@
       }
     }
 
+    const doPlayExternalAudio  = function(URL) {
+      if (playerViewBox){
+        $(playerViewBox).find('.imgbox').remove();
+      }
+      if (timer) {
+        window.clearTimeout(timer);
+      }
+      if (URL !== null) {
+        let localAudio = document.createElement('audio');
+        $(playerViewBox).append($(localAudio));
+        localAudio.id = 'LocalAudio';
+        localAudio.style.position = 'relative';
+        localAudio.style.display = 'inline-block';
+        localAudio.style.width = settings.imgSize + 'px';
+        localAudio.style.height = '45px';
+        localAudio.style.border = '1px solid green';
+        localAudio.style.padding = '2px';
+        localAudio.style.top = '-90px';
+        localAudio.controls = true;
+        localAudio.autoplay = true;
+        localAudio.crossorigin = "anonymous";
+        localAudio.src = URL;
+        setTimeout(() => {
+          localAudio.addEventListener("canplay",  function() {
+            localAudio.play();
+          });
+          localAudio.addEventListener("ended",  function() {
+            if (isAutoPlay){
+              let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+              n = parseInt(n) + 1;
+              if (n == selectedFiles.length){
+                n = 0;
+              }
+              var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+              localAudio.src = fileURL;
+              $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
+            }
+          });
+        }, 2500);
+        $(localAudio).draggable({containment: 'parent'});
+        $(localAudio).resizable({containment: 'parent'});
+      } else {
+        console.log('Error=> clipURL is null');
+      }
+    }
+
     const doCreateFileListBox = function(){
       let fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 1px solid green; top: -90px;"></div>');
     	let fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 300px; margin-top: 10px;"></select>');
@@ -343,6 +389,18 @@
           $(playerViewBox).find('#LocalVideo').resizable({containment: 'parent'});
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
+        } else if (selectedFileType === "audio/mpeg"){
+          if (timer) {
+            window.clearTimeout(timer);
+          }
+          $(playerViewBox).find('#LocalAudio').remove();
+          $(playerViewBox).find('.imgbox').remove();
+          $(playerCmdBox).find('#NavBar').remove();
+          doPlayExternalAudio(fileURL);
+          $(playerViewBox).find('#LocalAudio').draggable({containment: 'parent'});
+          $(playerViewBox).find('#LocalAudio').resizable({containment: 'parent'});
+          let navBar = doCreateNavBar();
+          $(navBar).appendTo($(playerCmdBox));
         }
 
         if (isAutoPlay == true) {
@@ -357,7 +415,7 @@
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'parent'});
       $(playerViewBox).append($(srcFileListBox));
-      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg"/>');
+      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
       $(fileChooser).css({'display': 'none'});
       $(fileChooser).on('change', (evt)=> {
         if (isAutoPlay == true) {

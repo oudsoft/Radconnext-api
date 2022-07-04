@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const splitFile = require('split-file');
 
+let usrUploadDir = path.join(__dirname, '../../', process.env.USRUPLOAD_DIR);
+let tempDicomDir = usrUploadDir + '/temp';
+
 function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
 	const lineApi = require('./mod/lineapi.js')(db, log);
@@ -115,52 +118,6 @@ function RadconWebSocketServer (arg, db, log) {
 							ws.send(JSON.stringify({type: 'notify', message: data.notify, statusId: data.statusId, caseId: data.caseId}));
 						}
 					break;
-					case "exec":
-						if (data.data) {
-							hospitalId = data.data.hospitalId;
-							let localSocket = await $this.findHospitalLocalSocket(ws, hospitalId);
-							if (localSocket) {
-								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
-									localSocket.send(JSON.stringify(data));
-								} else {
-									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
-									ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
-								}
-							} else {
-								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
-							}
-						}
-					break;
-					case "cfindresult":
-						owner = data.owner;
-						hospitalId = data.hospitalId;
-						queryPath = data.queryPath;
-						let cfindResult = {type: "cfindresult", result: data.data, hospitalId: hospitalId, owner: owner, queryPath: queryPath};
-						await $this.selfSendMessage(ws, cfindResult, owner);
-					break;
-					case "move":
-						if (data.data) {
-							hospitalId = data.data.hospitalId;
-							let localSocket = await $this.findHospitalLocalSocket(ws, hospitalId);
-							if (localSocket) {
-								if ((localSocket.readyState == 0) || (localSocket.readyState == 1)) {
-									localSocket.send(JSON.stringify(data));
-								} else {
-									await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
-									ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Inactive!!'}));
-								}
-							} else {
-								ws.send(JSON.stringify({type: 'notify', message: 'Local Socket have not Connected!!'}));
-							}
-						}
-					break;
-					case "cmoveresult":
-						owner = data.owner;
-						hospitalId = data.hospitalId;
-						let patientID = data.PatientID;
-						let cmoveResult = {type: "cmoveresult", result: data.data, patientID: patientID, owner: owner, hospitalId: hospitalId};
-						await $this.selfSendMessage(ws, cmoveResult, owner);
-					break;
 					case "clientrun":
 						if (data.commands) {
 							let localSocket = await $this.findHospitalLocalSocket(ws, data.hospitalId);
@@ -261,21 +218,7 @@ function RadconWebSocketServer (arg, db, log) {
 						}
 					break;
 					case "callzoom":
-						let sendTo = data.sendTo;
-						let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
-						let canSendCallZomm = await $this.selfSendMessage(ws, callData, sendTo);
-						if (!canSendCallZomm) {
-							$this.unSendDatas.push({sendTo: sendTo, callData: callData});
-						} else {
-							let radioCaseUserLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {userId: data.radioId}});
-							let radioLineUserId = radioCaseUserLines[0].UserId;
-							if ((radioLineUserId) && (radioLineUserId !== '')) {
-								let vdoCallReqFmt = 'มี Video Call หัวข้อ %s โดย %s เป็นผู้ขอ โปรดล็อกอินเข้าระบบ เพื่อเปิด Video Call หัวข้อดังกล่าว'
-								let lineVdoCallMsg = uti.fmtStr(vdoCallReqFmt, data.topic, data.senderInfo);
-								let vdoCallMenuQuickReply = lineApi.createBotMenu(lineVdoCallMsg, 'quick', lineApi.radioMainMenu);
-								let vdoCallBotResponse = await lineApi.pushConnect(radioLineUserId, vdoCallMenuQuickReply);
-							}
-						}
+						let canSendRadio = await $this.doControlZoomCall(data, ws);
 					break;
 					case "callzoomback":
 						let sendBackTo = data.sendTo;
@@ -289,26 +232,7 @@ function RadconWebSocketServer (arg, db, log) {
 						ws.screenstate = data.value;
 					break;
 					case "message":
-						let sendto = data.sendto;
-						let from = data.from;
-						let context = data.context;
-						let sendtotype = data.sendtotype;
-						let fromtype = data.fromtype;
-						let sendDate = new Date();
-						let msgSend = {type: 'message', msg: data.msg, topicId: context.topicId, from: from, context: context, datetime: sendDate, sendtotype: sendtotype, fromtype: fromtype};
-						let sendResult = await $this.sendMessage(msgSend, sendto);
-						if (data.context.topicId) {
-							let topicId = data.context.topicId;
-							let topicType = data.context.topicType;
-							let saveResult = await $this.saveChatLog(topicId, topicType, msgSend);
-							if (saveResult.currentStatus == 0){
-								let userSockets = await $this.filterUserSocket(sendto);
-								if (userSockets.length > 0){
-									let radioScreenState = userSockets[0].screenstate;
-									await $this.doSendNotifyOnNewMessage(msgSend, sendto, radioScreenState);
-								}
-							}
-						}
+						let chatRes = await $this.doControlChatMessage(data);
 					break;
 					case "closetopic":
 						await $this.closeTopic(data.topicId);
@@ -356,18 +280,48 @@ function RadconWebSocketServer (arg, db, log) {
 						let controlRes = await $this.doControlWrtcMessage(data);
 					break;
 					case "dicombinary":
-						let usrUploadDir = path.join(__dirname, '../../', process.env.USRUPLOAD_DIR);
-						let tempDicomDir = usrUploadDir + '/temp';
-						let zipFilename = data.zipFilename;
+						let zipFilename = data.filename;
 						let outputFile = tempDicomDir + '/' + zipFilename;
-						//let binaryContents = new Buffer(data.binary, 'base64');
 						let binaryContents = Buffer.from(data.binary, 'base64');
 						fs.writeFile(outputFile, binaryContents, (err) => {
   						if (err) return console.error(err)
   						console.log('file saved to ', outputFile);
 							let dicomZipPath = process.env.USRUPLOAD_PATH + '/' + zipFilename;
-							ws.send(JSON.stringify({type: 'dicombinary-result', size: binaryContents.length, link: dicomZipPath}));
+							ws.send(JSON.stringify({type: 'dicombinary-result', name: zipFilename, path: data.path, size: binaryContents.length, link: dicomZipPath}));
 						});
+					break;
+					case "dicombinary-merge":
+						let originName = tempDicomDir + '/' + data.originname;
+						let multiParts = [];
+						await data.names.forEach((item, i) => {
+							let part = tempDicomDir + '/' + item;
+							multiParts.push(part);
+						});
+						console.log('multiParts=>' + multiParts);
+						splitFile.mergeFiles(multiParts, originName).then(() => {
+							ws.send(JSON.stringify({type: 'merge-result', name: data.originname, link: originName}));
+						})
+					break;
+					case "call-server-api":
+						//data.hospitalId;
+						//data.username;
+						let apiOptions = {
+							strictSSL: false,
+							method: data.method,
+							uri: 'https://localhost' + data.url,
+							headers: {'Content-Type': 'application/json'}
+						};
+						if ((data.method).toUpperCase() == 'POST') {
+							apiOptions.body = data.params;
+						}
+						if (data.auth) {
+							apiOptions.auth = data.auth;
+						}
+						if (data.Authorization) {
+							apiOptions.headers.Authorization = data.Authorization;
+						}
+						let apiRes = await uti.proxyRequest(apiOptions);
+						ws.send(JSON.stringify({type: 'server-api-result', result: apiRes}));
 					break;
 				}
 			} else {
@@ -572,6 +526,27 @@ function RadconWebSocketServer (arg, db, log) {
 		});
 	}
 
+	this.doControlZoomCall = function(data, ws) {
+		return new Promise(async function(resolve, reject) {
+			let sendTo = data.sendTo;
+			let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+			let canSendCallZomm = await $this.selfSendMessage(ws, callData, sendTo);
+			if (!canSendCallZomm) {
+				$this.unSendDatas.push({sendTo: sendTo, callData: callData});
+			} else {
+				let radioCaseUserLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {userId: data.radioId}});
+				let radioLineUserId = radioCaseUserLines[0].UserId;
+				if ((radioLineUserId) && (radioLineUserId !== '')) {
+					let vdoCallReqFmt = 'มี Video Call หัวข้อ %s โดย %s เป็นผู้ขอ โปรดล็อกอินเข้าระบบ เพื่อเปิด Video Call หัวข้อดังกล่าว'
+					let lineVdoCallMsg = uti.fmtStr(vdoCallReqFmt, data.topic, data.senderInfo);
+					let vdoCallMenuQuickReply = lineApi.createBotMenu(lineVdoCallMsg, 'quick', lineApi.radioMainMenu);
+					let vdoCallBotResponse = await lineApi.pushConnect(radioLineUserId, vdoCallMenuQuickReply);
+				}
+			}
+			resolve(canSendCallZomm);
+		});
+	}
+
 	this.findOrthancLocalSocket = function(hospitalId) {
 		return new Promise(async function(resolve, reject) {
 			let allSocket = await $this.listClient();
@@ -678,6 +653,32 @@ function RadconWebSocketServer (arg, db, log) {
 				resolve();
 			}
 		});
+	}
+
+	this.doControlChatMessage = function(data){
+	  return new Promise(async function(resolve, reject) {
+			let sendto = data.sendto;
+			let from = data.from;
+			let context = data.context;
+			let sendtotype = data.sendtotype;
+			let fromtype = data.fromtype;
+			let sendDate = new Date();
+			let msgSend = {type: 'message', msg: data.msg, topicId: context.topicId, from: from, context: context, datetime: sendDate, sendtotype: sendtotype, fromtype: fromtype};
+			let sendResult = await $this.sendMessage(msgSend, sendto);
+			if (data.context.topicId) {
+				let topicId = data.context.topicId;
+				let topicType = data.context.topicType;
+				let saveResult = await $this.saveChatLog(topicId, topicType, msgSend);
+				if (saveResult.currentStatus == 0){
+					let userSockets = await $this.filterUserSocket(sendto);
+					if (userSockets.length > 0){
+						let radioScreenState = userSockets[0].screenstate;
+						await $this.doSendNotifyOnNewMessage(msgSend, sendto, radioScreenState);
+					}
+				}
+			}
+	    resolve(sendResult);
+	  });
 	}
 
 	this.doControlWrtcMessage = function(data){

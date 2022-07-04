@@ -29,17 +29,17 @@ const privateKey = fs.readFileSync(__dirname + '/key.pem', 'utf8');
 const certificate = fs.readFileSync(__dirname + '/key.crt', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
-const ALLOW_ORIGIN = ['https://localhost:4443', 'https://radconnext.info', 'https://radconnext.com'];
+const ALLOW_ORIGIN = ['http://localhost:3000', 'https://radconnext.info', 'https://radconnext.tech'];
 
 const controlOrigin = (req, res, next) => {
-	let ORIGIN = req.headers.origin;
-	//log.info('who? = ' + ORIGIN)
-  if (ALLOW_ORIGIN.includes(ORIGIN)) {
-		//log.info('yes!!')
-    res.header('Access-Control-Allow-Origin', ORIGIN)
+	let origin = req.headers.origin;
+	log.info('who? = ' + origin)
+  if (ALLOW_ORIGIN.includes(origin)) {
+		log.info('yes!!')
+    res.header('Access-Control-Allow-Origin', origin)
+		res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
+	  res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
   }
-  res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
-  res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
   return next()
 }
 
@@ -76,14 +76,14 @@ httpsServer.on('listening', onListening);
 //const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
 const {api, db, shopdb, taskCase, whomtask, voipTask, webSocketServer} = require(__dirname + '/../app/api.js')(httpsServer, log);
 const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
-mainApp.use('/api', api);
-mainApp.use('/app', app);
+mainApp.use('/api', controlOrigin, api);
+mainApp.use('/app', controlOrigin, app);
 
 const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
 const shopLogin = require(__dirname + '/../app/db/rest/shop/login.js')(shopdb, log);
 
-mainApp.use('/api/login', login);
-mainApp.use('/api/shop/login', shopLogin);
+mainApp.use('/api/login', controlOrigin, login);
+mainApp.use('/api/shop/login', controlOrigin, shopLogin);
 
 const reCaseTaskApp = require(__dirname + '/../app/lib/re-casetasks.js')( taskCase, whomtask, voipTask, db, log, webSocketServer);
 reCaseTaskApp.doRun().then((alives)=>{
