@@ -2485,6 +2485,7 @@ module.exports = function ( jq ) {
 
 		console.log(orderObj);
 
+		//if ((!orderObj.Status) || ())
     $(customerControlCmd).append($(editCustomerCmd));
     let dlgHandle = undefined;
     $(editCustomerCmd).on('click', async (evt)=>{
@@ -2921,6 +2922,8 @@ module.exports = function ( jq ) {
 								});
 								$(orderBox).append($(taxinvoiceBox));
 							}
+						} else if (orders[i].Status == 0) {
+							$(orderBox).css({'background-color': 'grey'});
 						}
             $(orderBox).on('click', (evt)=>{
 							evt.stopPropagation();

@@ -70,7 +70,7 @@ app.post('/select/(:templateId)', (req, res) => {
         try {
           let templateId = req.params.templateId;
           const templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: templateId}});
-          res.json({status: {code: 200}, Record: templates[0]});
+          res.json({status: {code: 200}, Records: [templates[0]]});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
