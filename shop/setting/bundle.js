@@ -1466,13 +1466,14 @@ module.exports = function ( jq ) {
   						console.log("ดำเนินการได้ : " + Math.round(progress) + "%");
   					},
             success: function(uploaddata){
-  						//console.log('Uploaded.', data);
+  						//console.log('Uploaded.', uploaddata);
               var imageUrl = uploaddata.link;
               $("#urltext").val(imageUrl);
               targetData.customImageelement.options['url'] = imageUrl;
               targetData.customImageelement.options.refresh();
             }
           });
+					$(fragTarget).click();
         }
       });
       $(fileBrowser).appendTo($(fragImageSrcInput));
@@ -2388,14 +2389,15 @@ module.exports = function ( jq ) {
 			let titleTextBox = $('<div></div>').text('รายการออร์เดอร์ของร้าน');
 			let orderDateBox = $('<div></div>').text(selectDate).css({'width': 'fit-content', 'display': 'inline-block', 'background-color': 'white', 'color': 'black', 'padding': '4px', 'cursor': 'pointer', 'font-size': '16px'});
 			$(orderDateBox).on('click', (evt)=>{
-				common.calendarOptions.onClick = async function(date){
-					calendarHandle.closeAlert();
-					selectDate = common.doFormatDateStr(new Date(date));
-					$(orderDateBox).text(selectDate);
-					$(workAreaBox).empty().append($(titlePageBox)).append($(newOrderCmdBox));
-					await doCreateOrderList(shopData, workAreaBox, selectDate);
-				}
-				let calendarHandle = doShowCalendarDlg(common.calendarOptions);
+					common.calendarOptions.onClick = async function(date){
+						selectDate = common.doFormatDateStr(new Date(date));
+						$(orderDateBox).text(selectDate);
+						$('#OrderListBox').remove();
+						let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
+						$(workAreaBox).append($(orderListBox));
+						calendarHandle.closeAlert();
+					}
+					let calendarHandle = doShowCalendarDlg(common.calendarOptions);
 			});
 			$(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 
@@ -2409,10 +2411,10 @@ module.exports = function ( jq ) {
 			$(newOrderCmdBox).append($(newOrderCmd))
 			$(workAreaBox).append($(newOrderCmdBox));
 
-      await doCreateOrderList(shopData, workAreaBox, selectDate);
-      /*
-        order list of today
-      */
+			$('#OrderListBox').remove();
+			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
+			$(workAreaBox).append($(orderListBox));
+
       resolve();
     });
   }
@@ -2876,7 +2878,7 @@ module.exports = function ( jq ) {
       let orders = orderRes.Records;
       console.log(orders);
       //localStorage.setItem('orders', JSON.stringify(orders));
-      let orderListBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px'});
+      let orderListBox = $('<div id="OrderListBox"></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px'});
       if ((orders) && (orders.length > 0)) {
         let	promiseList = new Promise(async function(resolve2, reject2){
           for (let i=0; i < orders.length; i++) {
@@ -2942,8 +2944,8 @@ module.exports = function ( jq ) {
           resolve(ob[0]);
         });
       } else {
-				$(workAreaBox).append($('<div>ไม่พบรายการออร์เดอร์ของวันที่ ' + orderDate + '</div>'));
-        resolve();
+				$(orderListBox).text('ไม่พบรายการออร์เดอร์ของวันที่ ' + orderDate);
+        resolve($(orderListBox));
       }
     });
   }
@@ -3045,7 +3047,7 @@ module.exports = function ( jq ) {
 				});
 				let mngShopCmd = $('<input type="button" value=" Manage " class="action-btn"/>').css({'margin-left': '8px'});
 				$(mngShopCmd).on('click', (evt)=>{
-					doOpenManageShop(item);
+					doOpenManageShop(item, doStartUploadPicture, doOpenEditShopForm);
 				});
 				let deleteShopCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
 				$(deleteShopCmd).on('click', (evt)=>{
@@ -3239,8 +3241,8 @@ module.exports = function ( jq ) {
 		let editShopFormBox = $('body').radalert(editshopformoption);
 	}
 
-	const doOpenManageShop = function(shopData, uploadLogCallback, editShopCallback){
-		shopmng.doShowShopMhg(shopData, uploadLogCallback, editShopCallback)
+	const doOpenManageShop = function(shopData, uploadLogoCallback, editShopCallback){
+		shopmng.doShowShopMhg(shopData, uploadLogoCallback, editShopCallback)
 	}
 
 	const doDeleteShop = function(shopId){
@@ -3294,7 +3296,7 @@ module.exports = function ( jq ) {
 	const order = require('./order-mng.js')($);
 	const template = require('./template-design.js')($);
 
-  const doCreateTitlePage = function(shopData, uploadLogCallback, editShopCallback){
+  const doCreateTitlePage = function(shopData, uploadLogoCallback, editShopCallback){
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
     let shopLogoIcon = new Image();
     if (shopData['Shop_LogoFilename'] !== ''){
@@ -3318,7 +3320,7 @@ module.exports = function ( jq ) {
 		});
 		$(editShopLogoCmd).on('click', (evt)=>{
 			evt.stopPropagation();
-			uploadLogCallback(evt, shopLogoIconBox, shopData.id, (successData)=>{
+			uploadLogoCallback(evt, shopLogoIconBox, shopData.id, (successData)=>{
 				//console.log(successData);
 				shopLogoIcon.src = successData.link;
 			});
@@ -3355,6 +3357,11 @@ module.exports = function ( jq ) {
 					$(shopTel).text(newShopData['Shop_Tel']);
 					$(shopMail).text(newShopData['Shop_Mail']);
 					$(shopVatNo).text(newShopData['Shop_VatNo']);
+					shopData['Shop_Name'] = newShopData['Shop_Name'];
+					shopData['Shop_Address'] = newShopData['Shop_Address'];
+					shopData['Shop_Tel'] = newShopData['Shop_Tel'];
+					shopData['Shop_Mail'] = newShopData['Shop_Mail'];
+					shopData['Shop_VatNo'] = newShopData['Shop_VatNo'];
 				});
 				$('#Shop_BillQuota').attr('readOnly', true);
 			});
@@ -3884,6 +3891,7 @@ module.exports = function ( jq ) {
 			}
 		});
 		if (typeFilters.length > 0) {
+			$(wrapper).empty();
 			let elements = typeFilters[0].Content;
 			$(templateNameInput).val(typeFilters[0].Name);
 			const promiseList = new Promise(async function(resolve2, reject2){
@@ -4111,7 +4119,11 @@ module.exports = function ( jq ) {
 		usertypes.forEach((item, i) => {
 			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
 		});
-		$(inputValue).val(userData.usertypeId);
+		if ((userData) && (userData.usertypeId)) {
+			$(inputValue).val(userData.usertypeId);
+		} else {
+			$(inputValue).val(3);
+		}
 		$(inputField).append($(inputValue));
 		$(fieldRow).append($(labelField));
 		$(fieldRow).append($(inputField));

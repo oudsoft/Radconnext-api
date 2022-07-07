@@ -20,10 +20,12 @@ const upload = multer({
   limits: {fileSize: 100000000}
 });
 
+/*
 const uploadTemplate = multer({
   dest: path.join(__dirname, '../../../', process.env.USRUPLOAD_DIR),
   limits: {fileSize: 100000000}
 });
+*/
 
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
@@ -135,7 +137,7 @@ module.exports = function (app) {
     });
   });
 
-  app.post('/shop/upload/image/template', uploadTemplate.array('imagetemplate'), function(req, res) {
+  app.post('/shop/upload/image/template', upload.array('imagetemplate'), function(req, res) {
 		//const token = req.cookies[process.env.COOKIE_NAME].token;
 		//console.log('token from cookie', token);
 
@@ -153,7 +155,7 @@ module.exports = function (app) {
 
 		var command = parseStr(' rm %s', imgPath);
 		runcommand(command).then((stdout) => {
-			var link =  process.env.USRUPLOAD_PATH + '/template/' + newFileName;
+			var link =  DWLD + '/template/' + newFileName;
 			res.status(200).send({status: {code: 200}, text: 'ok upload image on template.', link: link});
 		}).catch((err) => {
 			console.log('err: 500 >>', err);
