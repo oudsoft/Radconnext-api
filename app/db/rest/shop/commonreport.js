@@ -301,7 +301,7 @@ const doLoadVariable = function(docType, orderId, docNo){
   });
 }
 
-const reportCreator = function(elements, variable, pdfFileName, orderId, paperSize){
+const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rsT, paperSize){
 	return new Promise(async function(resolve, reject) {
 		const publicDir = path.normalize(__dirname + '/../../../../public');
     const shopDir = path.normalize(__dirname + '/../../../../shop');
@@ -368,8 +368,14 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, paperSi
 			_window.doCreateReportDOM(elements, variable, qrlink, orderId, paperSize, async (reportHTML, maxTop) =>{
 				/******/
         let htmlFilePath = usrPdfPath + '/' + htmlFileName;
-				var writerStream = fs.createWriteStream(htmlFilePath);
-				var reportContent = '<!DOCTYPE html>\n<html>\n<head>\n<link href="../../../report-design/report.css" rel="stylesheet">\n<style>body {font-family: "Kanit", sans-serif;}</style>\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
+				let writerStream = fs.createWriteStream(htmlFilePath);
+				let wrapperWidth = undefined;
+				if (paperSize == 1){
+					wrapperWidth = 1004;
+				} else if (paperSize = 2) {
+					wrapperWidth = 374;
+				}
+				let reportContent = '<!DOCTYPE html>\n<html>\n<head>\n<link href="../../../report-design/report.css" rel="stylesheet">\n<style>body {font-family: "Kanit", sans-serif;}\n#report-wrapper {width: ' + wrapperWidth + 'px; height: auto;}\n</style>\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
 				writerStream.write(reportContent,'UTF8');
 				writerStream.end();
 				writerStream.on('finish', function() {
@@ -386,7 +392,9 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, paperSi
 					if (paperSize == 1){
 						creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
 					} else if (paperSize = 2) {
-						creatReportCommand = fmtStr('wkhtmltopdf --page-width 80 --page-height %s http://localhost:8080%s %s', maxTop, reportHtmlLinkPath, reportPdfFilePath);
+						let paperWidth = 80;
+						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
+						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s http://localhost:8080%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
 					}
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					runcommand(creatReportCommand).then(async (cmdout) => {
@@ -444,10 +452,9 @@ const doCreateReport = function(orderId, docType, shopId){
     const reportElements = templates[0].Content;
     const paperSize = templates[0].PaperSize;
     const reportVar = await doLoadVariable(docType, orderId);
-    const rsH = parseFloat(reportVar.rsH);
-		const rsT = parseFloat(reportVar.rsT);
+    const rsH = parseFloat(reportVar.rsDimension.height.real);
+		const rsT = parseFloat(reportVar.rsDimension.top);
 		const pdfFileName = reportVar.print_filename;
-
     let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 
     resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages}});

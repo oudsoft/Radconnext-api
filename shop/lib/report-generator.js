@@ -270,6 +270,7 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
       }
     });
 
+    console.log('rsDimension=>' + JSON.stringify(variable.rsDimension));
     console.log('maxTop=>' + maxTop);
     cb($(wrapper).html(), maxTop);
   });
