@@ -194,6 +194,11 @@ module.exports = ( httpsServer, monitor ) => {
 	}).catch((err) => {
 		log.error('error=>' + err);
 	});
-
+	let shopDir = path.normalize(__dirname + '/..' + '/shop');
+	let internalShopHTTP = 'http-server -p 8088 ' + shopDir;
+	log.info('Create Internal Shop HTTP Server with command=>' + internalShopHTTP);
+	uploader.runcommand(internalShopHTTP).then((res)=>{
+		log.info('res=>' + res);
+	});
 	return { api: apiApp, db: db, shopdb: shopdb, taskCase: taskCase, whomtask: whomtask, voipTask: voipTask, webSocketServer: webSocketServer };
 }

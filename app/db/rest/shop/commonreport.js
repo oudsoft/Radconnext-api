@@ -320,7 +320,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 		const qrlink = qrcode.qrlink;
 
 
-		const usrPdfPath = publicDir + process.env.USRPDF_PATH;
+		const usrPdfPath = shopDir + process.env.USRPDF_PATH;
 		const htmlFileName = fileNames[0] + '.html';
 		const reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
 
@@ -390,18 +390,19 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 
 					let creatReportCommand = undefined;
 					if (paperSize == 1){
-						creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8088%s %s', reportHtmlLinkPath, reportPdfFilePath);
 					} else if (paperSize = 2) {
 						let paperWidth = 80;
 						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
-						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s http://localhost:8080%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s http://localhost:8088%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
 					}
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					runcommand(creatReportCommand).then(async (cmdout) => {
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
-						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: /*reportPages*/pdfPage});
+						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath
+						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage});
 					}).catch((cmderr) => {
 						log.error('cmderr: 500 >>', cmderr);
 						reject(cmderr);

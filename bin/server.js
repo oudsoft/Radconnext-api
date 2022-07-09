@@ -33,9 +33,9 @@ const ALLOW_ORIGIN = ['http://localhost:3000', 'https://radconnext.info', 'https
 
 const controlOrigin = (req, res, next) => {
 	let origin = req.headers.origin;
-	log.info('who? = ' + origin)
+	//log.info('who? = ' + origin)
   if (ALLOW_ORIGIN.includes(origin)) {
-		log.info('yes!!')
+		//log.info('yes!!')
     res.header('Access-Control-Allow-Origin', origin)
 		res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
 	  res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
