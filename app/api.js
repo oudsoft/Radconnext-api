@@ -194,8 +194,8 @@ module.exports = ( httpsServer, monitor ) => {
 	}).catch((err) => {
 		log.error('error=>' + err);
 	});
-	let shopDir = path.normalize(__dirname + '/..' + '/shop');
-	let internalShopHTTP = 'http-server -p 8088 ' + shopDir;
+	let shopDir = path.normalize(__dirname + '/..'/* + '/shop'*/);
+	let internalShopHTTP = 'http-server --port 8088 ' + shopDir;
 	log.info('Create Internal Shop HTTP Server with command=>' + internalShopHTTP);
 	uploader.runcommand(internalShopHTTP).then((res)=>{
 		log.info('res=>' + res);
