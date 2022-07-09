@@ -63,6 +63,8 @@ const billFieldOptions = [
   {name_en: 'cashchange', name_th: 'เงินทอน'}
 ]
 
+const monthTHNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+
 const fmtStr = function (str) {
   var args = [].slice.call(arguments, 1);
   var i = 0;
@@ -153,7 +155,8 @@ const formatStudyDate = function(studydateStr){
 		var dd = studydateStr.substr(6, 2);
 		var stddf = yy + '-' + mo + '-' + dd;
 		var stdDate = new Date(stddf);
-		var month = stdDate.toLocaleString('default', { month: 'short' });
+		//var month = stdDate.toLocaleString('default', { month: 'short' });
+		var month = monthTHNames[Number(mo)-1];
 		return Number(dd) + ' ' + month + ' ' + yy;
 	} else {
 		return studydateStr;
@@ -256,8 +259,8 @@ const doLoadVariable = function(docType, orderId, docNo){
         shop_mail: orders[0].shop.Shop_Mail,
         shop_vatno: orders[0].shop.Shop_VatNo,
         customer_name: orders[0].customer.Name,
-        customer_address: orders[0].customer.Address,
-        customer_tel: orders[0].customer.Tel,
+        customer_address: ((orders[0].customer.Address) && (orders[0].customer.Address != ''))?orders[0].customer.Address:'-',
+        customer_tel: ((orders[0].customer.Tel) && (orders[0].customer.Tel != ''))?orders[0].customer.Tel:'-',
         order_no: orderId,
         order_by: orders[0].userinfo.User_NameTH + ' ' + orders[0].userinfo.User_LastNameTH,
         order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
