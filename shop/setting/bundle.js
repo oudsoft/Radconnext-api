@@ -2613,8 +2613,12 @@ module.exports = function ( jq ) {
 				let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
 				let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 				console.log(docRes);
-				window.open(docRes.result.link, '_blank');
-				$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
+				if (docRes.status.code == 200) {
+					window.open(docRes.result.link, '_blank');
+					$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
+				} else if (docRes.status.code == 300) {
+					$.notify("ระบบไม่พบรูปแบบเอกสารใบแจ้งหนี้", "error");
+				}
 			} else {
 				$.notify("บันทึกใบแจ้งหนี้ไม่สำเร็จ", "error");
 			}
@@ -2636,8 +2640,12 @@ module.exports = function ( jq ) {
 					let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newBillData.Filename, No: newBillData.No*/};
 					let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
 					console.log(docRes);
-					window.open(docRes.result.link, '_blank');
-					$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
+					if (docRes.status.code == 200) {
+						window.open(docRes.result.link, '_blank');
+						$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
+					} else if (docRes.status.code == 300) {
+						$.notify("ระบบไม่พบรูปแบบเอกสารบิลเงินสด/ใบเสร็จรับเงิน", "error");
+					}
 				} else {
 					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
 				}
@@ -2662,8 +2670,12 @@ module.exports = function ( jq ) {
 					let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
 					let docRes = await common.doCallApi('/api/shop/taxinvoice/create/report', docParams);
 					console.log(docRes);
-					window.open(docRes.result.link, '_blank');
-					$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
+					if (docRes.status.code == 200) {
+						window.open(docRes.result.link, '_blank');
+						$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
+					} else if (docRes.status.code == 300) {
+						$.notify("ระบบไม่พบรูปแบบเอกสารใบกำกับภาษี", "error");
+					}
 				} else {
 					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
 				}

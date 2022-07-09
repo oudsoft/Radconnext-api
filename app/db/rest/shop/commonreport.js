@@ -453,21 +453,25 @@ const doFindNewOrderStatus = function(docType){
 const doCreateReport = function(orderId, docType, shopId){
   return new Promise(async function(resolve, reject) {
     const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
-    const reportElements = templates[0].Content;
-    const paperSize = templates[0].PaperSize;
-    const reportVar = await doLoadVariable(docType, orderId);
-    const rsH = parseFloat(reportVar.rsDimension.height.real);
-		const rsT = parseFloat(reportVar.rsDimension.top);
-		const pdfFileName = reportVar.print_filename;
-    let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
+		if (templates.length > 0) {
+	    const reportElements = templates[0].Content;
+	    const paperSize = templates[0].PaperSize;
+	    const reportVar = await doLoadVariable(docType, orderId);
+	    const rsH = parseFloat(reportVar.rsDimension.height.real);
+			const rsT = parseFloat(reportVar.rsDimension.top);
+			const pdfFileName = reportVar.print_filename;
+	    let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 
-    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages}});
+	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages}});
 
-		let from = reportVar.print_status;
-		let canUpdateStatus = doCanUpdateOrederStatus(from, docType);
-		if (canUpdateStatus) {
-			let orderNewStatus = doFindNewOrderStatus(docType);
-			await db.orders.update({Status: orderNewStatus}, { where: { id: orderId } });
+			let from = reportVar.print_status;
+			let canUpdateStatus = doCanUpdateOrederStatus(from, docType);
+			if (canUpdateStatus) {
+				let orderNewStatus = doFindNewOrderStatus(docType);
+				await db.orders.update({Status: orderNewStatus}, { where: { id: orderId } });
+			}
+		} else {
+			resolve({status: {code: 300}, doc: {}});
 		}
   });
 }
