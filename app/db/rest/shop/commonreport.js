@@ -390,11 +390,11 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 
 					let creatReportCommand = undefined;
 					if (paperSize == 1){
-						creatReportCommand = fmtStr('wkhtmltopdf -s A4 http://localhost:8088/shop%s %s', reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf -s A4 -T 14 -B 14 -L 14 -R 14 http://localhost:8088/shop%s %s', reportHtmlLinkPath, reportPdfFilePath);
 					} else if (paperSize = 2) {
 						let paperWidth = 80;
 						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
-						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s http://localhost:8088/shop%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s -T 10 -B 10 -L 10 -R 10 http://localhost:8088/shop%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
 					}
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					runcommand(creatReportCommand).then(async (cmdout) => {
