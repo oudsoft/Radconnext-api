@@ -316,13 +316,13 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
     }
     log.info('qrcodeFullPath=>' + qrcodeFullPath);
 
-		const qrcode = await qrgenerator(qrcontent, pdfFileName);
-		const qrlink = qrcode.qrlink;
+		let qrcode = await qrgenerator(qrcontent, pdfFileName);
+		let qrlink = qrcode.qrlink;
 
 
-		const usrPdfPath = shopDir + process.env.USRPDF_PATH;
-		const htmlFileName = fileNames[0] + '.html';
-		const reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
+		let usrPdfPath = shopDir + process.env.USRPDF_PATH;
+		let htmlFileName = fileNames[0] + '.html';
+		let reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
 
 		if (fs.existsSync(usrPdfPath + '/' + htmlFileName)) {
 	    //await runcommand('rm ' + usrPdfPath + '/' + htmlFileName);
