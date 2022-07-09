@@ -80,6 +80,9 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
                   newOrder.payment = payments[0];
                 }
                 orderList.push(newOrder);
+              } else if (order.Status == 0) {
+                newOrder = order
+                orderList.push(newOrder);
               }
             }
             setTimeout(()=> {

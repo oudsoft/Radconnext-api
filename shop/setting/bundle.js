@@ -2913,7 +2913,7 @@ module.exports = function ( jq ) {
 								let orderRes = await common.doCallApi('/api/shop/order/update', params);
 								if (orderRes.status.code == 200) {
 									$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
-									$(workAreaBox).empty();
+									$('#OrderListBox').remove();
 									doCreateOrderList(shopData, workAreaBox, orderDate);
 								} else {
 									$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
