@@ -8,6 +8,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const cheerio = require('cheerio');
 const exec = require('child_process').exec;
+const THBText = require('thai-baht-text');
 
 var log, db;
 
@@ -60,7 +61,9 @@ const billFieldOptions = [
 
   {name_en: 'paytype', name_th: 'ชำระโดย'},
   {name_en: 'payamount', name_th: 'จำนวนเงินที่ชำระ'},
-  {name_en: 'cashchange', name_th: 'เงินทอน'}
+  {name_en: 'cashchange', name_th: 'เงินทอน'},
+
+	{name_en: 'baht_word', name_th: 'จำนวนบาทตัวอักษร'}
 ]
 
 const monthTHNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
@@ -286,6 +289,8 @@ const doLoadVariable = function(docType, orderId, docNo){
         discount: docs[0].Discount,
         vat: docs[0].Vat,
         grandtotal: grandtotal,
+
+				baht_word: THBText(grandtotal),
 
         rsDimension: rs
       };

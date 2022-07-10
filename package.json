@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "archiver": "^5.2.0",
+    "async": "^3.2.4",
     "base64-img": "^1.0.4",
     "body-parser": "~1.18.3",
     "canvas": "^2.6.1",
@@ -43,6 +44,7 @@
     "serve-index": "^1.9.1",
     "split-file": "^2.3.0",
     "stream": "0.0.2",
+    "thai-baht-text": "^1.0.8",
     "unzip": "^0.1.11",
     "web-push": "^3.4.4",
     "websocket": "^1.0.34",
