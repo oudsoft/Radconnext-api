@@ -383,7 +383,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 				} else if (paperSize = 2) {
 					wrapperWidth = 374;
 				}
-				let reportContent = '<!DOCTYPE html>\n<html>\n<head>\n<link href="../../../report-design/report.css" rel="stylesheet">\n<style>body {font-family: "Kanit", sans-serif;}\n#report-wrapper {width: ' + wrapperWidth + 'px; height: auto;}\n</style>\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
+				let reportContent = '<!DOCTYPE html>\n<html>\n<head>\n<link href="../../../stylesheets/report.css" rel="stylesheet">\n<style>body {font-family: "Kanit", sans-serif;}\n#report-wrapper {width: ' + wrapperWidth + 'px; height: auto;}\n</style>\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
 				writerStream.write(reportContent,'UTF8');
 				writerStream.end();
 				writerStream.on('finish', function() {

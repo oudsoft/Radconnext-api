@@ -500,8 +500,32 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doOpenReportPdfDlg = function(pdfUrl, title){
+    return new Promise(async function(resolve, reject) {
+      const reportPdfDlgContent = $('<object data="' + pdfUrl + '" type="application/pdf" width="99%" height="380"></object>');
+      $(reportPdfDlgContent).css({'margin-top': '10px'});
+      const reportformoption = {
+  			title: title,
+  			msg: $(reportPdfDlgContent),
+  			width: '720px',
+				okLabel: ' เปิดหน้าต่างใหม่ ',
+				cancelLabel: ' ปิด ',
+  			onOk: async function(evt) {
+					window.open(pdfUrl, '_blank');
+          reportPdfDlgHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				reportPdfDlgHandle.closeAlert();
+  			}
+  		}
+  		let reportPdfDlgHandle = $('body').radalert(reportformoption);
+      resolve(reportPdfDlgHandle)
+    });
+  }
+
   return {
-    doCreateFormDlg
+    doCreateFormDlg,
+		doOpenReportPdfDlg
 	}
 }
 
@@ -2672,7 +2696,8 @@ module.exports = function ( jq ) {
 				let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 				console.log(docRes);
 				if (docRes.status.code == 200) {
-					window.open(docRes.result.link, '_blank');
+					//window.open(docRes.result.link, '_blank');
+					closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'ใบแจ้งหนี้');
 					$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
 				} else if (docRes.status.code == 300) {
 					$.notify("ระบบไม่พบรูปแบบเอกสารใบแจ้งหนี้", "error");
@@ -2699,7 +2724,8 @@ module.exports = function ( jq ) {
 					let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
 					console.log(docRes);
 					if (docRes.status.code == 200) {
-						window.open(docRes.result.link, '_blank');
+						//window.open(docRes.result.link, '_blank');
+						closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'บิลเงินสด/ใบเสร็จรับเงิน');
 						$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
 					} else if (docRes.status.code == 300) {
 						$.notify("ระบบไม่พบรูปแบบเอกสารบิลเงินสด/ใบเสร็จรับเงิน", "error");
@@ -2729,7 +2755,8 @@ module.exports = function ( jq ) {
 					let docRes = await common.doCallApi('/api/shop/taxinvoice/create/report', docParams);
 					console.log(docRes);
 					if (docRes.status.code == 200) {
-						window.open(docRes.result.link, '_blank');
+						//window.open(docRes.result.link, '_blank');
+						closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'ใบกำกับภาษี');
 						$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
 					} else if (docRes.status.code == 300) {
 						$.notify("ระบบไม่พบรูปแบบเอกสารใบกำกับภาษี", "error");
@@ -2996,7 +3023,8 @@ module.exports = function ( jq ) {
 							$(invoiceBox).append($('<span>' + orders[i].invoice.No + '</span>').css({'font-weight': 'bold'}));
 							$(invoiceBox).on('click', (evt)=>{
 								evt.stopPropagation();
-								window.open('/shop/img/usr/pdf/' + orders[i].invoice.Filename, '_blank');
+								//window.open('/shop/img/usr/pdf/' + orders[i].invoice.Filename, '_blank');
+								closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].invoice.Filename, 'ใบแจ้งหนี้');
 							});
 							$(orderBox).append($(invoiceBox));
 						} else if ((orders[i].Status == 3) || (orders[i].Status == 4)) {
@@ -3006,7 +3034,8 @@ module.exports = function ( jq ) {
 								$(billBox).append($('<span>' + orders[i].bill.No + '</span>').css({'font-weight': 'bold'}));
 								$(billBox).on('click', (evt)=>{
 									evt.stopPropagation();
-									window.open('/shop/img/usr/pdf/' + orders[i].bill.Filename, '_blank');
+									//window.open('/shop/img/usr/pdf/' + orders[i].bill.Filename, '_blank');
+									closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].bill.Filename, 'บิลเงินสด/ใบเสร็จรับเงิน');
 								});
 								$(orderBox).append($(billBox));
 							}
@@ -3015,7 +3044,8 @@ module.exports = function ( jq ) {
 								$(taxinvoiceBox).append($('<span>' + orders[i].taxinvoice.No + '</span>').css({'font-weight': 'bold'}));
 								$(taxinvoiceBox).on('click', (evt)=>{
 									evt.stopPropagation();
-									window.open('/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename, '_blank');
+									//window.open('/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename, '_blank');
+									closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename, 'ใบกำกับภาษี');
 								});
 								$(orderBox).append($(taxinvoiceBox));
 							}
@@ -3929,8 +3959,8 @@ module.exports = function ( jq ) {
 					let adjustLeft = (wrapperBoxWidth - constant.SlipWidth) / 2;
 					$(wrapperBox).css({'margin-left': adjustLeft+'px', 'width': reportWrapperWidth+'px'});
 				}
-				//$(wrapperBox).css({'height': newHeight+'px', 'max-height': newHeight + 'px'});
-				$(wrapperBox).css({'height': 'auto'});
+				$(wrapperBox).css({'height': newHeight+'px', 'max-height': newHeight + 'px'});
+				//$(wrapperBox).css({'height': 'auto'});
 
 				doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio, paperSize);
 				const radalertoption = {

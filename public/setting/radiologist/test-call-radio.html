@@ -60,6 +60,11 @@
     $('#UrgentCode').append($('<option value="normal_24hr">normal_24hr</option>'));
 
     $('#Msisdn').val('0825172674');
+    $('#Msisdn').on('keypress',function(evt) {
+      if(evt.which == 13) {
+        doTestCall(evt);
+      };
+    });
   }
 
   const doTestCall = function(evt){

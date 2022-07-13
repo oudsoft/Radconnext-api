@@ -472,7 +472,7 @@ app.post('/add', (req, res) => {
           let actionAfterChange = await statusControl.onNewCaseEvent(adCase.id);
 
           res.json({Result: "OK", status: {code: 200}, Record: adCase, actions: actionAfterChange});
-
+          /*
           let patients = await db.patients.findAll({attributes: ['Patient_NameEN', 'Patient_LastNameEN'], where: {id: patientId}});
           let patientNameEN = patients[0].Patient_NameEN;
           let patientLastNameEN = patients[0].Patient_LastNameEN;
@@ -483,6 +483,7 @@ app.post('/add', (req, res) => {
           let notifyMsg = 'Your request new case can success create advance dicom zip file.'
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
+          */
         });
       } else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});
@@ -591,6 +592,7 @@ app.post('/update', (req, res) => {
             res.json({Result: "OK", status: {code: 200}});
           }
 
+          /*
           let patients = await db.patients.findAll({attributes: ['Patient_NameEN', 'Patient_LastNameEN'], where: {id: targetCase.patientId}});
           let patientNameEN = patients[0].Patient_NameEN;
           let patientLastNameEN = patients[0].Patient_LastNameEN;
@@ -601,7 +603,7 @@ app.post('/update', (req, res) => {
           let notifyMsg = 'Your request update case can replace advance dicom zip file success.'
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
-
+          */
         } else {
           res.json({status: {code: 202}, info: 'The current case status out of bound to update.'});
         }
@@ -1027,6 +1029,17 @@ app.get('/reset/refer/(:caseId)/(:referId)', async (req, res) => {
   const referId = req.params.referId;
   await Case.update({Case_RefferalId: referId}, { where: { id: caseId } });
   res.json({status: {code: 200}, result: 'Success.'});
+});
+
+app.post('/reset/dicom/zipfilename', async (req, res) => {
+  const studyID = req.body.StudyID;
+  const archiveFileName = req.body.ArchiveFileName;
+  const zipPath = '/img/usr/zip';
+  const zipDir = path.normalize(__dirname + '../../../public' + zipPath);
+  let archiveFilePath = zipDir + '/' + archiveFileName
+  await db.cases.update({Case_DicomZipFilename: archiveFileName}, {where: {Case_OrthancStudyID: studyID}});
+  let rmDateTime = uti.removeArchiveScheduleTask(archiveFilePath);
+  res.json({status: {code: 200}, result: {zip: archiveFilePath, rm: rmDateTime}});
 });
 
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {

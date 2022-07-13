@@ -45,6 +45,14 @@ function doFormatNumber(num){
   return Number(num).toLocaleString('en', options);
 }
 
+function doFormatQtyNumber(num){
+  if ((Number(num) === num) && (num % 1 !== 0)) {
+    return doFormatNumber(num);
+  } else {
+    return Number(num);
+  }
+}
+
 function doReplaceDynamicContent(variable, field) {
   switch (field) {
     case 'shop_name':
@@ -119,7 +127,7 @@ function doReplaceDynamicGooditem(gooditem, field, itemNo) {
       return doFormatNumber(gooditem.Price);
     break;
     case 'gooditem_qty':
-      return doFormatNumber(gooditem.Qty);
+      return doFormatQtyNumber(gooditem.Qty);
     break;
     case 'gooditem_total':
       return doFormatNumber(Number(gooditem.Qty) * Number(gooditem.Price));

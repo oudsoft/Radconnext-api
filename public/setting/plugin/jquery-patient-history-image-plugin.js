@@ -93,9 +93,9 @@ $.widget( "custom.imageitem", {
     if (this.options.fileType) {
       if (!validImageTypes.includes(this.options.fileType)) {
         if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
-          hsImage.src = '/images/pdf-icon.png';
+          hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
         } else {
-          hsImage.src = '/images/otherfile-icon.png';
+          hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
         }
       } else {
         hsImage.src = this.options.imgUrl;
@@ -189,7 +189,7 @@ $.widget( "custom.imagehistory", {
   },
   uploadClick: function(e, imageListBox){
     let $this = this;
-    let simpleUploadPluginUrl = "../../lib/simpleUpload.min.js";
+    let simpleUploadPluginUrl = "https://radconnext.info/lib/simpleUpload.min.js";
 		this.cachedScript( simpleUploadPluginUrl ).done(function( script, textStatus ) {
       $this.doOpenSelectFile(imageListBox);
 		});
@@ -220,6 +220,9 @@ $.widget( "custom.imagehistory", {
       success: function(data){
         $(fileBrowser).remove();
         setTimeout(() => {
+          if (window.location.hostname == 'localhost') {
+            data.link = 'https://radconnext.info' + data.link;
+          }
           $this.doAppendNewImageData(data);
           let uploadImageProp = {
             fileType: fileType,
@@ -260,7 +263,7 @@ $.widget( "custom.imagehistory", {
   },
   scannerClick: function(e, imageListBox){
     let $this = this;
-    let scannerPluginUrl = "../../lib/scanner.js";
+    let scannerPluginUrl = "https://radconnext.info/lib/scanner.js";
     this.cachedScript( scannerPluginUrl ).done(function( script, textStatus ) {
       scanner.scan($this.displayImagesOnPage, {
 				"use_asprise_dialog": false,
@@ -287,6 +290,9 @@ $.widget( "custom.imagehistory", {
     //let uploadImageUrl = "/api/scannerupload";
     let uploadImageUrl = $this.options.scannerUploadApiUrl;
     $.post(uploadImageUrl, params, function(data){
+      if (window.location.hostname == 'localhost') {
+        data.link = 'https://radconnext.info' + data.link;
+      }
       setTimeout(()=>{
         $this.doAppendNewImageData(data);
         let uploadImageProp = {
@@ -317,10 +323,10 @@ $.widget( "custom.imagehistory", {
   doLoadEditorPlugin: function(){
     let $this = this;
     return new Promise(async function(resolve, reject) {
-      let fabricUrl = "../../lib/fabric.js"
-      let codeSnippetUrl = "../../lib/tui-code-snippet.min.js"
-      let colorPickerUrl = "../../lib/tui-color-picker.js"
-      let tuiEditorPluginUrl = "../../lib/tui-image-editor.min.js";
+      let fabricUrl = "https://radconnext.info/lib/fabric.js"
+      let codeSnippetUrl = "https://radconnext.info/lib/tui-code-snippet.min.js"
+      let colorPickerUrl = "https://radconnext.info/lib/tui-color-picker.js"
+      let tuiEditorPluginUrl = "https://radconnext.info/lib/tui-image-editor.min.js";
       let fubric = await $this.cachedScript(fabricUrl);
       let codeSnippet = await $this.cachedScript(codeSnippetUrl);
       let colorPicker = await $this.cachedScript(colorPickerUrl);
@@ -508,6 +514,9 @@ $.widget( "custom.imagehistory", {
         let context = tuiCanvas.getContext('2d');
         context.clearRect(0, 0, tuiCanvas.width, tuiCanvas.height);
         //console.log(data.link);
+        if (window.location.hostname == 'localhost') {
+          data.link = 'https://radconnext.info' + data.link;
+        }
         setTimeout(()=>{
           $this.doAppendNewImageData(data);
           let uploadImageProp = {
