@@ -161,31 +161,31 @@ const defaultTableData = [
     ]
   },
   {id: 'dataRow', class: 'gooditem', fields: [
-      {id: 'dataCell_1', cellData: '1', fontweight: 'normal', fontalign: 'center', width: '10%'},
-      {id: 'dataCell_2', cellData: 'ชื่อสินค้า', fontweight: 'normal', fontalign: 'left', width: '34%'},
-      {id: 'dataCell_3', cellData: '100.00', fontweight: 'normal', fontalign: 'center', width: '20%'},
-      {id: 'dataCell_4', cellData: '1', fontweight: 'normal', fontalign: 'center', width: '13%'},
-      {id: 'dataCell_5', cellData: '100.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+      {id: 'dataCell_1', type: "dynamic", cellData: '$gooditem_no', fontweight: 'normal', fontalign: 'center', width: '10%'},
+      {id: 'dataCell_2', type: "dynamic", cellData: '$gooditem_name', fontweight: 'normal', fontalign: 'left', width: '34%'},
+      {id: 'dataCell_3', type: "dynamic", cellData: '$gooditem_price', fontweight: 'normal', fontalign: 'center', width: '20%'},
+      {id: 'dataCell_4', type: "dynamic", cellData: '$gooditem_qty', fontweight: 'normal', fontalign: 'center', width: '13%'},
+      {id: 'dataCell_5', type: "dynamic", cellData: '$gooditem_total', fontweight: 'normal', fontalign: 'right', width: '19%'}
     ]
   },
   {id: 'totalRow', fields: [
       {id: 'totalCell_1', cellData: 'รวมค่าสินค้า', fontweight: 'normal', fontalign: 'center', width: '78%'},
-      {id: 'totalCell_2', cellData: '100.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+      {id: 'totalCell_2', type: "dynamic", cellData: '$total', fontweight: 'normal', fontalign: 'right', width: '19%'}
     ]
   },
   {id: 'discountRow', fields: [
       {id: 'discountCell_1', cellData: 'ส่วนลด', fontweight: 'normal', fontalign: 'center', width: '78%'},
-      {id: 'discountCell_2', cellData: '0.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+      {id: 'discountCell_2', type: "dynamic", cellData: '$discount', fontweight: 'normal', fontalign: 'right', width: '19%'}
     ]
   },
   {id: 'vatRow', fields: [
       {id: 'vatCell_1', cellData: 'ภาษีมูลค่าเพิ่ม 7%', fontweight: 'normal', fontalign: 'center', width: '78%'},
-      {id: 'vatCell_2', cellData: '0.00', fontweight: 'normal', fontalign: 'right', width: '19%'}
+      {id: 'vatCell_2', type: "dynamic", cellData: '$vat', fontweight: 'normal', fontalign: 'right', width: '19%'}
     ]
   },
   {id: 'grandTotalRow', backgroundColor: '#ddd', fields: [
       {id: 'grandTotalCell_1', cellData: 'รวมทั้งหมด', fontweight: 'bold', fontalign: 'center', width: '78%'},
-      {id: 'grandTotalCell_2', cellData: '100.00', fontweight: 'bold', fontalign: 'right', width: '19%'}
+      {id: 'grandTotalCell_2', type: "dynamic", cellData: '$grandtotal', fontweight: 'bold', fontalign: 'right', width: '19%'}
     ]
   }
 ]
@@ -3602,7 +3602,7 @@ module.exports = function ( jq ) {
     let newRatio = doCalRatio(paperSize);
     let newHeight = undefined;
 		if (paperSize == 1){
-			newHeight = constant.A4Height * newRatio;
+			newHeight = constant.A4Height/* * newRatio*/;
 			$('#report-container').css({'width': constant.A4Width, 'margin-left': '0px'});
 		} else if (paperSize == 2){
 			newHeight = constant.SlipHeight * newRatio;
@@ -3821,56 +3821,68 @@ module.exports = function ( jq ) {
   }
 
 	const doRenderElement = function(shopData, wrapper, reportElements, ratio, paperSize){
-		let newRatio = 1;
-		if (ratio) {
-			newRatio = ratio;
-		}
-		console.log(newRatio);
-    reportElements.forEach((elem, i) => {
-      let element;
-      switch (elem.elementType) {
-        case "text":
-          element = $("<div></div>").css({'position': 'absolute'});
-          //$(element).addClass("reportElement");
-          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
-          $(element).css({"font-size": Number(elem.fontsize)*newRatio + "px"});
-          $(element).css({"font-weight": elem.fontweight});
-          $(element).css({"font-style": elem.fontstyle});
-          $(element).css({"text-align": elem.fontalign});
-					let field = elem.title.substring(1);
-					if (field == 'shop_name') {
-						$(element).text(shopData.Shop_Name);
-					} else if (field == 'shop_address') {
-						$(element).text(shopData.Shop_Address);
-					} else {
-						$(element).text(elem.title);
-					}
-        break;
-        case "hr":
-          element = $("<div><hr/></div>").css({'position': 'absolute'});
-          //$(element).addClass("reportElement");
-          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
-          $(element > "hr").css({"border": elem.border});
-        break;
-        case "image":
-          element = $("<div></div>").css({'position': 'absolute'});
-          //$(element).addClass("reportElement");
-          let newImage = new Image();
-          newImage.src = elem.url;
-          newImage.setAttribute("width", Number(elem.width)*newRatio);
-          $(element).append(newImage);
-          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
-        break;
-				case "table":
-					//doCreateTable(wrapper, elem.rows);
-					doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
-				break;
-      }
-			if (element) {
-      	$(wrapper).append($(element));
+		return new Promise(async function(resolve, reject) {
+			let newRatio = 1;
+			if (ratio) {
+				newRatio = ratio;
 			}
-    });
-    return $(wrapper);
+			let maxTop = 0;
+			const promiseList = new Promise(async function(resolve2, reject2) {
+		    await reportElements.forEach((elem, i) => {
+		      let element;
+		      switch (elem.elementType) {
+		        case "text":
+		          element = $("<div></div>").css({'position': 'absolute'});
+		          //$(element).addClass("reportElement");
+		          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+		          $(element).css({"font-size": Number(elem.fontsize)*newRatio + "px"});
+		          $(element).css({"font-weight": elem.fontweight});
+		          $(element).css({"font-style": elem.fontstyle});
+		          $(element).css({"text-align": elem.fontalign});
+							let field = elem.title.substring(1);
+							if (field == 'shop_name') {
+								$(element).text(shopData.Shop_Name);
+							} else if (field == 'shop_address') {
+								$(element).text(shopData.Shop_Address);
+							} else {
+								$(element).text(elem.title);
+							}
+		        break;
+		        case "hr":
+		          element = $("<div><hr/></div>").css({'position': 'absolute'});
+		          //$(element).addClass("reportElement");
+		          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
+		          $(element > "hr").css({"border": elem.border});
+		        break;
+		        case "image":
+		          element = $("<div></div>").css({'position': 'absolute'});
+		          //$(element).addClass("reportElement");
+		          let newImage = new Image();
+		          newImage.src = elem.url;
+		          newImage.setAttribute("width", Number(elem.width)*newRatio);
+		          $(element).append(newImage);
+		          $(element).css({"left": Number(elem.x)*newRatio + "px", "top": Number(elem.y)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
+		        break;
+						case "table":
+							//doCreateTable(wrapper, elem.rows);
+							doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
+						break;
+		      }
+					if (element) {
+		      	$(wrapper).append($(element));
+					}
+					if (Number(elem.y) > maxTop) {
+						maxTop = Number(elem.y);
+					}
+		    });
+				setTimeout(()=> {
+	        resolve2(maxTop);
+	      }, 1000);
+	    });
+	    Promise.all([promiseList]).then((ob)=> {
+	      resolve(ob[0]);
+	    });
+		});
   }
 
 	const doRenderTable = function(wrapper, tableRows, left, top, ratio){
@@ -3959,10 +3971,14 @@ module.exports = function ( jq ) {
 					let adjustLeft = (wrapperBoxWidth - constant.SlipWidth) / 2;
 					$(wrapperBox).css({'margin-left': adjustLeft+'px', 'width': reportWrapperWidth+'px'});
 				}
-				$(wrapperBox).css({'height': newHeight+'px', 'max-height': newHeight + 'px'});
+
+				let maxTop = await doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio, paperSize);
+				//console.log(maxTop);
+				maxTop = (Number(maxTop) * renderRatio);
+				//console.log(maxTop);
+				$(wrapperBox).css({'height': maxTop+'px', 'max-height': maxTop + 'px'});
 				//$(wrapperBox).css({'height': 'auto'});
 
-				doRenderElement(shopData, wrapperBox, templateDesignElements, renderRatio, paperSize);
 				const radalertoption = {
 		      title: 'ตัวอย่างเอกสาร',
 		      msg: $(wrapperBox),
