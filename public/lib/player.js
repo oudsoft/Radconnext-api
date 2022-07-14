@@ -318,7 +318,8 @@
       }
       if (URL !== null) {
         let localAudio = document.createElement('audio');
-        $(playerViewBox).append($(localAudio));
+        let localAudioBox = $('<div style="width: fit-content(20em);"></div>').append($(localAudio));
+        $(playerViewBox).append($(localAudioBox));
         localAudio.id = 'LocalAudio';
         localAudio.style.position = 'relative';
         localAudio.style.display = 'inline-block';
@@ -348,8 +349,8 @@
             }
           });
         }, 2500);
-        $(localAudio).draggable({containment: 'parent'});
-        $(localAudio).resizable({containment: 'parent'});
+        $(localAudioBox).draggable({containment: 'parent'});
+        $(localAudioBox).resizable({containment: 'parent'});
       } else {
         console.log('Error=> clipURL is null');
       }

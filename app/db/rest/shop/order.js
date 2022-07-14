@@ -12,6 +12,74 @@ var db, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
+const doSearchOrder = function(whereCluase, orderby) {
+  return new Promise(async function(resolve, reject) {
+    const orderInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
+    const orders = await db.orders.findAll({include: orderInclude, where: whereCluase, order: orderby});
+    const promiseList = new Promise(async function(resolve2, reject2) {
+      let orderList = [];
+      for (let i=0; i < orders.length; i++){
+        let order = orders[i];
+        let newOrder = {};
+        if (order.Status == 1) {
+          newOrder = order
+          orderList.push(newOrder);
+        } else if (order.Status == 2) {
+          let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          newOrder = JSON.parse(JSON.stringify(order));
+          if (invoices.length > 0) {
+            newOrder.invoice = invoices[0];
+          }
+          orderList.push(newOrder);
+        } else if (order.Status == 3) {
+          let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          newOrder = JSON.parse(JSON.stringify(order));
+          if (invoices.length > 0) {
+            newOrder.invoice = invoices[0];
+          }
+          if (bills.length > 0) {
+            newOrder.bill = bills[0];
+          }
+          if (payments.length > 0) {
+            newOrder.payment = payments[0];
+          }
+          orderList.push(newOrder);
+        } else if (order.Status == 4) {
+          let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          let taxinvoices = await db.taxinvoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
+          newOrder = JSON.parse(JSON.stringify(order));
+          if (invoices.length > 0) {
+            newOrder.invoice = invoices[0];
+          }
+          if (bills.length > 0) {
+            newOrder.bill = bills[0];
+          }
+          if (taxinvoices.length > 0) {
+            newOrder.taxinvoice = taxinvoices[0];
+          }
+          if (payments.length > 0) {
+            newOrder.payment = payments[0];
+          }
+          orderList.push(newOrder);
+        } else if (order.Status == 0) {
+          newOrder = order
+          orderList.push(newOrder);
+        }
+      }
+      setTimeout(()=> {
+        resolve2(orderList);
+      },800);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    });
+  });
+}
+
 //List API
 app.post('/list/by/shop/(:shopId)', (req, res) => {
   let token = req.headers.authorization;
@@ -21,77 +89,18 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const orderDate = req.body.orderDate;
           const whereCluase = {shopId: shopId};
+          const orderDate = req.body.orderDate;
           if (orderDate) {
             let fromDateWithZ = new Date(orderDate);
             let toDateWithZ = new Date(orderDate);
             toDateWithZ.setDate(toDateWithZ.getDate() + 1);
             whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
           }
-          const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}, {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH', 'User_Phone', 'User_LineID']}];
-          const orders = await db.orders.findAll({include: menuInclude, where: whereCluase, order: orderby});
-          const promiseList = new Promise(async function(resolve2, reject2) {
-            let orderList = [];
-            for (let i=0; i < orders.length; i++){
-              let order = orders[i];
-              let newOrder = {};
-              if (order.Status == 1) {
-                newOrder = order
-                orderList.push(newOrder);
-              } else if (order.Status == 2) {
-                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                newOrder = JSON.parse(JSON.stringify(order));
-                if (invoices.length > 0) {
-                  newOrder.invoice = invoices[0];
-                }
-                orderList.push(newOrder);
-              } else if (order.Status == 3) {
-                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                newOrder = JSON.parse(JSON.stringify(order));
-                if (invoices.length > 0) {
-                  newOrder.invoice = invoices[0];
-                }
-                if (bills.length > 0) {
-                  newOrder.bill = bills[0];
-                }
-                if (payments.length > 0) {
-                  newOrder.payment = payments[0];
-                }
-                orderList.push(newOrder);
-              } else if (order.Status == 4) {
-                let invoices = await db.invoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                let bills = await db.bills.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                let taxinvoices = await db.taxinvoices.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                let payments = await db.payments.findAll({attributes: excludeColumn, where: {orderId: order.id}});
-                newOrder = JSON.parse(JSON.stringify(order));
-                if (invoices.length > 0) {
-                  newOrder.invoice = invoices[0];
-                }
-                if (bills.length > 0) {
-                  newOrder.bill = bills[0];
-                }
-                if (taxinvoices.length > 0) {
-                  newOrder.taxinvoice = taxinvoices[0];
-                }
-                if (payments.length > 0) {
-                  newOrder.payment = payments[0];
-                }
-                orderList.push(newOrder);
-              } else if (order.Status == 0) {
-                newOrder = order
-                orderList.push(newOrder);
-              }
-            }
-            setTimeout(()=> {
-              resolve2(orderList);
-            },800);
-          });
-          Promise.all([promiseList]).then((ob)=> {
-            res.json({status: {code: 200}, Records: ob[0]});
-          });
+
+          let orederRecords = await doSearchOrder(whereCluase, orderby);
+          res.json({status: {code: 200}, Records: orederRecords});
+
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -117,9 +126,51 @@ app.post('/list/by/user/(:userId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const userId = req.params.userId;
-          const menuInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}];
-          const orders = await db.orders.findAll({include: menuInclude, where: {userId: userId}, order: orderby});
-          res.json({status: {code: 200}, Records: orders});
+          const whereCluase = {userId: userId};
+          const orderDate = req.body.orderDate;
+          if (orderDate) {
+            let fromDateWithZ = new Date(orderDate);
+            let toDateWithZ = new Date(orderDate);
+            toDateWithZ.setDate(toDateWithZ.getDate() + 1);
+            whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+          }
+          let orederRecords = await doSearchOrder(whereCluase, orderby);
+          res.json({status: {code: 200}, Records: orederRecords});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/list/by/customer/(:customerId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const orderby = [['id', 'ASC']];
+          const customerId = req.params.customerId;
+          const whereCluase = {customerId: customerId};
+          const orderDate = req.body.orderDate;
+          if (orderDate) {
+            let fromDateWithZ = new Date(orderDate);
+            let toDateWithZ = new Date(orderDate);
+            toDateWithZ.setDate(toDateWithZ.getDate() + 1);
+            whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+          }
+          let orederRecords = await doSearchOrder(whereCluase, orderby);
+          res.json({status: {code: 200}, Records: orederRecords});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

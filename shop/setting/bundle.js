@@ -45,6 +45,14 @@ module.exports = function ( jq ) {
     return Number(num).toLocaleString('en', options);
   }
 
+	function doFormatQtyNumber(num){
+	  if ((Number(num) === num) && (num % 1 !== 0)) {
+	    return doFormatNumber(num);
+	  } else {
+	    return Number(num);
+	  }
+	}
+
 	const doFormatDateStr = function(d) {
 		var yy, mm, dd;
 		yy = d.getFullYear();
@@ -119,18 +127,27 @@ module.exports = function ( jq ) {
 		sundayFirst:false,
 	};
 
+	const genUniqueID = function () {
+		function s4() {
+			return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+		}
+		return s4() + s4() + '-' + s4();
+	}
+
   return {
 		fileUploadMaxSize,
     doCallApi,
     doGetApi,
 		doUserLogout,
 		doFormatNumber,
+		doFormatQtyNumber,
 		doFormatDateStr,
 		doFormatTimeStr,
 		doCreateImageCmd,
 		doCreateTextCmd,
 		delay,
-		calendarOptions
+		calendarOptions,
+		genUniqueID
 	}
 }
 
@@ -224,6 +241,7 @@ $( document ).ready(function() {
     let jquerySimpleUploadUrl = '../lib/simpleUpload.min.js';
     let utilityPlugin = "../lib/plugin/jquery-radutil-plugin.js";
     let reportElementPlugin = "../lib/plugin/jquery-report-element-plugin.js";
+    let controlPagePlugin = "../lib/plugin/jquery-controlpage-plugin.js"
 
     let momentWithLocalesPlugin = "../lib/moment-with-locales.min.js";
     let ionCalendarPlugin = "../lib/ion.calendar.min.js";
@@ -242,6 +260,7 @@ $( document ).ready(function() {
 
     $('head').append('<script src="' + utilityPlugin + '"></script>');
     $('head').append('<script src="' + reportElementPlugin + '"></script>');
+    $('head').append('<script src="' + controlPagePlugin + '"></script>');
 
     $('head').append('<script src="' + momentWithLocalesPlugin + '"></script>');
     $('head').append('<script src="' + ionCalendarPlugin + '"></script>');
@@ -287,7 +306,7 @@ module.exports = {
   doShowShopMng
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":13,"jquery":17}],4:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":14,"jquery":18}],4:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -502,7 +521,8 @@ module.exports = function ( jq ) {
 
 	const doOpenReportPdfDlg = function(pdfUrl, title){
     return new Promise(async function(resolve, reject) {
-      const reportPdfDlgContent = $('<object data="' + pdfUrl + '" type="application/pdf" width="99%" height="380"></object>');
+			const pdfURL = pdfUrl + '?t=' + common.genUniqueID();
+      const reportPdfDlgContent = $('<object data="' + pdfURL + '" type="application/pdf" width="99%" height="380"></object>');
       $(reportPdfDlgContent).css({'margin-top': '10px'});
       const reportformoption = {
   			title: title,
@@ -676,6 +696,9 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
+	const order = require('./order-mng.js')($);
+	const calendardlg = require('./calendar-dlg.js')($);
+	const history = require('./order-history.js')($);
 
   const customerTableFields = [
 		{fieldName: 'Name', displayName: 'ชื่อ', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
@@ -704,7 +727,20 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCreateCustomerListTable = function(shopData, workAreaBox, customerItems){
+	const doCreateCalendarCmd = function(cmdTitle, successCallback){
+		let orderDateBox = $('<div></div>').text(cmdTitle).css({'width': 'fit-content', 'display': 'inline-block', 'background-color': 'white', 'color': 'black', 'padding': '4px', 'cursor': 'pointer', 'font-size': '16px'});
+		$(orderDateBox).on('click', (evt)=>{
+			common.calendarOptions.onClick = async function(date){
+				calendarHandle.closeAlert();
+				successCallback(date);
+				selectDate = common.doFormatDateStr(new Date(date));
+			}
+			let calendarHandle = order.doShowCalendarDlg(common.calendarOptions);
+		});
+		return $(orderDateBox);
+	}
+
+	const doCreateCustomerListTable = function(shopData, workAreaBox, customerItems, newCustomerCmdBox){
 		let customerTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
 		let headerRow = $('<tr></tr>');
 		$(headerRow).append($('<td width="2%" align="center"><b>#</b></td>'));
@@ -717,7 +753,7 @@ module.exports = function ( jq ) {
 		$(customerTable).append($(headerRow));
 
 		for (let x=0; x < customerItems.length; x++) {
-			let itemRow = $('<tr></tr>');
+			let itemRow = $('<tr class="customer-row"></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = customerItems[x];
 			for (let i=0; i < customerTableFields.length; i++) {
@@ -734,24 +770,65 @@ module.exports = function ( jq ) {
 			$(editCustomerCmd).on('click', (evt)=>{
 				doOpenEditCustomerForm(shopData, workAreaBox, item);
 			});
-			/*
+
 			let orderCustomerCmd = $('<input type="button" value=" Order " class="action-btn"/>').css({'margin-left': '8px'});
-			$(orderCustomerCmd).on('click', (evt)=>{
+			$(orderCustomerCmd).on('click', async (evt)=>{
+				let params = {};
+				let orderRes = await common.doCallApi('/api/shop/order/list/by/customer/' + item.id, params);
+				localStorage.setItem('customerorders', JSON.stringify(orderRes.Records));
+				console.log(JSON.parse(localStorage.getItem('customerorders')));
+				/*
 				1. เปิด search order form for customer
 					options search [ทั้งหมด/ตั้งแต่วันที่/เมื่อวันที่] / ปฏิทิน
 				2. แสดงรายการออร์เดอร์ที่ค้นเจอแบบตาราง
 					fields[วันที่/บิล/ใบกำกับ/รายการสินค้า]
 				3. ใช้ Navigator Bar มาควบคุมการแสกงจำนวนรายการออร์เดอร์ที่ค้นเจอ
+				*/
+
+				$(editCustomerCmd).hide();
+				$(orderCustomerCmd).hide();
+				$(deleteCustomerCmd).hide();
+				$(newCustomerCmdBox).hide();
+				$('.customer-row').hide();
+				$(itemRow).css({'background-color': 'gray', 'color': 'white'});
+				let fromDateCmd = doCreateCalendarCmd('ตั้งแต่วันที่', async (date)=>{
+					let selectDate = common.doFormatDateStr(new Date(date));
+					$(fromDateCmd).text(selectDate);
+					$('#HistoryTable').remove();
+					let orderHostoryTable = await history.doCreateOrderHistoryTable(workAreaBox, 0, 0, selectDate);
+				})
+				let backCustomerCmd = $('<input type="button" value=" Back " class="action-btn"/>').css({'margin-left': '8px'});
+				$(backCustomerCmd).on('click', (evt)=>{
+					$(backCustomerCmd).remove();
+					$(editCustomerCmd).show();
+					$(orderCustomerCmd).show();
+					$(deleteCustomerCmd).show();
+					$(newCustomerCmdBox).show();
+					$('.customer-row').show();
+					$(itemRow).css({'background-color': '', 'color': ''});
+					localStorage.removeItem('customerorders');
+				});
+				$(commandCell).append($(fromDateCmd)).append($(backCustomerCmd));
+				$(itemRow).show();
+
+				$('#HistoryTable').remove();
+				if (orderRes.Records.length > 0) {
+					let orderHostoryTable = await history.doCreateOrderHistoryTable(workAreaBox, 0, 0);
+				} else {
+					let notFoundBox = $('<div id="HistoryTable"></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px'});
+					$(notFoundBox).text('ไม่พบรายการออร์เดอร์');
+					$(workAreaBox).append($(notFoundBox));
+				}
 			});
-			*/
+
 			let deleteCustomerCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
 			$(deleteCustomerCmd).on('click', (evt)=>{
 				doDeleteCustomer(shopData, workAreaBox, item.id);
 			});
 
 			$(commandCell).append($(editCustomerCmd));
+			$(commandCell).append($(orderCustomerCmd));
 			$(commandCell).append($(deleteCustomerCmd));
-			//$(commandCell).append($(orderCustomerCmd));
 			$(itemRow).append($(commandCell));
 			$(customerTable).append($(itemRow));
 		}
@@ -777,11 +854,11 @@ module.exports = function ( jq ) {
 				let key = $(searchKeyInput).val();
 				if (key !== ''){
 					if (key === '*') {
-						customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems);
+						customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems, newCustomerCmdBox);
 					} else {
 						let customers = JSON.parse(localStorage.getItem('customers'));
 						let customerFilter = await doFilterCustomer(customers, key);
-						customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerFilter);
+						customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerFilter, newCustomerCmdBox);
 					}
 					$(workAreaBox).append($(customerTable));
 				}
@@ -795,7 +872,7 @@ module.exports = function ( jq ) {
 
 			$(workAreaBox).append($(newCustomerCmdBox));
 
-			customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems);
+			customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems, newCustomerCmdBox);
 
       $(workAreaBox).append($(customerTable));
       resolve();
@@ -954,7 +1031,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./order-history.js":12,"./order-mng.js":13}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2438,6 +2515,156 @@ module.exports = function ( jq ) {
 },{"../../../home/mod/common-lib.js":1}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  const doExtractList = function(originList, from, to) {
+		return new Promise(async function(resolve, reject) {
+			let exResults = [];
+			let	promiseList = new Promise(function(resolve2, reject2){
+				for (let i = (from-1); i < to; i++) {
+					if (originList[i]){
+						exResults.push(originList[i]);
+					}
+				}
+				setTimeout(()=>{
+          resolve2(exResults);
+        }, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+  const doCreateOrderHistoryTable = function(workAreaBox, viewPage, startRef, fromDate){
+    return new Promise(async function(resolve, reject) {
+      $('body').loading('start');
+      let titleText = 'ประวัติออร์เดอร์'
+      let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+      let userItemPerPage = userDefualtSetting.itemperpage;
+      let orderHistoryItems = JSON.parse(localStorage.getItem('customerorders'));
+
+      if (fromDate) {
+        let fromDateTime = (new Date(fromDate)).getTime();
+        orderHistoryItems = await orderHistoryItems.filter((item, i) => {
+          let orderDateTime = (new Date(item.createdAt)).getTime();
+          if (orderDateTime >= fromDateTime) {
+            return item;
+          }
+        });
+        titleText += ' ตั้งแต่วันที่ ' + fromDate;
+      }
+
+      let totalItem = orderHistoryItems.length;
+
+      if (userItemPerPage != 0) {
+        if (startRef > 0) {
+          orderHistoryItems = await doExtractList(orderHistoryItems, (startRef+1), (startRef+userItemPerPage));
+        } else {
+          orderHistoryItems = await doExtractList(orderHistoryItems, 1, userItemPerPage);
+        }
+      }
+
+      let historyTable = $('<table id="HistoryTable" width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+
+      let titleRow = $('<tr></tr>').css({'background-color': 'gray', 'color': 'white'});
+      let titleCol = $('<td colspan="4" align="center"></td>');
+      $(titleCol).append($('<h3></h3>').text(titleText).css({'font-weight': 'bold'}));
+      $(titleRow).append($(titleCol));
+      $(historyTable).append($(titleRow));
+
+      let headerRow = $('<tr></tr>');
+      $(headerRow).append($('<td width="4%" align="center"><b>#</b></td>'));
+      $(headerRow).append($('<td width="15%" align="center"><b>วันที่</b></td>'));
+      $(headerRow).append($('<td width="55%" align="center"><b>รายการสินค้า</b></td>'));
+      let cmdCol = $('<td width="*" align="center"></td>');
+      $(headerRow).append($(cmdCol));
+      $(historyTable).append($(headerRow));
+
+      let promiseList = new Promise(async function(resolve2, reject2){
+        for (let i=0; i < orderHistoryItems.length; i++) {
+          let no = (i + 1 + startRef);
+          let orderHistoryItem = orderHistoryItems[i];
+          let orderDate = common.doFormatDateStr(new Date(orderHistoryItem.createdAt));
+          let dataRow = $('<tr></tr>');
+          $(dataRow).append($('<td align="center"></td>').text(no));
+          $(dataRow).append($('<td align="left"></td>').text(orderDate));
+          let orderItemCol = $('<td align="left"></td>');
+
+          for (let j=0; j < orderHistoryItem.Items.length; j++) {
+            let price = Number(orderHistoryItem.Items[j].Price);
+            let qty = Number(orderHistoryItem.Items[j].Qty);
+            let total = price * qty;
+            let orderItemRow = $('<span style="width: 100%; display: table-row;"></span>');
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 30px; text-align: center;"></span>').text((j+1)+'.'));
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 180px; text-align: left;"></span>').text(orderHistoryItem.Items[j].MenuName));
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 80px; text-align: center;"></span>').text(common.doFormatNumber(price)));
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 40px; text-align: center;"></span>').text(common.doFormatQtyNumber(qty)));
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 70px; text-align: center;"></span>').text(orderHistoryItem.Items[j].Unit));
+            $(orderItemRow).append($('<span style="display: table-cell; min-width: 70px; text-align: right;"></span>').text(common.doFormatNumber(total)));
+            $(orderItemCol).append($(orderItemRow));
+          }
+          $(dataRow).append($(orderItemCol));
+          $(dataRow).append($('<td align="center"></td>'));
+          $(historyTable).append($(dataRow));
+        }
+        setTimeout(()=> {
+	        resolve2(historyTable);
+	      },1200);
+      });
+      Promise.all([promiseList]).then((ob)=> {
+        let orderHostoryTable = ob[0];
+        $(workAreaBox).append($(orderHostoryTable).css({'margin-top': '20px'}));
+
+        let showPage = 1;
+        if ((viewPage) && (viewPage > 0)){
+          showPage = viewPage;
+        }
+
+        let pageNavigator = doCreatePageNavigatorBox(showPage, userItemPerPage, totalItem, async function(page){
+          console.log(page);
+          $('body').loading('start');
+          $('#HistoryTable').remove();
+          $('#NavigBar').remove();
+          userDefualtSetting.itemperpage = page.perPage;
+          localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
+
+          let toPage = Number(page.toPage);
+          let newStartRef = Number(page.fromItem);
+          orderHostoryTable = await doCreateOrderHistoryTable(workAreaBox, toPage, newStartRef, fromDate)
+          $('body').loading('stop');
+        })
+        $(workAreaBox).append($(pageNavigator).css({'margin-top': '2px'}));
+
+  			resolve(orderHostoryTable);
+        $('body').loading('stop');
+  		});
+    });
+  }
+
+  const doCreatePageNavigatorBox = function(showPage, userItemPerPage, totalItem, callback) {
+    let navigBarBox = $('<div id="NavigBar"></div>');
+    let navigBarOption = {
+      currentPage: showPage,
+      itemperPage: userItemPerPage,
+      totalItem: totalItem,
+      styleClass : {'padding': '4px', 'margin-top': '60px'},
+      changeToPageCallback: callback
+    };
+    let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
+    //navigatoePage.toPage(1);
+    return $(navigBarBox);
+  }
+
+  return {
+    doCreateOrderHistoryTable,
+    doCreatePageNavigatorBox
+  }
+}
+
+},{"../../../home/mod/common-lib.js":1}],13:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
 
 	//const welcome = require('./welcome.js')($);
 	//const login = require('./login.js')($);
@@ -2884,7 +3111,7 @@ module.exports = function ( jq ) {
             let goodItemRow = $('<tr></tr>');
             $(goodItemRow).append($('<td align="center">' + (i+1) + '</td>'));
             $(goodItemRow).append($('<td align="left">' + goodItems[i].MenuName + '</td>'));
-            let goodItemQtyCell = $('<td align="center">' + goodItems[i].Qty + '</td>');
+            let goodItemQtyCell = $('<td align="center">' + doFormatQtyNumber(goodItems[i].Qty) + '</td>');
             $(goodItemRow).append($(goodItemQtyCell));
             $(goodItemRow).append($('<td align="center">' + goodItems[i].Unit + '</td>'));
             $(goodItemRow).append($('<td align="center">' + common.doFormatNumber(Number(goodItems[i].Price)) + '</td>'));
@@ -2900,7 +3127,7 @@ module.exports = function ( jq ) {
               let oldQty = $(goodItemQtyCell).text();
               oldQty = Number(oldQty);
               let newQty = oldQty + 1;
-              $(goodItemQtyCell).text(newQty);
+              $(goodItemQtyCell).text(doFormatQtyNumber(newQty));
               goodItems[i].Qty = newQty;
               subTotal = Number(goodItems[i].Price) * newQty;
               $(subTotalCell).empty().append($('<span><b>' + common.doFormatNumber(subTotal) + '</b></span>').css({'margin-right': '4px'}));
@@ -2913,7 +3140,7 @@ module.exports = function ( jq ) {
               oldQty = Number(oldQty);
               let newQty = oldQty - 1;
               if (newQty > 0) {
-                $(goodItemQtyCell).text(newQty);
+                $(goodItemQtyCell).text(doFormatQtyNumber(newQty));
                 goodItems[i].Qty = newQty;
                 subTotal = Number(goodItems[i].Price) * newQty;
                 $(subTotalCell).empty().append($('<span><b>' + common.doFormatNumber(subTotal) + '</b></span>').css({'margin-right': '4px'}));
@@ -3076,11 +3303,12 @@ module.exports = function ( jq ) {
   }
 
   return {
-    doShowOrderList
+    doShowOrderList,
+		doShowCalendarDlg
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./closeorder-dlg.js":5,"./customer-dlg.js":6,"./gooditem-dlg.js":9}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./closeorder-dlg.js":5,"./customer-dlg.js":6,"./gooditem-dlg.js":9}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3407,7 +3635,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":14}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":15}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3580,7 +3808,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":7,"./menugroup-mng.js":10,"./menuitem-mng.js":11,"./order-mng.js":12,"./template-design.js":15,"./user-mng.js":16}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":7,"./menugroup-mng.js":10,"./menuitem-mng.js":11,"./order-mng.js":13,"./template-design.js":16,"./user-mng.js":17}],16:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4067,7 +4295,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":8}],16:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":8}],17:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4509,7 +4737,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],17:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],18:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
