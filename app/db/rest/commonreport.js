@@ -268,6 +268,7 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
       let pdfLink = USRPDF_PATH + '/' + pdfFileName;
 
       let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyID}});
+      log.info('dicomlogRes=> ' + JSON.stringify(dicomlogRes));
       if ((dicomlogRes) && (dicomlogRes.length > 0)) {
   			//let studyObj = JSON.parse(stdout);
         let studyObj = dicomlogRes[0].StudyTags;
@@ -572,6 +573,10 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
         }
       } else {
+        let publicDir = path.normalize(__dirname + '/../../../public');
+        let reportPdfFilePath = publicDir + report.reportPdfLinkPath;
+        log.info('reportPdfFilePath of dicom first result => ' + reportPdfFilePath);
+        let pdfPages = await doCountPagePdf(reportPdfFilePath);    
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
