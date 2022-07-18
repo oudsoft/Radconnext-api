@@ -250,7 +250,7 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
 		//const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
 		//ip: "202.28.68.28", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042"};
 		//const cloud = JSON.parse(orthancs[0].Orthanc_Cloud)
-
+    /*
 		const ORTHANC_URL =  'http://' + cloud.ip + ':' + cloud.httpport;
 		const USERPASS = cloud.user + ':' + cloud.pass;
 		const publicDir = path.normalize(__dirname + '/../../../public');
@@ -261,8 +261,16 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
 		log.info('run command => ' + outterCommand);
 		uti.runcommand(outterCommand).then((stdout) => {
   		log.info('stdout=> ' + stdout);
-      if ((stdout) && (stdout !== '')) {
-  			let studyObj = JSON.parse(stdout);
+    */
+      const publicDir = path.normalize(__dirname + '/../../../public');
+  		const USRPDF_PATH = process.env.USRPDF_PATH;
+  		const pdfFileName = fileCode + '.pdf';
+      let pdfLink = USRPDF_PATH + '/' + pdfFileName;
+
+      let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyID}});
+      if ((dicomlogRes) && (dicomlogRes.length > 0)) {
+  			//let studyObj = JSON.parse(stdout);
+        let studyObj = dicomlogRes[0].StudyTags;
   			let mainTags = Object.keys(studyObj.MainDicomTags);
   			let patientMainTags = Object.keys(studyObj.PatientMainDicomTags);
         const promiseList = new Promise(async function(resolve2, reject2) {
@@ -310,12 +318,13 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
       			log.info('Start Convert Dicom with command => ' + command);
       			let cmdout = await uti.runcommand(command);
       			log.info('result => ' + cmdout);
-
+            /*
             let dcmFilePath = publicDir + USRPDF_PATH + '/' + dcmFile;
             let postDicomRes = await doPostDicomFile(dcmFilePath, ORTHANC_URL, cloud.user, cloud.pass);
             seriesIds.push(postDicomRes.SeriesID);
             seriesUIDs.push(postDicomRes.SeriesInstanceUID);
             sopUIDs.push(postDicomRes.SOPInstanceUID);
+            */
             dicomNames.push(dcmFile);
     				let dicomLink = USRPDF_PATH + '/' + dcmFile;
             dicomLinks.push(dicomLink);
@@ -326,22 +335,24 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
           }
 
           setTimeout(()=> {
-            let dicom = {links: dicomLinks, names: dicomNames, seriesInstanceUIDs: seriesUIDs, seriesIds: seriesIds, sopInstanceUIDs: sopUIDs}; // <-- links + names ต่อไปจะไม่ได้ใช้
+            let dicom = {links: dicomLinks, names: dicomNames/*, seriesInstanceUIDs: seriesUIDs, seriesIds: seriesIds, sopInstanceUIDs: sopUIDs*/}; // <-- links + names ต่อไปจะไม่ได้ใช้
             resolve2(dicom);
           },1800);
         });
         Promise.all([promiseList]).then((ob)=> {
-          resolve({link: {dicom: ob[0].links, pdf: pdfLink}, name: {dicom: ob[0].names, pdf: pdfFileName}, seriesInstanceUIDs: ob[0].seriesInstanceUIDs, seriesIds: ob[0].seriesIds, sopInstanceUIDs: ob[0].sopInstanceUIDs});
+          resolve({link: {dicom: ob[0].links, pdf: pdfLink}, name: {dicom: ob[0].names, pdf: pdfFileName}/*, seriesInstanceUIDs: ob[0].seriesInstanceUIDs, seriesIds: ob[0].seriesIds, sopInstanceUIDs: ob[0].sopInstanceUIDs*/});
         }).catch((err)=>{
           reject(err);
         });
       } else {
         throw new Error({code: 500, cuase: 'Eempty Study from Orthanc'});
       }
+    /*
 		}).catch((err) => {
 			log.error('err: 500 >>', JSON.stringify(err));
 			reject(err);
 		});
+    */
 	});
 }
 

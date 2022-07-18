@@ -12,7 +12,7 @@ const hostIP = 'localhost';
 const hostOrthancApiPort = '8042';
 const hostName = hostIP + ':' + hostApiPort;
 const domainName = 'radconnext.com';
-const adminEmailAddress = 'oudsoft@gmail.com';
+const adminEmailAddress = 'oudsoft@yahoo.com';
 
 
 //const hostURL = 'https://radconnext.com/rad_test/api';
@@ -124,18 +124,15 @@ module.exports = function ( jq ) {
 
   const doCallApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-      /*
-			$.post(apiurl, params, function(data){
-				resolve(data);
-			}).fail(function(error) {
-				reject(error);
-			});
-      */
       let apiname = apiurl;
       const progBar = $('body').radprogress({value: 0, apiname: apiname});
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
       $.ajax({
-        url: apiurl,
+        url: apiURL,
         type: 'post',
         data: params,
         xhr: function () {
@@ -147,7 +144,6 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
-
               let loaded = evt.loaded;
               let total = evt.total;
               let prog = (loaded / total) * 100;
@@ -173,6 +169,7 @@ module.exports = function ( jq ) {
           resolve(res)
         }, 1000);
       }).fail(function (err) {
+        /*
         $(progBar.handle).find('#ApiNameBar').css({'color': 'red'});
         $(progBar.progressValueBox).css({'color': 'red'});
         $.notify('มีข้อผิดพลาดเกิดที่ระบบฯ', 'error');
@@ -204,14 +201,20 @@ module.exports = function ( jq ) {
             progBar.doCloseProgress();
             reject(err);
           }, 2500);
-        })
+        });
+        */
+        reject(err);
       });
 		});
 	}
 
   const doGetApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-			$.get(apiurl, params, function(data){
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
+			$.get(apiURL, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
 				reject(error);
@@ -583,7 +586,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":7}],2:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 /* commonlib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -675,6 +678,7 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
+				reject(err);
 			})
 		});
 	}
@@ -686,6 +690,59 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log(JSON.stringify(err));
 			})
+		});
+	}
+
+	const doCallLocalApi = function(apiurl, rqParams) {
+		return new Promise(function(resolve, reject) {
+			const progBar = $('body').radprogress({value: 0, apiname: apiurl});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+			$.ajax({
+        url: apiurl,
+        type: 'post',
+        data: rqParams,
+        xhr: function () {
+          var xhr = $.ajaxSettings.xhr();
+          xhr.onprogress = function(evt) {
+            if (evt.lengthComputable) {
+              // For Download
+              let loaded = evt.loaded;
+              let total = evt.total;
+              let prog = (loaded / total) * 100;
+              let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              $('body').find('#ProgressValueBox').text(perc + '%');
+            }
+          };
+          xhr.upload.onprogress = function (evt) {
+            // For uploads
+          };
+          return xhr;
+        }
+      }).done(function (res) {
+        progBar.doUpdateProgressValue(100);
+        setTimeout(()=>{
+  				progBar.doCloseProgress();
+          let apiItem = {api: apiurl};
+          console.log(apiItem);
+          let logWin = $('body').find('#LogBox');
+					if (logWin) {
+          	$(logWin).simplelog(apiItem);
+					}
+          resolve(res)
+        }, 1000);
+      }).fail(function (err) {
+        reject(err);
+      });
+		});
+	}
+
+	const doGetLocalApi = function(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			$.get(apiURL, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
 		});
 	}
 
@@ -1017,6 +1074,41 @@ module.exports = function ( jq ) {
 		})
   }
 
+	const doDownloadLocalDicom = function(studyID, dicomFilename){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/download/dicom/archive';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID, UsrArchiveFileName: dicomFilename});
+			//console.log(dicomStudiesRes);
+			var pom = document.createElement('a');
+			pom.setAttribute('href', dicomStudiesRes.result.archive);
+			pom.setAttribute('download', dicomFilename);
+			pom.click();
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doDeleteLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/delete/study';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doCountImageLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/study/count/instances';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
   const doPreparePatientParams = function(newCaseData){
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
@@ -1113,6 +1205,14 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doGetLocalSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/study/' + studyId;
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomStudiesRes.result);
+		});
+	}
+
 	const doGetOrthancStudyDicom = function(studyId) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -1136,6 +1236,14 @@ module.exports = function ( jq ) {
 	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
 	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
 			resolve(orthancRes);
+		});
+	}
+
+	const doGetLocalOrthancSeriesDicom = function(seriesId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/series/' + seriesId;
+			let dicomSeriesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomSeriesRes.result);
 		});
 	}
 
@@ -1693,17 +1801,24 @@ module.exports = function ( jq ) {
 		/* Function share */
 		doCallApi,
 		doGetApi,
+		doCallLocalApi,
+		doGetLocalApi,
 		doCreateDicomFilterForm,
 		doSaveQueryDicom,
 		doFilterDicom,
 		doUserLogout,
 		doOpenStoneWebViewer,
 		doDownloadDicom,
+		doDownloadLocalDicom,
+		doDeleteLocalDicom,
+		doCountImageLocalDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
+		doGetLocalSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
+		doGetLocalOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
 		doCallCreateZipInstance,
 		doCallSendAI,
@@ -2012,10 +2127,12 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var updateUserApiUri = '/api/user/update';
       var params = data;
-      $.post(updateUserApiUri, params, function(response){
+      //$.post(updateUserApiUri, params, function(response){
+			common.doCallApi(updateUserApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
@@ -2024,125 +2141,144 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var userInfoApiUri = '/api/user/' + userId;
       var params = {};
-      $.get(userInfoApiUri, params, function(response){
+      //$.get(userInfoApiUri, params, function(response){
+			common.doGetApi(userInfoApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
 
   function doSaveUserProfile(newUserInfo){
-  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
-  		if (updateRes.Result === "OK") {
-  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
-  				//update userdata in localstorage
-  				let newUserInfo = userInfoRes.Record.info;
-  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  				yourUserdata.userinfo = newUserInfo;
-  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
-					let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
-					$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
-  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
-  				$("#dialog").find('#CloseUserProfile-Cmd').click();
-  			});
-  		} else {
-  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
-  		}
-  	});
+		return new Promise(function(resolve, reject) {
+	  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
+	  		if (updateRes.Result === "OK") {
+	  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
+	  				//update userdata in localstorage
+	  				let newUserInfo = userInfoRes.Record.info;
+	  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
+	  				yourUserdata.userinfo = newUserInfo;
+	  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
+						let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
+						$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
+	  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
+						resolve(updateRes);
+	  			});
+	  		} else {
+	  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
+					reject({error: ''})
+	  		}
+	  	});
+		});
   }
 
+	const createFormFragment = function(fragId, fragLabel, fragValue) {
+		let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
+		let labelCell = $('<div style="display: table-cell; width: 250px; padding: 2px;"></div>');
+		$(labelCell).append($('<span>' + fragLabel + '</span>'));
+		let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+		let fragInput = $('<input type="text"/>');
+		$(fragInput).attr('id', fragId);
+		$(fragInput).val(fragValue);
+		$(fragInput).appendTo($(inputCell));
+		$(labelCell).appendTo($(fragRow));
+		$(inputCell).appendTo($(fragRow));
+		return $(fragRow);
+	}
+
   const doShowUserProfile = function() {
-  	$("#dialog").load('../form/dialog.html', function() {
-  		const createFormFragment = function(fragId, fragLabel, fragValue) {
-  			let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
-  			let labelCell = $('<div style="display: table-cell; width: 300px; padding: 2px;"></div>');
-  			$(labelCell).html('<b>' + fragLabel + '</b>');
-  			let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
-  			let fragInput = $('<input type="text"/>');
-  			$(fragInput).attr('id', fragId);
-  			$(fragInput).val(fragValue);
-  			$(fragInput).appendTo($(inputCell));
-  			$(labelCell).appendTo($(fragRow));
-  			$(inputCell).appendTo($(fragRow));
-  			return $(fragRow);
-  		}
+		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
 
-  		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  		let table = $('<div style="display: table; width: 100%;"></div>');
+		let table = $('<div style="display: table; width: 100%;"></div>');
 
-  		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
-  		$(yourNameENFrag).appendTo($(table));
+		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
+		$(yourNameENFrag).appendTo($(table));
 
-  		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
-  		$(yourLastNameENFrag).appendTo($(table));
+		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
+		$(yourLastNameENFrag).appendTo($(table));
 
-  		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
-  		$(yourNameTHFrag).appendTo($(table));
+		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
+		$(yourNameTHFrag).appendTo($(table));
 
-  		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
-  		$(yourLastNameTHFrag).appendTo($(table));
+		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
+		$(yourLastNameTHFrag).appendTo($(table));
 
-  		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
-  		$(yourEmailFrag).appendTo($(table));
+		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
+		$(yourEmailFrag).appendTo($(table));
 
-  		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
-  		$(yourPhoneFrag).appendTo($(table));
+		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
+		$(yourPhoneFrag).appendTo($(table));
 
-  		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
-  		$(yourLineIDFrag).appendTo($(table));
+		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
+		$(yourLineIDFrag).appendTo($(table));
 
-			let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
-  		$(yourDefaultDownloadPathFrag).appendTo($(table));
+		let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
+		$(yourDefaultDownloadPathFrag).appendTo($(table));
 
-  		$('#UserProfileBox').empty().append($(table));
-  		$(".modal-footer").css('text-align', 'center');
-  		$("#SaveUserProfile-Cmd").click((evt)=>{
-				const doSaveUserInfo = function(){
-					$(table).find('#UserPathRadiant').css('border', '');
-					console.log(newPathRadiant);
-					let downloadPathFrags = newPathRadiant.split('\\');
-					console.log(downloadPathFrags);
-					newPathRadiant = downloadPathFrags.join('/');
-					console.log(newPathRadiant);
-					let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
-					yourNewUserInfo.userId = yourUserdata.id;
-					yourNewUserInfo.infoId = yourUserdata.userinfo.id;
-					yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
-					doSaveUserProfile(yourNewUserInfo);
-				}
+		const radDialogOptions = {
+	    title: 'ข้อมูลผู้ใช้งานของฉัน',
+	    msg: $(table),
+	    width: '510px',
+			okLabel: ' บันทึก ',
+	    onOk: async function(evt) {
+				let res = await doVerifyUserInfo();
+				console.log(res);
+	      radUserInfoDialog.closeAlert();
+	    },
+			onCancel: function(evt) {
+	      radUserInfoDialog.closeAlert();
+	    }
+	  }
 
-  			let newNameEN = $(table).find('#UserNameEN').val();
-  			let newLastNameEN = $(table).find('#UserLastNameEN').val();
-  			let newNameTH = $(table).find('#UserNameTH').val();
-  			let newLastNameTH = $(table).find('#UserLastNameTH').val();
-  			let newEmail = $(table).find('#UserEmail').val();
-  			let newPhone = $(table).find('#UserPhone').val();
-  			let newLineID = $(table).find('#UserLineID').val();
+	  let radUserInfoDialog = $('body').radalert(radDialogOptions);
+
+		const doSaveUserInfo = function(newUserInfo){
+			return new Promise(async function(resolve, reject) {
+				console.log(newUserInfo);
+				let yourNewUserInfo = newUserInfo;
+				yourNewUserInfo.userId = yourUserdata.id;
+				yourNewUserInfo.infoId = yourUserdata.userinfo.id;
+				yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
+				let saveRes = await doSaveUserProfile(yourNewUserInfo);
+				resolve(saveRes);
+			});
+		}
+
+		const doVerifyUserInfo = function(){
+			return new Promise(async function(resolve, reject) {
+				let newNameEN = $(table).find('#UserNameEN').val();
+				let newLastNameEN = $(table).find('#UserLastNameEN').val();
+				let newNameTH = $(table).find('#UserNameTH').val();
+				let newLastNameTH = $(table).find('#UserLastNameTH').val();
+				let newEmail = $(table).find('#UserEmail').val();
+				let newPhone = $(table).find('#UserPhone').val();
+				let newLineID = $(table).find('#UserLineID').val();
 				let newPathRadiant = $(table).find('#UserPathRadiant').val();
-  			if (newNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '1px solid red');
+				if (newNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newLastNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '');
-  				$(table).find('#UserLastNameEN').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '');
+					$(table).find('#UserLastNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newNameTH === '') {
-  				$(table).find('#UserLastNameEN').css('border', '');
-  				$(table).find('#UserNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newNameTH === '') {
+					$(table).find('#UserLastNameEN').css('border', '');
+					$(table).find('#UserNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newLastNameTH === '') {
-  				$(table).find('#UserNameTH').css('border', '');
-  				$(table).find('#UserLastNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameTH === '') {
+					$(table).find('#UserNameTH').css('border', '');
+					$(table).find('#UserLastNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newEmail === '') {
-  				$(table).find('#UserLastNameTH').css('border', '');
-  				$(table).find('#UserEmial').css('border', '1px solid red');
-  				return;
+					resolve();
+				} else if (newEmail === '') {
+					$(table).find('#UserLastNameTH').css('border', '');
+					$(table).find('#UserEmial').css('border', '1px solid red');
+					resolve();
 				} else if (newPhone !== '') {
 					const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
 					let isCorrectFormat = phoneNoTHRegEx.test(newPhone);
@@ -2150,24 +2286,53 @@ module.exports = function ( jq ) {
 						$(table).find('#UserEmial').css('border', '');
 						$(table).find('#UserPhone').css('border', '1px solid red');
 						$.notify('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx', 'error');
-						return;
-					} else if (newPathRadiant	 === '') {
-	  				$(table).find('#UserPhone').css('border', '');
-	  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-	  				return;
+						resolve();
 	  			} else {
-						doSaveUserInfo();
-	  			}
-				} else if (newPathRadiant	 === '') {
-  				$(table).find('#UserEmail').css('border', '');
-  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-					$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom หากไม่ใช่รังสีแพทย์พิมพ์เป็นอะไรก็ได้แต่ต้องไม่ปล่อยว่างไว้', 'error');
-  				return;
-  			} else {
-					doSaveUserInfo();
-  			}
-  		});
-  	});
+						$(table).find('#UserEmail').css('border', '');
+						$(table).find('#UserPhone').css('border', '');
+						if (yourUserdata.usertypeId != 4) {
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						} else {
+							if (newPathRadiant === '') {
+								$(table).find('#UserPathRadiant').css('border', '1px solid red');
+								$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+								resolve();
+							} else {
+								$(table).find('#UserPathRadiant').css('border', '');
+								let downloadPathFrags = newPathRadiant.split('\\');
+								newPathRadiant = downloadPathFrags.join('/');
+								let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+								let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+								resolve(callSaveRes);
+							}
+						}
+					}
+				} else {
+					$(table).find('#UserEmail').css('border', '');
+					$(table).find('#UserPhone').css('border', '');
+					if (yourUserdata.usertypeId != 4) {
+						let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+						let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+						resolve(callSaveRes);
+					} else {
+						if (newPathRadiant === '') {
+							$(table).find('#UserPathRadiant').css('border', '1px solid red');
+							$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+							resolve();
+						} else {
+							$(table).find('#UserPathRadiant').css('border', '');
+							let downloadPathFrags = newPathRadiant.split('\\');
+							newPathRadiant = downloadPathFrags.join('/');
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						}
+					}
+				}
+			});
+		}
   }
 
   return {
@@ -2203,7 +2368,9 @@ module.exports = function ( jq ) {
           $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.StudyDesc + '</div>'));
           $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.ProtocolName + '</div>'));
           let scanPartCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
-          let scanPartBox = await common.doRenderScanpartSelectedBox(item.Scanparts);
+					let scanpartValues = Object.values(item.Scanparts);
+					scanpartValues = scanpartValues.slice(0, -1);
+          let scanPartBox = await common.doRenderScanpartSelectedBox(scanpartValues);
           $(scanPartBox).appendTo($(scanPartCell));
           $(itemRow).append($(scanPartCell));
           let scanPartCmdCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
@@ -2569,12 +2736,19 @@ module.exports = function ( jq ) {
 
 	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
 	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
 	  const port = window.location.port;
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
+		console.log(protocol);
+
+		let wsProtocol = 'ws://';
+		if (protocol == 'https:') {
+			wsProtocol = 'wss://';
+		}
 	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-		const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		const wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -2746,7 +2920,7 @@ module.exports = function ( jq ) {
 		}
 	});
 	*/
-	
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -2789,7 +2963,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":21,"../../refer/mod/websocketmessage.js":24,"./websocketmessage.js":9}],8:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":22,"../../refer/mod/websocketmessage.js":25,"./websocketmessage.js":9}],8:[function(require,module,exports){
 (function (global){(function (){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
@@ -3562,8 +3736,8 @@ const acccase = require('./mod/acccaselib.js')($);
 const searchcase = require('./mod/searchcaselib.js')($);
 const opencase = require('./mod/opencase.js')($);
 const template = require('./mod/templatelib.js')($);
-const profile = require('./mod/profilelib.js')($);
-//const profile = require('./mod/profilelibV2.js')($);
+//const profile = require('./mod/profilelib.js')($);
+const profile = require('./mod/profilelibV2.js')($);
 const softphone = require('../case/mod/softphonelib.js')($);
 
 const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
@@ -3968,7 +4142,6 @@ function doLoadDefualtPage() {
   let homeTitlePage = welcome.doCreateHomeTitlePage();
   $("#TitleContent").empty().append($(homeTitlePage));
   welcome.doSetupCounter().then((loadRes)=>{
-    $(".mainfull").empty();
     /*
     let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
     dicomzipsync.forEach((dicom, i) => {
@@ -3977,6 +4150,14 @@ function doLoadDefualtPage() {
       }
     });
     */
+    
+    if (loadRes.newList.Records.length > 0 ) {
+      $('#NewCaseCmd').click();
+    } else if (loadRes.accList.Records.length > 0) {
+      $('#AcceptedCaseCmd').click();
+    } else {
+      $(".mainfull").empty();
+    }
     $('body').loading('stop');
   }).catch(async (err)=>{
     if (err.error.code == 210){
@@ -4105,7 +4286,6 @@ function onLockScreenTrigger() {
 
 function onUnLockScreenTrigger(evt){
   resetScreen();
-
 }
 
 function onAutoLogoutTrigger(evt){
@@ -4155,19 +4335,16 @@ function doAutoAcceptCase(){
       console.log(myNewCase);
       if (myNewCase.status.code == 200){
         let caseLists = myNewCase.Records;
-        for (let i=0; i < caseLists.length; i++) {
-          let caseItem = caseLists[i];
-          await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
-        }
-        /*
         if (caseLists.length > 0){
+          for (let i=0; i < caseLists.length; i++) {
+            let caseItem = caseLists[i];
+            await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
+          }
           $('#AcceptedCaseCmd').click();
         } else {
           doLoadDefualtPage();
         }
-        */
       }
-      $('#AcceptedCaseCmd').click();
     });
   } else {
     doLoadDefualtPage();
@@ -4203,7 +4380,7 @@ module.exports = {
 	doGetWsm
 }
 
-},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/softphonelib.js":3,"../case/mod/userinfolib.js":5,"../case/mod/userprofilelib.js":6,"../case/mod/utilmod.js":7,"./mod/acccaselib.js":12,"./mod/newcaselib.js":15,"./mod/opencase.js":17,"./mod/profilelib.js":18,"./mod/searchcaselib.js":19,"./mod/templatelib.js":20,"./mod/welcomelib.js":22,"jquery":23}],12:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":1,"../case/mod/commonlib.js":2,"../case/mod/softphonelib.js":3,"../case/mod/userinfolib.js":5,"../case/mod/userprofilelib.js":6,"../case/mod/utilmod.js":7,"./mod/acccaselib.js":12,"./mod/newcaselib.js":16,"./mod/opencase.js":18,"./mod/profilelibV2.js":19,"./mod/searchcaselib.js":20,"./mod/templatelib.js":21,"./mod/welcomelib.js":23,"jquery":24}],12:[function(require,module,exports){
 /* acccaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -4526,12 +4703,13 @@ module.exports = function ( jq ) {
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
-      let seriesList = await common.doGetSeriesList(studyID);
+      let seriesList = await common.doGetLocalSeriesList(studyID);
 			if (seriesList){
 	      let seriesDescList = [];
 	      let	promiseList = new Promise(async function(resolve2, reject2){
 	        seriesList.Series.forEach(async(item, i) => {
-	          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+						//let seriesTags = await common.doGetOrthancSeriesDicom(item);
+	          let seriesTags = await common.doGetLocalOrthancSeriesDicom(item);
 						let seriesName = undefined;
 						if (seriesTags.MainDicomTags.SeriesDescription){
 							seriesName = seriesTags.MainDicomTags.SeriesDescription
@@ -4580,7 +4758,8 @@ module.exports = function ( jq ) {
 						$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
 					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
 						$('#quickreply').loading('start');
-	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+						//let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+	          let callSeriesRes = await common.doGetLocalOrthancSeriesDicom(item.id);
 						let modality = callSeriesRes.MainDicomTags.Modality;
 						let studyId = callSeriesRes.ParentStudy;
 	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
@@ -4803,6 +4982,103 @@ module.exports = function ( jq ) {
 }
 
 },{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],14:[function(require,module,exports){
+/*changepwddlg.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	const apiconnector = require('../../case/mod/apiconnect.js')($);
+  const util = require('../../case/mod/utilmod.js')($);
+  const common = require('../../case/mod/commonlib.js')($);
+
+  const doCreateChangePwdDlg = function(){
+    let changePwdDlg = $('<div></div>');
+    let changePwdWrapper = $('<table width="100%" border="0" cellspacing="0" cellpadding="2"></table>');
+    let newPasswordRow = $('<tr></tr>');
+    let retryPasswordRow = $('<tr></tr>');
+    $(changePwdWrapper).append($(newPasswordRow)).append($(retryPasswordRow));
+    let newPasswordLabelCell = $('<td width="40%" align="left">New Password <span style="color: red;">*</span></td>');
+    let newPasswordValueCell = $('<td width="*" align="left"></td>');
+    $(newPasswordRow).append($(newPasswordLabelCell)).append($(newPasswordValueCell));
+    let retryPasswordLabelCell = $('<td align="left">Retry Password <span style="color: red;">*</span></td>');
+    let retryPasswordValueCell = $('<td align="left"></td>');
+    $(retryPasswordRow).append($(retryPasswordLabelCell)).append($(retryPasswordValueCell));
+
+    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 190px;"/>');
+    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 190px;"/>');
+    $(newPasswordValueCell).append($(newPasswordValue));
+    $(retryPasswordValueCell).append($(retryPasswordValue));
+    $(changePwdDlg).append($(changePwdWrapper));
+
+    const doVerifyNewPassword = function(){
+      let newPassword = $(newPasswordValue).val();
+      let retryPassword = $(retryPasswordValue).val();
+      if (newPassword !== ''){
+        $(newPasswordValue).css({'border': ''});
+        if (retryPassword !== ''){
+          $(retryPasswordValue).css({'border': ''});
+          if (newPassword === retryPassword){
+            $(newPasswordValue).css({'border': ''});
+            $(retryPasswordValue).css({'border': ''});
+            return newPassword;
+          } else {
+            $(newPasswordValue).css({'border': '1px solid red'});
+            $(retryPasswordValue).css({'border': '1px solid red'});
+            $.notify('New Password กับ Retry Password มีค่าไม่เหมือนกัน', 'error');
+            return;
+          }
+        } else {
+          $(retryPasswordValue).css({'border': '1px solid red'});
+          $.notify('Retry Password ต้องไม่ว่าง', 'error');
+          return;
+        }
+      } else {
+        $(newPasswordValue).css({'border': '1px solid red'});
+        $.notify('New Password ต้องไม่ว่าง', 'error');
+        return;
+      }
+    }
+
+    const radconfirmoption = {
+      title: 'เปลี่ยน Password',
+      msg: $(changePwdDlg),
+      width: '440px',
+      onOk: function(evt) {
+        let newPassword = doVerifyNewPassword();
+        if ((newPassword) && (newPassword !== '')) {
+          $('body').loading('start');
+          changePwdDlgBox.closeAlert();
+          let userdata = JSON.parse(localStorage.getItem('userdata'));
+          let userId = userdata.id;
+          let reqParams = {userId: userId, password: newPassword};
+          console.log(reqParams);
+          $.post('/api/users/resetpassword', reqParams).then((response) => {
+            console.log(response);
+            $('body').loading('stop');
+            if (response) {
+              $.notify('เปลี่ยน Password สำเร็จ', 'success');
+            } else {
+              $.notify('เปลี่ยน Password ไม่สำเร็จ', 'error');
+            }
+          });
+        }
+      },
+      onCancel: function(evt){
+        changePwdDlgBox.closeAlert();
+      }
+    }
+    let changePwdDlgBox = $('body').radalert(radconfirmoption);
+  }
+
+  const doShowChangePwdDlg = function(){
+
+  }
+
+  return {
+    doCreateChangePwdDlg
+  }
+}
+
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],15:[function(require,module,exports){
 /* chatmanager.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -5137,7 +5413,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":7,"../main.js":11}],15:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/utilmod.js":7,"../main.js":11}],16:[function(require,module,exports){
 /* newcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6098,7 +6374,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./chatmanager.js":14}],16:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./chatmanager.js":15}],17:[function(require,module,exports){
 /* onrefreshtrigger.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6125,7 +6401,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* opencase.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -6193,6 +6469,7 @@ module.exports = function ( jq ) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 	    const downloadCmd = $(evt.currentTarget);
 	    const downloadData = $(downloadCmd).data('downloadData');
+			console.log(downloadData);
 			/*
 			let downloadData = {patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename};
       $(downloadCmd).data('downloadData', downloadData);
@@ -6416,7 +6693,7 @@ module.exports = function ( jq ) {
 	const onCreateNewResponseCmdClick = async function(evt) {
 		let responseHTML = $('#SimpleEditor').val();
 		//console.log($(responseHTML));
-		if (responseHTML !== '') {
+		if ((responseHTML) && (responseHTML !== '')) {
 			const createNewResponseCmd = $(evt.currentTarget);
 			const saveNewResponseData = $(createNewResponseCmd).data('createNewResponseData');
 			console.log(saveNewResponseData);
@@ -7166,6 +7443,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateSummaryDF = function(df){
+		console.log(df);
 		let summaryDF = $('<div style="padding: 5px;"></div>');
 		let total = 0;
 		let summaryTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
@@ -7832,18 +8110,19 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11,"./ai-lib.js":13,"./chatmanager.js":14,"./templatelib.js":20}],18:[function(require,module,exports){
-/* profilelib.js */
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
+/*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
 
 	const apiconnector = require('../../case/mod/apiconnect.js')($);
   const util = require('../../case/mod/utilmod.js')($);
   const common = require('../../case/mod/commonlib.js')($);
+	const changepwddlg = require('./changepwddlg.js')($);
 
+  const profileTitle = 'ตั้งค่าการแจ้งเตือนและรับเคส';
 
   const doCreateProfileTitlePage = function(){
-    const profileTitle = 'ตั้งค่าการแจ้งเตือนและรับเคส';
     let profileTitleBox = $('<div></div>');
     let logoPage = $('<img src="/images/setting-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
     $(logoPage).appendTo($(profileTitleBox));
@@ -7852,168 +8131,445 @@ module.exports = function ( jq ) {
     return $(profileTitleBox);
   }
 
-  const doCreateHeader = function(){
-    let headerRow = $('<div style="display: table-row; width: 100%;"></div>');
+  const doCreateBlankTable = function(){
+    let blankTable = $('<table cellspacing="0" cellpadding="0" border="1" width="100%"></table>');
+    let headerRow = $('<tr></tr>');
+    let activeRow = $('<tr></tr>');
+    let lockRow = $('<tr></tr>');
+    let offlineRow = $('<tr></tr>');
+    let commandRow = $('<tr></tr>');
 
-		let headColumn = $('<div id="StatusNameColumn" style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>สถานะ</span>');
-		$(headColumn).appendTo($(headerRow));
+    let activeNameCell = $('<td><b>Active</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let activeControlCell = $('<td id="ActiveControl"></td>');
 
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การแจ้งเตือน</span>');
-		$(headColumn).appendTo($(headerRow));
+    let lockNameCell = $('<td><b>Lock</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let lockControlCell = $('<td id="LockControl"></td>');
 
-    headColumn = $('<div style="display: table-cell; text-align: center;" class="header-cell"></div>');
-		$(headColumn).append('<span>การรับเคส</span>');
-		$(headColumn).appendTo($(headerRow));
+    let offlineNameCell = $('<td><b>Offline</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let offlineControlCell = $('<td id="OfflineControl"></td>');
 
-    return $(headerRow);
+    let commandCell = $('<td colspan="2" id="ProfilePageCmd" align="center"></td>');
+
+    $(headerRow).append($('<td class="header-cell" width="15%">สถานะ</td>'));
+    $(headerRow).append($('<td class="header-cell" width="*">ตั้งค่า</td>'));
+
+    $(activeRow).append($(activeNameCell)).append($(activeControlCell));
+    $(lockRow).append($(lockNameCell)).append($(lockControlCell));
+    $(offlineRow).append($(offlineNameCell)).append($(offlineControlCell));
+    $(commandRow).append($(commandCell));
+    return $(blankTable).append(headerRow).append($(activeRow)).append($(lockRow)).append($(offlineRow)).append($(commandRow));
   }
 
-  const doCreateActiveRow = function(profile){
-    let activeRow = $('<div style="display: table-row; width: 100%;"></div>');
+	const onActionCommonHandle = function(evt) {
+		console.log('one');
+	}
 
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(activeRow));
-    $(statusNameCell).append($('<span>Active</span>'));
+	const offActionCommonHandle = function(evt) {
+		console.log('two');
+	}
 
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(activeRow));
+	const onActiveHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#ActiveControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoActiveGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
 
-    let webmessageNotityBox = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
-    $(webmessageNotityBox).appendTo($(notifyCell));
-    let webmessageSwitchControl = $('<div id="WebmessageSwitchControl"></div>');
-    let webmessageSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let webmessageSwitch = $(webmessageSwitchControl).readystate(webmessageSwitchOption);
-    if (profile.Profile.activeState.webNotify == 1) {
-      webmessageSwitch.onAction();
+	const offActiveHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#ActiveControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectActiveHandle(evt);
+	}
+
+	const onLockHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#LockControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoLockGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
+
+	const offLockHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#LockControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectLockHandle(evt);
+	}
+
+	const onOfflineHandle = function(evt){
+		let onHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#OfflineControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).show();
+		var optionValue = $(manAutoOptionBox).find("input[name=ManAutoOfflineGroup]:checked").val();
+		if (optionValue == 1){
+			//Hide Control Option
+			let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).hide();
+		} else if (optionValue == 2){
+			//Show Control Option
+			let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+			$(phoneCallOptionBox).show();
+		}
+	}
+
+	const offOfflineHandle = function(evt){
+		let offHandle = $(evt.currentTarget);
+		let manAutoOptionBox = $('#OfflineControl').find('#ManAutoOptionBox');
+		$(manAutoOptionBox).hide();
+		manSelectOfflineHandle(evt);
+	}
+
+	const manSelectActiveHandle = function(evt){
+		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectActiveHandle = function(evt){
+		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const manSelectLockHandle = function(evt){
+		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectLockHandle = function(evt){
+		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const manSelectOfflineHandle = function(evt){
+		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).hide();
+	}
+
+	const autoSelectOfflineHandle = function(evt){
+		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
+		$(phoneCallOptionBox).show();
+	}
+
+	const changePasswordCmdClick = function(evt){
+		changepwddlg.doCreateChangePwdDlg();
+	}
+
+	const switchOptions = {onActionCallback: onActionCommonHandle, offActionCallback: offActionCommonHandle};
+	const activeActions = {onActionCallback: onActiveHandle, offActionCallback: offActiveHandle};
+	const lockActions = {onActionCallback: onLockHandle, offActionCallback: offLockHandle};
+	const offlineActions = {onActionCallback: onOfflineHandle, offActionCallback: offOfflineHandle};
+	const switchStyle = {'position': 'relative', 'top': '5px', 'left': '20px', 'display': 'inline-block'};
+	const switchLabelStyle = {'position': 'relative', 'top': '10px', 'margin-left': '5px'};
+	const radioLabelStyle = {'position': 'relative', 'top': '-1px', 'margin-left': '15px'};
+	const radioBtnStyle = {'transform': 'scale(2.5)'};
+
+	const doCreateManAutoRadioBox = function(groupName, manCallback, autoCallback){
+		let wrapperBox = $('<div id="ManAutoOptionBox" style="position: relative; display: inline-block; margin-left: 30px; top: 10px;"></div>');
+		let manOptionBtn = $('<input type="radio" id="ManOption" value="1" checked="true"/>').prop('name', groupName).css(radioBtnStyle);
+		let autoOptionBtn = $('<input type="radio" id="AutoOption" value="2"/>').prop('name', groupName).css(radioBtnStyle);
+		$(manOptionBtn).on('click', (evt)=>{
+			manCallback(evt);
+		});
+		$(autoOptionBtn).on('click', (evt)=>{
+			autoCallback(evt);
+		});
+		$(wrapperBox).append($(manOptionBtn));
+		$(wrapperBox).append($('<label>Manual (คน)</label>').css(radioLabelStyle));
+		$(wrapperBox).append($(autoOptionBtn).css({'margin-left': '20px'}));
+		$(wrapperBox).append($('<label>Auto</label>').css(radioLabelStyle));
+		return $(wrapperBox);
+	}
+
+	const doCreatePhoneCallOptionControlBox = function(options){
+		let wrapperBox = $('<div id="PhoneCallOptionBox" style="position: relative; display: none; top: 10px; padding: 10px; border: 2px solid black;"></div>');
+		let option1HRElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ ไม่เกิน 1 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option4HRElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ 1 - 4 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option24HRLElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ ไม่เกิน 24 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option24HRUElem = $('<div style="line-height: 40px;"></div>').append($('<span>สำหรับเคส เวลาตอบรับ เกิน 24 ชม. หากไม่ได้ตอบรับ โทรเมื่อเวลาตอบรับเหลือน้อยกว่า</span>'));
+		let option1HRInput = $('<input type="number" id="Option1HRInput" style="width: 60px;">');
+		$(option1HRInput).val(options.optionCaseControl.case1H? options.optionCaseControl.case1H:0);
+		let option4HRInput = $('<input type="number" id="Option4HRInput" style="width: 60px;">');
+		$(option4HRInput).val(options.optionCaseControl.case4H? options.optionCaseControl.case4H:0);
+		let option24HRLInput = $('<input type="number" id="Option24HRLInput" style="width: 60px;">');
+		$(option24HRLInput).val(options.optionCaseControl.case24HL? options.optionCaseControl.case24HL:0);
+		let option24HRUInput = $('<input type="number" id="Option24HRUInput" style="width: 60px;">');
+		$(option24HRUInput).val(options.optionCaseControl.case24HU? options.optionCaseControl.case24HU:0);
+		$(option1HRElem).append($(option1HRInput).css({'margin-left': '10px'}));
+		$(option1HRElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		$(option4HRElem).append($(option4HRInput).css({'margin-left': '10px'}));
+		$(option4HRElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		$(option24HRLElem).append($(option24HRLInput).css({'margin-left': '10px'}));
+		$(option24HRLElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		$(option24HRUElem).append($(option24HRUInput).css({'margin-left': '10px'}));
+		$(option24HRUElem).append($('<span>นาที</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(option1HRElem)).append($(option4HRElem)).append($(option24HRLElem)).append($(option24HRUElem));
+	}
+
+	const doCreateSwitchBox = function(box, switchOptions, defaultValue){
+		let switchBox = $(box).readystate(switchOptions);
+    if (defaultValue == 1) {
+      switchBox.onAction();
     } else {
-      webmessageSwitch.offAction();
+      switchBox.offAction();
     }
-    $(webmessageSwitchControl).appendTo($(webmessageNotityBox));
-    $(webmessageSwitchControl).append($('<label style="position: absolute; top: 10px; left: 70px;">Website</label>'));
+		return switchBox;
+	}
 
-    let lineNotityBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(lineNotityBox).appendTo($(notifyCell));
-    let lineSwitchControl = $('<div id="LineSwitchControl"></div>');
-    let lineSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let lineSwitch = $(lineSwitchControl).readystate(lineSwitchOption);
-    if (profile.Profile.activeState.lineNotify == 1) {
-      lineSwitch.onAction();
-    } else {
-      lineSwitch.offAction();
-    }
-    $(lineSwitchControl).appendTo($(lineNotityBox)); //&nbsp;&nbsp;
-    $(lineNotityBox).append($('<label style="position: absolute; top: 10px; left: 70px;">LINE</label>'));
+	const doCreateWebNotifyContolSwitch = function(initValue){
+		let switchLabel = $('<label>แจ้งเตือนทาง Web Site</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="WebNotifySwitchBox"></div>').css(switchStyle);
 
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
 
-    let autocallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(autocallBox).appendTo($(notifyCell));
-    let autocallSwitchControl = $('<div id="AutocallSwitchControl"></div>');
-    let autocallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let autocallSwitch = $(autocallSwitchControl).readystate(autocallSwitchOption);
-    if (profile.Profile.activeState.phoneCall == 2) {
-      autocallSwitch.onAction();
-    } else {
-      autocallSwitch.offAction();
-    }
-    $(autocallSwitchControl).appendTo($(autocallBox)); //&nbsp;&nbsp;
-    $(autocallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Auto Call</label>'));
+	const doCreateLineBotNotifyContolSwitch = function(initValue){
+		let switchLabel = $('<label>แจ้งเตือนทาง Line</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="LineBotNotifySwitchBox"></div>').css(switchStyle);
 
-    let mancallBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(mancallBox).appendTo($(notifyCell));
-    let mancallSwitchControl = $('<div id="MancallSwitchControl"></div>');
-    let mancallSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let mancallSwitch = $(mancallSwitchControl).readystate(mancallSwitchOption);
-    if (profile.Profile.activeState.phoneCall == 1) {
-      mancallSwitch.onAction();
-    } else {
-      mancallSwitch.offAction();
-    }
-    $(mancallSwitchControl).appendTo($(mancallBox)); //&nbsp;&nbsp;
-    $(mancallBox).append($('<label style="position: absolute; top: 10px; left: 70px;">Manual Call</label>'));
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
 
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(activeRow));
+	const doCreatePhoneCallActiveContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
 
-    let caseAccBox = $('<div style="position: relative; padding: 4px;"></div>');
-    $(caseAccBox).appendTo($(caseAccCell));
-    let caseAccSwitchControl = $('<div id="CaseAcccallSwitchControl"></div>');
-    let caseAccSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let caseAccSwitch = $(caseAccSwitchControl).readystate(caseAccSwitchOption);
-    if (profile.Profile.activeState.autoAcc == 1) {
-      caseAccSwitch.onAction();
-    } else {
-      caseAccSwitch.offAction();
-    }
-    $(caseAccSwitchControl).appendTo($(caseAccBox)); //&nbsp;&nbsp;
-    $(caseAccBox).append($('<label style="position: absolute; top: 10px; left: 70px;">รับเคสอัตโนมัติ</label>'));
+		doCreateSwitchBox(switchBox, activeActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoActiveGroup', manSelectActiveHandle, autoSelectActiveHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
 
-    return $(activeRow);
+	const doCreateAutoAcceptSwitch = function(initValue){
+		let switchLabel = $('<label>รับเคสอัตโนมัติ</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="AutoAcceptSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoOnReadySwitch = function(initValue){
+		let switchLabel = $('<label>เปลี่ยนสถานะเป็นรับงานเมื่อฉัน Login</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="AutoOnReadySwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+		return $(switchWrapper);
+	}
+
+	const doCreatePhoneCallLockContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, lockActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoLockGroup', manSelectLockHandle, autoSelectLockHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoLockScreenControlBox = function(initValue){
+		let wrapperBox = $('<div id="AutoLockScreenControlBox" style="position: relative; display: block; top: 10px; padding: 10px;"></div>');
+		let controlElem = $('<div style="line-height: 40px;"></div>').append($('<span>เข้าสู่ Mode Lock เมื่อไม่ได้ใช้งาน</span>'));
+		let controlInput = $('<input type="number" id="AutoLockScreenMinuteInput" style="width: 60px;">');
+		$(controlInput).val(initValue);
+		$(controlElem).append($(controlInput).css({'margin-left': '10px'}));
+		$(controlElem).append($('<span>นาที (สูงสุด 60)</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(controlElem));
+	}
+
+	const doCreateUnLockScreenControlBox = function(initValue, callback){
+		let switchLabel = $('<label>ใช้ Password ในการ Unlock</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="UnlockOptionSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, switchOptions, initValue);
+		$(switchWrapper).append($(switchBox));
+
+		let changePasswordCmd = $('<a href="#">เปลี่ยน Password</a>');
+		$(changePasswordCmd).on('click', (evt)=>{
+			callback(evt);
+		});
+		$(switchWrapper).append($(changePasswordCmd).css({'position': 'relative', 'display': 'inline-block', 'margin-left': '50px', 'margin-top': '10px'}));
+		return $(switchWrapper);
+	}
+
+	const doCreatePhoneCallOfflineContolSwitch = function(initValue, options){
+		let switchLabel = $('<label>แจ้งเตือนทาง Call</label>').css(switchLabelStyle);
+		let switchWrapper = $('<div style="position: relative; padding: 4px; margin-top: 10px;"></div>');
+		$(switchWrapper).append($(switchLabel));
+		let switchBox = $('<div id="PhoneCallSwitchBox"></div>').css(switchStyle);
+
+		doCreateSwitchBox(switchBox, offlineActions, initValue);
+		$(switchWrapper).append($(switchBox));
+		let manAutoToggle = doCreateManAutoRadioBox('ManAutoOfflineGroup', manSelectOfflineHandle, autoSelectOfflineHandle);
+		let phoneCallOptionControlBox = doCreatePhoneCallOptionControlBox(options);
+		$(switchWrapper).append($(manAutoToggle)).append($(phoneCallOptionControlBox));
+		if (options.manAutoOption == 1){
+			manAutoToggle.find('#ManOption').prop('checked', true);
+			phoneCallOptionControlBox.hide();
+		} else if (options.manAutoOption == 2){
+			manAutoToggle.find('#AutoOption').prop('checked', true);
+			phoneCallOptionControlBox.show();
+		}
+		return $(switchWrapper);
+	}
+
+	const doCreateAutoLogoutControlBox = function(initValue){
+		let wrapperBox = $('<div id="AutoLogoutControlBox" style="position: relative; display: block; top: 10px; padding: 10px;"></div>');
+		let controlElem = $('<div style="line-height: 40px;"></div>').append($('<span>Logout เมื่อไม่ได้ใช้งาน</span>'));
+		let controlInput = $('<input type="number" id="AutoLogoutMinuteInput" style="width: 60px;">');
+		$(controlInput).val(initValue);
+		$(controlElem).append($(controlInput).css({'margin-left': '10px'}));
+		$(controlElem).append($('<span>นาที (ต้องมากว่า Lock Screen)</span>').css({'margin-left': '10px'}));
+		return $(wrapperBox).append($(controlElem));
+	}
+
+  const doCreateProfilePage = function(){
+    return new Promise(async function(resolve, reject) {
+      $('body').loading('start');
+			const userdata = JSON.parse(localStorage.getItem('userdata'));
+			let myProfileRes = await doCallMyProfile(userdata.id);
+			if (myProfileRes.status.code == 200){
+				let myProfile = undefined;
+	      if ((myProfileRes) && (myProfileRes.Record.length > 0)) {
+	        myProfile = myProfileRes.Record[0];
+	      } else {
+					let getDefaultProfileUrl = '/api/userprofile/default';
+					let defaultRes = await common.doGetApi(getDefaultProfileUrl, {});
+					let firstProfile = {Profile: defaultRes.default};
+	        myProfile = firstProfile;
+	      }
+				console.log(myProfile);
+				let initValue = 1;
+
+	      let myProfilePage = $('<div style="width: 100%;"></div>');
+
+	      let profileTable = doCreateBlankTable();
+
+				let webNotifyBox = doCreateWebNotifyContolSwitch(myProfile.Profile.activeState.webNotify);
+				profileTable.find('#ActiveControl').append($(webNotifyBox));
+
+				let linebotNotifyActiveBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.activeState.lineNotify);
+				profileTable.find('#ActiveControl').append($(linebotNotifyActiveBox));
+
+				let phoneCallActiveBox = doCreatePhoneCallActiveContolSwitch(myProfile.Profile.activeState.phoneCall, myProfile.Profile.activeState.phoneCallOptions);
+				let manAutoOptionAciveBox = $(phoneCallActiveBox).find('#ManAutoOptionBox');
+				console.log(myProfile.Profile.activeState.phoneCall);
+				if (myProfile.Profile.activeState.phoneCall == 0){
+					$(manAutoOptionAciveBox).hide();
+				} else if (myProfile.Profile.activeState.phoneCall == 1){
+					$(manAutoOptionAciveBox).show();
+				}
+				profileTable.find('#ActiveControl').append($(phoneCallActiveBox));
+
+				let autoAcceptOptionBox = doCreateAutoAcceptSwitch(myProfile.Profile.activeState.autoAcc);
+				profileTable.find('#ActiveControl').append($(autoAcceptOptionBox));
+
+				let autoOnReadyOptionBox = doCreateAutoOnReadySwitch(myProfile.Profile.activeState.autoReady);
+				profileTable.find('#ActiveControl').append($(autoOnReadyOptionBox));
+
+				let linebotNotifyLockBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.lockState.lineNotify);
+				profileTable.find('#LockControl').append($(linebotNotifyLockBox));
+
+				let phoneCallLockBox = doCreatePhoneCallLockContolSwitch(myProfile.Profile.lockState.phoneCall, myProfile.Profile.lockState.phoneCallOptions);
+				let manAutoOptionLockBox = $(phoneCallLockBox).find('#ManAutoOptionBox');
+				if (myProfile.Profile.lockState.phoneCall == 0){
+					$(manAutoOptionLockBox).hide();
+				} else if (myProfile.Profile.lockState.phoneCall == 1){
+					$(manAutoOptionLockBox).show();
+				}
+				profileTable.find('#LockControl').append($(phoneCallLockBox));
+
+				let autoLockSreenBox = doCreateAutoLockScreenControlBox(myProfile.Profile.lockState.autoLockScreen);
+				profileTable.find('#LockControl').append($(autoLockSreenBox));
+
+				let unlockScreenControlBox = doCreateUnLockScreenControlBox(myProfile.Profile.lockState.passwordUnlock, changePasswordCmdClick);
+				profileTable.find('#LockControl').append($(unlockScreenControlBox));
+
+				let linebotNotifyOfflineBox = doCreateLineBotNotifyContolSwitch(myProfile.Profile.offlineState.lineNotify);
+				profileTable.find('#OfflineControl').append($(linebotNotifyOfflineBox));
+
+				let phoneCallOfflineBox = doCreatePhoneCallOfflineContolSwitch(myProfile.Profile.offlineState.phoneCall, myProfile.Profile.offlineState.phoneCallOptions);
+				let manAutoOptionOfflineBox = $(phoneCallOfflineBox).find('#ManAutoOptionBox');
+				if (myProfile.Profile.offlineState.phoneCall == 0){
+					$(manAutoOptionOfflineBox).hide();
+				} else if (myProfile.Profile.offlineState.phoneCall == 1){
+					$(manAutoOptionOfflineBox).show();
+				}
+				profileTable.find('#OfflineControl').append($(phoneCallOfflineBox));
+
+				let autoLogoutControlBox = doCreateAutoLogoutControlBox(myProfile.Profile.offlineState.autoLogout);
+				profileTable.find('#OfflineControl').append($(autoLogoutControlBox));
+
+				let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
+				profileTable.find('#ProfilePageCmd').append($(cmdBar));
+
+	      $(myProfilePage).append($(profileTable));
+	      resolve($(myProfilePage));
+	      $('body').loading('stop');
+			} else if (myProfileRes.status.code == 210){
+				reject({error: {code: 210, cause: 'Token Expired!'}});
+			} else {
+				let apiError = 'api error at doCallMyProfile';
+				console.log(apiError);
+				reject({error: apiError});
+			}
+    });
   }
 
-  const doCreateLockRow = function(profile){
-    let lockRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(lockRow));
-    $(statusNameCell).append($('<span>Lock</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(lockRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(lockRow));
-
-    return $(lockRow);
-  }
-
-  const doCreateOfflinekRow = function(profile){
-    let offlineRow = $('<div style="display: table-row; width: 100%;"></div>');
-
-    let statusNameCell = $('<div style="display: table-cell; text-align: center; vertical-align: middle; border: 2px solid grey;"></div>');
-		$(statusNameCell).appendTo($(offlineRow));
-    $(statusNameCell).append($('<span>Offline</span>'));
-
-    let notifyCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(notifyCell).appendTo($(offlineRow));
-
-    let caseAccCell = $('<div style="display: table-cell; text-align: left; border: 2px solid grey;"></div>');
-		$(caseAccCell).appendTo($(offlineRow));
-
-    return $(offlineRow);
-  }
-
-  const doCreateLockOptionRow = function(profile, statusNameColumnWidth){
-    let lockOptionRow = $('<div style="position: relative; width: 99.95%; margin-top: 5px; border: 2px solid grey;"></div>');
-    let minuteValueLockBox = $('<div style="width: 100%;"></div>');
-    $(minuteValueLockBox).css('margin-left', statusNameColumnWidth);
-    let unlockOptionBox = $('<div style="width: 100%; position: relative;"></div>');
-    $(unlockOptionBox).css('margin-left', statusNameColumnWidth);
-    $(minuteValueLockBox).appendTo($(lockOptionRow));
-    $(unlockOptionBox).appendTo($(lockOptionRow));
-
-    let minuteValue = $('<input id="MinuteValue" type="text" id="MinuteLockValue" size="4"/>');
-    $(minuteValue).val(profile.Profile.lockState.autoLockScreen);
-    $(minuteValueLockBox).append($('<span>ล็อคเมื่อไม่ได้ใช้งานเกิน&nbsp;&nbsp;</span>'));
-    $(minuteValueLockBox).append($(minuteValue));
-    $(minuteValueLockBox).append($('<span>&nbsp;&nbsp;นาที่&nbsp;&nbsp;(สูงสุด 60 นาที)</span>'));
-
-    let unlockOptionControl = $('<div id="UnlockOptionControl"></div>');
-    let unlockOptionSwitchOption = {onActionCallback: ()=>{console.log('one');}, offActionCallback: ()=>{console.log('two');} };
-		let unlockOptionSwitch = $(unlockOptionControl).readystate(unlockOptionSwitchOption);
-    if (profile.Profile.lockState.passwordUnlock == 1) {
-      unlockOptionSwitch.onAction();
-    } else {
-      unlockOptionSwitch.offAction();
-    }
-    $(unlockOptionControl).appendTo($(unlockOptionBox)); //&nbsp;&nbsp;
-    $(unlockOptionBox).append($('<label style="position: absolute; top: 5px; left: 70px;">ต้องการใช้ Password ในการปลดล็อค</label>'));
-
-    return $(lockOptionRow);
-  }
-
-  const doCreatePageCmd = function(pageHandle, saveCallBack){
+	const doCreatePageCmd = function(pageHandle, saveCallBack){
     let cmdBar = $('<div style="width: 100%; margin-top: 5px; text-align: center;"></div>');
     let saveCmd = $('<input type="button" value=" Save " class="action-btn"/>');
     let backCmd = $('<input type="button" value=" Back " class="none-action-btn"/>');
@@ -8022,86 +8578,132 @@ module.exports = function ( jq ) {
     $(backCmd).appendTo($(cmdBar));
     $(backCmd).on('click', (evt)=>{$('#AcceptedCaseCmd').click()});
     $(saveCmd).on('click', (evt)=>{
-      let webmessageSwitchControl = $(pageHandle).find('#WebmessageSwitchControl').find('input[type=checkbox]').prop('checked');
-      let lineSwitchControl = $(pageHandle).find('#LineSwitchControl').find('input[type=checkbox]').prop('checked');
-      let autocallSwitchControl = $(pageHandle).find('#AutocallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let mancallSwitchControl = $(pageHandle).find('#MancallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let caseAcccallSwitchControl = $(pageHandle).find('#CaseAcccallSwitchControl').find('input[type=checkbox]').prop('checked');
-      let minuteValue = $(pageHandle).find('#MinuteValue').val();
-      let unlockOptionControl = $(pageHandle).find('#UnlockOptionControl').find('input[type=checkbox]').prop('checked');
 
-      if ((minuteValue > 0) && (minuteValue < 61)) {
-        $(pageHandle).find('#MinuteValue').css('border', '');
-				/*
-        let profileValue = {
-          screen: {
-            lock: minuteValue,
-            unlock: unlockOptionControl? 1:0
-          },
-          autoacc: caseAcccallSwitchControl? 1:0,
-          casenotify: {
-            webmessage: webmessageSwitchControl? 1:0,
-            line: lineSwitchControl? 1:0,
-            autocall: autocallSwitchControl? 1:0,
-            mancall: mancallSwitchControl? 1:0
-          }
-        }
-				*/
-				
-				let profileValue = {
-					activeState: {
-						webNotify: webmessageSwitchControl? 1:0,
-						lineNotify: lineSwitchControl? 1:0,
-						phoneCall: autocallSwitchControl? 1:0,
-						phoneCallOptions: {
-							manAutoOption:  mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
+			let activeWebNotify = pageHandle.find('#ActiveControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeLineNotify = pageHandle.find('#ActiveControl').find('#LineBotNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let activePhoneCall = pageHandle.find('#ActiveControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeManAutoOption = pageHandle.find('#ActiveControl').find('input[name="ManAutoActiveGroup"]:checked').val();
+			let activePhoneCall1H = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let activePhoneCall4H = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let activePhoneCall24HL = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option24HRLInput').val();
+			let activePhoneCall24HU = pageHandle.find('#ActiveControl').find('#PhoneCallOptionBox').find('#Option24HRUInput').val();
+			let activeAutoAcc = pageHandle.find('#ActiveControl').find('#AutoAcceptSwitchBox').find('input[type=checkbox]').prop('checked');
+			let activeAutoReady = pageHandle.find('#ActiveControl').find('#AutoOnReadySwitchBox').find('input[type=checkbox]').prop('checked');
+
+			let lockLineNotify = pageHandle.find('#LockControl').find('#LineBotNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let lockPhoneCall = pageHandle.find('#LockControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let lockManAutoOption = pageHandle.find('#LockControl').find('input[name="ManAutoLockGroup"]:checked').val();
+			let lockPhoneCall1H = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let lockPhoneCall4H = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let lockPhoneCall24HL = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option24HRLInput').val();
+			let lockPhoneCall24HU = pageHandle.find('#LockControl').find('#PhoneCallOptionBox').find('#Option24HRUInput').val();
+			let lockAutoLockScreenMinut = pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').val();
+			let lockPasswordUnlock = pageHandle.find('#LockControl').find('#UnlockOptionSwitchBox').find('input[type=checkbox]').prop('checked');
+
+			let offlineLineNotify = pageHandle.find('#OfflineControl').find('#LineBotNotifySwitchBox').find('input[type=checkbox]').prop('checked');
+			let offlinePhoneCall = pageHandle.find('#OfflineControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');
+			let offlineManAutoOption = pageHandle.find('#OfflineControl').find('input[name="ManAutoOfflineGroup"]:checked').val();
+			let offlinePhoneCall1H = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option1HRInput').val();
+			let offlinePhoneCall4H = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option4HRInput').val();
+			let offlinePhoneCall24HL = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option24HRLInput').val();
+			let offlinePhoneCall24HU = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option24HRUInput').val();
+			let offlineAutoLogoutMinut = pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').val();
+
+			let verifyProfile1 = ((lockAutoLockScreenMinut > -1) && (lockAutoLockScreenMinut < 61));
+			let verifyProfile2 = ((offlineAutoLogoutMinut <= 0) || ((offlineAutoLogoutMinut > 0) && (offlineAutoLogoutMinut > lockAutoLockScreenMinut)));
+
+			if (verifyProfile1) {
+				pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '');
+				if (verifyProfile2) {
+					pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '');
+					pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').css('border', '');
+					let profileValue = {
+						activeState: {
+							webNotify: activeWebNotify? 1:0,
+							lineNotify: activeLineNotify? 1:0,
+							phoneCall: activePhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: activeManAutoOption,
+								optionCaseControl: {
+									case1H: activePhoneCall1H? activePhoneCall1H:0,
+									case4H: activePhoneCall4H? activePhoneCall4H:0,
+									case24HL: activePhoneCall24HL? activePhoneCall24HL:0,
+									case24HU: activePhoneCall24HU? activePhoneCall24HU:0,
+								}
+							},
+							autoAcc: activeAutoAcc? 1:0,
+							autoReady: activeAutoReady? 1:0
 						},
-						autoAcc: caseAcccallSwitchControl? 1:0,
-						//autoReady: activeAutoReady? 1:0
-					},
-					lockState: {
-						lineNotify: 1,
-						phoneCall: 0,
-						phoneCallOptions: {
-							manAutoOption: mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
+						lockState: {
+							lineNotify: lockLineNotify? 1:0,
+							phoneCall: lockPhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: lockManAutoOption,
+								optionCaseControl: {
+									case1H: lockPhoneCall1H? lockPhoneCall1H:0,
+									case4H: lockPhoneCall4H? lockPhoneCall4H:0,
+									case24HL: lockPhoneCall24HL? lockPhoneCall24HL:0,
+									case24HU: lockPhoneCall24HU? lockPhoneCall24HU:0,
+								}
+							},
+							autoLockScreen: lockAutoLockScreenMinut,
+							passwordUnlock: lockPasswordUnlock? 1:0
 						},
-						autoLockScreen: minuteValue,
-						passwordUnlock: unlockOptionControl? 1:0
-					},
-					offlineState: {
-						lineNotify: 1,
-						phoneCall: 0,
-						phoneCallOptions: {
-							manAutoOption: mancallSwitchControl,
-							optionCaseControl: {
-								case1H: 0,
-								case4H: 0
-							}
-						},
-						autoLogout: 0
+						offlineState: {
+							lineNotify: offlineLineNotify? 1:0,
+							phoneCall: offlinePhoneCall? 1:0,
+							phoneCallOptions: {
+								manAutoOption: offlineManAutoOption,
+								optionCaseControl: {
+									case1H: offlinePhoneCall1H? offlinePhoneCall1H:0,
+									case4H: offlinePhoneCall4H? offlinePhoneCall4H:0,
+									case24HL: offlinePhoneCall24HL? offlinePhoneCall24HL:0,
+									case24HU: offlinePhoneCall24HU? offlinePhoneCall24HU:0,
+								}
+							},
+							autoLogout: offlineAutoLogoutMinut
+						}
+					};
+					console.log(profileValue);
+					saveCallBack(profileValue);
+				} else {
+					pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '1px solid red');
+					pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').css('border', '1px solid red');
+					let radAlertMsg = $('<div></div>');
+					$(radAlertMsg).append($('<p>กรณีมีการตั้งค่า Logout อัตโนมัติ</p>'));
+					$(radAlertMsg).append($('<p>ค่าจำนวนนาทีของ Logout อัตโนมัติ ต้องมากกว่า จำนวนนาทีของล็อคจอภาพ</p>'));
+					const radalertoption = {
+						title: 'ตั้งค่าไม่ถูกต้อง',
+						msg: $(radAlertMsg),
+						width: '420px',
+						onOk: function(evt) {
+							radAlertBox.closeAlert();
+						}
 					}
-				};
-
-        saveCallBack(profileValue);
-      } else {
-        $(pageHandle).find('#MinuteValue').css('border', '1px solid red');
-        $.notify("ค่าจำนวนนาทีต้องมีค่าระหว่าง 1-60", "error");
-      }
-    });
+					let radAlertBox = $('body').radalert(radalertoption);
+				}
+			} else {
+				pageHandle.find('#LockControl').find('#AutoLockScreenControlBox').find('#AutoLockScreenMinuteInput').css('border', '1px solid red');
+				let radAlertMsg = $('<div></div>');
+				$(radAlertMsg).append($('<p>กรณีมีการตั้งค่า เข้าสู่ Mode Lock เมื่อไม่ได้ใช้งาน</p>'));
+				$(radAlertMsg).append($('<p>ด้วยค่าจำนวนนาที ระหว่าง 0 - 60</p>'));
+				const radalertoption = {
+					title: 'ตั้งค่าไม่ถูกต้อง',
+					msg: $(radAlertMsg),
+					width: '420px',
+					onOk: function(evt) {
+						radAlertBox.closeAlert();
+					}
+				}
+				let radAlertBox = $('body').radalert(radalertoption);
+			}
+		});
     return $(cmdBar);
   }
 
-  const doCallSaveMyProfile = function(profileData){
+	const doCallSaveMyProfile = function(profileData){
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+			$('body').loading('start');
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let radioId = userdata.id;
 			let rqParams = undefined;
@@ -8125,12 +8727,6 @@ module.exports = function ( jq ) {
 			try {
 				let response = await common.doCallApi(apiUrl, rqParams);
         if (response.status.code == 200) {
-
-					/*
-          userdata.userprofiles.splice(0,userdata.userprofiles.length);
-          profileData.readyState = readyState;
-          userdata.userprofiles.push({Profile: profileData});
-					*/
 					userdata.userprofiles[0].Profile = profileData;
 					userdata.userprofiles[0].Profile.readyState = readyState;
 					console.log(userdata.userprofiles[0].Profile);
@@ -8146,10 +8742,10 @@ module.exports = function ( jq ) {
         $('body').loading('stop');
 	      reject(e);
     	}
-    });
-  }
+		});
+	}
 
-  const doCallMyProfile = function(radioId){
+	const doCallMyProfile = function(radioId){
     return new Promise(async function(resolve, reject) {
 			let rqParams = {};
 			let apiUrl = '/api/userprofile/select/' + radioId;
@@ -8162,63 +8758,14 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateProfilePage = function(){
-    return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
-			const userdata = JSON.parse(localStorage.getItem('userdata'));
-      let myProfilePage = $('<div style="width: 100%;"></div>');
-      let myProfileView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
-      let myLockOptionBox = $('<div style="width: 100%;"></div>');
-      $(myProfileView).appendTo($(myProfilePage));
-      $(myLockOptionBox).appendTo($(myProfilePage));
-      let headerRow = doCreateHeader();
-      $(headerRow).appendTo($(myProfileView));
-      let statusNameColumnWidth = $(headerRow).find('#StatusNameColumn').css('width');
-      let myProfileRes = await doCallMyProfile(userdata.id);
-			if (myProfileRes.status.code == 200){
-	      let myProfile = undefined;
-	      if ((myProfileRes) && (myProfileRes.Record.length > 0)) {
-	        myProfile = myProfileRes.Record[0];
-	      } else {
-					let getDefaultProfileUrl = '/api/userprofile/default';
-					let defaultRes = await common.doGetApi(getDefaultProfileUrl, {});
-					let firstProfile = {Profile: defaultRes.default};
-
-					//let firstProfile = {Profile: common.defaultProfile};
-
-					//localStorage.setItem('userprofiles', JSON.stringify(firstProfile));
-	        myProfile = firstProfile;
-	      }
-	      let activeRow = doCreateActiveRow(myProfile);
-	      let lockRow = doCreateLockRow(myProfile);
-	      let offlineRow = doCreateOfflinekRow(myProfile);
-	      let lockOptionRow = doCreateLockOptionRow(myProfile, statusNameColumnWidth);
-	      let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
-	      $(activeRow).appendTo($(myProfileView));
-	      $(lockRow).appendTo($(myProfileView));
-	      $(offlineRow).appendTo($(myProfileView));
-	      $(lockOptionRow).appendTo($(myLockOptionBox));
-	      $(cmdBar).appendTo($(myProfilePage));
-	      resolve($(myProfilePage));
-	      $('body').loading('stop');
-			} else if (myProfileRes.status.code == 210){
-				reject({error: {code: 210, cause: 'Token Expired!'}});
-			} else {
-				let apiError = 'api error at doCallMyProfile';
-				console.log(apiError);
-				reject({error: apiError});
-			}
-    });
-  }
-
   return {
     doCreateProfileTitlePage,
+    doCreateProfilePage,
     doCallMyProfile,
-    doCreateProfilePage
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],19:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./changepwddlg.js":14}],20:[function(require,module,exports){
 /* searchcaselib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8707,7 +9254,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],20:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7}],21:[function(require,module,exports){
 /* templatelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9513,7 +10060,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11}],21:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11}],22:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -9662,7 +10209,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{"../../case/mod/wrtc-common.js":10}],22:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":10}],23:[function(require,module,exports){
 /* welcomelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9833,7 +10380,7 @@ module.exports = function ( jq ) {
 				//localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
 				caseCounter.doShowCaseCounter(newstatusCases, accstatusCases, newConsult);
 				$('body').loading('stop');
-				resolve();
+				resolve(myList);
 			}).catch((err)=>{
 				reject(err);
 			});
@@ -10077,7 +10624,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/wrtc-common.js":10,"../main.js":11,"./onrefreshtrigger.js":16}],23:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/wrtc-common.js":10,"../main.js":11,"./onrefreshtrigger.js":17}],24:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -20951,7 +21498,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;

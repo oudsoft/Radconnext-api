@@ -13,25 +13,24 @@ var db, log, auth, uti, socket;
 const sendBugReportByEmail = function(email, bugreport){
   return new Promise(async function(resolve, reject) {
     var transporter = nodemailer.createTransport({
-      host: 'win05-mail.zth.netdesignhost.com',
+      service: 'gmail',
+      host: 'smtp.gmail.com',
       port: 465,
       secure: true,
       auth: {
-        user: 'radconnext@smartmedinfo.co.th',
-        pass: 'Radconnext@2515'
+        user: 'oudsoft@gmail.com',
+        pass: 'oud@2515'
       }
     });
-
     var mailOptions = {
-      from: 'radconnext@smartmedinfo.co.th',
+      from: 'oudsoft@gmail.com',
       to: email,
-      subject: '[no-reply]-Bug Report of Radconnext.info',
-      //text: 'That was easy!'
-      html: bugreport
+      subject: subject,
+      html: msgHtml
     };
-
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
+        log.info('send mail error => ' + JSON.stringify(error));
         reject(error);
       } else {
         resolve(info.response);

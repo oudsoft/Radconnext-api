@@ -1051,18 +1051,19 @@ const doConsultExpireAction = function(whomtask, websocket, consultId, socket, n
 
 const doSendEmailToAdmin = function(subject, msgHtml){
   return new Promise(async function(resolve, reject) {
-    const adminAddress = 'oudsoft@gmail.com';
+    const adminAddress = 'oudsoft@yahoo.com';
     var transporter = nodemailer.createTransport({
-      host: 'win05-mail.zth.netdesignhost.com',
+      service: 'gmail',
+      host: 'smtp.gmail.com',
       port: 465,
       secure: true,
       auth: {
-        user: 'radconnext@smartmedinfo.co.th',
-        pass: 'Radconnext@2515'
+        user: 'oudsoft@gmail.com',
+        pass: 'oud@2515'
       }
     });
     var mailOptions = {
-      from: 'radconnext@smartmedinfo.co.th',
+      from: 'oudsoft@gmail.com',
       to: adminAddress,
       subject: subject,
       html: msgHtml

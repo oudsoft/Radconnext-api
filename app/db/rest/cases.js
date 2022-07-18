@@ -484,6 +484,19 @@ app.post('/add', (req, res) => {
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
           */
+          let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
+          let yourOrthancId = orthancs[0].id;
+
+          let studyTags = req.body.studyTags;
+          let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyTags.ID}});
+          if (dicomlogRes.length == 0) {
+            let newDicomLog = {StudyTags: studyTags, ResourceID: studyTags.ID, ResourceType: 'study', orthancId: yourOrthancId};
+            let adDicomTransferLog = await db.dicomtransferlogs.create(newDicomLog);
+          } else {
+            let logId = dicomlogRes[0].id;
+            let updateDicomLog = {StudyTags: studyTags, ResourceID: studyTags.ID, ResourceType: 'study', orthancId: yourOrthancId};
+            let upDicomTransferLog = await db.dicomtransferlogs.update(updateDicomLog, { where: { id: logId } });
+          }
         });
       } else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});
