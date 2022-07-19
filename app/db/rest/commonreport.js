@@ -268,7 +268,7 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
       let pdfLink = USRPDF_PATH + '/' + pdfFileName;
 
       let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyID}});
-      log.info('dicomlogRes=> ' + JSON.stringify(dicomlogRes));
+      //log.info('dicomlogRes=> ' + JSON.stringify(dicomlogRes));
       if ((dicomlogRes) && (dicomlogRes.length > 0)) {
   			//let studyObj = JSON.parse(stdout);
         let studyObj = dicomlogRes[0].StudyTags;
@@ -576,7 +576,18 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         let publicDir = path.normalize(__dirname + '/../../../public');
         let reportPdfFilePath = publicDir + report.reportPdfLinkPath;
         log.info('reportPdfFilePath of dicom first result => ' + reportPdfFilePath);
-        let pdfPages = await doCountPagePdf(reportPdfFilePath);    
+        let pdfPages = 1;
+        if (fs.existsSync(reportPdfFilePath)) {
+          let pdfPages = await doCountPagePdf(reportPdfFilePath);
+          log.info('Found Pdf file at => ' + reportPdfFilePath);
+        } else {
+          log.info('Not Found Pdf file at => ' + reportPdfFilePath);
+          log.info('start Create new pdf file');
+          let newPdfFileName = pdfReportFileName + '.pdf';
+          let newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, newPdfFileName, hostname);
+          log.info('Create-New-Report=> ' + JSON.stringify(newReportRes));
+          let pdfPages = await doCountPagePdf(reportPdfFilePath);
+        }
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport

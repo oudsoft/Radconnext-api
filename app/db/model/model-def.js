@@ -251,7 +251,6 @@ const RadDicomTransferLogDef = {
 			},
 			DicomTags : {
 				type: Sequelize.JSON,
-				allowNull: false
 			},
 			StudyTags : {
 				type: Sequelize.JSONB
