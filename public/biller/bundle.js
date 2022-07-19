@@ -133,7 +133,7 @@ function doUseFullPage() {
 	$(".mainfull").empty();
 }
 
-},{"../case/mod/apiconnect.js":3,"../case/mod/billreport.js":4,"../case/mod/commonlib.js":5,"../case/mod/userinfolib.js":6,"../case/mod/utilmod.js":7,"jquery":2}],2:[function(require,module,exports){
+},{"../case/mod/apiconnect.js":3,"../case/mod/billreport.js":4,"../case/mod/commonlib.js":5,"../case/mod/userinfolib.js":7,"../case/mod/utilmod.js":8,"jquery":2}],2:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -11030,7 +11030,7 @@ const hostIP = 'localhost';
 const hostOrthancApiPort = '8042';
 const hostName = hostIP + ':' + hostApiPort;
 const domainName = 'radconnext.com';
-const adminEmailAddress = 'oudsoft@gmail.com';
+const adminEmailAddress = 'oudsoft@yahoo.com';
 
 
 //const hostURL = 'https://radconnext.com/rad_test/api';
@@ -11142,18 +11142,15 @@ module.exports = function ( jq ) {
 
   const doCallApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-      /*
-			$.post(apiurl, params, function(data){
-				resolve(data);
-			}).fail(function(error) {
-				reject(error);
-			});
-      */
       let apiname = apiurl;
       const progBar = $('body').radprogress({value: 0, apiname: apiname});
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
       $.ajax({
-        url: apiurl,
+        url: apiURL,
         type: 'post',
         data: params,
         xhr: function () {
@@ -11165,7 +11162,6 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
-
               let loaded = evt.loaded;
               let total = evt.total;
               let prog = (loaded / total) * 100;
@@ -11191,6 +11187,7 @@ module.exports = function ( jq ) {
           resolve(res)
         }, 1000);
       }).fail(function (err) {
+        /*
         $(progBar.handle).find('#ApiNameBar').css({'color': 'red'});
         $(progBar.progressValueBox).css({'color': 'red'});
         $.notify('มีข้อผิดพลาดเกิดที่ระบบฯ', 'error');
@@ -11222,14 +11219,20 @@ module.exports = function ( jq ) {
             progBar.doCloseProgress();
             reject(err);
           }, 2500);
-        })
+        });
+        */
+        reject(err);
       });
 		});
 	}
 
   const doGetApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-			$.get(apiurl, params, function(data){
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
+			$.get(apiURL, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
 				reject(error);
@@ -11601,7 +11604,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":7}],4:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /* billreport.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -11716,9 +11719,22 @@ module.exports = function ( jq ) {
     return hh + '.' + mn;
   }
 
-  function fmtReportNumber(x) {
+  const fmtReportNumber = function (x) {
     return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
+
+	const strToDateFmt = function(strToken) {
+		var yy = strToken.substr(0, 4);
+		var mo = strToken.substr(4, 2);
+		var dd = strToken.substr(6, 2);
+		return Number(dd) + '/' + Number(mo) + '/' + (Number(yy) + 543);
+	}
+
+	const strToTimeFmt = function(strToken) {
+		var hh = strToken.substr(0, 2);
+		var mn = strToken.substr(2, 2);
+		return hh + '.' + mn;
+	}
 
 	const doOpenSelectFile = function(evt, hospitalId){
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -12082,8 +12098,8 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
 	    const contentRow = '<tr></tr>';
-	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 7}, {name: 'วันเดือนปี', width: 10}, {name: 'เวลา', width: 8}, {name: 'HN', width: 10}, {name: 'ชื่อ-สกุล', width: 20}, {name: 'รายการ', width: 20}, {name: 'รังสีแพทย์', width: 13}, {name: 'รหัส', width: 10}, {name: 'ราคาที่', width: 10}];
-	    const lowerHeaderFeilds = ['', 'ที่รับบริการ', '', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
+	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
+	    const lowerHeaderFeilds = ['', 'ที่สแกน', '', 'ส่งอ่านผล', '', 'ส่งผลอ่าน', '', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
 	      let upperHeaderRow = $(contentRow);
@@ -12121,8 +12137,12 @@ module.exports = function ( jq ) {
 	          let fmtDate = fmtReportDate(item.createdAt);
 						let isOutTime = common.doCheckOutTime(item.createdAt);
 						*/
-						let fmtDate = fmtReportDate(item.reportCreatedAt);
-						let fmtTime = fmtReportTime(item.reportCreatedAt);
+						let fmtScanDate = strToDateFmt(item.scanDate);
+						let fmtScanTime = strToTimeFmt(item.scanTime);
+						let fmtCaseCreateDate = fmtReportDate(item.createdAt);
+						let fmtCaseCreateTime = fmtReportTime(item.createdAt);
+						let fmtReportCreateDate = fmtReportDate(item.reportCreatedAt);
+						let fmtReportCreateTime = fmtReportTime(item.reportCreatedAt);
 						let isOutTime = common.doCheckOutTime(item.reportCreatedAt);
 						let fmtPrice = undefined;
 						if (scanParts[j].PR) {
@@ -12134,8 +12154,12 @@ module.exports = function ( jq ) {
 							priceTotal += Number(prRes.prdf.pr.normal);
 						}
 	          $(itemRow).append('<td align="center">' + itemNo + '</td>');
-	          $(itemRow).append('<td align="left">' + fmtDate + '</td>');
-						$(itemRow).append('<td align="left">' + fmtTime + '</td>');
+						$(itemRow).append('<td align="left">' + fmtScanDate + '</td>');
+						$(itemRow).append('<td align="left">' + fmtScanTime + '</td>');
+						$(itemRow).append('<td align="left">' + fmtCaseCreateDate + '</td>');
+						$(itemRow).append('<td align="left">' + fmtCaseCreateTime + '</td>');
+	          $(itemRow).append('<td align="left">' + fmtReportCreateDate + '</td>');
+						$(itemRow).append('<td align="left">' + fmtReportCreateTime + '</td>');
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_HN + '</td>');
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_NameTH + ' ' + item.patient.Patient_LastNameTH + '</td>');
 	          $(itemRow).append('<td align="left">' + scanParts[j].Name + '</td>');
@@ -12207,7 +12231,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":3,"./commonlib.js":5,"./utilmod.js":7}],5:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":3,"./commonlib.js":5,"./utilmod.js":8}],5:[function(require,module,exports){
 /* commonlib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -12299,6 +12323,7 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
+				reject(err);
 			})
 		});
 	}
@@ -12310,6 +12335,59 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log(JSON.stringify(err));
 			})
+		});
+	}
+
+	const doCallLocalApi = function(apiurl, rqParams) {
+		return new Promise(function(resolve, reject) {
+			const progBar = $('body').radprogress({value: 0, apiname: apiurl});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+			$.ajax({
+        url: apiurl,
+        type: 'post',
+        data: rqParams,
+        xhr: function () {
+          var xhr = $.ajaxSettings.xhr();
+          xhr.onprogress = function(evt) {
+            if (evt.lengthComputable) {
+              // For Download
+              let loaded = evt.loaded;
+              let total = evt.total;
+              let prog = (loaded / total) * 100;
+              let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              $('body').find('#ProgressValueBox').text(perc + '%');
+            }
+          };
+          xhr.upload.onprogress = function (evt) {
+            // For uploads
+          };
+          return xhr;
+        }
+      }).done(function (res) {
+        progBar.doUpdateProgressValue(100);
+        setTimeout(()=>{
+  				progBar.doCloseProgress();
+          let apiItem = {api: apiurl};
+          console.log(apiItem);
+          let logWin = $('body').find('#LogBox');
+					if (logWin) {
+          	$(logWin).simplelog(apiItem);
+					}
+          resolve(res)
+        }, 1000);
+      }).fail(function (err) {
+        reject(err);
+      });
+		});
+	}
+
+	const doGetLocalApi = function(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			$.get(apiURL, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
 		});
 	}
 
@@ -12641,6 +12719,41 @@ module.exports = function ( jq ) {
 		})
   }
 
+	const doDownloadLocalDicom = function(studyID, dicomFilename){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/download/dicom/archive';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID, UsrArchiveFileName: dicomFilename});
+			//console.log(dicomStudiesRes);
+			var pom = document.createElement('a');
+			pom.setAttribute('href', dicomStudiesRes.result.archive);
+			pom.setAttribute('download', dicomFilename);
+			pom.click();
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doDeleteLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/delete/study';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doCountImageLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/study/count/instances';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
   const doPreparePatientParams = function(newCaseData){
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
@@ -12737,6 +12850,14 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doGetLocalSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/study/' + studyId;
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomStudiesRes.result);
+		});
+	}
+
 	const doGetOrthancStudyDicom = function(studyId) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -12760,6 +12881,14 @@ module.exports = function ( jq ) {
 	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
 	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
 			resolve(orthancRes);
+		});
+	}
+
+	const doGetLocalOrthancSeriesDicom = function(seriesId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/series/' + seriesId;
+			let dicomSeriesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomSeriesRes.result);
 		});
 	}
 
@@ -13317,17 +13446,24 @@ module.exports = function ( jq ) {
 		/* Function share */
 		doCallApi,
 		doGetApi,
+		doCallLocalApi,
+		doGetLocalApi,
 		doCreateDicomFilterForm,
 		doSaveQueryDicom,
 		doFilterDicom,
 		doUserLogout,
 		doOpenStoneWebViewer,
 		doDownloadDicom,
+		doDownloadLocalDicom,
+		doDeleteLocalDicom,
+		doCountImageLocalDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
+		doGetLocalSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
+		doGetLocalOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
 		doCallCreateZipInstance,
 		doCallSendAI,
@@ -13363,7 +13499,83 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./apiconnect.js":3,"./utilmod.js":7}],6:[function(require,module,exports){
+},{"./apiconnect.js":3,"./utilmod.js":8}],6:[function(require,module,exports){
+/* streammergermod.js */
+const streamMerger = require('./video-stream-merger.js');
+
+const CallcenterMerger = function(streams, mergOption) {
+	this.merger = new streamMerger(mergOption);
+	this.merger.addStream(streams[0], {
+		index: 0,
+		x: 0,
+		y: 0,
+		width: this.merger.width,
+		height: this.merger.height,
+		fps: 30,
+		clearRect: true,
+		audioContext: null,
+		mute: true
+	});
+
+	var xmepos = this.merger.width * 0.24;
+	var ymepos = this.merger.height * 0.25;
+
+	if (streams[1]) {
+		this.merger.addStream(streams[1], {
+			index: 1,
+			x: this.merger.width - xmepos,
+			y: this.merger.height - ymepos,
+			width: xmepos,
+			height: ymepos,
+			fps: 30,
+			clearRect: true,
+			mute: false
+		});
+	}
+
+	/*
+	var staticTextStream = createStaticTextStream('สด');
+	this.merger.addStream(staticTextStream, {
+		index: 2,
+		x: 5,
+		y: 10,
+		width: 80,
+		height: 50,
+		mute: true
+	});
+	*/
+	this.merger.start();
+	return this.merger;
+}
+
+CallcenterMerger.prototype.getMerger = function() {
+	return this.merger;
+};
+
+const createStaticTextStream = function(text) {
+	$('body').append($('<div id="HiddenDiv"></div>'));
+	var hiddenDiv = document.querySelector('#HiddenDiv');
+	var drawer = document.createElement("canvas");
+	drawer.style.display = 'none';
+	hiddenDiv.appendChild(drawer);
+
+	drawer.width = 80;
+	drawer.height = 50;
+	var ctx = drawer.getContext("2d");
+	ctx.font = 'bold 30px THNiramitAS';
+	ctx.fillStyle = 'red';
+	ctx.textAlign = 'left';
+	ctx.fillText(text, 10, 20);
+	var stream = drawer.captureStream(25);
+	return stream;
+}
+
+module.exports = {
+	CallcenterMerger,
+	createStaticTextStream
+};
+
+},{"./video-stream-merger.js":9}],7:[function(require,module,exports){
 /* userinfolib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -13376,10 +13588,12 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var updateUserApiUri = '/api/user/update';
       var params = data;
-      $.post(updateUserApiUri, params, function(response){
+      //$.post(updateUserApiUri, params, function(response){
+			common.doCallApi(updateUserApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
@@ -13388,125 +13602,144 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var userInfoApiUri = '/api/user/' + userId;
       var params = {};
-      $.get(userInfoApiUri, params, function(response){
+      //$.get(userInfoApiUri, params, function(response){
+			common.doGetApi(userInfoApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
 
   function doSaveUserProfile(newUserInfo){
-  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
-  		if (updateRes.Result === "OK") {
-  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
-  				//update userdata in localstorage
-  				let newUserInfo = userInfoRes.Record.info;
-  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  				yourUserdata.userinfo = newUserInfo;
-  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
-					let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
-					$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
-  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
-  				$("#dialog").find('#CloseUserProfile-Cmd').click();
-  			});
-  		} else {
-  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
-  		}
-  	});
+		return new Promise(function(resolve, reject) {
+	  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
+	  		if (updateRes.Result === "OK") {
+	  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
+	  				//update userdata in localstorage
+	  				let newUserInfo = userInfoRes.Record.info;
+	  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
+	  				yourUserdata.userinfo = newUserInfo;
+	  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
+						let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
+						$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
+	  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
+						resolve(updateRes);
+	  			});
+	  		} else {
+	  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
+					reject({error: ''})
+	  		}
+	  	});
+		});
   }
 
+	const createFormFragment = function(fragId, fragLabel, fragValue) {
+		let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
+		let labelCell = $('<div style="display: table-cell; width: 250px; padding: 2px;"></div>');
+		$(labelCell).append($('<span>' + fragLabel + '</span>'));
+		let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+		let fragInput = $('<input type="text"/>');
+		$(fragInput).attr('id', fragId);
+		$(fragInput).val(fragValue);
+		$(fragInput).appendTo($(inputCell));
+		$(labelCell).appendTo($(fragRow));
+		$(inputCell).appendTo($(fragRow));
+		return $(fragRow);
+	}
+
   const doShowUserProfile = function() {
-  	$("#dialog").load('../form/dialog.html', function() {
-  		const createFormFragment = function(fragId, fragLabel, fragValue) {
-  			let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
-  			let labelCell = $('<div style="display: table-cell; width: 300px; padding: 2px;"></div>');
-  			$(labelCell).html('<b>' + fragLabel + '</b>');
-  			let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
-  			let fragInput = $('<input type="text"/>');
-  			$(fragInput).attr('id', fragId);
-  			$(fragInput).val(fragValue);
-  			$(fragInput).appendTo($(inputCell));
-  			$(labelCell).appendTo($(fragRow));
-  			$(inputCell).appendTo($(fragRow));
-  			return $(fragRow);
-  		}
+		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
 
-  		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  		let table = $('<div style="display: table; width: 100%;"></div>');
+		let table = $('<div style="display: table; width: 100%;"></div>');
 
-  		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
-  		$(yourNameENFrag).appendTo($(table));
+		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
+		$(yourNameENFrag).appendTo($(table));
 
-  		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
-  		$(yourLastNameENFrag).appendTo($(table));
+		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
+		$(yourLastNameENFrag).appendTo($(table));
 
-  		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
-  		$(yourNameTHFrag).appendTo($(table));
+		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
+		$(yourNameTHFrag).appendTo($(table));
 
-  		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
-  		$(yourLastNameTHFrag).appendTo($(table));
+		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
+		$(yourLastNameTHFrag).appendTo($(table));
 
-  		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
-  		$(yourEmailFrag).appendTo($(table));
+		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
+		$(yourEmailFrag).appendTo($(table));
 
-  		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
-  		$(yourPhoneFrag).appendTo($(table));
+		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
+		$(yourPhoneFrag).appendTo($(table));
 
-  		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
-  		$(yourLineIDFrag).appendTo($(table));
+		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
+		$(yourLineIDFrag).appendTo($(table));
 
-			let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
-  		$(yourDefaultDownloadPathFrag).appendTo($(table));
+		let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
+		$(yourDefaultDownloadPathFrag).appendTo($(table));
 
-  		$('#UserProfileBox').empty().append($(table));
-  		$(".modal-footer").css('text-align', 'center');
-  		$("#SaveUserProfile-Cmd").click((evt)=>{
-				const doSaveUserInfo = function(){
-					$(table).find('#UserPathRadiant').css('border', '');
-					console.log(newPathRadiant);
-					let downloadPathFrags = newPathRadiant.split('\\');
-					console.log(downloadPathFrags);
-					newPathRadiant = downloadPathFrags.join('/');
-					console.log(newPathRadiant);
-					let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
-					yourNewUserInfo.userId = yourUserdata.id;
-					yourNewUserInfo.infoId = yourUserdata.userinfo.id;
-					yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
-					doSaveUserProfile(yourNewUserInfo);
-				}
+		const radDialogOptions = {
+	    title: 'ข้อมูลผู้ใช้งานของฉัน',
+	    msg: $(table),
+	    width: '510px',
+			okLabel: ' บันทึก ',
+	    onOk: async function(evt) {
+				let res = await doVerifyUserInfo();
+				console.log(res);
+	      radUserInfoDialog.closeAlert();
+	    },
+			onCancel: function(evt) {
+	      radUserInfoDialog.closeAlert();
+	    }
+	  }
 
-  			let newNameEN = $(table).find('#UserNameEN').val();
-  			let newLastNameEN = $(table).find('#UserLastNameEN').val();
-  			let newNameTH = $(table).find('#UserNameTH').val();
-  			let newLastNameTH = $(table).find('#UserLastNameTH').val();
-  			let newEmail = $(table).find('#UserEmail').val();
-  			let newPhone = $(table).find('#UserPhone').val();
-  			let newLineID = $(table).find('#UserLineID').val();
+	  let radUserInfoDialog = $('body').radalert(radDialogOptions);
+
+		const doSaveUserInfo = function(newUserInfo){
+			return new Promise(async function(resolve, reject) {
+				console.log(newUserInfo);
+				let yourNewUserInfo = newUserInfo;
+				yourNewUserInfo.userId = yourUserdata.id;
+				yourNewUserInfo.infoId = yourUserdata.userinfo.id;
+				yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
+				let saveRes = await doSaveUserProfile(yourNewUserInfo);
+				resolve(saveRes);
+			});
+		}
+
+		const doVerifyUserInfo = function(){
+			return new Promise(async function(resolve, reject) {
+				let newNameEN = $(table).find('#UserNameEN').val();
+				let newLastNameEN = $(table).find('#UserLastNameEN').val();
+				let newNameTH = $(table).find('#UserNameTH').val();
+				let newLastNameTH = $(table).find('#UserLastNameTH').val();
+				let newEmail = $(table).find('#UserEmail').val();
+				let newPhone = $(table).find('#UserPhone').val();
+				let newLineID = $(table).find('#UserLineID').val();
 				let newPathRadiant = $(table).find('#UserPathRadiant').val();
-  			if (newNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '1px solid red');
+				if (newNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newLastNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '');
-  				$(table).find('#UserLastNameEN').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '');
+					$(table).find('#UserLastNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newNameTH === '') {
-  				$(table).find('#UserLastNameEN').css('border', '');
-  				$(table).find('#UserNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newNameTH === '') {
+					$(table).find('#UserLastNameEN').css('border', '');
+					$(table).find('#UserNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newLastNameTH === '') {
-  				$(table).find('#UserNameTH').css('border', '');
-  				$(table).find('#UserLastNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameTH === '') {
+					$(table).find('#UserNameTH').css('border', '');
+					$(table).find('#UserLastNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newEmail === '') {
-  				$(table).find('#UserLastNameTH').css('border', '');
-  				$(table).find('#UserEmial').css('border', '1px solid red');
-  				return;
+					resolve();
+				} else if (newEmail === '') {
+					$(table).find('#UserLastNameTH').css('border', '');
+					$(table).find('#UserEmial').css('border', '1px solid red');
+					resolve();
 				} else if (newPhone !== '') {
 					const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
 					let isCorrectFormat = phoneNoTHRegEx.test(newPhone);
@@ -13514,24 +13747,53 @@ module.exports = function ( jq ) {
 						$(table).find('#UserEmial').css('border', '');
 						$(table).find('#UserPhone').css('border', '1px solid red');
 						$.notify('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx', 'error');
-						return;
-					} else if (newPathRadiant	 === '') {
-	  				$(table).find('#UserPhone').css('border', '');
-	  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-	  				return;
+						resolve();
 	  			} else {
-						doSaveUserInfo();
-	  			}
-				} else if (newPathRadiant	 === '') {
-  				$(table).find('#UserEmail').css('border', '');
-  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-					$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom หากไม่ใช่รังสีแพทย์พิมพ์เป็นอะไรก็ได้แต่ต้องไม่ปล่อยว่างไว้', 'error');
-  				return;
-  			} else {
-					doSaveUserInfo();
-  			}
-  		});
-  	});
+						$(table).find('#UserEmail').css('border', '');
+						$(table).find('#UserPhone').css('border', '');
+						if (yourUserdata.usertypeId != 4) {
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						} else {
+							if (newPathRadiant === '') {
+								$(table).find('#UserPathRadiant').css('border', '1px solid red');
+								$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+								resolve();
+							} else {
+								$(table).find('#UserPathRadiant').css('border', '');
+								let downloadPathFrags = newPathRadiant.split('\\');
+								newPathRadiant = downloadPathFrags.join('/');
+								let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+								let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+								resolve(callSaveRes);
+							}
+						}
+					}
+				} else {
+					$(table).find('#UserEmail').css('border', '');
+					$(table).find('#UserPhone').css('border', '');
+					if (yourUserdata.usertypeId != 4) {
+						let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+						let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+						resolve(callSaveRes);
+					} else {
+						if (newPathRadiant === '') {
+							$(table).find('#UserPathRadiant').css('border', '1px solid red');
+							$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+							resolve();
+						} else {
+							$(table).find('#UserPathRadiant').css('border', '');
+							let downloadPathFrags = newPathRadiant.split('\\');
+							newPathRadiant = downloadPathFrags.join('/');
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						}
+					}
+				}
+			});
+		}
   }
 
   return {
@@ -13539,7 +13801,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":3,"./commonlib.js":5,"./utilmod.js":7}],7:[function(require,module,exports){
+},{"./apiconnect.js":3,"./commonlib.js":5,"./utilmod.js":8}],8:[function(require,module,exports){
 /* utilmod.js */
 
 module.exports = function ( jq ) {
@@ -13876,12 +14138,21 @@ module.exports = function ( jq ) {
 
 	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
 	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
 	  const port = window.location.port;
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
-	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-		const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		let wsProtocol = 'ws://';
+		if (protocol == 'https:') {
+			wsProtocol = 'wss://';
+		}
+
+		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		if (hostname == 'localhost') {
+			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		}
+
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -14053,7 +14324,7 @@ module.exports = function ( jq ) {
 		}
 	});
 	*/
-	
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -14096,7 +14367,16 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":9,"../../refer/mod/websocketmessage.js":10,"./websocketmessage.js":8}],8:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":12,"../../refer/mod/websocketmessage.js":13,"./websocketmessage.js":10}],9:[function(require,module,exports){
+(function (global){(function (){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
+
+},{}]},{},[1])(1)
+});
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],10:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
@@ -14145,6 +14425,11 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'newdicom') {
 			let eventName = 'triggernewdicom'
 			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'casemisstake') {
+			let eventName = 'triggercasemisstake'
+			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
     } else if (data.type == 'notify') {
@@ -14246,10 +14531,596 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+const streammergerlib = require('./streammergermod.js');
+
+const videoInitSize = {width: 437, height: 298};
+const videoConstraints = {video: true, audio: false};
+const mergeOption = {
+  width: 520,
+  height: 310,
+  fps: 25,
+  clearRect: true,
+  audioContext: null
+};
+
+/* https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b */
+const rtcConfiguration = {
+	'iceServers': [
+	 {url: 'stun:stun2.l.google.com:19302'},
+	 {url: 'turn:numb.viagenie.ca',
+		credential: 'muazkh',
+		username: 'webrtc@live.com'
+	 }
+	]
+};
+
+
+let $ = undefined;
+
+let userJoinOption = undefined;
+let userMediaStream = undefined;
+let displayMediaStream = undefined;
+let localMergedStream = undefined;
+let remoteConn = undefined;
+let remoteTracks = undefined;
+let streammerger = undefined;
+let recorder = undefined;
+let mergeMode = false;
+let trackSenders = undefined;
+
+const doSetupRemoteConn = function(peerConn){
+  remoteConn = peerConn;
+}
+
+const doSetupUserJoinOption = function(joinOption){
+  userJoinOption = joinOption;
+}
+
+const doGetRemoteConn = function(){
+  return remoteConn;
+}
+
+const doGetStreamMerge = function(){
+  return streammerger;
+}
+
+const doGetDisplayMediaStream = function(){
+  return displayMediaStream;
+}
+
+const doGetUserMediaStream = function(){
+  return userMediaStream;
+}
+
+const doGetRemoteTracks = function(){
+  return remoteTracks;
+}
+
+const doMixStream = function(streams){
+  if (streams.length > 0) {
+    if ((streams[0].getVideoTracks()) && (streams[1].getVideoTracks())) {
+      streammerger = streammergerlib.CallcenterMerger(streams, mergeOption);
+      return streammerger.result;
+    } else {
+      return;
+    }
+  } else {
+    return;
+  }
+}
+
+const doSetupUserMediaStream = function(stream){
+  userMediaStream = stream;
+}
+
+const doSetupDisplayMediaStream = function(stream){
+  displayMediaStream = stream;
+}
+
+const doGetRecorder = function(){
+  return recorder;
+}
+
+const doInitRTCPeer = function(stream, wsm) {
+	let remoteConn = new RTCPeerConnection(rtcConfiguration);
+
+	// Setup ice handling
+	remoteConn.onicecandidate = function (event) {
+		if (event.candidate) {
+			let sendData = {
+				type: "wrtc",
+				wrtc: "candidate",
+				candidate: event.candidate,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+			};
+			wsm.send(JSON.stringify(sendData));
+		}
+	};
+
+	remoteConn.oniceconnectionstatechange = function(event) {
+		const peerConnection = event.target;
+		console.log('ICE state change event: ', event);
+		remoteConn = peerConnection;
+	};
+
+	remoteConn.onicegatheringstatechange = function() {
+		switch(remoteConn.iceGatheringState) {
+			case "new":
+			case "complete":
+				//label = "Idle";
+				console.log(remoteConn.iceGatheringState);
+			break;
+			case "gathering":
+				//label = "Determining route";
+			break;
+		}
+	};
+
+  if ((trackSenders) && (trackSenders.length > 0)) {
+    trackSenders.forEach((sender, i) => {
+      remoteConn.removeTrack(sender);
+    });
+  }
+
+  trackSenders = [];
+	stream.getTracks().forEach((track) => {
+		let sender = remoteConn.addTrack(track, stream);
+    trackSenders.push(sender);
+	});
+
+	remoteConn.ontrack = remoteConnOnTrackEvent;
+
+  return remoteConn;
+}
+
+const remoteConnOnTrackEvent = function(event) {
+  if (event.streams[0]) {
+    /*
+    if (recorder) {
+      recorder.stopRecording().then(async()=>{
+        let blob = await recorder.getBlob();
+        if ((blob) && (blob.size > 0)) {
+          invokeSaveAsDialog(blob);
+          recorder = undefined;
+        }
+      });
+    }
+    */
+    let myVideo = document.getElementById("MyVideo");
+
+    let remoteStream = event.streams[0];
+
+    remoteTracks = [];
+
+    remoteStream.getTracks().forEach(function(track) {
+      remoteTracks.push(track);
+    });
+
+    console.log(remoteTracks.length);
+
+    let remoteMergedStream = undefined;
+    /*
+    if (userJoinOption.joinType === 'caller') {
+      if (displayMediaStream) {
+        let streams = [displayMediaStream, remoteStream];
+        remoteMergedStream = doMixStream(streams);
+      } else {
+        let streams = [remoteStream, userMediaStream];
+        remoteMergedStream = doMixStream(streams);
+      }
+    } else if (userJoinOption.joinType === 'callee') {
+      if((userJoinOption.joinMode) && (userJoinOption.joinMode == 'face')) {
+        let streams = [remoteStream, userMediaStream];
+        remoteMergedStream = doMixStream(streams);
+      } else {
+        //share screen mode
+        remoteMergedStream = remoteStream;
+      }
+    }
+    */
+    if (userJoinOption.joinMode == 'share') {
+      remoteMergedStream = remoteStream;
+    } else if (userJoinOption.joinMode == 'face') {
+      let streams = [remoteStream, userMediaStream];
+      remoteMergedStream = doMixStream(streams);      
+    }
+    myVideo.srcObject = remoteMergedStream;
+    $('#CommandBox').find('#ShareWebRCTCmd').show();
+    $('#CommandBox').find('#EndWebRCTCmd').show();
+  }
+}
+
+const doCreateOffer = function(wsm) {
+  if (remoteConn){
+    remoteConn.createOffer(function (offer) {
+    	remoteConn.setLocalDescription(offer);
+      console.log(offer);
+    	let sendData = {
+    		type: "wrtc",
+    		wrtc: "offer",
+    		offer: offer ,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+    	};
+      wsm.send(JSON.stringify(sendData));
+      userJoinOption.joinType = 'caller';
+    }, function (error) {
+  		console.log(error);
+  	});
+  }
+}
+
+const doCreateInterChange = function(wsm) {
+  mergeMode = true;
+	let sendData = {
+		type: "wrtc",
+		wrtc: "interchange",
+		interchange: {reason: 'Interchange with cmd.'},
+		sender: userJoinOption.joinName,
+    sendto: userJoinOption.audienceName
+	};
+  wsm.send(JSON.stringify(sendData));
+  userJoinOption.joinMode = 'face';
+}
+
+const doCreateLeave = function(wsm) {
+	let sendData = {
+		type: "wrtc",
+		wrtc: "leave",
+		leave: {reason: 'Stop with cmd.'},
+		sender: userJoinOption.joinName,
+    sendto: userJoinOption.audienceName
+	};
+  wsm.send(JSON.stringify(sendData));
+}
+
+const wsHandleOffer = function(wsm, offer) {
+  if (remoteConn) {
+    remoteConn.setRemoteDescription(new RTCSessionDescription(offer));
+    remoteConn.createAnswer(function (answer) {
+      remoteConn.setLocalDescription(answer);
+      let sendData = {
+        type: "wrtc",
+        wrtc: "answer",
+        answer: answer,
+        sender: userJoinOption.joinName,
+        sendto: userJoinOption.audienceName
+      };
+      wsm.send(JSON.stringify(sendData));
+      userJoinOption.joinType = 'callee';
+    }, function (error) {
+      console.log(error);
+    });
+  }
+}
+
+const wsHandleAnswer = function(wsm, answer) {
+  if (remoteConn){
+    remoteConn.setRemoteDescription(new RTCSessionDescription(answer)).then(
+      function() {
+        console.log('remoteConn setRemoteDescription on wsHandleAnswer success.');
+        if (userJoinOption.joinType === 'caller') {
+          if (displayMediaStream) {
+            let newStream = new MediaStream();
+            doGetRemoteTracks().forEach((track) => {
+              newStream.addTrack(track)
+            });
+            let myVideo = document.getElementById("MyVideo");
+            let streams = [displayMediaStream, newStream];
+            myVideo.srcObject = doMixStream(streams);
+          } else {
+            console.log('Your displayMediaStream is undefined!!');
+          }
+        } else if (userJoinOption.joinType === 'callee') {
+          console.log('The callee request get share screen, Please wait and go on.');
+        }
+      }, 	function(error) {
+        console.log('remoteConn Failed to setRemoteDescription:=> ' + error.toString() );
+      }
+    );
+  }
+}
+
+const wsHandleCandidate = function(wsm, candidate) {
+  if (remoteConn){
+    remoteConn.addIceCandidate(new RTCIceCandidate(candidate)).then(
+      function() {/* console.log(candidate) */},
+      function(error) {console.log(error)}
+    );
+  }
+}
+
+const wsHandleInterchange = function(wsm, interchange) {
+  //มีปัญหาเรื่อง
+  //bundle.js:8846 Uncaught DOMException: Failed to execute 'addTrack' on 'RTCPeerConnection': A sender already exists for the track.
+  userJoinOption.joinMode = 'face';
+  if ((trackSenders) && (trackSenders.length > 0)) {
+    trackSenders.forEach((sender, i) => {
+      remoteConn.removeTrack(sender);
+    });
+  }
+  if (userMediaStream) {
+    userMediaStream.getTracks().forEach((track) => {
+      remoteConn.addTrack(track, userMediaStream);
+    });
+    doCreateOffer(wsm);
+  }
+}
+
+const wsHandleLeave = function(wsm, leave) {
+  doEndCall(wsm);
+}
+
+const errorMessage = function(message, evt) {
+	console.error(message, typeof evt == 'undefined' ? '' : evt);
+	alert(message);
+}
+
+const doGetScreenSignalError =  function(evt){
+  var error = {
+    name: evt.name || 'UnKnown',
+    message: evt.message || 'UnKnown',
+    stack: evt.stack || 'UnKnown'
+  };
+  console.error(error);
+  if(error.name === 'PermissionDeniedError') {
+    if(location.protocol !== 'https:') {
+      error.message = 'Please use HTTPs.';
+      error.stack   = 'HTTPs is required.';
+    }
+  }
+}
+
+const doCheckBrowser = function() {
+	return new Promise(function(resolve, reject) {
+		if (location.protocol === 'https:') {
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+			if (navigator.getUserMedia) {
+				//const vidOption = {audio: true, video: {facingMode: 'user',frameRate: 30, width : 640, height:480}};
+				const vidOption = { audio: true, video: true };
+				navigator.getUserMedia(vidOption, function (stream) {
+					var mediaStreamTrack = stream.getVideoTracks()[0];
+					if (typeof mediaStreamTrack == "undefined") {
+						errorMessage('Permission denied!');
+						resolve();
+					} else {
+						userMediaStream = stream;
+						resolve(stream);
+					}
+				}, function (e) {
+					var message;
+					switch (e.name) {
+						case 'NotFoundError':
+						case 'DevicesNotFoundError':
+							message = 'Please setup your webcam first.';
+							break;
+						case 'SourceUnavailableError':
+							message = 'Your webcam is busy';
+							break;
+						case 'PermissionDeniedError':
+						case 'SecurityError':
+							message = 'Permission denied!';
+							break;
+						default: errorMessage('Reeeejected!', e);
+							resolve(false);
+					}
+					errorMessage(message);
+					resolve(false);
+				});
+			} else {
+				errorMessage('Uncompatible browser!');
+				resolve(false);
+			}
+		} else {
+			errorMessage('Please use https protocol for open this page.');
+			resolve(false);
+		}
+	});
+}
+
+const doCreateControlCmd = function(id, iconUrl){
+  let hsIcon = new Image();
+  hsIcon.src = iconUrl;
+  hsIcon.id = id;
+  $(hsIcon).css({"width": "40px", "height": "auto", "cursor": "pointer", "padding": "2px"});
+  $(hsIcon).css({'border': '4px solid grey', 'border-radius': '5px', 'margin': '4px'});
+  $(hsIcon).prop('data-toggle', 'tooltip');
+  $(hsIcon).prop('title', "Share Screen");
+  $(hsIcon).hover(()=>{
+    $(hsIcon).css({'border': '4px solid grey'});
+  },()=>{
+    $(hsIcon).css({'border': '4px solid #ddd'});
+  });
+  return $(hsIcon);
+}
+
+const doCreateShareScreenCmd = function(){
+  let shareScreenIconUrl = '/images/screen-capture-icon.png';
+  let shareScreenCmd = doCreateControlCmd('ShareWebRCTCmd', shareScreenIconUrl);;
+  return $(shareScreenCmd);
+}
+
+const doCreateStartCallCmd = function(){
+  let callIconUrl = '/images/phone-call-icon-1.png';
+  let callCmd = doCreateControlCmd('StartWebRCTCmd', callIconUrl);
+  return $(callCmd)
+}
+
+const onShareCmdClickCallback = async function(callback){
+  let captureStream = await doGetDisplayMedia();
+  onDisplayMediaSuccess(captureStream, (stream)=>{
+    callback(stream);
+  });
+}
+
+const onDisplayMediaSuccess = function(stream, callback){
+  stream.getTracks().forEach(function(track) {
+    track.addEventListener('ended', function() {
+      console.log('Stop Capture Stream.');
+      track.stop();
+      $('#CommandBox').find('#EndWebRCTCmd').click();
+    }, false);
+  });
+  callback(stream);
+}
+
+const doGetDisplayMedia = function(){
+  return new Promise(async function(resolve, reject) {
+    let captureStream = undefined;
+    if(navigator.mediaDevices.getDisplayMedia) {
+      try {
+        captureStream = await navigator.mediaDevices.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    } else {
+      try {
+        captureStream = await navigator.getDisplayMedia(videoConstraints);
+        resolve(captureStream);
+      } catch(err) {
+        console.error("Error: " + err);
+        reject(err);
+      }
+    }
+  });
+}
+
+const setScaleDisplay = function( width, height, padding, border ) {
+   var scrWidth = $( window ).width() - 30,
+   scrHeight = $( window ).height() - 30,
+   ifrPadding = 2 * padding,
+   ifrBorder = 2 * border,
+   ifrWidth = width + ifrPadding + ifrBorder,
+   ifrHeight = height + ifrPadding + ifrBorder,
+   h, w;
+
+   if ( ifrWidth < scrWidth && ifrHeight < scrHeight ) {
+	  w = ifrWidth;
+	  h = ifrHeight;
+   } else if ( ( ifrWidth / scrWidth ) > ( ifrHeight / scrHeight ) ) {
+	  w = scrWidth;
+	  h = ( scrWidth / ifrWidth ) * ifrHeight;
+   } else {
+	  h = scrHeight;
+	  w = ( scrHeight / ifrHeight ) * ifrWidth;
+   }
+   return {
+	  width: w - ( ifrPadding + ifrBorder ),
+	  height: h - ( ifrPadding + ifrBorder )
+   };
+}
+
+const doCreateEndCmd = function(){
+  let endIconUrl = '/images/phone-call-icon-3.png';
+  let endCmd = doCreateControlCmd('EndWebRCTCmd', endIconUrl);
+  return $(endCmd);
+}
+
+const doEndCall = async function(wsm){
+  /*
+  if (recorder) {
+    await recorder.stopRecording();
+    let blob = await recorder.getBlob();
+    if ((blob) && (blob.size > 0)) {
+      invokeSaveAsDialog(blob);
+      recorder = undefined;
+    }
+  }
+  */
+  let myVideo = document.getElementById("MyVideo");
+
+  if (myVideo) {
+    doCheckBrowser().then((stream)=>{
+      myVideo.srcObject = stream;
+    });
+  }
+
+  if (displayMediaStream) {
+    displayMediaStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  if (localMergedStream) {
+    localMergedStream.getTracks().forEach((track)=>{
+  		track.stop();
+  	});
+  }
+  /*
+  if (remoteConn) {
+    remoteConn.close();
+  }*/
+
+  displayMediaStream = undefined;
+  localMergedStream = undefined;
+
+  $('#CommandBox').find('#ShareWebRCTCmd').show();
+  $('#CommandBox').find('#StartWebRCTCmd').hide();
+  $('#CommandBox').find('#EndWebRCTCmd').hide();
+}
+
+
+module.exports = (jq) => {
+  $ = jq;
+  return {
+    streammergerlib,
+    streammerger,
+    videoInitSize,
+    videoConstraints,
+    mergeOption,
+
+    mergeMode,
+    userJoinOption,
+    userMediaStream,
+    displayMediaStream,
+    localMergedStream,
+    remoteConn,
+
+    /************************/
+
+    doSetupRemoteConn,
+    doSetupUserJoinOption,
+    doGetRemoteConn,
+    doGetStreamMerge,
+    doGetDisplayMediaStream,
+    doGetUserMediaStream,
+    doGetRemoteTracks,
+    doMixStream,
+    doSetupUserMediaStream,
+    doSetupDisplayMediaStream,
+    doGetRecorder,
+    doInitRTCPeer,
+    doCreateOffer,
+    doCreateInterChange,
+    doCreateLeave,
+
+    wsHandleOffer,
+    wsHandleAnswer,
+    wsHandleCandidate,
+    wsHandleInterchange,
+    wsHandleLeave,
+    doCheckBrowser,
+    doCreateControlCmd,
+    doCreateShareScreenCmd,
+    onShareCmdClickCallback,
+    doCreateStartCallCmd,
+    doCreateEndCmd,
+    onDisplayMediaSuccess,
+    doGetDisplayMedia,
+    setScaleDisplay,
+    doEndCall
+  }
+}
+
+},{"./streammergermod.js":6}],12:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRadio = function (msgEvt) {
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -14287,31 +15158,33 @@ module.exports = function ( jq, wsm) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
 			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
-			let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-			if (minuteLogout > 0){
-				if (data.counterping == minuteLogout) {
-					let eventName = 'autologout';
+			if ((userdata.userprofiles) && (userdata.userprofiles.length > 0)) {
+				let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+				let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
+				let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
+				if (data.counterping == minuteLockScreen) {
+					let eventName = 'lockscreen';
+		      let evtData = {};
+		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+		      document.dispatchEvent(event);
+				} else if (tryLockModTime == 0) {
+					let eventName = 'lockscreen';
 		      let evtData = {};
 		      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
 		      document.dispatchEvent(event);
 				}
-			}
-			let modPingCounter = Number(data.counterping) % 10;
-			if (modPingCounter == 0) {
-				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				if (minuteLogout > 0){
+					if (data.counterping == minuteLogout) {
+						let eventName = 'autologout';
+			      let evtData = {};
+			      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+			      document.dispatchEvent(event);
+					}
+				}
+				let modPingCounter = Number(data.counterping) % 10;
+				if (modPingCounter == 0) {
+					wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+				}
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -14343,6 +15216,26 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "interchange":
+					wrtcCommon.wsHandleInterchange(wsm, data.interchange);
+				break;				
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -14371,10 +15264,12 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{}],10:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":11}],13:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
+
+	const wrtcCommon = require('../../case/mod/wrtc-common.js')(jq);
 
   const onMessageRefer = function (msgEvt) {
     let data = JSON.parse(msgEvt.data);
@@ -14417,34 +15312,33 @@ module.exports = function ( jq, wsm ) {
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
       console.log('Ping Data =>', data);
-      /*
-			let userdata = JSON.parse(localStorage.getItem('userdata'));
-			let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
-			let tryLockModTime = (Number(data.counterping) % Number(minuteLockScreen));
-			if (data.counterping == minuteLockScreen) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			} else if (tryLockModTime == 0) {
-				let eventName = 'lockscreen';
-	      let evtData = {};
-	      let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-	      document.dispatchEvent(event);
-			}
-        */
 		} else if (data.type == 'unlockscreen') {
-      /*
-			let eventName = 'unlockscreen';
-			let evtData = {};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
-			document.dispatchEvent(event);
-      */
+
     } else if (data.type == 'message') {
       $.notify(data.from + ':: ส่งข้อความมาว่า:: ' + data.msg, "info");
 			doSaveMessageToLocal(data.msg ,data.from, data.context.topicId, 'new');
       let eventData = {msg: data.msg, from: data.from, context: data.context};
       $('#SimpleChatBox').trigger('messagedrive', [eventData]);
+		} else if (data.type == 'wrtc') {
+			switch(data.wrtc) {
+				//when somebody wants to call us
+				case "offer":
+					wrtcCommon.wsHandleOffer(wsm, data.offer);
+				break;
+				case "answer":
+					wrtcCommon.wsHandleAnswer(wsm, data.answer);
+				break;
+				//when a remote peer sends an ice candidate to us
+				case "candidate":
+					wrtcCommon.wsHandleCandidate(wsm, data.candidate);
+				break;
+				case "interchange":
+					wrtcCommon.wsHandleInterchange(wsm, data.interchange);
+				break;
+				case "leave":
+					wrtcCommon.wsHandleLeave(wsm, data.leave);
+				break;
+			}
     }
   };
 
@@ -14473,4 +15367,4 @@ module.exports = function ( jq, wsm ) {
 	}
 }
 
-},{}]},{},[1]);
+},{"../../case/mod/wrtc-common.js":11}]},{},[1]);

@@ -598,17 +598,22 @@ const doSummaryBillReport = function(hospitalId, key) {
     casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
     const orderby = [['createdAt', 'ASC']];
     const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}];
-    const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'Case_ScanPart', 'Case_RadiologistId', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
+    const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'Case_ScanPart', 'Case_RadiologistId', 'Case_OrthancStudyID', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
     let finalSumaryRows = [];
     const promiseList = new Promise(function(resolve2, reject2) {
       caseContents.forEach(async (row, i) => {
         let radioRes = await doLoadRadioProfile(row.Case_RadiologistId);
         let caseReportRes = await doLoadCaseReport(row.id);
+        let studyTagsRes = await db.dicomtransferlogs.findAll({attributes: ['StudyTags'], where: {ResourceID: row.Case_OrthancStudyID}});
         let radioBill = {User_NameEN: radioRes.User_NameEN, User_LastNameEN: radioRes.User_LastNameEN, User_NameTH: radioRes.User_NameTH, User_LastNameTH: radioRes.User_LastNameTH};
         let newItem = JSON.parse(JSON.stringify(row));
         newItem.radio = radioBill;
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
+        }
+        if (studyTagsRes) {
+          newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;
+          newItem.scanTime = studyTagsRes[0].StudyTags.MainDicomTags.StudyTime;
         }
         finalSumaryRows.push(newItem);
       });

@@ -2741,14 +2741,16 @@ module.exports = function ( jq ) {
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
-		console.log(protocol);
-
 		let wsProtocol = 'ws://';
 		if (protocol == 'https:') {
 			wsProtocol = 'wss://';
 		}
-	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-		const wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+
+		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		if (hostname == 'localhost') {
+			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		}
+
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -6603,8 +6605,9 @@ module.exports = function ( jq ) {
 		console.log(misstakeCaseData);
 		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
     common.doGetApi(getUserInfoUrl, {}).then(async(response)=>{
+			console.log(response.Record);
       let ownerCaseInfo = response.Record.info;
-			console.log(ownerCaseInfo);
+			let ownerCaseUser = response.Record.user;
 			let ownerCaseInfoBox = $('<div></div>');
 			$(ownerCaseInfoBox).append($('<h4>ข้อมูลผู้ส่งเคส</h4>').css({'text-align': 'center', 'line-height': '14px'}));
 			$(ownerCaseInfoBox).append($('<p>ชื่อ ' + ownerCaseInfo.User_NameTH + ' ' + ownerCaseInfo.User_LastNameTH + '</p>').css({'line-height': '14px'}));
@@ -6646,7 +6649,7 @@ module.exports = function ( jq ) {
 					const userdata = JSON.parse(localStorage.getItem('userdata'));
 					let main = require('../main.js');
 					let myWsm = main.doGetWsm();
-					let sendto = ownerCaseInfo.username;
+					let sendto = ownerCaseUser.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
 					let msg = {cause: causeValue, other: otherValue, caseData: misstakeCaseData};
@@ -7748,7 +7751,7 @@ module.exports = function ( jq ) {
 			if (syncTimer){
 				window.clearTimeout(syncTimer);
 			}
-			syncTimer = doCreateSyncBGTimer(60);
+			//syncTimer = doCreateSyncBGTimer(60);
 
       resolve($(summary));
     });
