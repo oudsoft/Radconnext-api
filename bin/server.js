@@ -33,7 +33,7 @@ const ALLOW_ORIGIN = ['http://localhost:3000', 'https://localhost:4443', 'https:
 
 const controlOrigin = (req, res, next) => {
 	let origin = req.headers.origin;
-	log.info('who? = ' + origin)
+	//log.info('who? = ' + origin)
   if (ALLOW_ORIGIN.includes(origin)) {
 		//log.info(origin + '==> yes!!')
     res.header('Access-Control-Allow-Origin', origin);
