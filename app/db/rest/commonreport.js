@@ -548,7 +548,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let dicom = undefined;
       if (lastReports[0].PDF_DicomSeriesIds) {
         if ((isEditResponse) && (lastReports.length > 0)) {
-
+          /*
           let seriesIds = lastReports[0].PDF_DicomSeriesIds.items;
 
           let deleteRes = await doDeleteResultSeries(seriesIds, hospitalId, hostname);
@@ -564,6 +564,8 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           let seriesInstanceUIDs = lastReports[0].SeriesInstanceUIDs.items;
           let sopInstanceUIDs = lastReports[0].SOPInstanceUIDs.items;
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs);
+          */
+          dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
           log.info('dicom last result => ' + JSON.stringify(dicom));
           await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
         } else {
