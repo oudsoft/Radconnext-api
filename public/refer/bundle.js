@@ -172,6 +172,7 @@ function doLoadMainPage(){
 			$(document).on('userlogout', (evt, data)=>{
 				common.doUserLogout(wsm);
 			});
+
 			$(document).on('openhome', (evt, data)=>{
 				common.doSaveQueryDicom(data);
 				newcase.doLoadDicomFromOrthanc();
@@ -700,7 +701,7 @@ const hostIP = 'localhost';
 const hostOrthancApiPort = '8042';
 const hostName = hostIP + ':' + hostApiPort;
 const domainName = 'radconnext.com';
-const adminEmailAddress = 'oudsoft@gmail.com';
+const adminEmailAddress = 'oudsoft@yahoo.com';
 
 
 //const hostURL = 'https://radconnext.com/rad_test/api';
@@ -812,18 +813,15 @@ module.exports = function ( jq ) {
 
   const doCallApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-      /*
-			$.post(apiurl, params, function(data){
-				resolve(data);
-			}).fail(function(error) {
-				reject(error);
-			});
-      */
       let apiname = apiurl;
       const progBar = $('body').radprogress({value: 0, apiname: apiname});
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
       $.ajax({
-        url: apiurl,
+        url: apiURL,
         type: 'post',
         data: params,
         xhr: function () {
@@ -835,7 +833,6 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
-
               let loaded = evt.loaded;
               let total = evt.total;
               let prog = (loaded / total) * 100;
@@ -861,6 +858,7 @@ module.exports = function ( jq ) {
           resolve(res)
         }, 1000);
       }).fail(function (err) {
+        /*
         $(progBar.handle).find('#ApiNameBar').css({'color': 'red'});
         $(progBar.progressValueBox).css({'color': 'red'});
         $.notify('มีข้อผิดพลาดเกิดที่ระบบฯ', 'error');
@@ -892,14 +890,20 @@ module.exports = function ( jq ) {
             progBar.doCloseProgress();
             reject(err);
           }, 2500);
-        })
+        });
+        */
+        reject(err);
       });
 		});
 	}
 
   const doGetApi = function (apiurl, params) {
 		return new Promise(function(resolve, reject) {
-			$.get(apiurl, params, function(data){
+      let apiURL = apiurl;
+      if (window.location.hostname == 'localhost') {
+        apiURL = 'https://radconnext.info' + apiurl;
+      }
+			$.get(apiURL, params, function(data){
 				resolve(data);
 			}).fail(function(error) {
 				reject(error);
@@ -1271,7 +1275,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"./utilmod.js":17}],3:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /* case.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -1335,7 +1339,7 @@ module.exports = function ( jq ) {
 
 		let fromDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ตั้งแต่</span>
 		$(fromDateKeyBox).appendTo($(formField));
-		let fromDateKey = $('<input type="text" id="FromDateKey" size="6" style="margin-left: 5px;"/>');
+		let fromDateKey = $('<input type="text" id="FromDateKey" style="margin-left: 5px; width: 40px;"/>');
 		if (key.fromDateKeyValue) {
 			let arrTmps = key.fromDateKeyValue.split('-');
 			let fromDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
@@ -1349,7 +1353,7 @@ module.exports = function ( jq ) {
 
 		let toDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ถึง</span>
 		$(toDateKeyBox).appendTo($(formField));
-		let toDateKey = $('<input type="text" id="ToDateKey" size="6" style="margin-left: 5px;"/>');
+		let toDateKey = $('<input type="text" id="ToDateKey" size="6" style="margin-left: 5px; width: 40px;"/>');
 		if (key.toDateKeyValue) {
 			let arrTmps = key.toDateKeyValue.split('-');
 			let toDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
@@ -1362,7 +1366,7 @@ module.exports = function ( jq ) {
 		$(formField).appendTo($(searchFormRow));
 
 		formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-		let patientNameENKey = $('<input type="text" id="PatientNameENKey" size="8"/>');
+		let patientNameENKey = $('<input type="text" id="PatientNameENKey" style="width: 140px;"/>');
 		$(patientNameENKey).val(key.patientNameENKeyValue);
 		$(formField).append($(patientNameENKey));
 		$(formField).appendTo($(searchFormRow));
@@ -2216,9 +2220,27 @@ module.exports = function ( jq ) {
 		let reportRes = await common.doCallApi('/api/casereport/select/' + caseId, {});
 		//console.log(reportRes);
 		if (reportRes.Records.length > 0){
-			let pdfReportLink = reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
-			let pdfDialog = doCreateResultPDFDialog(pdfReportLink);
-			$("#dialog").append($(pdfDialog));
+			let pdfReportLink = 'https://radconnext.info' + reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
+			console.log(pdfReportLink);
+			//let pdfDialog = doCreateResultPDFDialog(pdfReportLink);
+			let pdfDialog = $('<object data="' + pdfReportLink + '" type="application/pdf" width="99%" height="380"></object>');
+			//$("#dialog").append($(pdfDialog));
+			const reportformoption = {
+  			title: 'ผลอ่าน',
+  			msg: $(pdfDialog),
+  			width: '720px',
+				okLabel: ' เปิดหน้าต่างใหม่ ',
+				cancelLabel: ' ปิด ',
+  			onOk: async function(evt) {
+					window.open(pdfReportLink, '_blank');
+          reportPdfDlgHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				reportPdfDlgHandle.closeAlert();
+  			}
+  		}
+  		let reportPdfDlgHandle = $('body').radalert(reportformoption);
+
 			let viewLog = {action: 'view', by: userdata.id, at: new Date()};
 			let callRes = await common.doCallApi('/api/casereport/appendlog/' + caseId, {Log: viewLog});
 			/*
@@ -2724,6 +2746,7 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log('error at api ' + url);
 				console.log(JSON.stringify(err));
+				reject(err);
 			})
 		});
 	}
@@ -2735,6 +2758,59 @@ module.exports = function ( jq ) {
 			}).catch((err) => {
 				console.log(JSON.stringify(err));
 			})
+		});
+	}
+
+	const doCallLocalApi = function(apiurl, rqParams) {
+		return new Promise(function(resolve, reject) {
+			const progBar = $('body').radprogress({value: 0, apiname: apiurl});
+      $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
+			$.ajax({
+        url: apiurl,
+        type: 'post',
+        data: rqParams,
+        xhr: function () {
+          var xhr = $.ajaxSettings.xhr();
+          xhr.onprogress = function(evt) {
+            if (evt.lengthComputable) {
+              // For Download
+              let loaded = evt.loaded;
+              let total = evt.total;
+              let prog = (loaded / total) * 100;
+              let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              $('body').find('#ProgressValueBox').text(perc + '%');
+            }
+          };
+          xhr.upload.onprogress = function (evt) {
+            // For uploads
+          };
+          return xhr;
+        }
+      }).done(function (res) {
+        progBar.doUpdateProgressValue(100);
+        setTimeout(()=>{
+  				progBar.doCloseProgress();
+          let apiItem = {api: apiurl};
+          console.log(apiItem);
+          let logWin = $('body').find('#LogBox');
+					if (logWin) {
+          	$(logWin).simplelog(apiItem);
+					}
+          resolve(res)
+        }, 1000);
+      }).fail(function (err) {
+        reject(err);
+      });
+		});
+	}
+
+	const doGetLocalApi = function(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			$.get(apiURL, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
 		});
 	}
 
@@ -3066,6 +3142,41 @@ module.exports = function ( jq ) {
 		})
   }
 
+	const doDownloadLocalDicom = function(studyID, dicomFilename){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/download/dicom/archive';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID, UsrArchiveFileName: dicomFilename});
+			//console.log(dicomStudiesRes);
+			var pom = document.createElement('a');
+			pom.setAttribute('href', dicomStudiesRes.result.archive);
+			pom.setAttribute('download', dicomFilename);
+			pom.click();
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doDeleteLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/delete/study';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
+	const doCountImageLocalDicom = function(studyID){
+		return new Promise(async function(resolve, reject) {
+			$('body').loading('start');
+			const dicomUrl = '/api/orthanc/study/count/instances';
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
+			resolve(dicomStudiesRes.result);
+			$('body').loading('stop');
+		});
+	}
+
   const doPreparePatientParams = function(newCaseData){
 		let rqParams = {};
 		let patientFragNames = newCaseData.patientNameEN.split(' ');
@@ -3162,6 +3273,14 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	const doGetLocalSeriesList = function(studyId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/study/' + studyId;
+			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomStudiesRes.result);
+		});
+	}
+
 	const doGetOrthancStudyDicom = function(studyId) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -3185,6 +3304,14 @@ module.exports = function ( jq ) {
 	  	let params = {method: 'get', uri: orthancUri, body: rqBody, hospitalId: hospitalId};
 	  	let orthancRes = await apiconnector.doCallOrthancApiByProxy(params);
 			resolve(orthancRes);
+		});
+	}
+
+	const doGetLocalOrthancSeriesDicom = function(seriesId) {
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/select/series/' + seriesId;
+			let dicomSeriesRes = await doCallLocalApi(dicomUrl, {});
+			resolve(dicomSeriesRes.result);
 		});
 	}
 
@@ -3742,17 +3869,24 @@ module.exports = function ( jq ) {
 		/* Function share */
 		doCallApi,
 		doGetApi,
+		doCallLocalApi,
+		doGetLocalApi,
 		doCreateDicomFilterForm,
 		doSaveQueryDicom,
 		doFilterDicom,
 		doUserLogout,
 		doOpenStoneWebViewer,
 		doDownloadDicom,
+		doDownloadLocalDicom,
+		doDeleteLocalDicom,
+		doCountImageLocalDicom,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
+		doGetLocalSeriesList,
 		doGetOrthancStudyDicom,
 		doGetOrthancSeriesDicom,
+		doGetLocalOrthancSeriesDicom,
 		doCallCreatePreviewSeries,
 		doCallCreateZipInstance,
 		doCallSendAI,
@@ -7663,10 +7797,12 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var updateUserApiUri = '/api/user/update';
       var params = data;
-      $.post(updateUserApiUri, params, function(response){
+      //$.post(updateUserApiUri, params, function(response){
+			common.doCallApi(updateUserApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
@@ -7675,125 +7811,144 @@ module.exports = function ( jq ) {
     return new Promise(function(resolve, reject) {
       var userInfoApiUri = '/api/user/' + userId;
       var params = {};
-      $.get(userInfoApiUri, params, function(response){
+      //$.get(userInfoApiUri, params, function(response){
+			common.doGetApi(userInfoApiUri, params).then((response)=>{
   			resolve(response);
   		}).catch((err) => {
   			console.log(JSON.stringify(err));
+				reject(err);
   		})
   	});
   }
 
   function doSaveUserProfile(newUserInfo){
-  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
-  		if (updateRes.Result === "OK") {
-  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
-  				//update userdata in localstorage
-  				let newUserInfo = userInfoRes.Record.info;
-  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  				yourUserdata.userinfo = newUserInfo;
-  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
-					let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
-					$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
-  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
-  				$("#dialog").find('#CloseUserProfile-Cmd').click();
-  			});
-  		} else {
-  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
-  		}
-  	});
+		return new Promise(function(resolve, reject) {
+	  	doCallUpdateUserInfo(newUserInfo).then((updateRes)=>{
+	  		if (updateRes.Result === "OK") {
+	  			doCallUserInfo(newUserInfo.userId).then((userInfoRes)=>{
+	  				//update userdata in localstorage
+	  				let newUserInfo = userInfoRes.Record.info;
+	  				let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
+	  				yourUserdata.userinfo = newUserInfo;
+	  				localStorage.setItem('userdata', JSON.stringify(yourUserdata));
+						let userDisplayName = yourUserdata.userinfo.User_NameTH + ' ' + yourUserdata.userinfo.User_LastNameTH;
+						$('#UserDisplayNameBox').empty().append($('<h4>' + userDisplayName + '</h4>'));
+	  				$.notify("บันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบสำเร็จ", "success");
+						resolve(updateRes);
+	  			});
+	  		} else {
+	  			$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขจ้อมูลของคุณ่เข้าสู่ระบบได้ในขณะนี้", "error");
+					reject({error: ''})
+	  		}
+	  	});
+		});
   }
 
+	const createFormFragment = function(fragId, fragLabel, fragValue) {
+		let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
+		let labelCell = $('<div style="display: table-cell; width: 250px; padding: 2px;"></div>');
+		$(labelCell).append($('<span>' + fragLabel + '</span>'));
+		let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+		let fragInput = $('<input type="text"/>');
+		$(fragInput).attr('id', fragId);
+		$(fragInput).val(fragValue);
+		$(fragInput).appendTo($(inputCell));
+		$(labelCell).appendTo($(fragRow));
+		$(inputCell).appendTo($(fragRow));
+		return $(fragRow);
+	}
+
   const doShowUserProfile = function() {
-  	$("#dialog").load('../form/dialog.html', function() {
-  		const createFormFragment = function(fragId, fragLabel, fragValue) {
-  			let fragRow = $('<div style="display: table-row; padding: 2px; background-color: gray; width: 100%;"></div>');
-  			let labelCell = $('<div style="display: table-cell; width: 300px; padding: 2px;"></div>');
-  			$(labelCell).html('<b>' + fragLabel + '</b>');
-  			let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
-  			let fragInput = $('<input type="text"/>');
-  			$(fragInput).attr('id', fragId);
-  			$(fragInput).val(fragValue);
-  			$(fragInput).appendTo($(inputCell));
-  			$(labelCell).appendTo($(fragRow));
-  			$(inputCell).appendTo($(fragRow));
-  			return $(fragRow);
-  		}
+		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
 
-  		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
-  		let table = $('<div style="display: table; width: 100%;"></div>');
+		let table = $('<div style="display: table; width: 100%;"></div>');
 
-  		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
-  		$(yourNameENFrag).appendTo($(table));
+		let yourNameENFrag = createFormFragment('UserNameEN', 'ชื่อ(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_NameEN);
+		$(yourNameENFrag).appendTo($(table));
 
-  		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
-  		$(yourLastNameENFrag).appendTo($(table));
+		let yourLastNameENFrag = createFormFragment('UserLastNameEN', 'นามสกุล(ภาษาอังกฤษ์)', yourUserdata.userinfo.User_LastNameEN);
+		$(yourLastNameENFrag).appendTo($(table));
 
-  		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
-  		$(yourNameTHFrag).appendTo($(table));
+		let yourNameTHFrag = createFormFragment('UserNameTH', 'ชื่อ(ภาษาไทย)', yourUserdata.userinfo.User_NameTH);
+		$(yourNameTHFrag).appendTo($(table));
 
-  		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
-  		$(yourLastNameTHFrag).appendTo($(table));
+		let yourLastNameTHFrag = createFormFragment('UserLastNameTH', 'นามสกุล(ภาษาไทย)', yourUserdata.userinfo.User_LastNameTH);
+		$(yourLastNameTHFrag).appendTo($(table));
 
-  		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
-  		$(yourEmailFrag).appendTo($(table));
+		let yourEmailFrag = createFormFragment('UserEmail', 'อีเมล์', yourUserdata.userinfo.User_Email);
+		$(yourEmailFrag).appendTo($(table));
 
-  		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
-  		$(yourPhoneFrag).appendTo($(table));
+		let yourPhoneFrag = createFormFragment('UserPhone', 'โทรศัพท์', yourUserdata.userinfo.User_Phone);
+		$(yourPhoneFrag).appendTo($(table));
 
-  		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
-  		$(yourLineIDFrag).appendTo($(table));
+		let yourLineIDFrag = createFormFragment('UserLineID', 'Line ID', yourUserdata.userinfo.User_LineID);
+		$(yourLineIDFrag).appendTo($(table));
 
-			let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
-  		$(yourDefaultDownloadPathFrag).appendTo($(table));
+		let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
+		$(yourDefaultDownloadPathFrag).appendTo($(table));
 
-  		$('#UserProfileBox').empty().append($(table));
-  		$(".modal-footer").css('text-align', 'center');
-  		$("#SaveUserProfile-Cmd").click((evt)=>{
-				const doSaveUserInfo = function(){
-					$(table).find('#UserPathRadiant').css('border', '');
-					console.log(newPathRadiant);
-					let downloadPathFrags = newPathRadiant.split('\\');
-					console.log(downloadPathFrags);
-					newPathRadiant = downloadPathFrags.join('/');
-					console.log(newPathRadiant);
-					let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
-					yourNewUserInfo.userId = yourUserdata.id;
-					yourNewUserInfo.infoId = yourUserdata.userinfo.id;
-					yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
-					doSaveUserProfile(yourNewUserInfo);
-				}
+		const radDialogOptions = {
+	    title: 'ข้อมูลผู้ใช้งานของฉัน',
+	    msg: $(table),
+	    width: '510px',
+			okLabel: ' บันทึก ',
+	    onOk: async function(evt) {
+				let res = await doVerifyUserInfo();
+				console.log(res);
+	      radUserInfoDialog.closeAlert();
+	    },
+			onCancel: function(evt) {
+	      radUserInfoDialog.closeAlert();
+	    }
+	  }
 
-  			let newNameEN = $(table).find('#UserNameEN').val();
-  			let newLastNameEN = $(table).find('#UserLastNameEN').val();
-  			let newNameTH = $(table).find('#UserNameTH').val();
-  			let newLastNameTH = $(table).find('#UserLastNameTH').val();
-  			let newEmail = $(table).find('#UserEmail').val();
-  			let newPhone = $(table).find('#UserPhone').val();
-  			let newLineID = $(table).find('#UserLineID').val();
+	  let radUserInfoDialog = $('body').radalert(radDialogOptions);
+
+		const doSaveUserInfo = function(newUserInfo){
+			return new Promise(async function(resolve, reject) {
+				console.log(newUserInfo);
+				let yourNewUserInfo = newUserInfo;
+				yourNewUserInfo.userId = yourUserdata.id;
+				yourNewUserInfo.infoId = yourUserdata.userinfo.id;
+				yourNewUserInfo.usertypeId = yourUserdata.usertype.id;
+				let saveRes = await doSaveUserProfile(yourNewUserInfo);
+				resolve(saveRes);
+			});
+		}
+
+		const doVerifyUserInfo = function(){
+			return new Promise(async function(resolve, reject) {
+				let newNameEN = $(table).find('#UserNameEN').val();
+				let newLastNameEN = $(table).find('#UserLastNameEN').val();
+				let newNameTH = $(table).find('#UserNameTH').val();
+				let newLastNameTH = $(table).find('#UserLastNameTH').val();
+				let newEmail = $(table).find('#UserEmail').val();
+				let newPhone = $(table).find('#UserPhone').val();
+				let newLineID = $(table).find('#UserLineID').val();
 				let newPathRadiant = $(table).find('#UserPathRadiant').val();
-  			if (newNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '1px solid red');
+				if (newNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newLastNameEN === '') {
-  				$(table).find('#UserNameEN').css('border', '');
-  				$(table).find('#UserLastNameEN').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameEN === '') {
+					$(table).find('#UserNameEN').css('border', '');
+					$(table).find('#UserLastNameEN').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาอังกฤษ์)', 'error');
-  				return;
-  			} else if (newNameTH === '') {
-  				$(table).find('#UserLastNameEN').css('border', '');
-  				$(table).find('#UserNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newNameTH === '') {
+					$(table).find('#UserLastNameEN').css('border', '');
+					$(table).find('#UserNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีชื่อ(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newLastNameTH === '') {
-  				$(table).find('#UserNameTH').css('border', '');
-  				$(table).find('#UserLastNameTH').css('border', '1px solid red');
+					resolve();
+				} else if (newLastNameTH === '') {
+					$(table).find('#UserNameTH').css('border', '');
+					$(table).find('#UserLastNameTH').css('border', '1px solid red');
 					$.notify('ต้องมีนามสกุล(ภาษาไทย)', 'error');
-  				return;
-  			} else if (newEmail === '') {
-  				$(table).find('#UserLastNameTH').css('border', '');
-  				$(table).find('#UserEmial').css('border', '1px solid red');
-  				return;
+					resolve();
+				} else if (newEmail === '') {
+					$(table).find('#UserLastNameTH').css('border', '');
+					$(table).find('#UserEmial').css('border', '1px solid red');
+					resolve();
 				} else if (newPhone !== '') {
 					const phoneNoTHRegEx = /^[0]?[689]\d{8}$/;
 					let isCorrectFormat = phoneNoTHRegEx.test(newPhone);
@@ -7801,24 +7956,53 @@ module.exports = function ( jq ) {
 						$(table).find('#UserEmial').css('border', '');
 						$(table).find('#UserPhone').css('border', '1px solid red');
 						$.notify('โทรศัพท์ สามารถปล่อยว่างได้ แต่ถ้ามี ต้องพิมพ์ให้ถูกต้องตามรูปแบบ 0xxxxxxxxx', 'error');
-						return;
-					} else if (newPathRadiant	 === '') {
-	  				$(table).find('#UserPhone').css('border', '');
-	  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-	  				return;
+						resolve();
 	  			} else {
-						doSaveUserInfo();
-	  			}
-				} else if (newPathRadiant	 === '') {
-  				$(table).find('#UserEmail').css('border', '');
-  				$(table).find('#UserPathRadiant').css('border', '1px solid red');
-					$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom หากไม่ใช่รังสีแพทย์พิมพ์เป็นอะไรก็ได้แต่ต้องไม่ปล่อยว่างไว้', 'error');
-  				return;
-  			} else {
-					doSaveUserInfo();
-  			}
-  		});
-  	});
+						$(table).find('#UserEmail').css('border', '');
+						$(table).find('#UserPhone').css('border', '');
+						if (yourUserdata.usertypeId != 4) {
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						} else {
+							if (newPathRadiant === '') {
+								$(table).find('#UserPathRadiant').css('border', '1px solid red');
+								$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+								resolve();
+							} else {
+								$(table).find('#UserPathRadiant').css('border', '');
+								let downloadPathFrags = newPathRadiant.split('\\');
+								newPathRadiant = downloadPathFrags.join('/');
+								let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+								let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+								resolve(callSaveRes);
+							}
+						}
+					}
+				} else {
+					$(table).find('#UserEmail').css('border', '');
+					$(table).find('#UserPhone').css('border', '');
+					if (yourUserdata.usertypeId != 4) {
+						let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+						let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+						resolve(callSaveRes);
+					} else {
+						if (newPathRadiant === '') {
+							$(table).find('#UserPathRadiant').css('border', '1px solid red');
+							$.notify('กรณีที่คุณเป็นรังสีแพทย์ ต้องระบุ โฟลเดอร์ดาวน์โหลด Dicom', 'error');
+							resolve();
+						} else {
+							$(table).find('#UserPathRadiant').css('border', '');
+							let downloadPathFrags = newPathRadiant.split('\\');
+							newPathRadiant = downloadPathFrags.join('/');
+							let yourNewUserInfo = {User_NameEN: newNameEN, User_LastNameEN: newLastNameEN, User_NameTH: newNameTH, User_LastNameTH: newLastNameTH, User_Email: newEmail, User_Phone: newPhone, User_LineID: newLineID, User_PathRadiant: newPathRadiant};
+							let callSaveRes = await doSaveUserInfo(yourNewUserInfo);
+							resolve(callSaveRes);
+						}
+					}
+				}
+			});
+		}
   }
 
   return {
@@ -7854,7 +8038,9 @@ module.exports = function ( jq ) {
           $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.StudyDesc + '</div>'));
           $(itemRow).append($('<div style="display: table-cell; vertical-align: middle;">' + item.ProtocolName + '</div>'));
           let scanPartCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
-          let scanPartBox = await common.doRenderScanpartSelectedBox(item.Scanparts);
+					let scanpartValues = Object.values(item.Scanparts);
+					scanpartValues = scanpartValues.slice(0, -1);
+          let scanPartBox = await common.doRenderScanpartSelectedBox(scanpartValues);
           $(scanPartBox).appendTo($(scanPartCell));
           $(itemRow).append($(scanPartCell));
           let scanPartCmdCell = $('<div style="display: table-cell; vertical-align: middle;"></div>');
@@ -8220,12 +8406,21 @@ module.exports = function ( jq ) {
 
 	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
 	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
 	  const port = window.location.port;
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
-	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-		const wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		let wsProtocol = 'ws://';
+		if (protocol == 'https:') {
+			wsProtocol = 'wss://';
+		}
+
+		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		if (hostname == 'localhost') {
+			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		}
+
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -8397,7 +8592,7 @@ module.exports = function ( jq ) {
 		}
 	});
 	*/
-	
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -20076,12 +20271,13 @@ module.exports = function ( jq ) {
 
   const doCallCheckSeries = function(studyID) {
     return new Promise(async function(resolve, reject) {
-      let seriesList = await common.doGetSeriesList(studyID);
+      let seriesList = await common.doGetLocalSeriesList(studyID);
 			if (seriesList){
 	      let seriesDescList = [];
 	      let	promiseList = new Promise(async function(resolve2, reject2){
 	        seriesList.Series.forEach(async(item, i) => {
-	          let seriesTags = await common.doGetOrthancSeriesDicom(item);
+						//let seriesTags = await common.doGetOrthancSeriesDicom(item);
+	          let seriesTags = await common.doGetLocalOrthancSeriesDicom(item);
 						let seriesName = undefined;
 						if (seriesTags.MainDicomTags.SeriesDescription){
 							seriesName = seriesTags.MainDicomTags.SeriesDescription
@@ -20130,7 +20326,8 @@ module.exports = function ( jq ) {
 						$('#quickreply').append($('<div id="overlay"><div class="loader"></div></div>'));
 					  $('#quickreply').loading({overlay: $("#overlay"), stoppable: true});
 						$('#quickreply').loading('start');
-	          let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+						//let callSeriesRes = await common.doGetOrthancSeriesDicom(item.id);
+	          let callSeriesRes = await common.doGetLocalOrthancSeriesDicom(item.id);
 						let modality = callSeriesRes.MainDicomTags.Modality;
 						let studyId = callSeriesRes.ParentStudy;
 	          let callCreatePreview = await common.doCallCreatePreviewSeries(item.id, callSeriesRes.Instances);
@@ -21023,12 +21220,25 @@ module.exports = function ( jq ) {
   const doCreateCaseResult = function(caseId){
     return new Promise(async function(resolve, reject){
       let resultRes = await apiconnector.doCallApi('/api/cases/result/'+ caseId, {});
-      let resultReport = resultRes.Records[0];
+			let resultReport = undefined;
+			if (resultRes.Records.length > 0) {
+      	resultReport = resultRes.Records[0];
+			} else {
+				resultRes = await common.doGetApi('/api/cases//do/resubmit/'+ caseId, {});
+				console.log(resultRes);
+			}
 			let pdfStream = undefined;
 			let embetObject = undefined;
+			let reportLink = resultReport.PDF_Filename;
+			/*
+			if (window.location.hostname == 'localhost') {
+				reportLink = 'https://radconnext.info' + resultReport.PDF_Filename;
+			}
+			*/
 			try {
-				pdfStream = await util.doCreateDownloadPDF(resultReport.PDF_Filename);
-	      embetObject = $('<object data="' + resultReport.PDF_Filename + '" type="application/pdf" width="100%" height="480"></object>');
+				pdfStream = await util.doCreateDownloadPDF(reportLink);
+				console.log(pdfStream);
+	      embetObject = $('<object data="' + reportLink + '" type="application/pdf" width="100%" height="480"></object>');
 			} catch (err) {
 				console.log(err);
 				embetObject = $('<object data="" type="application/pdf" width="100%" height="480"></object>');
@@ -22065,7 +22275,7 @@ module.exports = function ( jq ) {
         } else {
           showDicoms = await common.doExtractList(studies, 1, userItemPerPage);
         }
-
+				console.log(showDicoms);
         let dicomView = await doShowDicomResult(showDicoms, 0);
         $(".mainfull").find('#ResultView').empty().append($(dicomView));
 
@@ -22334,7 +22544,7 @@ module.exports = function ( jq ) {
 			const promiseList = new Promise(function(resolve2, reject2){
 				for (let i=0; i < dj.length; i++) {
 					let desc, protoname, mld, sa, studydate, bdp;
-					if ((dj[i].MainDicomTags) && (dj[i].SamplingSeries)){
+					if ((dj[i].MainDicomTags) && (dj[i].SamplingSeries) && (dj[i].SamplingSeries.MainDicomTags)){
 						if (dj[i].MainDicomTags.StudyDescription) {
 							bdp = dj[i].MainDicomTags.StudyDescription;
 						} else {

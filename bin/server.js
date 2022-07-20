@@ -29,17 +29,20 @@ const privateKey = fs.readFileSync(__dirname + '/key.pem', 'utf8');
 const certificate = fs.readFileSync(__dirname + '/key.crt', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
-const ALLOW_ORIGIN = ['http://localhost:3000', 'https://radconnext.info', 'https://radconnext.tech'];
+const ALLOW_ORIGIN = ['http://localhost:3000', 'https://localhost:4443', 'https://radconnext.tech'];
 
 const controlOrigin = (req, res, next) => {
 	let origin = req.headers.origin;
-	//log.info('who? = ' + origin)
+	log.info('who? = ' + origin)
   if (ALLOW_ORIGIN.includes(origin)) {
-		//log.info('yes!!')
-    res.header('Access-Control-Allow-Origin', origin)
-		res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
-	  res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
-  }
+		//log.info(origin + '==> yes!!')
+    res.header('Access-Control-Allow-Origin', origin);
+		res.header('Access-Control-Allow-Methods','HEAD', 'POST, GET, PUT, PATCH, DELETE, OPTIONS');
+	  res.header('Access-Control-Allow-Headers','Origin, Content-Type, Option, Authorization');
+		//res.header('Access-Control-Allow-Headers','append,delete,entries,foreach,get,has,keys,set,values,Authorization');
+  } else {
+		//log.info(origin + '==> no!!')
+	}
   return next()
 }
 
