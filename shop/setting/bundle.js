@@ -4236,8 +4236,10 @@ module.exports = function ( jq ) {
 				let templateDesignElements = await doCollectElement(paperSize);
 				let templateName = $(templateNameInput).val();
 				let templatType = $(templatTypeSelector).val();
-				let params = {data: {Name: templateName, TypeId: templatType, Content: templateDesignElements, PaperSize: paperSize}, shopId: shopData.id};
+				let params = {data: {Name: templateName, TypeId: parseInt(templatType), Content: templateDesignElements, PaperSize: parseInt(paperSize)}, shopId: shopData.id};
+				console.log(params);
 				let templateRes = await common.doCallApi('/api/shop/template/save', params);
+				console.log(templateRes);
         if (templateRes.status.code == 200) {
           $.notify("บันทึกรูปแบบเอกสารสำเร็จ", "success");
         } else if (templateRes.status.code == 201) {
@@ -4253,10 +4255,9 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doShowTemplateLoaded = async function(shopData, templateItems, templateNameInput, paperSizeSelector, wrapper) {
+	const doShowTemplateLoaded = function(shopData, templateItems, templateNameInput, paperSizeSelector, wrapper) {
 		$(wrapper).empty();
 		let elements = templateItems[0].Content;
-		$(templateNameInput).val(templateItems[0].Name);
 		const promiseList = new Promise(async function(resolve2, reject2){
 			for (let i=0; i < elements.length; i++){
 				let element = elements[i];
@@ -4266,6 +4267,7 @@ module.exports = function ( jq ) {
 			common.delay(900).then(()=>resolve2());
 		});
 		Promise.all([promiseList]).then((ob)=>{
+			$(templateNameInput).val(templateItems[0].Name);
 			$(paperSizeSelector).val(templateItems[0].PaperSize).change();
 		});
 	}
@@ -4280,7 +4282,7 @@ module.exports = function ( jq ) {
 				}
 			});
 			if (typeFilters.length > 0) {
-				doShowTemplateLoaded(shopData, templateItems, templateNameInput, paperSizeSelector, wrapper);
+				doShowTemplateLoaded(shopData, typeFilters, templateNameInput, paperSizeSelector, wrapper);
 			} else {
 				//doCreateDefualTemplate
 				templateRes = await common.doCallApi('/api/shop/template/select/1', {});

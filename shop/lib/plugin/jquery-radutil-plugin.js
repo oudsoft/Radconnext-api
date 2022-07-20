@@ -48,7 +48,7 @@
       $(titleTextBox).append(settings.title);
       //$(figgerIcon).css({'margin-top': '5px'})
       //return $(titleBar).append($(figgerIcon)).append($(titleTextBox));
-			let closePopupCmd = $('<img data-toggle="tooltip" src="/images/cross-mark-icon.png" title="ปิดกล่อง" width="22" height="auto"/>');
+			let closePopupCmd = $('<img data-toggle="tooltip" src="/images/cross-mark-icon.png" title="ปิดกล่อง" width="20" height="auto"/>');
 			$(closePopupCmd).css({'position': 'relative', 'display': 'inline-block', 'float': 'right', 'padding': '2px'});
 			$(closePopupCmd).css({'margin-right': '0px', 'cursor': 'pointer', 'border': '3px solid grey', 'background-color': 'white'});
 			$(closePopupCmd).on('click', (evt)=>{

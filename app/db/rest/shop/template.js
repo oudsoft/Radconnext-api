@@ -143,18 +143,18 @@ app.post('/save', async (req, res) => {
         let shopId = req.body.shopId;
         let typeId = req.body.data.TypeId;
         let templates = await db.templates.findAll({attributes: excludeColumn, where: {shopId: shopId, TypeId: typeId}});
-        if ( templates.length == 0) {
+        if (templates.length == 0) {
           let newtemplate = req.body.data;
           let adtemplate = await db.templates.create(newtemplate);
           await db.templates.update({shopId: req.body.shopId},{where: {id: adtemplate.id}});
           templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: adtemplate.id}});
-          res.json({Result: "OK", status: {code: 200}, Record: templates[0]});
+          res.json({Result: "Add OK", status: {code: 200}, Record: templates[0]});
         } else {
           let templateId = templates[0].id;
           let updatetemplate = req.body.data;
           await db.templates.update(updatetemplate, {where: {id: templateId}});
           templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: templateId}});
-          res.json({Result: "OK", status: {code: 200}, Record: templates[0]});
+          res.json({Result: "Update OK", status: {code: 200}, Record: templates[0]});
         }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
