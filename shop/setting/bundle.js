@@ -2041,12 +2041,28 @@ module.exports = function ( jq ) {
 						$(groupmenuLogoIcon).on('click', (evt)=>{
 							window.open(item['GroupPicture'], '_blank');
 						});
-						$(field).append($(groupmenuLogoIcon));
-						let updateGroupmenuLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateGroupmenuLogoCmd).on('click', (evt)=>{
+						let groupMenuLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
+				    $(groupMenuLogoIconBox).append($(groupmenuLogoIcon));
+						let editGroupMenuLogoCmd = $('<img src="../../images/tools-icon-wh.png"/>').css({'position': 'absolute', 'width': '25px', 'height': 'auto', 'cursor': 'pointer', 'right': '2px', 'bottom': '2px', 'display': 'none', 'z-index': '21'});
+						$(editGroupMenuLogoCmd).attr('title', 'เปลี่ยนภาพใหม่');
+						$(groupMenuLogoIconBox).append($(editGroupMenuLogoCmd));
+						$(groupMenuLogoIconBox).hover(()=>{
+							$(editGroupMenuLogoCmd).show();
+						},()=>{
+							$(editGroupMenuLogoCmd).hide();
+						});
+						$(editGroupMenuLogoCmd).on('click', (evt)=>{
+							evt.stopPropagation();
 							doStartUploadPicture(evt, groupmenuLogoIcon, field, item.id, shopData, workAreaBox);
 						});
-						$(field).append($('<div style="width: 100%;"></div>').append($(updateGroupmenuLogoCmd)));
+						$(field).append($(groupMenuLogoIconBox));
+
+						let clearGroupmenuLogoCmd = $('<input type="button" value=" เคลียร์รูป " class="action-btn"/>');
+						$(clearGroupmenuLogoCmd).on('click', async (evt)=>{
+							let callRes = await common.doCallApi('/api/shop/menugroup/change/logo', {data: {GroupPicture: ''}, id: item.id});
+							groupmenuLogoIcon.src = '/shop/favicon.ico'
+						});
+						$(field).append($('<div style="width: 100%;"></div>').append($(clearGroupmenuLogoCmd)));
 						$(itemRow).append($(field));
 					}
 				}
@@ -2327,12 +2343,29 @@ module.exports = function ( jq ) {
 						$(menuitemLogoIcon).on('click', (evt)=>{
 							window.open(item['MenuPicture'], '_blank');
 						});
-						$(field).append($(menuitemLogoIcon));
-						let updateMenuitemLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateMenuitemLogoCmd).on('click', (evt)=>{
+
+						let menuItemLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
+				    $(menuItemLogoIconBox).append($(menuitemLogoIcon));
+						let editMenuItemLogoCmd = $('<img src="../../images/tools-icon-wh.png"/>').css({'position': 'absolute', 'width': '25px', 'height': 'auto', 'cursor': 'pointer', 'right': '2px', 'bottom': '2px', 'display': 'none', 'z-index': '21'});
+						$(editMenuItemLogoCmd).attr('title', 'เปลี่ยนภาพใหม่');
+						$(menuItemLogoIconBox).append($(editMenuItemLogoCmd));
+						$(menuItemLogoIconBox).hover(()=>{
+							$(editMenuItemLogoCmd).show();
+						},()=>{
+							$(editMenuItemLogoCmd).hide();
+						});
+						$(editMenuItemLogoCmd).on('click', (evt)=>{
+							evt.stopPropagation();
 							doStartUploadPicture(evt, menuitemLogoIcon, field, item.id, shopData, workAreaBox);
 						});
-						$(field).append($('<div style="width: 100%;"></div>').append($(updateMenuitemLogoCmd)));
+						$(field).append($(menuItemLogoIconBox));
+
+						let clearMenuitemLogoCmd = $('<input type="button" value=" เคลียร์รูป " class="action-btn"/>');
+						$(clearMenuitemLogoCmd).on('click', async (evt)=>{
+							let callRes = await common.doCallApi('/api/shop/menuitem/change/logo', {data: {MenuPicture: ''}, id: item.id});
+							menuitemLogoIcon.src = '/shop/favicon.ico'
+						});
+						$(field).append($('<div style="width: 100%;"></div>').append($(clearMenuitemLogoCmd)));
 						$(itemRow).append($(field));
 					}
 				}
@@ -2839,9 +2872,8 @@ module.exports = function ( jq ) {
     let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
     let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
     let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 99.1%;"></viv>');
-    //let addNewGoodItemCmdBox = $('<div></div>').css({'width': '99.1%', 'text-align': 'right'});
     let saveNewOrderCmdBox = $('<div></div>').css({'width': '99.1%', 'text-align': 'center'});
-    $(workAreaBox).append($(titlePageBox)).append($(customerWokingBox))/*.append($(addNewGoodItemCmdBox))*/.append($(itemlistWorkingBox)).append($(saveNewOrderCmdBox));
+    $(workAreaBox).append($(titlePageBox)).append($(customerWokingBox)).append($(itemlistWorkingBox)).append($(saveNewOrderCmdBox));
 
     let customerForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let customerFormRow = $('<tr></tr>');
@@ -2871,17 +2903,20 @@ module.exports = function ( jq ) {
 
 		console.log(orderObj);
 
-		//if ((!orderObj.Status) || ())
-    $(customerControlCmd).append($(editCustomerCmd));
     let dlgHandle = undefined;
+
     $(editCustomerCmd).on('click', async (evt)=>{
       dlgHandle = await doOpenCustomerMngDlg(shopData, customerSelectedCallback);
     });
+		$(customerControlCmd).append($(editCustomerCmd));
 
-		let addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
-    $(addNewGoodItemCmd).on('click', async (evt)=>{
-      dlgHandle = await doOpenGoodItemMngDlg(shopData, gooditemSelectedCallback);
-    });
+		let addNewGoodItemCmd = undefined;
+		if (orderObj.Status == 1) {
+			addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
+	    $(addNewGoodItemCmd).on('click', async (evt)=>{
+	      dlgHandle = await doOpenGoodItemMngDlg(shopData, gooditemSelectedCallback);
+	    });
+		}
 
 		let doShowCloseOrderDlg = async function() {
 			let total = await doCalOrderTotal(orderObj.gooditems);
@@ -2926,7 +2961,9 @@ module.exports = function ( jq ) {
     if ((orderObj) && (orderObj.gooditems)){
       let goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
 			let lastCell = $(goodItemTable).children(":first").children(":last");
-			$(lastCell).append($(addNewGoodItemCmd));
+			if (addNewGoodItemCmd) {
+				$(lastCell).append($(addNewGoodItemCmd));
+			}
 			lastCell = $(goodItemTable).children(":last").children(":last");
 			$(lastCell).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).append($(goodItemTable));
@@ -2966,6 +3003,11 @@ module.exports = function ( jq ) {
     });
     $(saveNewOrderCmdBox).append($(saveNewOrderCmd)).append($(cancelCmd));
 
+		if (orderObj.Status != 1) {
+			$(editCustomerCmd).hide();
+			$(saveNewOrderCmd).hide();
+		}
+
     const customerSelectedCallback = function(customerSelected){
       orderObj.customer = customerSelected;
       customerDataBox = doRenderCustomerContent(customerSelected);
@@ -2979,7 +3021,9 @@ module.exports = function ( jq ) {
       orderObj.gooditems.push(gooditemSelected);
       goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
 			let lastCell = $(goodItemTable).children(":first").children(":last");
-			$(lastCell).append($(addNewGoodItemCmd));
+			if (addNewGoodItemCmd) {
+				$(lastCell).append($(addNewGoodItemCmd));
+			}
 			lastCell = $(goodItemTable).children(":last").children(":last");
 			$(lastCell).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).empty().append($(goodItemTable));

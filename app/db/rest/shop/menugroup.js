@@ -137,9 +137,17 @@ app.post('/change/logo', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+        const menugroups = await db.menugroups.findAll({ attributes: ['GroupPicture'], where: {id: req.body.id}});
         let updateGroup = req.body.data;
         await db.menugroups.update(updateGroup, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
+        if (menugroups.length > 0){
+          let shopPubDir = path.join(__dirname, '../../../../');
+          let delteFilePath = shopPubDir + menugroups[0].ฌพนียPicture.substr(1);
+          if (fs.existsSync(delteFilePath)) {
+            await fs.unlinkSync(delteFilePath);
+          }
+        }
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {

@@ -140,9 +140,17 @@ app.post('/change/logo', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+        const menuitems = await db.menuitems.findAll({ attributes: ['MenuPicture'], where: {id: req.body.id}});
         let updateGroup = req.body.data;
         await db.menuitems.update(updateGroup, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
+        if (menuitems.length > 0){
+          let shopPubDir = path.join(__dirname, '../../../../');
+          let delteFilePath = shopPubDir + menuitems[0].MenuPicture.substr(1);
+          if (fs.existsSync(delteFilePath)) {
+            await fs.unlinkSync(delteFilePath);
+          }
+        }
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {
