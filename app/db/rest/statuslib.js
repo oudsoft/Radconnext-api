@@ -322,6 +322,7 @@ const onNewCaseEvent = function(caseId, options){
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
       let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
       if (radioProfile.radioAutoCall == 1) {
+        triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
         let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
         log.info('totalMinut=>' + totalMinut);
         let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
@@ -353,6 +354,7 @@ const onNewCaseEvent = function(caseId, options){
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
           if (radioProfile.radioAutoCall == 1) {
+            triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
             let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
             log.info('totalMinut=>' + totalMinut);
             let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
@@ -367,6 +369,7 @@ const onNewCaseEvent = function(caseId, options){
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
         if (radioProfile.radioAutoCall == 1) {
+          triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
           let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
           log.info('totalMinut=>' + totalMinut);
           let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
