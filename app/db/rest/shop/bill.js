@@ -130,7 +130,11 @@ app.post('/add', async (req, res) => {
         let newbill = req.body.data;
         log.info('newbill=>'+JSON.stringify(newbill));
         try {
-          let adbill = await db.bills.create({No: newbill.No, Discount: parseFloat(newbill.Discount), Vat: parseFloat(newbill.Vat), Filename: newbill.Filename});
+          let newBillData = {No: newbill.No, Discount: parseFloat(newbill.Discount), Vat: parseFloat(newbill.Vat), Filename: newbill.Filename};
+          if (newbill.Remark) {
+            newBillData.Remark = newbill.Remark;
+          }
+          let adbill = await db.bills.create(newBillData);
           await db.bills.update({shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adbill.id}});
           res.json({Result: "OK", status: {code: 200}, Record: adbill});
         } catch(error) {

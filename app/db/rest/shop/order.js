@@ -159,7 +159,7 @@ app.post('/list/by/customer/(:customerId)', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          const orderby = [['id', 'ASC']];
+          const orderby = [['id', 'DESC']];
           const customerId = req.params.customerId;
           const whereCluase = {customerId: customerId};
           const orderDate = req.body.orderDate;

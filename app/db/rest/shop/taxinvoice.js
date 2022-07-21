@@ -130,7 +130,11 @@ app.post('/add', async (req, res) => {
         let newtaxinvoice = req.body.data;
         log.info('newtaxinvoice=>'+JSON.stringify(newtaxinvoice));
         try {
-          let adtaxinvoice = await db.taxinvoices.create({No: newtaxinvoice.No, Discount: parseFloat(newtaxinvoice.Discount), Vat: parseFloat(newtaxinvoice.Vat), Filename: newtaxinvoice.Filename});
+          let newtaxinvoiceData = {No: newtaxinvoice.No, Discount: parseFloat(newtaxinvoice.Discount), Vat: parseFloat(newtaxinvoice.Vat), Filename: newtaxinvoice.Filename};
+          if (newtaxinvoice.Remark) {
+            newtaxinvoiceData.Remark = newtaxinvoice.Remark;
+          }
+          let adtaxinvoice = await db.taxinvoices.create(newtaxinvoiceData);
           await db.taxinvoices.update({shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adtaxinvoice.id}});
           res.json({Result: "OK", status: {code: 200}, Record: adtaxinvoice});
         } catch(error) {

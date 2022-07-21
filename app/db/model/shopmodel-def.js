@@ -163,6 +163,9 @@ const ShopBillDef = {
   },
   Filename : {
     type: Sequelize.STRING(80)
+  },
+  Remark : {
+  	type: Sequelize.TEXT,
   }
 };
 const ShopTaxInvoiceDef = {
@@ -180,6 +183,9 @@ const ShopTaxInvoiceDef = {
   },
   Filename : {
     type: Sequelize.STRING(80)
+  },
+  Remark : {
+  	type: Sequelize.TEXT,
   }
 };
 const ShopPaytypeDef = {
