@@ -112,7 +112,6 @@ const ShopCustomerDef = {
   },
   Address : {
     type: Sequelize.STRING,
-    allowNull: false
   },
   Tel : {
     type: Sequelize.STRING(30)
