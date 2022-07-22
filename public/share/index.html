@@ -7,6 +7,7 @@
     <title>Say Hello</title>
     <script type="text/javascript" src="../lib/jquery.js"></script>
     <script type="text/javascript" src="../lib/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/shop/lib/plugin/jquery-radutil-plugin.js"></script>
     <link href="../lib/jquery-ui.min.css" rel="stylesheet">
     <!--
   	<script type="text/javascript" src="bundle.js"></script>
@@ -134,7 +135,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     var n = imageFileLower.indexOf("jpg");
     if (n >= 0){
       let src = usrUploadPath + '/' + imageFile;
-      let thumb = $('<img width="65px" height="auto" src="' + src + '"/>');
+      let thumb = $('<img id="ImgBox" width="65px" height="auto" src="' + src + '"/>');
       $(thumb).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin': '4px'});
       $(thumb).on('click', (evt)=> {
         let imageCodes = imageFile.split('.');
@@ -194,6 +195,30 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
      this.css("margin-left", leftPos  + "px");
      this.css("margin-top", topPos  + "px");
      return this;
+  }
+
+  const playOptions = {
+    delay: 20,
+    mode: 'random',
+  }
+
+  const doCreateSlidePlayOptionForm = function(){
+    let wrapperBox = $('<div></div>');
+    let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td width="40%" align="left"><b>Delay</b></td>'));
+    let delayInput = $('<input type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
+    $(dataRow).append($(delayInput));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left">Mode</td>'));
+    let modeSelector = $('<select></select>');
+    $(modeSelector).append($('<option value="random">Random</option>'));
+    $(modeSelector).append($('<option value="normal">Normal</option>'));
+    $(modeSelector).val(playOptions.mode);
+    $(dataRow).append($(modeSelector));
+    $(closeOrderTable).append($(dataRow));
+    return $(wrapperBox).append($(closeOrderTable));
   }
 
   /*****************************************************/
@@ -397,9 +422,12 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
       let minimum = 0;
       let maximum = imageFiles.length - 1;
-      let currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+      let currentPlaySportIndex = 0;
+      if (playOptions.mode == 'random') {
+        currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+      }
 
-      let sponsorDeley = 30;
+      //let sponsorDeley = 30;
       let sponsorTimer = undefined;
       const doPlaySport = function(n){
         imageLink = imageTitleUrl + imageFiles[n];
@@ -412,9 +440,17 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           window.open(openUrl, '_blank');
         });
         sponsorTimer = window.setTimeout(()=>{
-          currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+          if (playOptions.mode == 'random') {
+            currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+          } else {
+            if (currentPlaySportIndex == maximum) {
+              currentPlaySportIndex = 0
+            } else {
+              currentPlaySportIndex = currentPlaySportIndex + 1;
+            }
+          }
           doPlaySport(currentPlaySportIndex);
-        }, sponsorDeley * 1000);
+        }, playOptions.delay * 1000);
       }
 
       setTimeout(()=>{
@@ -464,10 +500,31 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           break;
           case 40:
             /* Arrow Down */
+            /*
             let newValue = prompt("Please enter your new delay time value", sponsorDeley);
             if (Number(newValue) > 0) {
               sponsorDeley = Number(newValue);
-            }
+            }*/
+
+            const customerDlgContent = doCreateSlidePlayOptionForm();
+            $(customerDlgContent).css({'margin-top': '10px'});
+            const customerformoption = {
+        			title: 'ตั้งค่าเล่นสไลด์',
+        			msg: $(customerDlgContent),
+        			width: '520px',
+        			onOk: async function(evt) {
+                playOptions = {
+                  delay: Number($(customerDlgContent).find('input[type="number"]').val()),
+                  mode: $(customerDlgContent).find('select').val()
+                }
+                console.log(playOptions);
+                customerFormBoxHandle.closeAlert();
+        			},
+        			onCancel: function(evt){
+        				customerFormBoxHandle.closeAlert();
+        			}
+        		}
+        		let customerFormBoxHandle = $('body').radalert(customerformoption);
           break;
         }
       });
