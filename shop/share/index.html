@@ -18,6 +18,24 @@
  </body>
 </html>
 <script type="text/javascript">
+  Array.prototype.random = function () {
+    return this[Math.floor((Math.random()*this.length))];
+  }
+  File.prototype.toObject = function () {
+    return Object({
+    lastModified: parseInt(this.lastModified),
+    lastModifiedDate: String(this.lastModifiedDate),
+    name: String(this.name),
+    size: parseInt(this.size),
+    type: String(this.type)
+    })
+  }
+  FileList.prototype.toArray = function () {
+    return Array.from(this).map(function (file) {
+      return file.toObject()
+    })
+  }
+
   const doCreateShareCmd = function(myLiffUrl){
     //let myLiffUrl = 'https://liff.line.me/1655999531-z5xnKvpR?id=' + id;
     let lineShareIconCmd = $('<img src="/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;"/>');
@@ -87,11 +105,21 @@
       let imageFiles = [];
       await sponsorImages.forEach((item, i) => {
         //if (item.indexOf('0000') == 0) {
-        let imageLink = 'https://radconnext.tech/shop/img/usr/upload/sponsor-001/' + item;
+        let imageLink = 'https://radconnext.tech/shop/img/usr/upload/' + sponsorSeriesName + '/' + item;
         imageFiles.push(imageLink);
         //}
       });
       resolve(imageFiles);
+    });
+  }
+  const doOpenFileChooser = function(){
+    return new Promise(async function(resolve, reject) {
+      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
+      $(fileChooser).css({'display': 'none'});
+      $(fileChooser).on('change', async (evt)=> {
+        resolve(evt.currentTarget.files);
+      });
+      $(fileChooser).click();
     });
   }
   const doCreateSlidePlayOptionForm = function(){
@@ -119,7 +147,7 @@
     $(dataRow).append($('<td align="left"><b>Local File</b></td>'));
     let fileChooser = $('<input id="FileChoosor" type="file"/>').css({'width': '180px'});
     $(fileChooser).on('click', (evt)=>{
-      imageFiles = undefined;
+      //imageFiles = undefined;
       doOpenFileChooser().then((imgFiles)=>{
         imageFiles = imgFiles;
         //console.log(imageFiles);
@@ -203,7 +231,7 @@
   let playOptions = {
     delay: 7,
     mode: 'normal',
-    imageSize: 330
+    imageSize: 130
   }
   let imageFiles = [];
   let minimum = 0;
@@ -246,7 +274,7 @@
           fileId = fileUrls[fileUrls.length-1];
         } else if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'object')) {
           let filesArray = imageFiles.toArray();
-          imageLink = clipURL.createObjectURL(imageFiles[n]);
+          imageLink = window.URL.createObjectURL(imageFiles[n]);
           fileId = filesArray[n].name;
         } else {
           fileId = '0000-770.jpg'
@@ -298,11 +326,12 @@
     });
   }
 
-
-  const sponsorSeriesUrl = '/api/shop/usr/upload/series/sponsor-001';
+  const sponsorSeriesName = 'sponsor-001'
+  const sponsorSeriesUrl = '/api/shop/usr/upload/series/' + sponsorSeriesName;
   doLoadImageFiles(sponsorSeriesUrl).then((imgFiles)=>{
-    console.log(imgFiles);
+    //console.log(imgFiles);
     imageFiles = imgFiles;
+    maximum = imageFiles.length - 1;
     doCreateMySponsor();
   });
 
