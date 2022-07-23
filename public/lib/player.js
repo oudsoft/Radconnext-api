@@ -209,6 +209,7 @@
 
         let imgBox = $(playerViewBox).find('.imgbox').empty();
         playImg.onload = function() {
+          //console.log(fileURL);
           $(imgBox).append($(this));
           let w = $(this).width();
           let h = $(this).height();

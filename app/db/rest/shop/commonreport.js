@@ -10,7 +10,7 @@ const cheerio = require('cheerio');
 const exec = require('child_process').exec;
 const THBText = require('thai-baht-text');
 
-var log, db;
+var log, db, ppQRgen;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -315,16 +315,17 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
     const shopDir = path.normalize(__dirname + '/../../../../shop');
 		//const fs = require("fs");
 		const fileNames = pdfFileName.split('.');
-		const qrgenerator = require('../../../lib/qrcodegenerator.js');
-		const qrcontent = 'https://radconnext.info/shop/portal?orderId=' + orderId;
+		const filecode = fileNames[0];
+		const qrgenerator = require('../../../lib/shop/qrcodegenerator.js');
+		const qrcontent = 'https://radconnext.tech/shop/img/usr/pdf/' + pdfFileName;
 
-    const qrcodeFullPath = process.env.USRQRCODE_PATH + '/' + fileNames[0] + '.png';
+    const qrcodeFullPath = shopDir + process.env.USRQRCODE_PATH + '/' + filecode + '.png';
     if (fs.existsSync(qrcodeFullPath)) {
       await fs.unlinkSync(qrcodeFullPath);
     }
     log.info('qrcodeFullPath=>' + qrcodeFullPath);
 
-		let qrcode = await qrgenerator(qrcontent, pdfFileName);
+		let qrcode = await qrgenerator(qrcontent, filecode);
 		let qrlink = qrcode.qrlink;
 
 
@@ -398,7 +399,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 
 					let creatReportCommand = undefined;
 					if (paperSize == 1){
-						creatReportCommand = fmtStr('wkhtmltopdf -s A4 -T 14 -B 14 -L 14 -R 14 http://localhost:8088/shop%s %s', reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf -s A4 -T 10 -B 5 -L 10 -R 10 http://localhost:8088/shop%s %s', reportHtmlLinkPath, reportPdfFilePath);
 					} else if (paperSize = 2) {
 						let paperWidth = 80;
 						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
@@ -410,7 +411,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
 						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath
-						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage});
+						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage, qrLink: qrlink});
 					}).catch((cmderr) => {
 						log.error('cmderr: 500 >>', cmderr);
 						reject(cmderr);
@@ -457,17 +458,47 @@ const doFindNewOrderStatus = function(docType){
 
 const doCreateReport = function(orderId, docType, shopId){
   return new Promise(async function(resolve, reject) {
-    const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
+		const reportVar = await doLoadVariable(docType, orderId);
+		const rsH = parseFloat(reportVar.rsDimension.height.real);
+		const rsT = parseFloat(reportVar.rsDimension.top);
+		const pdfFileName = reportVar.print_filename;
+		const shops = await db.shops.findAll({ attributes: ['Shop_PromptPayNo', 'Shop_PromptPayName'], where: {id: shopId}});
+		let qr = undefined;
+		if (docType == 1) {
+			if ((shops.length > 0) && (shops[0].Shop_PromptPayNo !== '') && (shops[0].Shop_PromptPayName !== '')) {
+				let ppType = undefined;
+				if (shops[0].Shop_PromptPayNo.length == 10) {
+					ppType = '01';
+				} else if (shops[0].Shop_PromptPayNo.length == 13) {
+					ppType = '02';
+				}
+				if (ppType) {
+					let ppNames = shops[0].Shop_PromptPayName.split(' ');
+					let ppData = {
+					  ppaytype: ppType,
+					  ppayno: shops[0].Shop_PromptPayNo,
+					  netAmount: reportVar.grandtotal,
+					  fname: ppNames[0],
+					  lname: ppNames[1],
+					}
+					qr = await ppQRgen.doCreatePPQRCode(ppData);
+				}
+			}
+		}
+		const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
 		if (templates.length > 0) {
-	    const reportElements = templates[0].Content;
-	    const paperSize = templates[0].PaperSize;
-	    const reportVar = await doLoadVariable(docType, orderId);
-	    const rsH = parseFloat(reportVar.rsDimension.height.real);
-			const rsT = parseFloat(reportVar.rsDimension.top);
-			const pdfFileName = reportVar.print_filename;
-	    let docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
+	    let reportElements = templates[0].Content;
+	    let paperSize = templates[0].PaperSize;
+			let docReport = undefined;
+			if (qr) {
+				let qrElem = doCreatePPQRElelment(qr.qrLink, '*', '*', '*', '*');
+				reportElements.push(qrElem);
+				docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
+			} else {
+	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
+			}
 
-	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages}});
+	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink}});
 
 			let from = reportVar.print_status;
 			let canUpdateStatus = doCanUpdateOrederStatus(from, docType);
@@ -481,9 +512,28 @@ const doCreateReport = function(orderId, docType, shopId){
   });
 }
 
+const doCreatePPQRElelment = function(qrUrl, top, left, width, height){
+	let qrElem = {
+		elementType: "image",
+		type: "dynamic",
+		x: left,
+		y: top,
+		width: width,
+		height: height,
+		id: "image-element-PPQR",
+		url: qrUrl,
+		elementselect: "",
+		elementdrop: "",
+		elementresizestop: "",
+		refresh: ""
+	};
+	return qrElem;
+}
+
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
+	ppQRgen = require('../../../lib/shop/pp-qrcode.js')(log);
   return {
     billFieldOptions,
     doLoadVariable,

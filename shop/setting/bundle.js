@@ -284,6 +284,8 @@ $( document ).ready(function() {
 	};
 
 	initPage();
+
+  doTestCreateInvoice();
 });
 
 const doShowShopItems = function(){
@@ -301,9 +303,18 @@ const doShowShopMng = async function(shopId) {
   shopitem.doOpenManageShop(shopData, uploadLogCallback, editShopCallback);
 }
 
+const doTestCreateInvoice = async function(){
+  let docParams = {orderId: 15, shopId: 1};
+  let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
+  console.log(docRes);
+
+  window.open(docRes.result.link, '_blank');
+  window.open(docRes.result.qrLink, '_blank');
+}
+
 module.exports = {
   doShowShopItems,
-  doShowShopMng
+  doShowShopMng,
 }
 
 },{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":14,"jquery":18}],4:[function(require,module,exports){
@@ -3456,7 +3467,8 @@ module.exports = function ( jq ) {
 		{fieldName: 'Shop_Mail', displayName: 'อีเมล์', width: '10%', align: 'left', inputSize: '40', verify: true, showHeader: true},
 		{fieldName: 'Shop_LogoFilename', displayName: 'โลโก้', width: '10%', align: 'center', inputSize: '40', verify: false, showHeader: true},
 		{fieldName: 'Shop_VatNo', displayName: 'VAT No.', width: '10%', align: 'left', inputSize: '20', verify: false, showHeader: false},
-		{fieldName: 'Shop_PromptPayNo', displayName: 'หมายเลขพร้อมเพย์', width: '7%', align: 'left', inputSize: '10', verify: false, showHeader: false},
+		{fieldName: 'Shop_PromptPayNo', displayName: 'หมายเลขพร้อมเพย์', width: '8%', align: 'left', inputSize: '20', verify: false, showHeader: false},
+		{fieldName: 'Shop_PromptPayName', displayName: 'ขื่อบัญชีพร้อมเพย์', width: '10%', align: 'left', inputSize: '20', verify: false, showHeader: false},
 		{fieldName: 'Shop_BillQuota', displayName: 'Bill Quota', width: '7%', align: 'left', inputSize: '5', verify: false, showHeader: false},
 		{fieldName: 'id', displayName: 'ShopId', width: '5%', align: 'center', inputSize: '40', verify: false, showHeader: false},
 	];

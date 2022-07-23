@@ -81,6 +81,9 @@ const ShopShopDef = {
   },
   Shop_PromptPayNo : {
     type: Sequelize.STRING(30)
+  },
+  Shop_PromptPayName : {
+    type: Sequelize.STRING(30)
   }
 };
 const ShopMenuGroupDef = {

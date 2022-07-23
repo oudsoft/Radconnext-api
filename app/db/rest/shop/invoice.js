@@ -12,6 +12,16 @@ var db, log, auth, commonReport;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
+const shopDir = path.normalize(__dirname + '/../../../../shop');
+
+const doCreatePPQRCode = function(ppData){
+  return new Promise(async function(resolve, reject) {
+    log.info('ppData --> ' + JSON.stringify(ppData));
+    let qr = await ppQRgen.doCreatePPQRCode(ppData);
+    resolve(qr);
+  });
+}
+
 //List API
 app.post('/list/by/shop/(:shopId)', (req, res) => {
   let token = req.headers.authorization;
@@ -248,5 +258,6 @@ module.exports = ( dbconn, monitor ) => {
   log = monitor;
   auth = require('./auth.js')(db, log);
   commonReport = require('./commonreport.js')(db, log);
+  ppQRgen = require('../../../lib/shop/pp-qrcode.js')(log);
   return app;
 }

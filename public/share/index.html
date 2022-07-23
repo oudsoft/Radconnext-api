@@ -17,7 +17,10 @@
     <div id="app"></div>
   </body>
 </html>
-
+<style>
+  @font-face { font-family: EkkamaiStandard; src: url("../font/EkkamaiStandard-Light.ttf");}
+  body {font-family: EkkamaiStandard;}
+</style>
 <script type="text/javascript">
 /*****************************************************/
 const doCreateShareCmd = function(myLiffUrl){
@@ -57,7 +60,8 @@ const doCreatePlayCmd = function(imageLists, seriesId, playCmdClickCallback){
   return $(playIconCmd);
 }
 const doCreateSponsorBox = function(imageTitle, linkTo){
-  let sponsorBoard = $('<img src="' + imageTitle + '" style="cursor: pointer; width: auto; height: 370px; display: block; text-align: center;"/>');
+  let sponsorBoard = $('<div style="cursor: pointer; width: 100%; height: 70px; display: block; text-align: center;"></div>');
+  /*
   $(sponsorBoard).on('click', (evt)=>{
     $(sponsorBoard).parent().focus();
     window.open(linkTo, '_blank');
@@ -66,7 +70,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     let img = $(evt.currentTarget);
     $(img).center($(sponsorBoard).parent());
   });
-
+  */
   return $(sponsorBoard);
 }
 /*****************************************************/
@@ -189,6 +193,22 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     return this[Math.floor((Math.random()*this.length))];
   }
 
+  File.prototype.toObject = function () {
+    return Object({
+    lastModified: parseInt(this.lastModified),
+    lastModifiedDate: String(this.lastModifiedDate),
+    name: String(this.name),
+    size: parseInt(this.size),
+    type: String(this.type)
+    })
+  }
+
+  FileList.prototype.toArray = function () {
+    return Array.from(this).map(function (file) {
+      return file.toObject()
+    })
+  }
+
   $.fn.center = function (parent) {
      let leftPos = ($(parent).width() - this.width()) / 2;
      let topPos =  ($(parent).height() - this.height()) / 2;
@@ -197,28 +217,65 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
      return this;
   }
 
-  const playOptions = {
-    delay: 20,
-    mode: 'random',
-  }
-
   const doCreateSlidePlayOptionForm = function(){
     let wrapperBox = $('<div></div>');
     let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td width="40%" align="left"><b>Delay</b></td>'));
-    let delayInput = $('<input type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
+    let delayInput = $('<input id="DelayTime" type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
     $(dataRow).append($(delayInput));
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
-    $(dataRow).append($('<td align="left">Mode</td>'));
+    $(dataRow).append($('<td align="left"><b>Mode</b></td>'));
     let modeSelector = $('<select></select>');
     $(modeSelector).append($('<option value="random">Random</option>'));
     $(modeSelector).append($('<option value="normal">Normal</option>'));
     $(modeSelector).val(playOptions.mode);
     $(dataRow).append($(modeSelector));
     $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Image Size</b></td>'));
+    let imageSizeInput = $('<input id="ImageSize" type="number"/><span> px</span>').css({'width': '80px'}).val(playOptions.imageSize);
+    $(dataRow).append($(imageSizeInput));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Local File</b></td>'));
+    let fileChooser = $('<input id="FileChoosor" type="file"/>').css({'width': '180px'});
+    $(fileChooser).on('click', (evt)=>{
+      imageFiles = undefined;
+      doOpenFileChooser().then((imgFiles)=>{
+        imageFiles = imgFiles;
+        //console.log(imageFiles);
+        doCreateMySponsor();
+      });
+    });
+    $(dataRow).append($(fileChooser));
+    $(closeOrderTable).append($(dataRow));
     return $(wrapperBox).append($(closeOrderTable));
+  }
+
+  const doOpenSettingForm = function(evt, callback){
+    const customerDlgContent = doCreateSlidePlayOptionForm();
+    $(customerDlgContent).css({'margin-top': '10px'});
+    const customerformoption = {
+      title: 'ตั้งค่าเล่นสไลด์',
+      msg: $(customerDlgContent),
+      width: '520px',
+      onOk: async function(evt) {
+        playOptions = {
+          delay: Number($(customerDlgContent).find('#DelayTime').val()),
+          mode: $(customerDlgContent).find('select').val(),
+          imageSize: Number($(customerDlgContent).find('#ImageSize').val())
+        }
+        //console.log(playOptions);
+        customerFormBoxHandle.closeAlert();
+        callback(playOptions);
+      },
+      onCancel: function(evt){
+        customerFormBoxHandle.closeAlert();
+      }
+    }
+    let customerFormBoxHandle = $('body').radalert(customerformoption);
   }
 
   /*****************************************************/
@@ -228,9 +285,22 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const params = new URLSearchParams(queryString);
   const id = params.get('id');
 
-  const sponsorBox = $('<div style="position: relative; min-height: 400px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
+  const sponsorBox = $('<div style="position: relative; min-height: 170px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
+  const editPlaySettingCmd = $('<img src="../images/tools-icon.png"/>').css({'position': 'absolute', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'right': '2px', 'bottom': '2px', 'display': 'none', 'z-index': '21'});
+  $(editPlaySettingCmd).attr('title', 'ตั้งค่า');
+  $(sponsorBox).hover(()=>{
+    $(editPlaySettingCmd).show();
+  },()=>{
+    $(editPlaySettingCmd).hide();
+  });
+
+  let playOptions = {
+    delay: 5,
+    mode: 'random',
+    imageSize: 630
+  }
 
   let shareBox = $('<div id="ShareCmdBox" style="position: relative; width: 100%; text-align: center; top: 25px;"></div>');
   let myLiffUrl = undefined;
@@ -407,43 +477,37 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     });
   }
 
-  const doCreateMySponsor = function(){
+  const doLoadImageFiles = function(){
     return new Promise(async function(resolve, reject) {
       let sponsorImages = await doCallSponsorList();
-      let imageFiles = await sponsorImages.filter((item, i) => {
+      let imageFiles = [];
+      await sponsorImages.forEach((item, i) => {
         if (item.indexOf('0000') == 0) {
-          return item;
+          let imageLink = 'https://radconnext.tech/img/usr/upload/sponsor-001/' + item;
+          imageFiles.push(imageLink);
         }
       });
-      let imageLink = imageTitleUrl + imageFiles[0];
-      let sponsorBoard = doCreateSponsorBox(imageLink, linkTo);
-      $(sponsorBox).append($(sponsorBoard)).append($('<span>' + imageFiles[0] + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}))
-      $(sponsorBoard).center($(sponsorBox));
+      resolve(imageFiles);
+    });
+  }
 
-      let minimum = 0;
-      let maximum = imageFiles.length - 1;
-      let currentPlaySportIndex = 0;
-      if (playOptions.mode == 'random') {
-        currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
-      }
+  let imageFiles = [];
+  let sponsorTimer = undefined;
+  const doStopSponsorTimer = function() {
+    if (sponsorTimer) {
+      window.clearTimeout(sponsorTimer);
+    }
+  }
 
-      //let sponsorDeley = 30;
-      let sponsorTimer = undefined;
-      const doPlaySport = function(n){
-        imageLink = imageTitleUrl + imageFiles[n];
-        $(sponsorBox).find('span').text(imageFiles[n])
-        $(sponsorBox).find('img').attr('src', imageLink);
-        $(sponsorBox).find('img').attr("onclick", "").unbind("click");
-        $(sponsorBox).find('img').on('click', (evt)=>{
-          let imageCode = imageFiles[n].split('.');
-          openUrl = linkTo + 'k!' + imageCode[0];
-          window.open(openUrl, '_blank');
-        });
+  const doCreateMySponsor = function(){
+    return new Promise(async function(resolve, reject) {
+      const doStartPlay = function() {
+        doStopSponsorTimer();
         sponsorTimer = window.setTimeout(()=>{
           if (playOptions.mode == 'random') {
             currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
           } else {
-            if (currentPlaySportIndex == maximum) {
+            if (currentPlaySportIndex >= maximum) {
               currentPlaySportIndex = 0
             } else {
               currentPlaySportIndex = currentPlaySportIndex + 1;
@@ -453,29 +517,74 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         }, playOptions.delay * 1000);
       }
 
-      setTimeout(()=>{
-        $(sponsorBoard).center($(sponsorBox));
-        doPlaySport(currentPlaySportIndex);
-      }, 2000);
+      let imageLink = imageFiles[0];
+      let minimum = 0;
+      let maximum = imageFiles.length - 1;
+      let currentPlaySportIndex = 0;
+      if (playOptions.mode == 'random') {
+        currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+      }
+
+      const doPlaySport = function(n){
+        let fileId = undefined;
+        if ((imageFiles) && (typeof imageFiles[n] == 'string')) {
+          imageLink = imageFiles[n];
+          let fileUrls = imageLink.split('/');
+          fileId = fileUrls[fileUrls.length-1];
+        } else if ((imageFiles) && (typeof imageFiles[n] == 'object')) {
+          let filesArray = imageFiles.toArray();
+          imageLink = clipURL.createObjectURL(imageFiles[n]);
+          fileId = filesArray[n].name;
+        }
+        let playImg = new Image();
+        playImg.src = imageLink;
+        playImg.id = fileId;
+        playImg.style.cursor = 'pointer';
+        playImg.onload = function() {
+          let w = $(this).width();
+          let h = $(this).height();
+          if (w > h) {
+            $(this).css({'width': 'auto', 'height': (playOptions.imageSize + 'px')});
+          } else {
+            $(this).css({'width': (playOptions.imageSize + 'px'), 'height': 'auto'});
+          }
+
+          $(sponsorBox).empty().append($(this));
+          $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+          $(sponsorBox).append($(editPlaySettingCmd));
+          $(editPlaySettingCmd).on('click', (evt)=>{
+            doOpenSettingForm(evt, (newSettingValue)=>{
+              doStartPlay();
+            });
+          });
+          $(this).on('click', (evt)=>{
+            let openUrl = undefined;
+            if ((imageFiles) && (typeof imageFiles[n] == 'string')) {
+              let imageCode = fileId.split('.');
+              openUrl = linkTo + 'k!' + imageCode[0];
+            } else if ((imageFiles) && (typeof imageFiles[n] == 'object')) {
+              openUrl = imageLink;
+            }
+            window.open(openUrl, '_blank');
+          });
+          $(sponsorBox).focus();
+          doStartPlay();
+        }
+      };
+
+      doPlaySport(currentPlaySportIndex);
+
 
       $(sponsorBox).on('keydown', (evt)=>{
         switch (evt.keyCode) {
           case 39:
             /* Arrow Right */
             ++currentPlaySportIndex;
-            if (currentPlaySportIndex == imageFiles.length) {
+            if (currentPlaySportIndex >= imageFiles.length) {
               currentPlaySportIndex = 0;
             }
-            imageLink = imageTitleUrl + imageFiles[currentPlaySportIndex];
-            $(sponsorBox).find('img').attr('src', imageLink);
-            $(sponsorBox).find('img').on('click', (evt)=>{
-              let imageCode = imageLists[currentPlaySportIndex].split('.');
-              openUrl = linkTo + 'k!' + imageCode[0];
-              window.open(openUrl, '_blank');
-            })
-            if (sponsorTimer) {
-              window.clearTimeout(sponsorTimer);
-            }
+            doStopSponsorTimer();
+            doPlaySport(currentPlaySportIndex);
           break;
           case 37:
             /* Arrow Left */
@@ -483,60 +592,32 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             if (currentPlaySportIndex < 0) {
               currentPlaySportIndex = imageFiles.length - 1;
             }
-            imageLink = imageTitleUrl + imageFiles[currentPlaySportIndex];
-            $(sponsorBox).find('img').attr('src', imageLink);
-            $(sponsorBox).find('img').on('click', (evt)=>{
-              let imageCode = imageLists[currentPlaySportIndex].split('.');
-              openUrl = linkTo + 'k!' + imageCode[0];
-              window.open(openUrl, '_blank');
-            })
-            if (sponsorTimer) {
-              window.clearTimeout(sponsorTimer);
-            }
+            doStopSponsorTimer();
+            doPlaySport(currentPlaySportIndex);
           break;
           case 38:
             /* Arrow Up */
-            doPlaySport(currentPlaySportIndex);
+            doStopSponsorTimer();
+            doStartPlay();
           break;
           case 40:
             /* Arrow Down */
-            /*
-            let newValue = prompt("Please enter your new delay time value", sponsorDeley);
-            if (Number(newValue) > 0) {
-              sponsorDeley = Number(newValue);
-            }*/
-
-            const customerDlgContent = doCreateSlidePlayOptionForm();
-            $(customerDlgContent).css({'margin-top': '10px'});
-            const customerformoption = {
-        			title: 'ตั้งค่าเล่นสไลด์',
-        			msg: $(customerDlgContent),
-        			width: '520px',
-        			onOk: async function(evt) {
-                playOptions = {
-                  delay: Number($(customerDlgContent).find('input[type="number"]').val()),
-                  mode: $(customerDlgContent).find('select').val()
-                }
-                console.log(playOptions);
-                customerFormBoxHandle.closeAlert();
-        			},
-        			onCancel: function(evt){
-        				customerFormBoxHandle.closeAlert();
-        			}
-        		}
-        		let customerFormBoxHandle = $('body').radalert(customerformoption);
+            doStopSponsorTimer();
+            doOpenSettingForm(evt, (newSettingValue)=>{
+              doStartPlay();
+            });
           break;
         }
       });
-
-      $(sponsorBox).focus();
 
       resolve();
     });
   }
 
-  doCreateMySponsor();
-
+  doLoadImageFiles().then((imgFiles)=>{
+    imageFiles = imgFiles;
+    doCreateMySponsor(imageFiles);
+  });
 
   const doCreateImgView = function(seriesId, imageFile){
     let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
@@ -674,4 +755,24 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 //https://medium.com/linedevth/%E0%B9%80%E0%B8%97%E0%B8%84%E0%B8%99%E0%B8%B4%E0%B8%84%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-universal-link-%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B9%84%E0%B8%94%E0%B9%89%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87-liff-url-%E0%B9%81%E0%B8%A5%E0%B8%B0-web-url-%E0%B9%82%E0%B8%94%E0%B8%A2%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%9E%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%A1%E0%B8%B7%E0%B8%AD-7bf17a435339
 
 //https://medium.com/linedevth/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87-content-sharer-%E0%B9%83%E0%B8%AB%E0%B9%89-line-oa-%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2%E0%B9%86-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-line-social-plugins-23156fbe5415
+
+  const clipURL = window.URL;
+  const doOpenFileChooser = function(){
+    return new Promise(async function(resolve, reject) {
+      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
+      $(fileChooser).css({'display': 'none'});
+      $(fileChooser).on('change', async (evt)=> {
+        resolve(evt.currentTarget.files);
+      });
+      $(fileChooser).click();
+    });
+  }
+
+  /*
+  BUG
+  1. clear time ออกไม่งหมด
+  2. Open File Chooser Dialog ขึ้นซ้ำ
+  3. ขนาดภาพ w /h
+  4.
+  */
 </script>

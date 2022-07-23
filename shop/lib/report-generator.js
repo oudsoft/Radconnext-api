@@ -232,9 +232,10 @@ function doMapGoodItem(variable, table){
   });
 }
 
-function doMapContent(elements, variable){
+function doMapContent(elements, variable, paperSize){
   return new Promise(async function(resolve, reject) {
     let successElements = [];
+    let maxTop = 0;
     const promiseList = new Promise(async function(resolve2, reject2) {
       for (let i=0; i < elements.length; i++) {
         let item = elements[i];
@@ -255,21 +256,50 @@ function doMapContent(elements, variable){
         } else {
           successElements.push(item);
         }
+        if (item.x > maxTop) {
+          maxTop = item.x;
+        }
       }
       setTimeout(()=> {
         resolve2(successElements);
       }, 1000);
     });
-    Promise.all([promiseList]).then((ob)=> {
-      resolve(ob[0]);
+    Promise.all([promiseList]).then(async (ob)=> {
+      successElements = ob[0];
+      let imageDynamicIndex = await successElements.findIndex((item)=>{
+        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x == '*') && (item.y == '*'))
+      });
+      if (imageDynamicIndex >= 0) {
+        doMapImageAtBottomPage(successElements[imageDynamicIndex], maxTop, paperSize)
+      }
+      resolve(successElements);
     });
   });
+}
+
+function doMapImageAtBottomPage(element, maxTop, paperSize) {
+  let w = 240;
+  let h = 267;
+  let x = 0;
+  let y = 0;
+  if (paperSize == 1) {
+    x = 10;
+    y = (A4Height - h) + 90;
+  } else if (paperSize == 2) {
+    x = (SlipWidth/2) - (w/2);
+    y = maxTop;
+  }
+  element.x = x;
+  element.y = y;
+  element.width = w;
+  element.height = h;
+  return element;
 }
 
 function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, cb){
   let wrapper = $("#report-wrapper").empty();
   let formatedContents = elements;
-  doMapContent(elements, variable).then(async (formatedContents)=>{
+  doMapContent(elements, variable, paperSize).then(async (formatedContents)=>{
     let maxTop = 0;
     await formatedContents.forEach((item, i) => {
       let newTop = doCreateElement(wrapper, item.elementType, item, paperSize, variable.rsDimension);
