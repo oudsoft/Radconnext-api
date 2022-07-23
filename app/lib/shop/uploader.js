@@ -163,6 +163,16 @@ module.exports = function (app) {
 		});
 	});
 
+  app.post('/shop/usr/upload/series/(:seriesId)', function(req, res) {
+    let seriesId = req.params.seriesId;
+    let shopUsrUploadDir = path.join(__dirname, '../../../', USRUPLOAD_DIR);
+    let usrSeriesDir = shopUsrUploadDir + '/' + seriesId;
+    console.log(usrSeriesDir);
+    fs.readdir(usrSeriesDir, (err, files) => {
+      res.status(200).send(files);
+    });
+  });
+
 	return {
 		genUniqueID,
 		parseStr,

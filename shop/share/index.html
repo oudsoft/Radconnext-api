@@ -18,14 +18,6 @@
  </body>
 </html>
 <script type="text/javascript">
-  $.fn.center = function (parent) {
-     let leftPos = ($(parent).width() - this.width()) / 2;
-     let topPos =  ($(parent).height() - this.height()) / 2;
-     this.css("margin-left", leftPos  + "px");
-     this.css("margin-top", topPos  + "px");
-     return this;
-  }
-
   const doCreateShareCmd = function(myLiffUrl){
     //let myLiffUrl = 'https://liff.line.me/1655999531-z5xnKvpR?id=' + id;
     let lineShareIconCmd = $('<img src="/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;"/>');
@@ -74,6 +66,49 @@
 
   $(bottomBar).append($(downloadCmd)).append($(shareCmd));
   $(viewPage).append($(sponsorBox)).append($(imgBox)).append($(bottomBar));
-  $('body').append($(viewPage));
-  $(imgBox).center($('body'));
+  $('body').append($(viewPage)).css({'text-align': 'center'});
+
+  /***************************************************************/
+  const doCallListSeries = function(seriesUrl) {
+    return new Promise(function(resolve, reject) {
+      let params = {};
+      $.post(seriesUrl, params, function(data){
+        resolve(data);
+      }).fail(function(error) {
+        reject(error);
+      });
+    });
+  }
+  const doLoadImageFiles = function(){
+    return new Promise(async function(resolve, reject) {
+      let sponsorImages = await doCallSponsorList();
+      let imageFiles = [];
+      await sponsorImages.forEach((item, i) => {
+        if (item.indexOf('0000') == 0) {
+          let imageLink = 'https://radconnext.tech/shop/img/usr/upload/sponsor-001/' + item;
+          imageFiles.push(imageLink);
+        }
+      });
+      resolve(imageFiles);
+    });
+  }
+
+  let playOptions = {
+    delay: 5,
+    mode: 'random',
+    imageSize: 630
+  }
+  let imageFiles = [];
+  let sponsorTimer = undefined;
+  const doStopSponsorTimer = function() {
+    if (sponsorTimer) {
+      window.clearTimeout(sponsorTimer);
+    }
+  }
+
+  const sponsorSeriesUrl = '/api/shop/usr/upload/series/sponsor-001';
+  doCallListSeries(sponsorSeriesUrl).then((sponsorRes)=>{
+    console.log(sponsorRes);
+  });
+
 </script>
