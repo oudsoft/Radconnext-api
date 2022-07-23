@@ -89,6 +89,8 @@ const doCreatePPQRCode = function(ppData) {
       let imageLink = '/img/usr/qrcode/' + imageFileName + imageFileExName;
 			let imagePath =  shopDir + imageLink;
 
+			log.info('imagePath ==> ' + imagePath);
+
       const out = fs.createWriteStream(imagePath);
 			const stream = imageCanvas.createPNGStream();
 			stream.pipe(out);
