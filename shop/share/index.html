@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+   <meta charset="utf-8">
+   <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>My Share Home</title>
+   <script type="text/javascript" src="../../lib/jquery.js"></script>
+   <script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+   <script type="text/javascript" src="../lib/plugin/jquery-radutil-plugin.js"></script>
+   <link href="../lib/jquery-ui.min.css" rel="stylesheet">
+   <style>
+     @font-face { font-family: EkkamaiStandard; src: url("../../font/EkkamaiStandard-Light.ttf");}
+     body {font-family: EkkamaiStandard;}
+   </style>
+ </head>
+ <body>
+ </body>
+</html>
+<script type="text/javascript">
+  $.fn.center = function (parent) {
+     let leftPos = ($(parent).width() - this.width()) / 2;
+     let topPos =  ($(parent).height() - this.height()) / 2;
+     this.css("margin-left", leftPos  + "px");
+     this.css("margin-top", topPos  + "px");
+     return this;
+  }
+
+  const doCreateShareCmd = function(myLiffUrl){
+    //let myLiffUrl = 'https://liff.line.me/1655999531-z5xnKvpR?id=' + id;
+    let lineShareIconCmd = $('<img src="/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;"/>');
+    $(lineShareIconCmd).on('click', (evt)=>{
+      let linkTarget = 'https://social-plugins.line.me/lineit/share?url=' + myLiffUrl;
+      window.open(linkTarget, '_blank');
+    });
+    return $(lineShareIconCmd);
+  }
+  const doCreateDownloadCmd = function(imgSrc){
+    let downloadIconCmd = $('<img src="/images/download-icon-2.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+    $(downloadIconCmd).on('click', (evt)=>{
+      let imgPaths = imgSrc.split('/');
+      let saveFileName = imgPaths[imgPaths.length-1];
+      let pom = document.createElement('a');
+      pom.setAttribute('href', imgSrc);
+      pom.setAttribute('download', saveFileName);
+      pom.click();
+    });
+    return $(downloadIconCmd);
+  }
+  const doCreateImgBox = function(imgUrl) {
+    let img = new Image();
+    img.src = imgUrl;
+    img.onload = function() {
+      if (this.width > screen.width) {
+        $(this).css({'width': '100%', 'margin-top': '50px'});
+      }
+    };
+    return $(img);
+  }
+
+  const queryString = decodeURIComponent(window.location.search).replace("?liff.state=", "");
+  const params = new URLSearchParams(queryString);
+  const id = params.get('id');
+
+  const shopHomeUrl = 'https://radconnext.tech/shop'
+  const imageUrl = '/img/usr/qrcode/' + id + '.png';
+  const shareUrl = shopHomeUrl + '/share/?id=' + id;
+  const shareCmd = doCreateShareCmd(shareUrl);
+  const downloadCmd = doCreateDownloadCmd('/shop' + imageUrl);
+  const imgBox = doCreateImgBox('/shop' + imageUrl);
+  const viewPage = $('<div style="width: 100%; text-align: center;"></div>');
+  const sponsorBox = $('<div style="position: relative; min-height: 120px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
+  const bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
+
+  $(bottomBar).append($(downloadCmd)).append($(shareCmd));
+  $(viewPage).append($(sponsorBox)).append($(imgBox)).append($(bottomBar));
+  $('body').append($(viewPage));
+  $(imgBox).center($('body'));
+</script>
