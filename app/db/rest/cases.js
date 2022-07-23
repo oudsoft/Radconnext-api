@@ -488,9 +488,9 @@ app.post('/add', (req, res) => {
           let yourOrthancId = orthancs[0].id;
 
           let studyTags = req.body.studyTags;
-          log.info('studyTags=> ' + JSON.stringify(studyTags));
+          //log.info('studyTags=> ' + JSON.stringify(studyTags));
           let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyTags.ID}});
-          log.info('dicomlogRes=> ' + JSON.stringify(dicomlogRes));
+          //log.info('dicomlogRes=> ' + JSON.stringify(dicomlogRes));
           if (dicomlogRes.length == 0) {
             let newDicomLog = {DicomTags: studyTags, StudyTags: studyTags, ResourceID: studyTags.ID, ResourceType: 'study', orthancId: yourOrthancId};
             let adDicomTransferLog = await db.dicomtransferlogs.create(newDicomLog);

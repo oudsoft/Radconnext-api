@@ -140,7 +140,7 @@ app.post('/radio/saveresult', (req, res) => {
                 msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
                 let caseData = await db.cases.findAll({ where: {id: caseId}});
                 msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
-                // let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+                let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
               }
       				res.json(newReportRes);
 
