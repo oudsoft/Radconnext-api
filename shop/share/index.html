@@ -69,7 +69,9 @@
   $('body').append($(viewPage)).css({'text-align': 'center'});
 
   /***************************************************************/
-  const doCallListSeries = function(seriesUrl) {
+          /****  Control Play Sport Box *****7
+  /***************************************************************/
+  const doCallSponsorListFile = function(seriesUrl) {
     return new Promise(function(resolve, reject) {
       let params = {};
       $.post(seriesUrl, params, function(data){
@@ -79,36 +81,229 @@
       });
     });
   }
-  const doLoadImageFiles = function(){
+  const doLoadImageFiles = function(seriesUrl){
     return new Promise(async function(resolve, reject) {
-      let sponsorImages = await doCallSponsorList();
+      let sponsorImages = await doCallSponsorListFile(seriesUrl);
       let imageFiles = [];
       await sponsorImages.forEach((item, i) => {
-        if (item.indexOf('0000') == 0) {
-          let imageLink = 'https://radconnext.tech/shop/img/usr/upload/sponsor-001/' + item;
-          imageFiles.push(imageLink);
-        }
+        //if (item.indexOf('0000') == 0) {
+        let imageLink = 'https://radconnext.tech/shop/img/usr/upload/sponsor-001/' + item;
+        imageFiles.push(imageLink);
+        //}
       });
       resolve(imageFiles);
     });
   }
+  const doCreateSlidePlayOptionForm = function(){
+    let wrapperBox = $('<div></div>');
+    let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td width="40%" align="left"><b>Delay</b></td>'));
+    let delayInput = $('<input id="DelayTime" type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
+    $(dataRow).append($(delayInput));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Mode</b></td>'));
+    let modeSelector = $('<select></select>');
+    $(modeSelector).append($('<option value="random">Random</option>'));
+    $(modeSelector).append($('<option value="normal">Normal</option>'));
+    $(modeSelector).val(playOptions.mode);
+    $(dataRow).append($(modeSelector));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Image Size</b></td>'));
+    let imageSizeInput = $('<input id="ImageSize" type="number"/><span> px</span>').css({'width': '80px'}).val(playOptions.imageSize);
+    $(dataRow).append($(imageSizeInput));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Local File</b></td>'));
+    let fileChooser = $('<input id="FileChoosor" type="file"/>').css({'width': '180px'});
+    $(fileChooser).on('click', (evt)=>{
+      imageFiles = undefined;
+      doOpenFileChooser().then((imgFiles)=>{
+        imageFiles = imgFiles;
+        //console.log(imageFiles);
+        doCreateMySponsor();
+      });
+    });
+    $(dataRow).append($(fileChooser));
+    $(closeOrderTable).append($(dataRow));
+    return $(wrapperBox).append($(closeOrderTable));
+  }
+  const doOpenSettingForm = function(evt, callback){
+    const customerDlgContent = doCreateSlidePlayOptionForm();
+    $(customerDlgContent).css({'margin-top': '10px'});
+    const customerformoption = {
+      title: 'ตั้งค่าเล่นสไลด์',
+      msg: $(customerDlgContent),
+      width: '420px',
+      onOk: async function(evt) {
+        playOptions = {
+          delay: Number($(customerDlgContent).find('#DelayTime').val()),
+          mode: $(customerDlgContent).find('select').val(),
+          imageSize: Number($(customerDlgContent).find('#ImageSize').val())
+        }
+        //console.log(playOptions);
+        customerFormBoxHandle.closeAlert();
+        callback(playOptions);
+      },
+      onCancel: function(evt){
+        customerFormBoxHandle.closeAlert();
+      }
+    }
+    let customerFormBoxHandle = $('body').radalert(customerformoption);
+  }
+  const editPlaySettingCmd = $('<img src="../../images/tools-icon.png"/>').css({'position': 'absolute', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'right': '2px', 'bottom': '2px', 'display': 'none', 'z-index': '21'});
+  $(editPlaySettingCmd).attr('title', 'ตั้งค่า');
+  $(sponsorBox).hover(()=>{
+    $(editPlaySettingCmd).show();
+  },()=>{
+    $(editPlaySettingCmd).hide();
+  });
+
+  $(sponsorBox).on('keydown', (evt)=>{
+    arrowKeydownEvt(evt)
+  });
+
+  const arrowKeydownEvt = function(evt){
+    switch (evt.keyCode) {
+      case 39:
+        /* Arrow Right */
+        ++currentPlaySportIndex;
+        if (currentPlaySportIndex >= imageFiles.length) {
+          currentPlaySportIndex = 0;
+        }
+        doStopSponsorTimer();
+        doPlaySport(currentPlaySportIndex);
+      break;
+      case 37:
+        /* Arrow Left */
+        --currentPlaySportIndex;
+        if (currentPlaySportIndex < 0) {
+          currentPlaySportIndex = imageFiles.length - 1;
+        }
+        doStopSponsorTimer();
+        doPlaySport(currentPlaySportIndex);
+      break;
+      case 38:
+        /* Arrow Up */
+        doStopSponsorTimer();
+        doStartPlay();
+      break;
+      case 40:
+        /* Arrow Down */
+        doStopSponsorTimer();
+        doOpenSettingForm(evt, (newSettingValue)=>{
+          doStartPlay();
+        });
+      break;
+    }
+  }
 
   let playOptions = {
-    delay: 5,
-    mode: 'random',
-    imageSize: 630
+    delay: 7,
+    mode: 'normal',
+    imageSize: 330
   }
   let imageFiles = [];
+  let minimum = 0;
+  let maximum = imageFiles.length - 1;
+  let currentPlaySportIndex = 0;
+  if (playOptions.mode == 'random') {
+    currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+  }
   let sponsorTimer = undefined;
+
   const doStopSponsorTimer = function() {
     if (sponsorTimer) {
       window.clearTimeout(sponsorTimer);
     }
   }
 
+  const doCreateMySponsor = function(){
+    return new Promise(async function(resolve, reject) {
+      let imageLink = imageFiles[0];
+      const doStartPlay = function() {
+        doStopSponsorTimer();
+        sponsorTimer = window.setTimeout(()=>{
+          if (playOptions.mode == 'random') {
+            currentPlaySportIndex = Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+          } else {
+            if (currentPlaySportIndex >= maximum) {
+              currentPlaySportIndex = 0
+            } else {
+              currentPlaySportIndex = currentPlaySportIndex + 1;
+            }
+          }
+          doPlaySport(currentPlaySportIndex);
+        }, playOptions.delay * 1000);
+      }
+      const doPlaySport = function(n){
+        let fileId = undefined;
+        if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'string')) {
+          imageLink = imageFiles[n];
+          let fileUrls = imageLink.split('/');
+          fileId = fileUrls[fileUrls.length-1];
+        } else if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'object')) {
+          let filesArray = imageFiles.toArray();
+          imageLink = clipURL.createObjectURL(imageFiles[n]);
+          fileId = filesArray[n].name;
+        } else {
+          fileId = '0000-770.jpg'
+          imageLink = 'https://radconnext.tech/img/usr/upload/sponsor-001/' + fileId;
+        }
+        let playImg = new Image();
+        playImg.src = imageLink;
+        playImg.id = fileId;
+        playImg.style.cursor = 'pointer';
+        playImg.onload = function() {
+          let w = $(this).width();
+          let h = $(this).height();
+          if (w > h) {
+            $(this).css({'width': 'auto', 'height': (playOptions.imageSize + 'px')});
+          } else {
+            $(this).css({'width': (playOptions.imageSize + 'px'), 'height': 'auto'});
+          }
+
+          $(sponsorBox).empty().append($(this));
+          $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+          $(sponsorBox).append($(editPlaySettingCmd));
+          $(editPlaySettingCmd).on('click', (evt)=>{
+            doOpenSettingForm(evt, (newSettingValue)=>{
+              doStartPlay();
+            });
+          });
+          $(this).on('click', (evt)=>{
+            /*
+            let openUrl = undefined;
+            if ((imageFiles) && (typeof imageFiles[n] == 'string')) {
+              let imageCode = fileId.split('.');
+              openUrl = linkTo + 'k!' + imageCode[0];
+              openUrl = imageFiles[n];
+            } else if ((imageFiles) && (typeof imageFiles[n] == 'object')) {
+              openUrl = imageLink;
+            }
+            */
+            openUrl = imageLink;
+            window.open(openUrl, '_blank');
+          });
+          $(sponsorBox).focus();
+          doStartPlay();
+        }
+      };
+
+      doPlaySport(currentPlaySportIndex);
+
+      resolve();
+    });
+  }
+
+
   const sponsorSeriesUrl = '/api/shop/usr/upload/series/sponsor-001';
-  doCallListSeries(sponsorSeriesUrl).then((sponsorRes)=>{
-    console.log(sponsorRes);
+  doLoadImageFiles(sponsorSeriesUrl).then((imgFiles)=>{
+    console.log(imgFiles);
+    imageFiles = imgFiles;
+    doCreateMySponsor();
   });
 
 </script>
