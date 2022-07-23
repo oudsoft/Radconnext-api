@@ -41,7 +41,7 @@ const formatCustomerTime = function (fullDataTime) {
 
 const doCreatePPQRCode = function(ppData) {
   return new Promise(async function(resolve, reject) {
-    log.info('ppData --> ' + JSON.stringify(ppData));
+    log.info('ppData ==> ' + JSON.stringify(ppData));
     const maxH = 400;
 		const maxW = 360;
 		const imageCanvas = createCanvas(maxW, maxH);

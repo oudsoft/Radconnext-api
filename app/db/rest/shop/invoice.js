@@ -14,14 +14,6 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const shopDir = path.normalize(__dirname + '/../../../../shop');
 
-const doCreatePPQRCode = function(ppData){
-  return new Promise(async function(resolve, reject) {
-    log.info('ppData --> ' + JSON.stringify(ppData));
-    let qr = await ppQRgen.doCreatePPQRCode(ppData);
-    resolve(qr);
-  });
-}
-
 //List API
 app.post('/list/by/shop/(:shopId)', (req, res) => {
   let token = req.headers.authorization;
