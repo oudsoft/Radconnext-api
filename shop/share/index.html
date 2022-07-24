@@ -154,6 +154,9 @@
     $(fileChooserCmd).on('click', (evt)=>{
       let fileChooser = doCreateFileChooser((imgFiles)=>{
         imageFiles = imgFiles;
+        maximum = imageFiles.length - 1;
+        currentPlaySportIndex = 0;
+        $(imgBox).css({'width': playOptions.imageSize + 'px'});
         doCreateMySponsor();
       });
       $(fileChooser).click();
