@@ -112,15 +112,14 @@
       resolve(imageFiles);
     });
   }
-  const doOpenFileChooser = function(){
-    return new Promise(async function(resolve, reject) {
-      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
-      $(fileChooser).css({'display': 'none'});
-      $(fileChooser).on('change', async (evt)=> {
-        resolve(evt.currentTarget.files);
-      });
-      $(fileChooser).click();
+  const doCreateFileChooser = function(callback){
+    let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
+    $(fileChooser).css({'display': 'none'});
+    $(fileChooser).on('change', (evt)=> {
+      let fileChooses = evt.currentTarget.files;
+      callback(fileChooses);
     });
+    return $(fileChooser);
   }
   const doCreateSlidePlayOptionForm = function(){
     let wrapperBox = $('<div></div>');
@@ -128,7 +127,9 @@
     let dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td width="40%" align="left"><b>Delay</b></td>'));
     let delayInput = $('<input id="DelayTime" type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
-    $(dataRow).append($(delayInput));
+    let delayInputCell = $('<td align="left"></td>');
+    $(delayInputCell).append($(delayInput))
+    $(dataRow).append($(delayInputCell));
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Mode</b></td>'));
@@ -136,25 +137,30 @@
     $(modeSelector).append($('<option value="random">Random</option>'));
     $(modeSelector).append($('<option value="normal">Normal</option>'));
     $(modeSelector).val(playOptions.mode);
-    $(dataRow).append($(modeSelector));
+    let modeSelectorCell = $('<td align="left"></td>');
+    $(modeSelectorCell).append($(modeSelector));
+    $(dataRow).append($(modeSelectorCell));
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Image Size</b></td>'));
     let imageSizeInput = $('<input id="ImageSize" type="number"/><span> px</span>').css({'width': '80px'}).val(playOptions.imageSize);
-    $(dataRow).append($(imageSizeInput));
+    let imageSizeInputCell = $('<td align="left"></td>');
+    $(imageSizeInputCell).append($(imageSizeInput))
+    $(dataRow).append($(imageSizeInputCell));
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Local File</b></td>'));
-    let fileChooser = $('<input id="FileChoosor" type="file"/>').css({'width': '180px'});
-    $(fileChooser).on('click', (evt)=>{
-      //imageFiles = undefined;
-      doOpenFileChooser().then((imgFiles)=>{
+    let fileChooserCmd = $('<input id="FileChoosor" type="button" value="เลือกภาพ ..."/>').css({'width': '180px'});
+    $(fileChooserCmd).on('click', (evt)=>{
+      let fileChooser = doCreateFileChooser((imgFiles)=>{
         imageFiles = imgFiles;
-        //console.log(imageFiles);
         doCreateMySponsor();
       });
+      $(fileChooser).click();
     });
-    $(dataRow).append($(fileChooser));
+    let fileChoosorCell = $('<td align="left"></td>');
+    $(fileChoosorCell).append($(fileChooserCmd));
+    $(dataRow).append($(fileChoosorCell));
     $(closeOrderTable).append($(dataRow));
     return $(wrapperBox).append($(closeOrderTable));
   }
@@ -279,6 +285,7 @@
         } else {
           fileId = '0000-770.jpg'
           imageLink = 'https://radconnext.tech/img/usr/upload/sponsor-001/' + fileId;
+          doStartPlay();
         }
         let playImg = new Image();
         playImg.src = imageLink;
