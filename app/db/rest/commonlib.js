@@ -1133,6 +1133,13 @@ const removeReportTempFile = function(fileCode) {
   });
 }
 
+const sentNotifyChatBotToAdmin = function(reportMsg) {
+  return new Promise(async function(resolve, reject) {
+    let msgToAdmin = { type: "text",	text: reportMsg };
+    await lineApi.pushConnect(process.env.LINE_ADMIN_USERID, msgToAdmin);
+    resolve()
+  })
+}
 
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
@@ -1192,6 +1199,7 @@ module.exports = (dbconn, monitor) => {
     doCallLineUserInfo,
     doFindTechHospitalUsername,
     doTestPushConnect,
-    removeReportTempFile
+    removeReportTempFile,
+    sentNotifyChatBotToAdmin
   }
 }

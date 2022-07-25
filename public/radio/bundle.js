@@ -6818,7 +6818,7 @@ module.exports = function ( jq ) {
 					doCreateResultManagementDialog(saveNewResponseData);
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
-					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf
+					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
 					let saveResultApiURL = '/api/uicommon/radio/saveresult';
 					$.post(saveResultApiURL, params, function(saveResponseRes){
 						console.log(saveResponseRes);
@@ -6981,6 +6981,7 @@ module.exports = function ( jq ) {
 				$.notify("ส่งผลอ่าน - Success", "success");
 				$('body').loading('stop');
 				/* Clear DicomZip Sync Table */
+				/*
 				let dicomzipsync = JSON.parse(localStorage.getItem('dicomzipsync'));
 				let anotherDicomSync = await dicomzipsync.filter((dicom)=>{
 					if (dicom.caseId != caseId){
@@ -6988,7 +6989,7 @@ module.exports = function ( jq ) {
 					}
 				});
 				localStorage.setItem('dicomzipsync', JSON.stringify(anotherDicomSync));
-
+				*/
 				resolve(saveResponseRes);
 				$('#AcceptedCaseCmd').click();
 			} else {

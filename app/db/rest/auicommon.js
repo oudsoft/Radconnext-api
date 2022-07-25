@@ -141,6 +141,8 @@ app.post('/radio/saveresult', (req, res) => {
                 let caseData = await db.cases.findAll({ where: {id: caseId}});
                 msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
                 let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+                msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการบันทึกผลอ่านรังสีแพทย์ CaseId=%s รายละเอียอแข้งทางอีเมล์แล้ว', caseId);
+                await common.sentNotifyChatBotToAdmin(msgHtml);
               }
       				res.json(newReportRes);
 
