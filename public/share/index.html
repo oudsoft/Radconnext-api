@@ -251,7 +251,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       let fileChooser = doCreateFileChooser((imgFiles)=>{
         imageFiles = imgFiles;
         maximum = imageFiles.length - 1;
-        currentPlaySportIndex = 0;        
+        currentPlaySportIndex = 0;
         doCreateMySponsor();
       });
       $(fileChooser).click();
@@ -580,7 +580,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             }
             window.open(openUrl, '_blank');
           });
-          $(sponsorBox).focus();
+          //$(sponsorBox).focus();
           doStartPlay();
         }
       };
