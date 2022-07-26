@@ -331,7 +331,8 @@
           }
 
           $(sponsorBox).empty().append($(this));
-          if (playOptions.showFileName == true) {
+          console.log(playOptions);
+          if (playOptions.showFileName === true) {
             $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
           }
           $(sponsorBox).append($(editPlaySettingCmd));
