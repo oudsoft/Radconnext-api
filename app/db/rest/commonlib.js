@@ -1056,7 +1056,7 @@ const doConsultExpireAction = function(whomtask, websocket, consultId, socket, n
 
 const doSendEmailToAdmin = function(subject, msgHtml){
   return new Promise(async function(resolve, reject) {
-    const adminAddress = 'oudsoft@yahoo.com';
+    const adminAddress = process.env.EMAIL_ADMIN_ADDRESS;
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       host: 'smtp.gmail.com',
@@ -1133,7 +1133,7 @@ const removeReportTempFile = function(fileCode) {
   });
 }
 
-const sentNotifyChatBotToAdmin = function(reportMsg) {
+const sendNotifyChatBotToAdmin = function(reportMsg) {
   return new Promise(async function(resolve, reject) {
     let msgToAdmin = { type: "text",	text: reportMsg };
     await lineApi.pushConnect(process.env.LINE_ADMIN_USERID, msgToAdmin);
@@ -1200,6 +1200,6 @@ module.exports = (dbconn, monitor) => {
     doFindTechHospitalUsername,
     doTestPushConnect,
     removeReportTempFile,
-    sentNotifyChatBotToAdmin
+    sendNotifyChatBotToAdmin
   }
 }
