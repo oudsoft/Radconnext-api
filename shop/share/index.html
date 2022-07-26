@@ -331,6 +331,7 @@
           }
 
           $(sponsorBox).empty().append($(this));
+          console.log(playOptions.showFileName);
           if (playOptions.showFileName) {
             $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
           }
