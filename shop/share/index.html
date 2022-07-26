@@ -203,7 +203,7 @@
         playOptions = {
           delay: Number($(customerDlgContent).find('#DelayTime').val()),
           mode: $(customerDlgContent).find('#PlayMode').val(),
-          showFileName: ($(customerDlgContent).find('#ShowFileName').val())?true:false,
+          showFileName: ($(customerDlgContent).find('#ShowFileName').val()=='true')?true:false,
           imageSize: Number($(customerDlgContent).find('#ImageSize').val())
         }
         //console.log(playOptions);
