@@ -121,11 +121,11 @@
     });
     return $(fileChooser);
   }
-  const doCreateSlidePlayOptionForm = function(){
+  const doCreateSlidePlayOptionForm = function(callback){
     let wrapperBox = $('<div></div>');
     let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let dataRow = $('<tr></tr>').css({'height': '40px'});
-    $(dataRow).append($('<td width="40%" align="left"><b>Delay</b></td>'));
+    $(dataRow).append($('<td width="50%" align="left"><b>Delay</b></td>'));
     let delayInput = $('<input id="DelayTime" type="number"/><span> วินาที</span>').css({'width': '80px'}).val(playOptions.delay);
     let delayInputCell = $('<td align="left"></td>');
     $(delayInputCell).append($(delayInput))
@@ -133,13 +133,23 @@
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Mode</b></td>'));
-    let modeSelector = $('<select></select>');
+    let modeSelector = $('<select id="PlayMode"></select>');
     $(modeSelector).append($('<option value="random">Random</option>'));
     $(modeSelector).append($('<option value="normal">Normal</option>'));
     $(modeSelector).val(playOptions.mode);
     let modeSelectorCell = $('<td align="left"></td>');
     $(modeSelectorCell).append($(modeSelector));
     $(dataRow).append($(modeSelectorCell));
+    $(closeOrderTable).append($(dataRow));
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Show File Name</b></td>'));
+    let showFileNameSelector = $('<select id="ShowFileName"></select>');
+    $(showFileNameSelector).append($('<option value="true">แสดง</option>'));
+    $(showFileNameSelector).append($('<option value="false">ไม่แสดง</option>'));
+    $(showFileNameSelector).val(playOptions.showFileName);
+    let showFileNameSelectorCell = $('<td align="left"></td>');
+    $(showFileNameSelectorCell).append($(showFileNameSelector));
+    $(dataRow).append($(showFileNameSelectorCell));
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Image Size</b></td>'));
@@ -161,6 +171,17 @@
       });
       $(fileChooser).click();
     });
+    $(imageSizeInput).on('keypress',function(evt) {
+      if(evt.which == 13) {
+        playOptions = {
+          delay: Number($(delayInput).val()),
+          mode: $(modeSelector).val(),
+          showFileName: $(showFileNameSelector).val(),
+          imageSize: Number($(imageSizeInput).val())
+        }
+        callback(playOptions);
+      };
+    });
     let fileChoosorCell = $('<td align="left"></td>');
     $(fileChoosorCell).append($(fileChooserCmd));
     $(dataRow).append($(fileChoosorCell));
@@ -168,16 +189,21 @@
     return $(wrapperBox).append($(closeOrderTable));
   }
   const doOpenSettingForm = function(evt, callback){
-    const customerDlgContent = doCreateSlidePlayOptionForm();
+    const customerDlgContent = doCreateSlidePlayOptionForm((newOptopns)=>{
+      playOptions = newOptopns;
+      customerFormBoxHandle.closeAlert();
+      callback(playOptions);
+    });
     $(customerDlgContent).css({'margin-top': '10px'});
     const customerformoption = {
       title: 'ตั้งค่าเล่นสไลด์',
       msg: $(customerDlgContent),
       width: '420px',
-      onOk: async function(evt) {
+      onOk: function(evt) {
         playOptions = {
           delay: Number($(customerDlgContent).find('#DelayTime').val()),
-          mode: $(customerDlgContent).find('select').val(),
+          mode: $(customerDlgContent).find('#PlayMode').val(),
+          showFileName: $(customerDlgContent).find('#ShowFileName').val(),
           imageSize: Number($(customerDlgContent).find('#ImageSize').val())
         }
         //console.log(playOptions);
@@ -240,6 +266,7 @@
   let playOptions = {
     delay: 7,
     mode: 'normal',
+    showFileName: true,
     imageSize: 130
   }
   let imageFiles = [];
@@ -304,7 +331,9 @@
           }
 
           $(sponsorBox).empty().append($(this));
-          $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+          if (playOptions.showFileName) {
+            $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+          }
           $(sponsorBox).append($(editPlaySettingCmd));
           $(editPlaySettingCmd).on('click', (evt)=>{
             doOpenSettingForm(evt, (newSettingValue)=>{
