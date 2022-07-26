@@ -78,7 +78,9 @@ app.post('/select', (req, res) => {
         try {
           const studyDesc = req.body.studyDesc;
           const protocolName = req.body.protocolName;
-          const whereClous = {StudyDesc: studyDesc, ProtocolName: protocolName};
+          const hospitalId = req.body.hospitalId;
+          const userId = req.body.userId;
+          const whereClous = {StudyDesc: studyDesc, ProtocolName: protocolName, userId: userId};
           const scanPartAuxs = await db.scanpartauxs.findAll({ attributes: excludeColumn, where: whereClous});
           res.json({status: {code: 200}, Records: scanPartAuxs});
         } catch(error) {

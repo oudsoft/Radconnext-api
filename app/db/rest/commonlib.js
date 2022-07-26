@@ -1136,8 +1136,8 @@ const removeReportTempFile = function(fileCode) {
 const sendNotifyChatBotToAdmin = function(reportMsg) {
   return new Promise(async function(resolve, reject) {
     let msgToAdmin = { type: "text",	text: reportMsg };
-    await lineApi.pushConnect(process.env.LINE_ADMIN_USERID, msgToAdmin);
-    resolve()
+    let pushBotRes = await lineApi.pushConnect(process.env.LINE_ADMIN_USERID, msgToAdmin);
+    resolve(pushBotRes);
   })
 }
 
