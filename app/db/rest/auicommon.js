@@ -234,6 +234,15 @@ app.get('/test/submitresult', async (req, res) => {
   res.json({status: {code: 200}, pages: pdfPage});
 });
 
+app.get('/test/send/admin', async (req, res) => {
+  let subject = 'test';
+  let msgHtml = uti.fmtStr('<p>%s</p>', 'My Test Send.');
+  let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+  msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการบันทึกผลอ่านรังสีแพทย์ CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', 1, process.env.EMAIL_ADMIN_ADDRESS);
+  let sendBotRes = await common.sendNotifyChatBotToAdmin(msgHtml);
+  res.json({status: {code: 200}, result: {mail: sendEmailRes, bot: sendBotRes}});
+});
+
 app.get('/do/resubmit/(:caseId)', async (req, res) => {
   let caseId = req.params.caseId;
   let hostname = req.hostname;
