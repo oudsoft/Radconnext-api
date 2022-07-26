@@ -1064,7 +1064,7 @@ const doSendEmailToAdmin = function(subject, msgHtml){
       secure: true,
       auth: {
         user: 'oudsoft@gmail.com',
-        pass: 'oud@2515'
+        pass: 'bcsvjwvdnddmeedl'
       }
     });
     var mailOptions = {
