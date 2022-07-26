@@ -144,9 +144,9 @@
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Show File Name</b></td>'));
     let showFileNameSelector = $('<select id="ShowFileName"></select>');
-    $(showFileNameSelector).append($('<option value="true">แสดง</option>'));
-    $(showFileNameSelector).append($('<option value="false">ไม่แสดง</option>'));
-    $(showFileNameSelector).val(playOptions.showFileName);
+    $(showFileNameSelector).append($('<option value="true">Yes</option>'));
+    $(showFileNameSelector).append($('<option value="false">No</option>'));
+    $(showFileNameSelector).val(playOptions.showFileName.toString());
     let showFileNameSelectorCell = $('<td align="left"></td>');
     $(showFileNameSelectorCell).append($(showFileNameSelector));
     $(dataRow).append($(showFileNameSelectorCell));
@@ -176,7 +176,7 @@
         playOptions = {
           delay: Number($(delayInput).val()),
           mode: $(modeSelector).val(),
-          showFileName: $(showFileNameSelector).val(),
+          showFileName: ($(showFileNameSelector).val()=='true')?true:false,
           imageSize: Number($(imageSizeInput).val())
         }
         callback(playOptions);
@@ -203,7 +203,7 @@
         playOptions = {
           delay: Number($(customerDlgContent).find('#DelayTime').val()),
           mode: $(customerDlgContent).find('#PlayMode').val(),
-          showFileName: $(customerDlgContent).find('#ShowFileName').val(),
+          showFileName: ($(customerDlgContent).find('#ShowFileName').val())?true:false,
           imageSize: Number($(customerDlgContent).find('#ImageSize').val())
         }
         //console.log(playOptions);
@@ -331,8 +331,7 @@
           }
 
           $(sponsorBox).empty().append($(this));
-          console.log(playOptions.showFileName);
-          if (playOptions.showFileName) {
+          if (playOptions.showFileName == true) {
             $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
           }
           $(sponsorBox).append($(editPlaySettingCmd));
