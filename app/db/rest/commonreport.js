@@ -528,7 +528,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
     }
 
     if (autoConvert == 1){
-      const cases = await db.cases.findAll({attributes: ['Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_Modality', 'Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
+      const cases = await db.cases.findAll({attributes: ['Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_Modality', 'Case_RadiologistId', 'casestatusId', 'userId'], where: {id: caseId}});
       let pdfLinkPaths = report.reportPdfLinkPath.split('/');
       let pdfFiles = pdfLinkPaths[pdfLinkPaths.length-1];
       pdfFiles = pdfFiles.split('.');
@@ -597,7 +597,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       }
 
       common.removeReportTempFile(pdfReportFileName);
-
+      /*
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
         //update resullt to envision
@@ -609,8 +609,30 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
   			log.info('send newreport trigger result => ' + JSON.stringify(result));
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
       } else {
-        resolve({status: {code: 200}, submit: 'done', cuase: 'but, not found local socket.'});
+      */
+        let ownerCaseUsers = await db.users.findAll({attributes: excludeColumn, include: userInclude, where: {id: cases[0].userId}});
+        let ownerCaseUsername = ownerCaseUsers[0].username;
+        let ownerCaseSocket = await websocket.findUserSocket(ownerCaseUsername);
+        if (ownerCaseSocket) {
+          ownerCaseSocket.send(JSON.stringify(socketTrigger));
+          resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
+        } else {
+          /*
+          send Admin Notify
+          */
+          let subject = 'Cuase of API not found local user owner case socket'
+          let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfFileName, responseId);
+          msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
+          let caseData = await db.cases.findAll({ where: {id: caseId}});
+          msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
+          let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+          msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการส่งผลอ่านทาง Web Socket ของผู้ใช้งาน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
+          await common.sendNotifyChatBotToAdmin(msgHtml);
+          resolve({status: {code: 200}, submit: 'done', cuase: 'but, not found local user owner case socket.'});
+        }
+        /*
       }
+      */
     } else {
       resolve({status: {code: 200}, submit: 'none', cuase: 'not auto convert on configuration hospital report.'});
     }
