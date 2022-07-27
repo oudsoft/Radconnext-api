@@ -3030,6 +3030,12 @@ module.exports = function ( jq, wsm ) {
 			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreport') {
+			let eventName = 'triggernewreport'
+			let triggerData = data;
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+			console.log(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -6640,7 +6646,7 @@ module.exports = function ( jq ) {
 			$(radAlertMsg).append($(ownerCaseInfoBox)).append($(notifyMessageBox));
 
 			const radconfirmoption = {
-	      title: 'แจ้งเตสผิดพลาด',
+	      title: 'แจ้งเคสผิดพลาด',
 	      msg: $(radAlertMsg),
 	      width: '420px',
 	      onOk: function(evt) {
