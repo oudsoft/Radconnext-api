@@ -598,6 +598,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
 
       common.removeReportTempFile(pdfReportFileName);
 
+      let radioId = cases[0].Case_RadiologistId;
       let risParams = await risParamCreator(caseId, radioId);
       let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
 
@@ -605,7 +606,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
         //update resullt to envision
-        let radioId = cases[0].Case_RadiologistId;
         let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
   			log.info('send newreport trigger result => ' + JSON.stringify(result));
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
