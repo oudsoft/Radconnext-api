@@ -615,6 +615,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         let ownerCaseUsername = ownerCaseUsers[0].username;
         let ownerCaseSocket = await websocket.findUserSocket(ownerCaseUsername);
         if (ownerCaseSocket) {
+          let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
           ownerCaseSocket.send(JSON.stringify(socketTrigger));
           resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
         } else {
