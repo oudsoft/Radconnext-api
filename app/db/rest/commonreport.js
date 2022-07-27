@@ -597,14 +597,15 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       }
 
       common.removeReportTempFile(pdfReportFileName);
+
+      let risParams = await risParamCreator(caseId, radioId);
+      let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
+
       /*
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
         //update resullt to envision
         let radioId = cases[0].Case_RadiologistId;
-        let risParams = await risParamCreator(caseId, radioId);
-
-        let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
         let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
   			log.info('send newreport trigger result => ' + JSON.stringify(result));
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
@@ -615,7 +616,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         let ownerCaseUsername = ownerCaseUsers[0].username;
         let ownerCaseSocket = await websocket.findUserSocket(ownerCaseUsername);
         if (ownerCaseSocket) {
-          let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
           ownerCaseSocket.send(JSON.stringify(socketTrigger));
           resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
         } else {
