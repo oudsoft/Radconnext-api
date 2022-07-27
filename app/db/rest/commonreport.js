@@ -542,6 +542,23 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       log.info('isEditResponse=>' + isEditResponse);
       let pdfPages = report.reportPages;
       log.info('pdfPages=>' + pdfPages);
+      if (!pdfPages) {
+        let publicDir = path.normalize(__dirname + '/../../../public');
+        let reportPdfFilePath = publicDir + report.reportPdfLinkPath;
+        log.info('reportPdfFilePath of dicom first result => ' + reportPdfFilePath);
+        pdfPages = 1;
+        if (fs.existsSync(reportPdfFilePath)) {
+          pdfPages = await doCountPagePdf(reportPdfFilePath);
+          log.info('Found Pdf file at => ' + reportPdfFilePath);
+        } else {
+          log.info('Not Found Pdf file at => ' + reportPdfFilePath);
+          log.info('start Create new pdf file');
+          let newPdfFileName = pdfReportFileName + '.pdf';
+          let newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, newPdfFileName, hostname);
+          log.info('Create-New-Report=> ' + JSON.stringify(newReportRes));
+          pdfPages = await doCountPagePdf(reportPdfFilePath);
+        }
+      }
       let lastReports = await db.casereports.findAll({attributes: ['PDF_DicomSeriesIds', 'SeriesInstanceUIDs', 'SOPInstanceUIDs'], where: {caseresponseId: responseId}});
       log.info('lastReports=>' + JSON.stringify(lastReports));
 
@@ -565,6 +582,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           let sopInstanceUIDs = lastReports[0].SOPInstanceUIDs.items;
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs);
           */
+
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
           log.info('dicom last result => ' + JSON.stringify(dicom));
           await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
@@ -575,21 +593,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
         }
       } else {
-        let publicDir = path.normalize(__dirname + '/../../../public');
-        let reportPdfFilePath = publicDir + report.reportPdfLinkPath;
-        log.info('reportPdfFilePath of dicom first result => ' + reportPdfFilePath);
-        let pdfPages = 1;
-        if (fs.existsSync(reportPdfFilePath)) {
-          let pdfPages = await doCountPagePdf(reportPdfFilePath);
-          log.info('Found Pdf file at => ' + reportPdfFilePath);
-        } else {
-          log.info('Not Found Pdf file at => ' + reportPdfFilePath);
-          log.info('start Create new pdf file');
-          let newPdfFileName = pdfReportFileName + '.pdf';
-          let newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, newPdfFileName, hostname);
-          log.info('Create-New-Report=> ' + JSON.stringify(newReportRes));
-          let pdfPages = await doCountPagePdf(reportPdfFilePath);
-        }
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
