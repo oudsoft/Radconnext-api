@@ -610,7 +610,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
       } else {
       */
-        let ownerCaseUsers = await db.users.findAll({attributes: excludeColumn, include: userInclude, where: {id: cases[0].userId}});
+        let ownerCaseUsers = await db.users.findAll({attributes: 'username', where: {id: cases[0].userId}});
         let ownerCaseUsername = ownerCaseUsers[0].username;
         let ownerCaseSocket = await websocket.findUserSocket(ownerCaseUsername);
         if (ownerCaseSocket) {
