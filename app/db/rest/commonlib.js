@@ -461,12 +461,10 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
   return new Promise(async function(resolve, reject) {
     let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
-      if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
-        // doCallToRadioPhone
-
+      //if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+      if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
-
       }
     });
     let endTime = newTask.triggerAt;

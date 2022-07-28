@@ -60,6 +60,7 @@
   const doCreateImgBox = function(imgUrl) {
     let img = new Image();
     img.src = imgUrl;
+    img.id = "ImgBox";
     img.onload = function() {
       if (this.width > screen.width) {
         $(this).css({'width': '100%', 'margin-top': '50px'});

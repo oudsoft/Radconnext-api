@@ -241,12 +241,14 @@ const doAppendBlankPageToHtmlFile = function(htmlFileName, pages){
 
 const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs) {
 	return new Promise(async function(resolve, reject) {
+    /*
 		const orthanc = await uti.doLoadOrthancTarget(hospitalId, hostname);
 		const cloud = JSON.parse(orthanc.Orthanc_Cloud);
 		let dicomport = cloud.dicomport;
 		if ((hostname === 'localhost') || (hostname.indexOf('192.168') >= 0)){
 			dicomport = cloud.dicomportex;
 		}
+    */
 		//const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
 		//ip: "202.28.68.28", httpport: "8042", dicomport: "4242", user: "demo", pass: "demo", portex : "8042"};
 		//const cloud = JSON.parse(orthancs[0].Orthanc_Cloud)
@@ -346,7 +348,7 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
           reject(err);
         });
       } else {
-        throw new Error({code: 500, cuase: 'Eempty Study from Orthanc'});
+        throw new Error({code: 500, cuase: 'Eempty Study from Dicomlog'});
       }
     /*
 		}).catch((err) => {
@@ -512,6 +514,14 @@ const doCreateNewReport = function(caseId, responseId, userId, hospitalId, pdfFi
       let cuaseErrorText = 'The caseresponseId is undefined!';
       log.error('CreateNewReport ERROR=> ' + cuaseErrorText);
       let createNewReportEroor = new Error(cuaseErrorText);
+      let subject = 'The caseresponseId is undefined!'
+      let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p>', caseId, userId, hospitalId, pdfFileName);
+      msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(createNewReportEroor));
+      let caseData = await db.cases.findAll({ where: {id: caseId}});
+      msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
+      let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+      msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการสร้างผลอ่าน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
+      await common.sendNotifyChatBotToAdmin(msgHtml);
       reject(createNewReportEroor);
     }
   });
