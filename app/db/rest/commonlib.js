@@ -462,8 +462,8 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
     let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
-      //if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
-      if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
+      if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+      //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
       }
