@@ -247,16 +247,26 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         delta -= hh * 60;
         let mn = delta;
         voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-        log.info('totalMinut=>' + totalMinut);
+        log.info('PhoneCallRadio totalMinut=>' + totalMinut);
         voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
-        log.info('voiceUrgent=>' + voiceUrgent);
+        log.info('PhoneCallRadio voiceUrgent=>' + voiceUrgent);
+        let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
+        let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
+        resolve(theVoipTask);
       } else {
-        voipTriggerParam = {dd: 0, hh: 0, mn: 2};
-        voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
+        let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+        log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
+        if (nowcaseStatus[0].casestatusId === casestatusId) {
+        //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
+          voipTriggerParam = {dd: 0, hh: 0, mn: -1};
+          voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
+          let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
+          log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+          resolve(callPhoneRes);
+        } else {
+          resolve();
+        }
       }
-      let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-      let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
-      resolve(theVoipTask);
     } else {
       resolve();
     }
@@ -355,7 +365,6 @@ const onNewCaseEvent = function(caseId, options){
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
           if (radioProfile.radioAutoCall == 1) {
-            triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
             let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
             log.info('totalMinut=>' + totalMinut);
             let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
@@ -373,7 +382,6 @@ const onNewCaseEvent = function(caseId, options){
         let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
         if (radioProfile.radioAutoCall == 1) {
-          triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
           let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
           log.info('totalMinut=>' + totalMinut);
           let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);

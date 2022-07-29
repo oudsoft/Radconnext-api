@@ -96,6 +96,10 @@ app.post('/callradio', async function(req, res) {
   res.json({status: {code: 200}, ok: 'nano'});
 });
 
+app.get('/voip/task/list', async function(req, res) {
+  res.json({status: {code: 200}, tasks: Voip.getTasks()});
+});
+
 module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {
   db = dbconn;
   log = monitor;
