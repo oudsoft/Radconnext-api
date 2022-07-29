@@ -193,7 +193,7 @@ $( document ).ready(function() {
     $('head').append('<link rel="stylesheet" href="' + ionCalendarCssUrl + '" type="text/css" />');
 
     $('body').append($('<div id="MainBox"></div>').css({'position': 'absolute', 'top': '0px', 'float': 'left', 'right': '0px', 'left': '0px', 'border': '1px solid red'}));
-    $('body').append($('<div id="MenuBox"></div>').css({'display': 'none', 'position': 'fixed', 'z-index': '42', 'left': '0px', 'top': '0px', 'width': '100%;', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgba(0,255,0,0.2)'}));
+    $('body').append($('<div id="MenuBox"></div>').css({'display': 'none', 'position': 'fixed', 'z-index': '42', 'left': '0px', 'top': '0px', 'width': '100%;', 'width': '100%', 'height': '100%', 'overflow': 'scroll', 'background-color': 'rgb(240, 240, 240)'}));
     $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
     $('body').loading({overlay: $("#overlay"), stoppable: true});
@@ -221,7 +221,7 @@ const doCreatePageLayout = function(){
   let mainContent = $('<div></div>').css({'position': 'relative', 'width': '100%'});
   $(mainBox).append($(mainContent));
   let userInfoBox = doCreateUserInfoBox();
-  let menuContent = $('<div id="MenuContent"></div>').css({'position': 'relative', 'width': '80%', 'left': '10%'});
+  let menuContent = $('<div id="MenuContent"></div>').css({'position': 'relative', 'width': '100%'});
   let menuBox = $('#MenuBox');
   $(menuBox).append($(userInfoBox)).append($(menuContent));
   let timeAnimate = 550;
@@ -229,7 +229,7 @@ const doCreatePageLayout = function(){
   $(toggleMenuCmd).on('click', (evt)=>{
     $(menuBox).animate({width: 'toggle'}, timeAnimate);
     if ($(toggleMenuCmd).css('left') == '10px') {
-      $(toggleMenuCmd).animate({left: '91%'}, timeAnimate);
+      $(toggleMenuCmd).animate({left: '90%'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/cross-mark-icon.png');
     } else {
       $(toggleMenuCmd).animate({left: '10px'}, timeAnimate);
@@ -243,24 +243,30 @@ const doCreatePageLayout = function(){
 const doCreateUserInfoBox = function(){
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   let userInfoBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
-  let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '80px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
+  let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
   $(userPictureBox).on('click', (evt)=>{
-    //...
+    $(userInfo).toggle('slow', 'swing', ()=>{
+      $(userLogoutCmd).toggle('fast', 'linear');
+    });
   });
-  let userInfo = $('<div></div>').text(userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH).css({'position': 'relative', 'margin-top': '-20px', 'padding': '2px', 'font-size': '18px'});
-  let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin-top': '0px', 'padding': '2px', 'font-size': '18px'});
+  let userInfo = $('<div></div>').text(userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH).css({'position': 'relative', 'margin-top': '-15px', 'padding': '2px', 'font-size': '14px'});
+  let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '0px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userLogoutCmd).on('click', (evt)=>{
     common.doUserLogout();
   });
   return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userLogoutCmd));
 }
 
-},{"../home/mod/common-lib.js":1,"./mod/order-mng-lib.js":4,"jquery":5}],3:[function(require,module,exports){
+},{"../home/mod/common-lib.js":1,"./mod/order-mng-lib.js":4,"jquery":6}],3:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
   const common = require('../../home/mod/common-lib.js')($);
+	const styleCommon = require('./style-common-lib.js')($);
+
 	const customerdlg = require('../../setting/admin/mod/customer-dlg.js')($);
+	const gooditemdlg = require('../../setting/admin/mod/gooditem-dlg.js')($);
+
   let pageHandle = undefined;
 
   const setupPageHandle = function(value){
@@ -282,13 +288,13 @@ module.exports = function ( jq ) {
     } else {
 			orderObj.Status = 1;
 		}
-    let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-    let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
-    let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 99.1%;"></viv>');
-    let saveNewOrderCmdBox = $('<div></div>').css({'width': '99.1%', 'text-align': 'center'});
+    let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css(styleCommon.titlePageBoxStyle);
+    let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 100%; border-bottom: 1px solid black"></viv>');
+    let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 100%;"></viv>');
+    let saveNewOrderCmdBox = $('<div></div>').css({'width': '100%', 'text-align': 'center'});
     $(workAreaBox).append($(titlePageBox)).append($(customerWokingBox)).append($(itemlistWorkingBox)).append($(saveNewOrderCmdBox));
 
-    let customerForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let customerForm = $('<table width="98%" cellspacing="0" cellpadding="0" border="0"></table>');
     let customerFormRow = $('<tr></tr>');
     let customerContent = $('<td width="85%" align="left"></tf>');
     let customerControlCmd = $('<td width="*" align="right" valign="middle"></tf>');
@@ -319,8 +325,8 @@ module.exports = function ( jq ) {
     let dlgHandle = undefined;
 
     $(editCustomerCmd).on('click', async (evt)=>{
-    	//dlgHandle = await doOpenCustomerMngDlg(shopId, customerSelectedCallback);
-			let customerDlgContent = await customerdlg.doCreateFormDlg(shopData, callback)
+			let customerDlgContent = await customerdlg.doCreateFormDlg({id: shopId}, customerSelectedCallback);
+			$(customerDlgContent).find('input[type="text"]').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
 			$(pageHandle.menuContent).empty().append($(customerDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 			$(pageHandle.toggleMenuCmd).click();
     });
@@ -331,7 +337,14 @@ module.exports = function ( jq ) {
 		if ([1, 2].includes(orderObj.Status)) {
 			addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
 	    $(addNewGoodItemCmd).on('click', async (evt)=>{
-	      dlgHandle = await doOpenGoodItemMngDlg(shopId, gooditemSelectedCallback);
+	      //dlgHandle = await doOpenGoodItemMngDlg(shopId, gooditemSelectedCallback);
+				let gooditemDlgContent = await gooditemdlg.doCreateFormDlg({id: shopId}, gooditemSelectedCallback);
+
+				//let customerDlgContent = await customerdlg.doCreateFormDlg({id: shopId}, customerSelectedCallback);
+				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
+				$(pageHandle.menuContent).empty().append($(gooditemDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
+				$(pageHandle.toggleMenuCmd).click();
+
 	    });
 		}
 
@@ -376,13 +389,13 @@ module.exports = function ( jq ) {
     });
 
     if ((orderObj) && (orderObj.gooditems)){
-      let goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
-			let lastCell = $(goodItemTable).children(":first").children(":last");
+      let goodItemTable = await doRenderGoodItemTable(orderObj);
+			let addItemCmdBox = $(goodItemTable).find('#AddItemCmdBox');
 			if (addNewGoodItemCmd) {
-				$(lastCell).append($(addNewGoodItemCmd));
+				$(addItemCmdBox).append($(addNewGoodItemCmd));
 			}
-			lastCell = $(goodItemTable).children(":last").children(":last");
-			$(lastCell).append($(callCreateCloseOrderCmd));
+			let closeOrderCmdBox = $(goodItemTable).find('#CloseOrderCmdBox');
+			$(closeOrderCmdBox).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).append($(goodItemTable));
     }
 
@@ -430,14 +443,13 @@ module.exports = function ( jq ) {
       orderObj.customer = customerSelected;
       customerDataBox = doRenderCustomerContent(customerSelected);
       $(customerContent).empty().append($(customerDataBox));
-      if (dlgHandle) {
-        dlgHandle.closeAlert();
-      }
+			$(editCustomerCmd).val('แก้ไขลูกค้า');
+			$(pageHandle.toggleMenuCmd).click();
     }
 
     const gooditemSelectedCallback = async function(gooditemSelected){
       orderObj.gooditems.push(gooditemSelected);
-      goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
+      goodItemTable = await doRenderGoodItemTable(orderObj);
 			let lastCell = $(goodItemTable).children(":first").children(":last");
 			if (addNewGoodItemCmd) {
 				$(lastCell).append($(addNewGoodItemCmd));
@@ -542,19 +554,53 @@ module.exports = function ( jq ) {
 		}
   }
 
+	const doRenderCustomerContent = function(customerData){
+    let customerDataTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let dataRow = $('<tr></tr>');
+    let avatarCell = $('<td width="30%" rowspan="3" align="center" valign="middle"></td>');
+    let nameCell = $('<td width="*" align="left"><b>ชื่อลูกค้า</b> ' + customerData.Name + '</td>');
+    let addressCell = $('<td><b>ที่อยู่</b> ' + customerData.Address + '</td>');
+    let telCell = $('<td><b>โทรศัพท์</b> ' + customerData.Tel + '</td>');
+    let avatarIcon = $('<img src="../../images/avatar-icon.png"/>').css({'width': '95px', 'height': 'auto'});
+    $(avatarCell).append($(avatarIcon));
+    $(dataRow).append($(avatarCell)).append($(nameCell));
+    $(customerDataTable).append($(dataRow));
+    dataRow = $('<tr></tr>');
+    $(dataRow).append($(addressCell));
+    $(customerDataTable).append($(dataRow));
+    dataRow = $('<tr></tr>');
+    $(dataRow).append($(telCell));
+    $(customerDataTable).append($(dataRow));
+    return $(customerDataTable);
+  }
+
+	const doRenderGoodItemTable = function(orderData){
+    return new Promise(async function(resolve, reject) {
+			let mainBox = $('<div id="MainGoodItemBox"></div>').css({'position': 'relative', 'width': '98%'});
+			let addItemCmdBox = $('<div id="AddItemCmdBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'right', 'padding': '4px', 'border-bottom': '1px solid black'});
+			let itemListBox = $('<div id="ItemListBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'left', 'padding': '4px', 'border-bottom': '1px solid black'});
+			let summaryBox = $('<div id="SummaryBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'right', 'padding': '4px', 'border-bottom': 'double'});
+			let closeOrderCmdBox = $('<div id="CloseOrderCmdBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'right', 'padding': '4px', 'border-bottom': 'double'});
+			$(mainBox).append($(addItemCmdBox)).append($(itemListBox)).append($(summaryBox)).append($(closeOrderCmdBox));
+
+			resolve($(mainBox));
+		});
+  }
+
   return {
     setupPageHandle,
     doOpenOrderForm
 	}
 }
 
-},{"../../home/mod/common-lib.js":1,"../../setting/admin/mod/customer-dlg.js":6}],4:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"../../setting/admin/mod/customer-dlg.js":7,"../../setting/admin/mod/gooditem-dlg.js":8,"./style-common-lib.js":5}],4:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
   const common = require('../../home/mod/common-lib.js')($);
 
   const orderForm = require('./order-form-lib.js')($);
+	const styleCommon = require('./style-common-lib.js')($);
 
   let pageHandle = undefined;
 
@@ -583,9 +629,9 @@ module.exports = function ( jq ) {
 			} else {
 				selectDate = common.doFormatDateStr(new Date());
 			}
-      let titlePageBox = $('<div></viv>').css({'padding': '4px', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+      let titlePageBox = $('<div></viv>').css(styleCommon.titlePageBoxStyle);
 			let titleTextBox = $('<div></div>').text('รายการออร์เดอร์ของร้าน');
-			let orderDateBox = $('<div></div>').text(selectDate).css({'width': 'fit-content', 'display': 'inline-block', 'background-color': 'white', 'color': 'black', 'padding': '4px', 'cursor': 'pointer', 'font-size': '16px'});
+			let orderDateBox = $('<div></div>').text(selectDate).css(styleCommon.orderDateBoxStyle);
 			$(orderDateBox).on('click', (evt)=>{
         common.calendarOptions.onClick = async function(date) {
           let selectDate = common.doFormatDateStr(new Date(date));
@@ -756,7 +802,20 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":1,"./order-form-lib.js":3}],5:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./order-form-lib.js":3,"./style-common-lib.js":5}],5:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const titlePageBoxStyle = {'padding': '4px', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'};
+  const orderDateBoxStyle = {'width': 'fit-content', 'display': 'inline-block', 'background-color': 'white', 'color': 'black', 'padding': '4px', 'cursor': 'pointer', 'font-size': '16px', 'border': '2px solid black'};
+
+  return {
+    titlePageBoxStyle,
+		orderDateBoxStyle
+	}
+}
+
+},{}],6:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -11639,7 +11698,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -11669,7 +11728,7 @@ module.exports = function ( jq ) {
           $(customerListBox).empty().append($(customerResult));
         }
       });
-      let addCustomerCmd = $('<input type="button" value=" เพิ่มลูดค้า " class="action-btn"/>').css({'margin-left': '10px'});
+      let addCustomerCmd = $('<input type="button" value=" เพิ่มลูกค้า " class="action-btn"/>').css({'margin-left': '10px'});
       $(addCustomerCmd).on('click', (evt)=>{
         //$(wrapperBox).empty();
         $(searchInputBox).hide();
@@ -11681,7 +11740,11 @@ module.exports = function ( jq ) {
           $(customerListBox).show();
           customerResult = await doShowList(customers, successCallback);
           $(customerListBox).empty().append($(customerResult));
-        });
+        }, ()=>{
+					$(newCustomerForm).remove();
+          $(searchInputBox).show();
+          $(customerListBox).show();
+				});
         $(wrapperBox).append($(newCustomerForm))
       });
       $(searchInputBox).append($(searchKeyInput)).append($(addCustomerCmd));
@@ -11734,17 +11797,17 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doShowAddCustomerForm = function(shopData, successCallback){
+  const doShowAddCustomerForm = function(shopData, successCallback, cancelCallback){
     let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let formRow = $('<tr></tr>');
-    let nameCell = $('<td width="25%" align="left"></td>');
-    let addressCell = $('<td width="45%" align="left"></td>');
+    let nameCell = $('<td width="22%" align="left"></td>');
+    let addressCell = $('<td width="22%" align="left"></td>');
     let telCell = $('<td width="20%" align="left"></td>');
-    let commandCell = $('<td width="*" align="left"></td>');
-    let nameInput = $('<input type="text" placeholder="ชื่อ"/>').css({'width': '80px'});
-    let addressInput = $('<input type="text" placeholder="ที่อยู่"/>').css({'width': '120px'});
-    let telInput = $('<input type="text" placeholder="เบอร์โทร"/>').css({'width': '60px'});
-    let saveCmd = $('<input type="button" value=" บันทึกลูกค้า " class="action-btn"/>');
+    let commandCell = $('<td width="*" align="center"></td>');
+    let nameInput = $('<input type="text" placeholder="ชื่อ"/>').css({'width': '65px'});
+    let addressInput = $('<input type="text" placeholder="ที่อยู่"/>').css({'width': '80px'});
+    let telInput = $('<input type="text" placeholder="เบอร์โทร"/>').css({'width': '80px'});
+    let saveCmd = $('<input type="button" value="บันทึก" class="action-btn"/>');
     $(saveCmd).on('click', async (evt)=>{
       let nameValue = $(nameInput).val();
       let addressValue = $(addressInput).val();
@@ -11769,11 +11832,206 @@ module.exports = function ( jq ) {
         $(nameInput).css({'border': '1px solid red'});
       }
     });
+		let cancelCmd = $('<input type="button" value="ยกเลิก" style="margin-left: 2px;"/>');
+    $(cancelCmd).on('click', (evt)=>{
+			cancelCallback();
+		});
     $(nameCell).append($(nameInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
     $(addressCell).append($(addressInput));
     $(telCell).append($(telInput));
-    $(commandCell).append($(saveCmd));
+    $(commandCell).append($(saveCmd)).append($(cancelCmd));
     $(formRow).append($(nameCell)).append($(addressCell)).append($(telCell)).append($(commandCell));
+    return $(form).append($(formRow));
+  }
+
+  return {
+    doCreateFormDlg
+	}
+}
+
+},{"../../../home/mod/common-lib.js":1}],8:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	//const welcome = require('./welcome.js')($);
+	//const login = require('./login.js')($);
+  const common = require('../../../home/mod/common-lib.js')($);
+
+  const doCreateFormDlg = function(shopData, successCallback) {
+    return new Promise(async function(resolve, reject) {
+      let menugroups = JSON.parse(localStorage.getItem('menugroups'));
+      let menuitems = JSON.parse(localStorage.getItem('menuitems'));
+      let wrapperBox = $('<div></div>');
+      let searchInputBox = $('<div></div>').css({'width': '100%', 'padding': '4px'});
+      let gooditemListBox = $('<div></div>').css({'width': '100%', 'padding': '4px', 'min-height': '200px'});
+      let searchKeyInput = $('<input id="SearchKeyInput" type="text" size="40" value="*"/>');
+      let gooditemResult = undefined;
+      $(searchKeyInput).css({'background': 'url(../../images/search-icon.png) no-repeat right center', 'background-size': '6% 100%', 'padding-right': '3px'});
+      $(searchKeyInput).on('keyup', async (evt)=>{
+        let key = $(searchKeyInput).val();
+        if (key !== ''){
+          if (key === '*') {
+            gooditemResult = await doShowList(menuitems, successCallback);
+          } else {
+            let gooditemFilter = await doFilterGooditem(menuitems, key);
+            gooditemResult = await doShowList(gooditemFilter, successCallback);
+          }
+          $(gooditemListBox).empty().append($(gooditemResult));
+        }
+      });
+      let addGoodItemCmd = $('<input type="button" value=" เพิ่มสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
+      $(addGoodItemCmd).on('click', (evt)=>{
+        //$(wrapperBox).empty();
+        $(searchInputBox).hide();
+        $(gooditemListBox).hide();
+        let newGooditemForm = doShowAddGooditemForm(shopData, async(newGooditems)=>{
+          gooditems = newGooditems;
+          $(newGooditemForm).remove();
+          $(searchInputBox).show();
+          $(gooditemListBox).show();
+          gooditemResult = await doShowList(gooditems, successCallback);
+          $(gooditemListBox).empty().append($(gooditemResult));
+        });
+        $(wrapperBox).append($(newGooditemForm))
+      });
+      $(searchInputBox).append($(searchKeyInput)).append($(addGoodItemCmd));
+      gooditemResult = await doShowList(menuitems, successCallback);
+      $(gooditemListBox).empty().append($(gooditemResult));
+      $(wrapperBox).append($(searchInputBox)).append($(gooditemListBox));
+      resolve($(wrapperBox));
+    });
+  }
+
+  const doFilterGooditem = function(gooditems, key){
+    return new Promise(async function(resolve, reject) {
+      if (key === '*') {
+        resolve(gooditems);
+      } else {
+        let result = gooditems.filter((item)=>{
+          let n = item.MenuName.search(key);
+          if (n >= 0) {
+            return item;
+          }
+        });
+        resolve(result);
+      }
+    });
+  }
+
+  const doShowList = function(results, successCallback){
+    return new Promise(async function(resolve, reject) {
+      let gooditemTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+      let	promiseList = new Promise(async function(resolve2, reject2){
+        for (let i=0; i < results.length; i++){
+          let resultRow = $('<tr></tr>').css({'cursor': 'pointer', 'padding': '4px'});
+          $(resultRow).hover(()=>{
+            $(resultRow).css({'background-color': 'grey', 'color': 'white'});
+          },()=>{
+            $(resultRow).css({'background-color': '#ddd', 'color': 'black'});
+          });
+          let qtyInput = $('<input type="text" value="1" tabindex="3"/>').css({'width': '20px'});
+					$(qtyInput).on('click', (evt)=>{
+						evt.stopPropagation();
+					});
+          $(qtyInput).on('keyup', (evt)=>{
+            if (evt.keyCode == 13) {
+              $(resultRow).click();
+            }
+          });
+          $(resultRow).on('click', (evt)=>{
+            let qtyValue = $(qtyInput).val();
+            if (qtyValue > 0) {
+              $(qtyInput).css({'border': ''});
+              let applyResult = results[i];
+              applyResult.Qty = qtyValue;
+              successCallback(applyResult);
+            } else {
+              $(qtyInput).css({'border': '1px solid red'});
+            }
+          });
+          let pictureCell = $('<td width="10%" align="center"></td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          if (results[i].MenuPicture){
+            let picture = $('<img src="' + results[i].MenuPicture + '"/>').css({'width': '40px', 'height': 'auto'});
+            $(pictureCell).append($(picture));
+          }
+          let nameCell = $('<td width="30%" align="left">' + results[i].MenuName + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          let qtyCell = $('<td width="10%" align="left"></td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          let priceCell = $('<td width="10%" align="left">' + common.doFormatNumber(results[i].Price) + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          let unitCell = $('<td width="15%" align="left">' + results[i].Unit + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          let groupCell = $('<td width="*" align="left">' + results[i].menugroup.GroupName + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+          $(qtyCell).append($(qtyInput)).append($('<span>*</spam>').css({'color': 'red'}));
+          $(resultRow).append($(pictureCell)).append($(nameCell)).append($(qtyCell)).append($(priceCell)).append($(unitCell)).append($(groupCell));
+          $(gooditemTable).append($(resultRow));
+        }
+        setTimeout(()=>{
+          resolve2($(gooditemTable));
+        }, 100);
+      });
+      Promise.all([promiseList]).then((ob)=>{
+        resolve(ob[0]);
+      });
+    });
+  }
+
+  const doShowAddGooditemForm = function(shopData, successCallback){
+    let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let formRow = $('<tr></tr>');
+    let nameCell = $('<td width="20%" align="left"></td>');
+    let priceCell = $('<td width="10%" align="left"></td>');
+    let unitCell = $('<td width="15%" align="left"></td>');
+    let groupCell = $('<td width="30%" align="left"></td>');
+    let commandCell = $('<td width="*" align="left"></td>');
+    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '110px'});
+    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '40px'});
+    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '70px'});
+    let groupSelect = $('<select></select>').css({'width': '100px'});
+    let menugroups = JSON.parse(localStorage.getItem('menugroups'));
+    menugroups.forEach((item, i) => {
+      $(groupSelect).append($('<option value="' + item.id + '">' + item.GroupName + '</option>'));
+    });
+
+    let saveCmd = $('<input type="button" value=" บันทึกสินต้า " class="action-btn"/>');
+    $(saveCmd).on('click', async (evt)=>{
+      let nameValue = $(nameInput).val();
+      let priceValue = $(priceInput).val();
+      let unitValue = $(unitInput).val();
+      if (nameValue !== '') {
+        $(nameInput).css({'border': ''});
+        if (priceValue !== '') {
+          $(priceInput).css({'border': ''});
+          if (unitValue !== '') {
+            $(unitInput).css({'border': ''});
+            let groupId = $(groupSelect).val();
+            let newMenuitemData = {MenuName: nameValue, Price: priceValue, Unit: unitValue};
+            let params = {data: newMenuitemData, shopId: shopData.id, groupId: parseInt(groupId)};
+            let menuitemRes = await common.doCallApi('/api/shop/menuitem/add', params);
+            if (menuitemRes.status.code == 200) {
+              $.notify("เพิ่มรายการสินค้าสำเร็จ", "success");
+              let menuitems = JSON.parse(localStorage.getItem('menuitems'));
+              menuitems.push(menuitemRes.Record);
+              localStorage.setItem('menuitems', JSON.stringify(menuitems));
+              successCallback(menuitems);
+            } else if (menuitemRes.status.code == 201) {
+              $.notify("ไม่สามารถเพิ่มรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+            } else {
+              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการสินค้าได้", "error");
+            }
+          } else {
+            $(unitInput).css({'border': '1px solid red'});
+          }
+        } else {
+          $(priceInput).css({'border': '1px solid red'});
+        }
+      } else {
+        $(nameInput).css({'border': '1px solid red'});
+      }
+    });
+    $(nameCell).append($(nameInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
+    $(priceCell).append($(priceInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
+    $(unitCell).append($(unitInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
+    $(groupCell).append($(groupSelect));
+    $(commandCell).append($(saveCmd));
+    $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell)).append($(commandCell));
     return $(form).append($(formRow));
   }
 

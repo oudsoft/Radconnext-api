@@ -225,11 +225,7 @@
     $(editPlaySettingCmd).hide();
   });
 
-  $(sponsorBox).on('keydown', (evt)=>{
-    arrowKeydownEvt(evt)
-  });
-
-  const arrowKeydownEvt = function(evt){
+  const arrowKeydownEvt = function(evt, doPlaySport, doStartPlay){
     switch (evt.keyCode) {
       case 39:
         /* Arrow Right */
@@ -342,16 +338,6 @@
             });
           });
           $(this).on('click', (evt)=>{
-            /*
-            let openUrl = undefined;
-            if ((imageFiles) && (typeof imageFiles[n] == 'string')) {
-              let imageCode = fileId.split('.');
-              openUrl = linkTo + 'k!' + imageCode[0];
-              openUrl = imageFiles[n];
-            } else if ((imageFiles) && (typeof imageFiles[n] == 'object')) {
-              openUrl = imageLink;
-            }
-            */
             openUrl = imageLink;
             window.open(openUrl, '_blank');
           });
@@ -361,6 +347,10 @@
       };
 
       doPlaySport(currentPlaySportIndex);
+
+      $(sponsorBox).on('keydown', (evt)=>{
+        arrowKeydownEvt(evt, doPlaySport, doStartPlay);
+      });
 
       resolve();
     });

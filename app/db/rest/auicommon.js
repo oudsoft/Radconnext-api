@@ -160,6 +160,8 @@ app.post('/radio/saveresult', (req, res) => {
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
+          let errorMsg = uti.fmtStr('มีข้อผิดพลาดเกิดที่ API %s', '/radio/saveresult');
+          common.sendNotifyChatBotToAdmin(errorMsg);
         }
 			} else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});
@@ -211,6 +213,8 @@ app.post('/radio/submitresult', (req, res) => {
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
+          let errorMsg = uti.fmtStr('มีข้อผิดพลาดเกิดที่ API %s', '/radio/submitresult');
+          common.sendNotifyChatBotToAdmin(errorMsg);
         }
 			} else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});

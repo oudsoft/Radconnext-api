@@ -28,20 +28,20 @@ function RadconCaseTask (socket, db, log) {
       let endMN = endDate.getMinutes();
       let endSS = endDate.getSeconds();
       let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
-      log.info('scheduleTrigger => ' + scheduleTrigger);
+      log.info('Case Task scheduleTrigger => ' + scheduleTrigger);
   		let task = cron.schedule(scheduleTrigger, function(){
-        log.info('start trigger => ' + caseId);
+        log.info('Case Task start trigger => ' + caseId);
         cb(caseId, socket, endDate);
       });
       let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate, task: task};
 
       $this.caseTasks.push(newTask);
-
+      /*
       log.info('All new Task ' + JSON.stringify($this.getTasks()));
       let msg = 'You have a new Case on ' + hospitalName + '. This your case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
       let notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
       let canSend = await socket.sendMessage(notify, radioUsername);
-      /*
+
       if (canSend) {
         msg = 'The Radiologist of your new case can recieve message of this your case, And this case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
       } else {

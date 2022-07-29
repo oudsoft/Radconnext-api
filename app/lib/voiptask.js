@@ -19,9 +19,9 @@ function RadconVoipTask (socket, db, log) {
       let endMN = endDate.getMinutes();
       let endSS = endDate.getSeconds();
       let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
-      log.info('scheduleTrigger => ' + scheduleTrigger);
+      log.info('VoIP scheduleTrigger => ' + scheduleTrigger);
   		let task = cron.schedule(scheduleTrigger, function(){
-        log.info('start trigger => ' + caseId);
+        log.info('VoIP start trigger => ' + caseId);
         cb(caseId, socket, endDate);
       });
       let responseKEYs = [];

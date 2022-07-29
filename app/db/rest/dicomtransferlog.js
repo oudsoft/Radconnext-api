@@ -173,38 +173,30 @@ app.post('/add', async (req, res) => {
   let hospitalId = req.body.hospitalId;
   let resourceType = req.body.resourceType;
   let resourceId = req.body.resourceId;
+	let studyTags = req.body.StadyTags;
+	let dicomTags = req.body.DicomTags;
   const orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
   let yourOrthancId = orthancs[0].id;
 	const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
-	let studyTags = {};
+
 	if (orthancRes.length == 0){
 		res.json({Result: "OK", result: 'add'});
-	  if (resourceType === 'study') {
-	    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
-	  }
-	  let newDicomTransferLog = {DicomTags: JSON.stringify(req.body.dicom), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
+	  let newDicomTransferLog = {DicomTags: JSON.stringify(dicomTags), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
 	  let adDicomTransferLog = await DicomTransferLog.create(newDicomTransferLog);
-	  //log.info('New dicom ' + resourceType + ' Type transfer => ' + JSON.stringify(adDicomTransferLog));
-	  //let cwss = websocket.socket.clients;
 	  if (resourceType === 'study'){
 			let socketTrigger = {type: 'newdicom', dicom: studyTags};
 			let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
 	  }
-	  //res.json({Result: "OK", Record: adDicomTransferLog});
 	} else {
 		res.json({Result: "OK", result: 'update'});
 		let logId = orthancRes[0].id;
-		if (resourceType === 'study') {
-	    studyTags = await doLoadOrthancStudies(yourOrthancId, hostname, resourceId);
-	  }
-	  let updateDicomTransferLog = {DicomTags: JSON.stringify(req.body.dicom), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
+	  let updateDicomTransferLog = {DicomTags: JSON.stringify(dicomTags), StudyTags: studyTags, ResourceID: resourceId, ResourceType: resourceType, orthancId: yourOrthancId};
 	  let upDicomTransferLog = await DicomTransferLog.update(updateDicomTransferLog, { where: { id: logId } });
 		let orthancUpdateRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
 		if (resourceType === 'study'){
 			let socketTrigger = {type: 'newdicom', dicom: studyTags};
 			let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
 	  }
-		//res.json({Result: "OK", Record: orthancUpdateRes[0]});
 	}
 });
 /*

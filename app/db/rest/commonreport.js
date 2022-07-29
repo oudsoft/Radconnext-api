@@ -600,13 +600,11 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
           log.info('dicom first result => ' + JSON.stringify(dicom));
           await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
-          //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
         }
       } else {
         dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
-        //{link: {dicom: dicomLink, pdf: pdfLink}, name: {dicom: dcmFile, pdf: pdfFileName}}
       }
 
       common.removeReportTempFile(pdfReportFileName);
@@ -615,7 +613,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let risParams = await risParamCreator(caseId, radioId);
       let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
 
-      /*
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
         //update resullt to envision
@@ -623,7 +620,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
   			log.info('send newreport trigger result => ' + JSON.stringify(result));
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
       } else {
-      */
         const userInclude = [{model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH']}];
         let ownerCaseUsers = await db.users.findAll({attributes: excludeColumn, include: userInclude, where: {id: cases[0].userId}});
         let ownerCaseUsername = ownerCaseUsers[0].username;
@@ -645,9 +641,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           await common.sendNotifyChatBotToAdmin(msgHtml);
           resolve({status: {code: 200}, submit: 'done', cuase: 'but, not found local user owner case socket.'});
         }
-        /*
       }
-      */
     } else {
       resolve({status: {code: 200}, submit: 'none', cuase: 'not auto convert on configuration hospital report.'});
     }
