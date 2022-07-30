@@ -6725,6 +6725,7 @@ module.exports = function ( jq ) {
 				let endPosition = tempToken.indexOf(endPointText);
 				output = responseText.slice((startPosition+20), (endPosition));
 				responseText = toAsciidoc(output);
+				responseHTML = responseText;
 			} else {
 				output = responseText;
 			}
@@ -6759,6 +6760,7 @@ module.exports = function ( jq ) {
 			if (saveNewResponseData.previewOption === 1){
 				//Save with Radio Preview PDF
 				$('body').loading('start');
+				console.log(params);
 				let saveResponseRes = await doCallSaveResult(params);
 				console.log(saveResponseRes);
 				//if ((saveResponseRes.status.code == 200) && (saveResponseRes.responseId)){
