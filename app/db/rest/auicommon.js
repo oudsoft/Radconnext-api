@@ -176,6 +176,42 @@ app.post('/radio/saveresult', (req, res) => {
   }
 });
 
+//Radio save case's Result and generate pdf of result API
+app.post('/radio/saveresponse', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          let reqData = req.body;
+          if ((reqData.caseId) && (Number(reqData.caseId) > 0)) {
+      			let hostname = req.hostname;
+            //log.info('Radio Save Result with reqData => ' + JSON.stringify(reqData));
+            let addNewResResult = await statusControl.doControlAddNewResponse(reqData);
+            log.info('Control-addNewResponse=> ' + JSON.stringify(addNewResResult));
+            res.json(addNewResResult);
+          } else {
+            res.json({status: {code: 500}, error: {text: 'your caseId undefined!'}});
+          }
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+          let errorMsg = uti.fmtStr('มีข้อผิดพลาดเกิดที่ API %s', '/radio/saveresponse');
+          common.sendNotifyChatBotToAdmin(errorMsg);
+        }
+			} else if (ur.token.expired){
+				res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //Radio submit case's Result for convert dicom and send result text to RIS API
 app.post('/radio/submitresult', (req, res) => {
   let token = req.headers.authorization;

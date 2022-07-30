@@ -6830,15 +6830,15 @@ module.exports = function ( jq ) {
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
-					/*
-					let saveResultApiURL = '/api/uicommon/radio/saveresult';
-					$.post(saveResultApiURL, params, function(saveResponseRes){
+
+					let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
+					$.post(saveResponseApiURL, params, function(saveResponseRes){
 						console.log(saveResponseRes);
 					}).catch((err) => {
 						console.log(err);
 						$.notify("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ โปรดแจ้งผู้ดูแลระบบ", "error");
 					});
-					*/
+
 				} else {
 					alert('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง ไม่พบหมายเลขเคสของคุณ');
 				}
