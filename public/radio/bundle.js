@@ -8093,6 +8093,9 @@ module.exports = function ( jq ) {
 		$(resultBox).html(resultHTML);
 		$('.mainfull').append($(resultBox));
 		let rsH = $(resultBox).outerHeight();
+		if (rsH < 610) {
+			rsH = 610;
+		}
 		$(resultBox).remove();
 		return rsH;
 	}
