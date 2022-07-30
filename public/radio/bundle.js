@@ -6713,9 +6713,6 @@ module.exports = function ( jq ) {
 			let caseId = saveNewResponseData.caseId;
 			let reporttype = saveNewResponseData.reporttype;
 			let userId = userdata.id;
-			//await doBackupDraft(caseId, responseHTML);
-			let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
-			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 
 			//let responseText = toAsciidoc(responseHTML);
 			let responseText = responseHTML;
@@ -6723,16 +6720,22 @@ module.exports = function ( jq ) {
 			let endPointText = '<!--EndFragment-->';
 			let tempToken = responseText.replace('\n', '');
 			let startPosition = tempToken.indexOf(startPointText);
+			let output = undefined;
 			if (startPosition >= 0) {
 				let endPosition = tempToken.indexOf(endPointText);
-				let output = responseText.slice((startPosition+20), (endPosition));
+				output = responseText.slice((startPosition+20), (endPosition));
 				responseText = toAsciidoc(output);
+			} else {
+				output = responseText;
 			}
+			//await doBackupDraft(caseId, responseHTML);
+			let draftbackup = {caseId: caseId, content: output, backupAt: new Date()};
+			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 			let rsW = saveNewResponseData.resultFormat.width;
 			console.log(rsW);
 			let fnS = saveNewResponseData.resultFormat.fontsize;
 			console.log(fnS);
-			let rsH = doCalResultHeigth(responseHTML, rsW, fnS);
+			let rsH = doCalResultHeigth(responseText, rsW, fnS);
 			console.log(rsH);
 			//const contentWidth = 1240;
 			//let rsH = doCalResultHeigth(responseHTML, contentWidth);
@@ -7015,7 +7018,18 @@ module.exports = function ( jq ) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
-			let responseText = toAsciidoc(responseHTML);
+			let startPointText = '<!--StartFragment-->'
+			let endPointText = '<!--EndFragment-->';
+			let tempToken = responseHTML.replace('\n', '');
+			let startPosition = tempToken.indexOf(startPointText);
+			let responseText = undefined;
+			if (startPosition >= 0) {
+				let endPosition = tempToken.indexOf(endPointText);
+				let output = responseHTML.slice((startPosition+20), (endPosition));
+				responseText = toAsciidoc(output);
+			} else {
+				responseText = toAsciidoc(responseHTML)
+			}
 			let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
 			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId, reporttype: type};
 			let saveResponseRes = await doCallSaveResponse(params);

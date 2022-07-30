@@ -684,6 +684,10 @@ const doReSubmitReport = function(caseId, hostname){
         let seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
         let sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
         let dicom = {seriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, sopInstanceUIDs: sopInstanceUIDs};
+        let publicDir = path.normalize(__dirname + '/../../../public');
+        let reportPdfFilePath = publicDir + pdfFileName;
+        let pdfPages = await doCountPagePdf(reportPdfFilePath);
+        let dicom = await dicomConvertor(cases[0].Case_OrthancStudyID, cases[0].Case_Modality, pdfFileName, hospitalId, hostname, pdfPages);
         let radioId = cases[0].Case_RadiologistId;
         let risParams = await risParamCreator(caseId, radioId);
 
