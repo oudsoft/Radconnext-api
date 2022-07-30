@@ -97,13 +97,15 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 		const htmlFileName = fileNames[0] + '.html';
 		const reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
 
-		if (fs.existsSync(usrPdfPath + '/' + htmlFileName)) {
-	    //await runcommand('rm ' + usrPdfPath + '/' + htmlFileName);
-			await fs.unlinkSync(usrPdfPath + '/' + htmlFileName);
+    let oldHtmlFilePath = usrPdfPath + '/' + htmlFileName;
+    log.info('oldHtmlFilePath=>' + oldHtmlFilePath);
+		if (fs.existsSync(oldHtmlFilePath)) {
+			await fs.unlinkSync(oldHtmlFilePath);
 	  }
-		if (fs.existsSync(usrPdfPath + '/' + pdfFileName)) {
-			//await runcommand('rm ' + usrPdfPath + '/' + pdfFileName);
-			await fs.unlinkSync(usrPdfPath + '/' + pdfFileName);
+    let oldPdfFilePath = usrPdfPath + '/' + pdfFileName;
+    log.info('oldPdfFilePath=>' + oldPdfFilePath);
+		if (fs.existsSync(oldPdfFilePath)) {
+			await fs.unlinkSync(oldPdfFilePath);
 		}
 
 		var html = '<!DOCTYPE html><head></head><body><div id="report-wrapper"></div></body>';
