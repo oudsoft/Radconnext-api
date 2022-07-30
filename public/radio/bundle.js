@@ -6725,7 +6725,6 @@ module.exports = function ( jq ) {
 				let endPosition = tempToken.indexOf(endPointText);
 				output = responseText.slice((startPosition+20), (endPosition));
 				responseText = toAsciidoc(output);
-				responseHTML = responseText;
 			} else {
 				output = responseText;
 			}
