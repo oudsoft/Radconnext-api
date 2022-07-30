@@ -269,7 +269,10 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
       const publicDir = path.normalize(__dirname + '/../../../public');
   		const USRPDF_PATH = process.env.USRPDF_PATH;
   		//const pdfFileName = fileCode + '.pdf';
-      const pdfFileName = fileCode;
+      let pdfFileName = fileCode;
+      if (fileCode.substr(fileCode.length - 4) !== '.pdf') {
+        pdfFileName = fileCode + '.pdf';
+      }
       let pdfLink = USRPDF_PATH + '/' + pdfFileName;
 
       let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyID}});
