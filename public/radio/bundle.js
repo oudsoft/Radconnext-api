@@ -1404,7 +1404,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let hospitalId = userdata.hospitalId;
-			let userId = userdata.userId;
+			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
 			let apiUrl = '/api/scanpartaux/select';
 			try {
@@ -6825,6 +6825,7 @@ module.exports = function ( jq ) {
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
+					/*
 					let saveResultApiURL = '/api/uicommon/radio/saveresult';
 					$.post(saveResultApiURL, params, function(saveResponseRes){
 						console.log(saveResponseRes);
@@ -6832,6 +6833,7 @@ module.exports = function ( jq ) {
 						console.log(err);
 						$.notify("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ โปรดแจ้งผู้ดูแลระบบ", "error");
 					});
+					*/
 				} else {
 					alert('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง ไม่พบหมายเลขเคสของคุณ');
 				}

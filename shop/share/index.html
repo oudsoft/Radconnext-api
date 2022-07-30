@@ -225,7 +225,7 @@
     $(editPlaySettingCmd).hide();
   });
 
-  const arrowKeydownEvt = function(evt, doPlaySport, doStartPlay){
+  const arrowKeydownEvt = function(evt, doStartPlay){
     switch (evt.keyCode) {
       case 39:
         /* Arrow Right */
@@ -281,6 +281,46 @@
     }
   }
 
+  const doFindImage = function(n){
+    let fileId = undefined;
+    let imageLink = undefined;
+    if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'string')) {
+      imageLink = imageFiles[n];
+      let fileUrls = imageLink.split('/');
+      fileId = fileUrls[fileUrls.length-1];
+    } else if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'object')) {
+      let filesArray = imageFiles.toArray();
+      imageLink = window.URL.createObjectURL(imageFiles[n]);
+      fileId = filesArray[n].name;
+    } else {
+      fileId = '0000-770.jpg'
+      imageLink = 'https://radconnext.tech/img/usr/upload/sponsor-001/' + fileId;
+    }
+    return {imageLink, fileId};
+  }
+
+  const doCreateImg = function(imageLink, fileId, loadSuccessCallback) {
+    let playImg = new Image();
+    playImg.src = imageLink;
+    playImg.id = fileId;
+    playImg.style.cursor = 'pointer';
+    playImg.onload = function() {
+      let w = $(this).width();
+      let h = $(this).height();
+      if (w > h) {
+        $(this).css({'width': 'auto', 'height': (playOptions.imageSize + 'px')});
+      } else {
+        $(this).css({'width': (playOptions.imageSize + 'px'), 'height': 'auto'});
+      }
+      $(this).on('click', (evt)=>{
+        openUrl = imageLink;
+        window.open(openUrl, '_blank');
+      });
+      loadSuccessCallback($(this));
+    }
+    return playImg;
+  }
+
   const doCreateMySponsor = function(){
     return new Promise(async function(resolve, reject) {
       let imageLink = imageFiles[0];
@@ -300,51 +340,28 @@
         }, playOptions.delay * 1000);
       }
       const doPlaySport = function(n){
-        let fileId = undefined;
-        if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'string')) {
-          imageLink = imageFiles[n];
-          let fileUrls = imageLink.split('/');
-          fileId = fileUrls[fileUrls.length-1];
-        } else if ((imageFiles) && (imageFiles.length > 0) && (typeof imageFiles[n] == 'object')) {
-          let filesArray = imageFiles.toArray();
-          imageLink = window.URL.createObjectURL(imageFiles[n]);
-          fileId = filesArray[n].name;
+        let foundImg = doFindImage(n);
+        imageLink = foundImg.imageLink;
+        let fileId = foundImg.fileId;
+        if (fileId == '0000-770.jpg') {
+          doStartPlay();
         } else {
-          fileId = '0000-770.jpg'
-          imageLink = 'https://radconnext.tech/img/usr/upload/sponsor-001/' + fileId;
-          doStartPlay();
-        }
-        let playImg = new Image();
-        playImg.src = imageLink;
-        playImg.id = fileId;
-        playImg.style.cursor = 'pointer';
-        playImg.onload = function() {
-          let w = $(this).width();
-          let h = $(this).height();
-          if (w > h) {
-            $(this).css({'width': 'auto', 'height': (playOptions.imageSize + 'px')});
-          } else {
-            $(this).css({'width': (playOptions.imageSize + 'px'), 'height': 'auto'});
-          }
-
-          $(sponsorBox).empty().append($(this));
-          if (playOptions.showFileName === true) {
-            $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
-          }
-          $(sponsorBox).append($(editPlaySettingCmd));
-          $(editPlaySettingCmd).on('click', (evt)=>{
-            doOpenSettingForm(evt, (newSettingValue)=>{
-              doStartPlay();
+          doCreateImg(imageLink, fileId, (img)=>{
+            $(sponsorBox).empty().append($(img));
+            if (playOptions.showFileName === true) {
+              $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+            }
+            $(sponsorBox).append($(editPlaySettingCmd));
+            $(editPlaySettingCmd).on('click', (evt)=>{
+              doOpenSettingForm(evt, (newSettingValue)=>{
+                doStartPlay();
+              });
             });
+            //$(sponsorBox).focus();
+            doStartPlay();
           });
-          $(this).on('click', (evt)=>{
-            openUrl = imageLink;
-            window.open(openUrl, '_blank');
-          });
-          //$(sponsorBox).focus();
-          doStartPlay();
         }
-      };
+      }
 
       doPlaySport(currentPlaySportIndex);
 

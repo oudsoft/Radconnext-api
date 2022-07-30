@@ -193,6 +193,8 @@ app.post('/radio/submitresult', (req, res) => {
           let cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
           let nowStatusId = cases[0].casestatusId;
 
+          res.json({status: {code: 200}, submit: 'starting', result: 'process in background'});
+
           let submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
 
           let responseType = 'normal';
@@ -200,16 +202,17 @@ app.post('/radio/submitresult', (req, res) => {
           let remark = 'Radio Submit Result Success.';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});
-          log.info('nowStatusId param => ' + nowStatusId);
-          log.info('nextStatus param => ' + nextStatus);
-          log.info('caseId param => ' + caseId);
-          log.info('userId param => ' + userId);
-          log.info('remark param => ' + remark);
+          log.info('==' + remark + '==');
+          log.info('nowStatusId => ' + nowStatusId);
+          log.info('nextStatus => ' + nextStatus);
+          log.info('caseId => ' + caseId);
+          log.info('userId => ' + userId);
           log.info('case change status Result => ' + JSON.stringify(changeResult));
+          log.info('=============');
           if (nowStatusId == 14){
             db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
           }
-          res.json(submitRes);
+          //res.json(submitRes);
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

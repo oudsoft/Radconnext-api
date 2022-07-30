@@ -577,9 +577,101 @@ module.exports = function ( jq ) {
 			let summaryBox = $('<div id="SummaryBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'right', 'padding': '4px', 'border-bottom': 'double'});
 			let closeOrderCmdBox = $('<div id="CloseOrderCmdBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'right', 'padding': '4px', 'border-bottom': 'double'});
 			$(mainBox).append($(addItemCmdBox)).append($(itemListBox)).append($(summaryBox)).append($(closeOrderCmdBox));
+			if ((orderData) && (orderData.gooditems) && (orderData.gooditems.length > 0)) {
+				let	promiseList = new Promise(async function(resolve2, reject2){
+          let total = 0;
+					let totalBox = $('<span></span>').text(common.doFormatNumber(total)).css({'margin-right': '4px', 'font-size': '24px', 'font-weight': 'bold'});
+          let goodItems = orderData.gooditems;
+					let itenNoCells = [];
+          for (let i=0; i < goodItems.length; i++) {
+						let subTotal = Number(goodItems[i].Price) * Number(goodItems[i].Qty);
+						let goodItemBox = $('<div></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'float': 'left', 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});;
+						let goodItemImg = $('<img/>').attr('src', goodItems[i].MenuPicture).css({'width': '120px', 'height': 'auto'});
+						let goodItemNameBox = $('<div></div>').text(goodItems[i].MenuName).css({'position': 'relative', 'width': '100%', 'padding': '2px', 'font-size': '16px'});
+						let goodItemQtyUnitBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'padding': '2px'});
+						let goodItemQtyBox = $('<span></span>').text(common.doFormatQtyNumber(goodItems[i].Qty)).css({'padding': '2px', 'font-size': '20px'});
+						let goodItemUnitBox = $('<span></span>').text(goodItems[i].Unit).css({'padding': '2px', 'font-size': '16px'});
+						let goodItemSubTotalBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'padding': '2px'});
+						let goodItemSubTotalText = $('<span></span>').text(common.doFormatNumber(subTotal)).css({'position': 'relative', 'width': '100%', 'padding': '2px', 'font-size': '20px', 'font-weight': 'bold'});
+						let increaseBtnCmd = common.doCreateImageCmd('../../images/plus-sign-icon.png', 'เพิ่มจำนวน');
+						let decreaseBtnCmd = common.doCreateImageCmd('../../images/minus-sign-icon.png', 'ลดจำนวน');
+						let deleteGoodItemCmd = common.doCreateImageCmd('../../images/cross-red-icon.png', 'ลบรายการ');
+						$(increaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '8px'});
+						$(increaseBtnCmd).on('click', async(evt)=>{
+							let oldQty = Number($(goodItemQtyBox).text());
+							let newQty = oldQty + 1;
+							$(goodItemQtyBox).text(common.doFormatQtyNumber(newQty));
+							goodItems[i].Qty = newQty;
+							subTotal = Number(goodItems[i].Price) * newQty;
+							$(goodItemSubTotalText).text(common.doFormatNumber(subTotal));
+							let newTotal = await doCalOrderTotal(orderData.gooditems);
+							$(totalBox).text(common.doFormatNumber(newTotal));
+						});
+						$(decreaseBtnCmd).on('click', async(evt)=>{
+							let oldQty = Number($(goodItemQtyBox).text());
+							let newQty = oldQty -1;
+							if (newQty > 0) {
+								$(goodItemQtyBox).text(common.doFormatQtyNumber(newQty));
+								goodItems[i].Qty = newQty;
+								subTotal = Number(goodItems[i].Price) * newQty;
+								$(goodItemSubTotalText).text(common.doFormatNumber(subTotal));
+								let newTotal = await doCalOrderTotal(orderData.gooditems);
+								$(totalBox).text(common.doFormatNumber(newTotal));
+							}
+						});
+						$(deleteGoodItemCmd).on('click', async (evt)=>{
+							$(goodItemBox).remove();
+							let newGoodItems = await doDeleteGoodItem(i, orderData);
+							orderData.gooditems = newGoodItems;
+							let newTotal = await doCalOrderTotal(orderData.gooditems);
+							$(totalBox).text(common.doFormatNumber(newTotal));
+						});
 
-			resolve($(mainBox));
+						$(decreaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '4px'});
+						$(deleteGoodItemCmd).css({'width': '32px', 'height': 'auto', 'margin-left': '8px'});
+						$(goodItemQtyUnitBox).append($(goodItemQtyBox)).append($(goodItemUnitBox)).append($(decreaseBtnCmd)).append($(increaseBtnCmd));
+						$($(goodItemSubTotalBox)).append($(goodItemSubTotalText)).append($(deleteGoodItemCmd));
+						$(goodItemBox).append($(goodItemImg)).append($(goodItemNameBox)).append($(goodItemQtyUnitBox)).append($(goodItemSubTotalBox));
+						$(itemListBox).append($(goodItemBox));
+					}
+					total = await doCalOrderTotal(orderData.gooditems);
+					$(totalBox).text(common.doFormatNumber(total))
+					$(summaryBox).empty().append($(totalBox));
+					$(itemListBox).css({'display': 'block', 'overflow': 'auto'});
+					setTimeout(()=>{
+            resolve2($(mainBox));
+          }, 500);
+				});
+        Promise.all([promiseList]).then((ob)=>{
+          resolve(ob[0]);
+        });
+			} else {
+				$(itemListBox).css({'height': '290px'});
+				$(summaryBox).empty().append($('<span><b>0.00</b></span>').css({'margin-right': '4px'}));
+				resolve($(mainBox));
+			}
 		});
+  }
+
+	const doCalOrderTotal = function(gooditems){
+    return new Promise(async function(resolve, reject) {
+      let total = 0;
+      await gooditems.forEach((item, i) => {
+        total += Number(item.Price) * Number(item.Qty);
+      });
+      resolve(total);
+    });
+  }
+
+	const doDeleteGoodItem = function(goodItemIndex, orderData) {
+    return new Promise(async function(resolve, reject) {
+      let anotherItems = await orderData.gooditems.filter((item, i)=>{
+        if (i != goodItemIndex) {
+          return item;
+        }
+      });
+      resolve(anotherItems);
+    });
   }
 
   return {
