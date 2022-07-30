@@ -7014,7 +7014,9 @@ module.exports = function ( jq ) {
 	function doSaveDraft(saveDraftResponseData) {
 		return new Promise(async function(resolve, reject) {
 			let type = saveDraftResponseData.type;
-			let caseId = saveDraftResponseData.caseId
+			/*
+			let caseId = saveDraftResponseData.caseId;
+			*/
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
