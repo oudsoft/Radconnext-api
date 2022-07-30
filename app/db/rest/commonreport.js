@@ -632,7 +632,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           send Admin Notify
           */
           let subject = 'Cuase of API not found local user owner case socket'
-          let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfFileName, responseId);
+          let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfReportFileName, responseId);
           msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
           let caseData = await db.cases.findAll({ where: {id: caseId}});
           msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));

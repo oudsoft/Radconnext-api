@@ -167,8 +167,7 @@
         imageFiles = imgFiles;
         maximum = imageFiles.length - 1;
         currentPlaySportIndex = 0;
-        $(imgBox).css({'width': playOptions.imageSize + 'px'});
-        doCreateMySponsor();
+        reCreateImg(currentPlaySportIndex);
       });
       $(fileChooser).click();
     });
@@ -225,25 +224,43 @@
     $(editPlaySettingCmd).hide();
   });
 
+  const reCreateImg = function(n){
+    let foundImg = doFindImage(n);
+    let imageLink = foundImg.imageLink;
+    let fileId = foundImg.fileId;
+    doCreateImg(imageLink, fileId, (img)=>{
+      $(sponsorBox).empty().append($(img));
+      if (playOptions.showFileName === true) {
+        $(sponsorBox).append($('<span>' + fileId + '</span>').css({'position': 'absolute', 'top': '2px', 'left': '2px', 'z-index': '11'}));
+      }
+      $(sponsorBox).append($(editPlaySettingCmd));
+      $(editPlaySettingCmd).on('click', (evt)=>{
+        doOpenSettingForm(evt, (newSettingValue)=>{
+          //doStartPlay();
+        });
+      });
+    });
+  }
+
   const arrowKeydownEvt = function(evt, doStartPlay){
     switch (evt.keyCode) {
       case 39:
         /* Arrow Right */
+        doStopSponsorTimer();
         ++currentPlaySportIndex;
         if (currentPlaySportIndex >= imageFiles.length) {
           currentPlaySportIndex = 0;
         }
-        doStopSponsorTimer();
-        doPlaySport(currentPlaySportIndex);
+        reCreateImg(currentPlaySportIndex);
       break;
       case 37:
         /* Arrow Left */
+        doStopSponsorTimer();
         --currentPlaySportIndex;
         if (currentPlaySportIndex < 0) {
           currentPlaySportIndex = imageFiles.length - 1;
         }
-        doStopSponsorTimer();
-        doPlaySport(currentPlaySportIndex);
+        reCreateImg(currentPlaySportIndex);
       break;
       case 38:
         /* Arrow Up */
@@ -357,7 +374,7 @@
                 doStartPlay();
               });
             });
-            //$(sponsorBox).focus();
+
             doStartPlay();
           });
         }
@@ -366,9 +383,11 @@
       doPlaySport(currentPlaySportIndex);
 
       $(sponsorBox).on('keydown', (evt)=>{
-        arrowKeydownEvt(evt, doPlaySport, doStartPlay);
+        arrowKeydownEvt(evt, doStartPlay);
       });
-
+      $(sponsorBox).on('click', (evt)=>{
+        $(sponsorBox).focus();
+      });
       resolve();
     });
   }
