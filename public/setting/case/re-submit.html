@@ -106,10 +106,10 @@
     });
   }
 
-  const doReZipCase = function(caseId){
-    let callUrl = '/api/cases/rezip/' + caseId;
-    let params = {};
-    $.get(callUrl, params).then((response) => {
+  const doReZipCase = function(hospitalId, userId, studyID, dicomZipFilename){
+    let callUrl = '/api/cases/rezip';
+    let params = {hospitalId, userId, studyID, dicomZipFilename};
+    $.post(callUrl, params).then((response) => {
       //resolve(response);
       console.log(response);
       alert('OK');
@@ -335,7 +335,7 @@
           } else {
             let reZipCmd = $('<input type="button" value="Re-Zip"/>');
             $(reZipCmd).on('click', (evt)=>{
-              doReZipCase(cases[i].id);
+              doReZipCase(cases[i].hospitalId, cases[i].userId, cases[i].Case_OrthancStudyID, cases[i].Case_DicomZipFilename);
             });
             $(cmdCol).append($(reZipCmd));
             $(cmdCol).append($('<span>  </span>'));

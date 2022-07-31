@@ -100,6 +100,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
   });
 
   setTimeout(async()=> {
+    const a4Width = 842;
     const a4Height = 1182;
     const underResultH = 410;
 

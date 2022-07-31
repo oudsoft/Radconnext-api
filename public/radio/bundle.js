@@ -3113,6 +3113,10 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'clientreconnecttrigger';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'rezip') {
+			let eventName = 'triggerrezip';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {studyID: data.studyID, dicomZipFilename: data.dicomZipFilename}}});
+			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
 		}
@@ -8087,9 +8091,9 @@ module.exports = function ( jq ) {
 		A4 Height = 1122.52 px / 297 mm
 		ต้องเพิ่ม font-size, line-height ด้วย
 		*/
-		const fontSize = 18;
+		const fontSize = 11;
 		const lineHeight = 20;
-		const resultBoxStyle = {'position': 'relative', 'width': '100%', 'font-family': '"Trirong", sans-serif', 'font-size': fontSize+'px', 'line-height': lineHeight+'px'};
+		const resultBoxStyle = {'position': 'relative', 'width': '1004px', 'font-family': '"Tahoma", sans-serif', 'font-size': fontSize+'px', 'line-height': lineHeight+'px'};
 
 		let resultBox = $('<div></div>');
 		$(resultBox).css(resultBoxStyle);

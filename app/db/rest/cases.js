@@ -1011,31 +1011,17 @@ app.get('/list/(:hospitalId)', async (req, res) => {
   res.json({Result: "OK", Records: cases, TotalRecordCount: cases.length});
 });
 
-app.get('/rezip/(:caseId)', async (req, res) => {
-  const caseId = req.params.caseId;
-  const hostname = req.hostname;
-  const cases = await Case.findAll({attributes: ['hospitalId', 'Case_DicomZipFilename', 'Case_OrthancStudyID'], where: {id: caseId}});
-  const rootAppDir = path.normalize(__dirname + '/../../..');
-  const usrArchiveDir = uti.fmtStr('%s%s', rootAppDir, process.env.USRARCHIVE_DIR);
-  if (cases.lemgth > 0) {
-    let archiveFileName = cases[0].Case_DicomZipFilename;
-    let archiveFilePath = usrArchiveDir + '/' + archiveFileName;
-    let isExist = fs.existsSync(archiveFilePath);
-    if (isExist) {
-      let clearZipCommand = uti.fmtStr('rm %s', archiveFilePath);
-      await uti.runcommand(clearZipCommand);
-    }
-    let hospitalId = cases[0].hospitalId;
-    let studyID = cases[0].Case_OrthancStudyID;
-    uti.doLoadOrthancTarget(hospitalId, hostName).then(async (orthanc) => {
-      let cloud = JSON.parse(orthanc.Orthanc_Cloud);
-      let orthancUrl = uti.fmtStr('http://%s:%s', cloud.ip, cloud.httpport);
-      let command = 'curl --user ' + cloud.user + ':' + cloud.pass + ' -H "user: ' + cloud.user + '" ' + orthancUrl + '/studies/' + studyID + '/archive > ' + archiveFilePath;
-      let output = await uti.runcommand(command);
-      res.json({status: {code: 200}, command: command, output: output});
-    });
-  } else {
-    res.json({status: {code: 204}, output: 'Case not found.'});
+app.post('/rezip', async (req, res) => {
+  let hospitalId = req.body.hospitalId;
+  let studyID = req.body.studyID;
+  let dicomZipFilename = req.body.dicomZipFilename;
+  let userId = req.body.userId;
+  let ownerUsers = await db.users.findAll({ attributes: ['username'], where: {id: userId}});
+  let ownerUsername = ownerUsers[0].username;
+  let ownerSockets = await socket.filterUserSocket(ownerUsername);
+  if (ownerSockets) {
+    let dataMessage = {type: 'rezip', studyID: studyID, dicomZipFilename: dicomZipFilename};
+    await ownerSockets.send(JSON.stringify(dataMessage));
   }
 });
 
