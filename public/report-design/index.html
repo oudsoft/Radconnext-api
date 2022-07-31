@@ -213,6 +213,8 @@
   }
   const doPreviewReport = async function(event) {
     let reportElements = await doCollectElement();
+    let reportJSON = JSON.stringify(reportElements);
+    console.log(reportJSON);
     let wrapperBox = $("<div></div>");
     $(wrapperBox).css({"width": "100%", "postion": "relative", "height": "100vh"});
     $(wrapperBox).css({"font-family": "THSarabunNew"});
@@ -356,6 +358,7 @@
   const doSaveReport = async function(event) {
     let reportElements = await doCollectElement();
     let reportJSON = JSON.stringify(reportElements);
+    console.log(reportJSON);
     let apiUrl, params;
     if (mode) {
       if (mode.name === 'new') {
@@ -367,7 +370,6 @@
       }
     } else {
       alert('It can not save report because of your hosid is undefined.');
-      console.log(reportJSON);
       return;
     }
 
@@ -467,7 +469,7 @@
     let apiUrl = '/api/hospitalreport/select/' + hosId;
     let params = {};
     doGetApi(apiUrl, params).then(async(result) => {
-      console.log(result);
+      //console.log(result);
       if (result.Records.length == 0){
         mode = {name: 'new'};
       } else {
@@ -478,10 +480,10 @@
 
         let newRatio = doCalRatio();
         let wrapper = $("#report-container");
-        console.log(content);
+        //console.log(content);
         await content.forEach(async (item, i) => {
           let reportElem = {};
-          console.log(item);
+          //console.log(item);
           await Object.getOwnPropertyNames(item).forEach((tag) => {
             /*
             if (tag === 'x') {
@@ -498,7 +500,7 @@
             */
             reportElem[tag] = item[tag];
           });
-          console.log(reportElem);
+          //console.log(reportElem);
           doCreateElement(wrapper, item.elementType, reportElem);
         });
 

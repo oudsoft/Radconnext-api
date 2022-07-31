@@ -395,18 +395,20 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
 
     let newTask = await tasks.doCreateNewTaskCase(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
-      if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
-        let nextList = await doCanNextStatus(nowcaseStatus[0].casestatusId);
-        log.info('nextList=> ' + JSON.stringify(nextList.next));
-        const caseExpireStatusId = 4;
-        let canExpired = (nextList.next.indexOf(caseExpireStatusId) >= 0);
-        if (canExpired) {
-          await doCaseExpireAction(tasks, caseId, socket, caseExpireStatusId, radioProfile, userProfile, caseMsgData, userProfile.hospitalName);
+      if (nowcaseStatus.length > 0){
+        if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+          let nextList = await doCanNextStatus(nowcaseStatus[0].casestatusId);
+          log.info('nextList=> ' + JSON.stringify(nextList.next));
+          const caseExpireStatusId = 4;
+          let canExpired = (nextList.next.indexOf(caseExpireStatusId) >= 0);
+          if (canExpired) {
+            await doCaseExpireAction(tasks, caseId, socket, caseExpireStatusId, radioProfile, userProfile, caseMsgData, userProfile.hospitalName);
+          } else {
+            log.info('case ' + caseId + ' can not set to expire because not found its next ' + JSON.stringify(nextList.next));
+          }
         } else {
-          log.info('case ' + caseId + ' can not set to expire because not found its next ' + JSON.stringify(nextList.next));
+          await tasks.removeTaskByCaseId(caseId);
         }
-      } else {
-        await tasks.removeTaskByCaseId(caseId);
       }
     });
     let endTime = newTask.triggerAt;
@@ -518,24 +520,25 @@ const doCreateTaskWarning = function(warnings, caseId, radioProfile, triggerTime
     const action = 'quick';
     let newTask = await warnings.doCreateNewWarningTask(caseId, triggerTime, radioProfile.username, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
-      log.info('Warning Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
-      //if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
-      if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
-        let msgFmt = 'เคสของผู้ป่วยชื่อ %s จากโรงพยาบาล %s เหลือเวลาส่งผลอ่านอีก 10 นาที';
-        let msg = uti.fmtStr(msgFmt, caseMsgData.patientNameEN, caseMsgData.hospitalName);
-        let notify = {type: 'notify', message: msg, statusId: baseCaseStatusId, caseId: caseId};
-        await socket.sendMessage(notify, radioProfile.username);
-        // Chatbot message to Radio
-        if ((radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-          let lineCaseMsg = 'แจ้งเตือน\n\n' + msg + '\n\n' + 'ใช้งานอื่นจากเมนู';
-          let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
-          await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+      if (nowcaseStatus.length > 0) {
+        log.info('Warning Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
+        //if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+        if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
+          let msgFmt = 'เคสของผู้ป่วยชื่อ %s จากโรงพยาบาล %s เหลือเวลาส่งผลอ่านอีก 10 นาที';
+          let msg = uti.fmtStr(msgFmt, caseMsgData.patientNameEN, caseMsgData.hospitalName);
+          let notify = {type: 'notify', message: msg, statusId: baseCaseStatusId, caseId: caseId};
+          await socket.sendMessage(notify, radioProfile.username);
+          // Chatbot message to Radio
+          if ((radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+            let lineCaseMsg = 'แจ้งเตือน\n\n' + msg + '\n\n' + 'ใช้งานอื่นจากเมนู';
+            let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+            await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+          }
+        } else {
+          await warnings.removeTaskByCaseId(caseId);
         }
-      } else {
-        await warnings.removeTaskByCaseId(caseId);
       }
     });
-
     resolve(newTask);
   });
 }
