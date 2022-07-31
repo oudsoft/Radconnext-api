@@ -333,11 +333,6 @@
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openCaseLogCmd));
           } else {
-            let reZipCmd = $('<input type="button" value="Re-Zip"/>');
-            $(reZipCmd).on('click', (evt)=>{
-              doReZipCase(cases[i].hospitalId, cases[i].userId, cases[i].Case_OrthancStudyID, cases[i].Case_DicomZipFilename);
-            });
-            $(cmdCol).append($(reZipCmd));
             $(cmdCol).append($('<span>  </span>'));
             let reDicomCmd = $('<input type="button" value="Re-Dicom"/>');
             $(reDicomCmd).on('click', (evt)=>{
@@ -356,6 +351,11 @@
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(showTaskCmd));
           }
+          let reZipCmd = $('<input type="button" value="Re-Zip"/>');
+          $(reZipCmd).on('click', (evt)=>{
+            doReZipCase(cases[i].hospitalId, cases[i].userId, cases[i].Case_OrthancStudyID, cases[i].Case_DicomZipFilename);
+          });
+          $(cmdCol).append($(reZipCmd).css({'margin-left': '5px'}));
         }
         setTimeout(()=> {
           resolve2($(caseTable));
