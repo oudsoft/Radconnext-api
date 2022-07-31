@@ -1018,7 +1018,9 @@ app.post('/rezip', async (req, res) => {
   let userId = req.body.userId;
   let ownerUsers = await db.users.findAll({ attributes: ['username'], where: {id: userId}});
   let ownerUsername = ownerUsers[0].username;
+  log.info('ownerUsername=>' + ownerUsername);
   let ownerSockets = await socket.filterUserSocket(ownerUsername);
+  log.info('ownerSockets=>' + JSON.stringify(ownerSockets));
   if ((ownerSockets) && (ownerSockets.length > 0)) {
     let dataMessage = {type: 'rezip', studyID: studyID, dicomZipFilename: dicomZipFilename};
     await ownerSockets[0].send(JSON.stringify(dataMessage));
