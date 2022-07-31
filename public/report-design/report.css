@@ -82,8 +82,10 @@
 #report-wrapper {
   position: relative;
   width: 1004px;
-  /* font-family: 'Tahoma', sans-serif; */
+  font-family: 'Tahoma', sans-serif;
+  /*
   font-family: THSarabunNewBold;
+   */
   font-size: 10px;
 }
 
