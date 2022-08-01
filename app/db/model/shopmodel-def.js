@@ -168,6 +168,9 @@ const ShopBillDef = {
   },
   Remark : {
   	type: Sequelize.TEXT,
+  },
+  Report : {
+    type: Sequelize.JSONB,
   }
 };
 const ShopTaxInvoiceDef = {
@@ -188,6 +191,9 @@ const ShopTaxInvoiceDef = {
   },
   Remark : {
   	type: Sequelize.TEXT,
+  },
+  Report : {
+    type: Sequelize.JSONB,
   }
 };
 const ShopPaytypeDef = {

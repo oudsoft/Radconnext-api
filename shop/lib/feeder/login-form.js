@@ -324,8 +324,8 @@
       errorMessageBox: errorMessageBox,
       rememberMeOptionBox: rememberMeOptionBox,
       loginButtonCmd: loginButtonCmd,
-
-      doUserClickLogin: doUserClickLogin
+      doUserClickLogin: doUserClickLogin,
+      isMobileDevice: isMobileDeviceCheck
     }
 
     return output;

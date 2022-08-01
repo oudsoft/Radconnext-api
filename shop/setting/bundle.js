@@ -404,12 +404,13 @@ module.exports = function ( jq ) {
       $(closeOrderTable).append($(dataRow));
 
       let middleActionCmdRow = $('<tr></tr>').css({'height': '40px'});
-      let commandCell = $('<td colspan="2" align="center"></td>');
+      let commandCell = $('<td colspan="2" align="center" id="MiddleActionCmdCell"></td>');
       $(middleActionCmdRow).append($(commandCell));
       $(closeOrderTable).append($(middleActionCmdRow));
 
 			if (orderObj.Status == 1) {
 	      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์ใบแจ้งหนี้', '#F5500E', 'white', '#5D6D7E', '#FF5733');
+				$(createInvoiceCmd).attr('id', 'CreateInvoiceCmd');
 				$(createInvoiceCmd).on('click', async(evt)=>{
 					let shopId = shopData.id;
 					let nextInvoiceNo = '000000001';
@@ -590,7 +591,7 @@ module.exports = function ( jq ) {
   				reportPdfDlgHandle.closeAlert();
 					if (closeCallback) {
 						closeCallback();
-					}					
+					}
   			}
   		}
   		let reportPdfDlgHandle = $('body').radalert(reportformoption);
@@ -1950,13 +1951,13 @@ module.exports = function ( jq ) {
     let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let formRow = $('<tr></tr>');
     let nameCell = $('<td width="20%" align="left"></td>');
-    let priceCell = $('<td width="10%" align="left"></td>');
+    let priceCell = $('<td width="15%" align="left"></td>');
     let unitCell = $('<td width="15%" align="left"></td>');
-    let groupCell = $('<td width="30%" align="left"></td>');
+    let groupCell = $('<td width="20%" align="left"></td>');
     let commandCell = $('<td width="*" align="left"></td>');
-    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '80px'});
-    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '40px'});
-    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '60px'});
+    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '50px'});
+    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '30px'});
+    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '40px'});
     let groupSelect = $('<select></select>').css({'width': '80px'});
     let menugroups = JSON.parse(localStorage.getItem('menugroups'));
     menugroups.forEach((item, i) => {
@@ -3434,7 +3435,7 @@ module.exports = function ( jq ) {
 								let shareCode = orders[i].invoice.Filename.split('.')[0];
 								window.open('/shop/share/?id=' + shareCode, '_blank');
 							});
-							$(invoiceBox).append($(openInvoicePdfCmd)).append($(openInvoicePdfCmd));
+							$(invoiceBox).append($(openInvoicePdfCmd)).append($(openInvoiceQrCmd));
 							$(orderBox).append($(invoiceBox));
 						} else if ((orders[i].Status == 3) || (orders[i].Status == 4)) {
 							$(orderBox).css({'background-color': 'green'});

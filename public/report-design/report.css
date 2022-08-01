@@ -2,14 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Trirong:wght@200&family=Maitree:wght@100&display=swap');
 @font-face { font-family: THSarabunNew; src: url("../font/THSarabunNew.ttf");}
 @font-face { font-family: THSarabunNewBold; src: url("../font/THSarabunNew Bold.ttf");}
-@font-face {
-  font-family: "Trirong";
-  font-style: normal;
-  font-weight: 900;
-  /*
-  src: url("https://fonts.googleapis.com/css2?family=Trirong:wght@200&family=Maitree:wght@100&display=swap");
-  */
-}
 
 /* Style the top navigation bar */
 .topnav {
@@ -82,16 +74,17 @@
 #report-wrapper {
   position: relative;
   width: 1004px;
-  font-family: 'Tahoma', sans-serif;
+  font-family: Tahoma, Verdana, Segoe, sans-serif;
   /*
   font-family: THSarabunNewBold;
    */
-  font-size: 10px;
+  font-size: 14px;
 }
-
+/*
 b {font-size: 18px; font-weight: bold;}
 strong {font-size: 18px; font-weight: bold;}
 p {line-height: 28px}
+*/
 
 #report-item {
   background-color: gray;

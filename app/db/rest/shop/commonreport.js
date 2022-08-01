@@ -410,8 +410,15 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
-						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath
-						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage, qrLink: qrlink});
+						let htmlFilePath = usrPdfPath + '/' + htmlFileName;
+						let pngFileName = fileNames[0] + '.png';
+						let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
+						//let createReportPNGCommnand = fmtStr('convert -density 288 %s -resize 25% %s', reportPdfFilePath, reportPNGFilePath);
+						let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+						await runcommand(createReportPNGCommnand);
+						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath;
+						let reportPNGLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pngFileName;
+						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPNGLinkPath: reportPNGLinkPath, reportPages: pdfPage, qrLink: qrlink});
 					}).catch((cmderr) => {
 						log.error('cmderr: 500 >>', cmderr);
 						reject(cmderr);
@@ -498,7 +505,7 @@ const doCreateReport = function(orderId, docType, shopId){
 	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			}
 
-	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink}});
+	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink, pngLink: docReport.reportPNGLinkPath}});
 
 			let from = reportVar.print_status;
 			let canUpdateStatus = doCanUpdateOrederStatus(from, docType);

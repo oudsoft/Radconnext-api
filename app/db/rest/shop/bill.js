@@ -207,6 +207,7 @@ app.post('/create/report', (req, res) => {
         let docType = 2;
         let shopId = req.body.shopId;
         let docRes = await commonReport.doCreateReport(orderId, docType, shopId);
+        await db.bills.update({Report: docRes.doc}, { where: { orderId: orderId } });
         if (docRes.status.code == 200) {
           res.json({status: {code: 200}, result: docRes.doc});
         } else if (docRes.status.code == 300) {
