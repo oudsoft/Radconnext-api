@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+   <meta charset="utf-8">
+   <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>My Share Home</title>
+   <script type="text/javascript" src="../../lib/jquery.js"></script>
+   <script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+   <script type="text/javascript" src="image-tools.js"></script>
+   <style>
+     @font-face { font-family: EkkamaiStandard; src: url("../../font/EkkamaiStandard-Light.ttf");}
+     body {font-family: EkkamaiStandard;}
+   </style>
+ </head>
+ <body>
+ </body>
+</html>
+<script type="text/javascript">
+  const cropImageBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'border': '2px solid grey', 'background-color': '#ddd', 'text-align': 'left'});
+
+  const cropOption = {cropWidth: 470, cropHeight: 720, scale: 1.0};
+  const myCropImageBox = $(cropImageBox).imagecrop(cropOption);
+
+  $('body').append($(cropImageBox));
+
+  //return myCropImageBox;
+
+</script>

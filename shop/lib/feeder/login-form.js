@@ -75,15 +75,13 @@
           window.location.replace('/shop/setting/admin.html');
         break;
         case 4:
-          /*
           let isMobileDevice = isMobileDeviceCheck();
           if (isMobileDevice) {
             window.location.replace('/shop/mobile/index.html');
           } else {
             window.location.replace('/shop/setting/admin.html');
           }
-          */
-          window.location.replace('/shop/mobile/index.html');
+          //window.location.replace('/shop/mobile/index.html');
         break;
         case 5:
           //window.location.replace('/refer/index.html');
