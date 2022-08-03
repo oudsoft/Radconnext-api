@@ -141,9 +141,9 @@ app.post('/change/logo', (req, res) => {
         let updateGroup = req.body.data;
         await db.menugroups.update(updateGroup, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
-        if (menugroups.length > 0){
+        if ((menugroups.length > 0) && (menugroups[0].GroupPicture)) {
           let shopPubDir = path.join(__dirname, '../../../../');
-          let delteFilePath = shopPubDir + menugroups[0].ฌพนียPicture.substr(1);
+          let delteFilePath = shopPubDir + menugroups[0].GroupPicture.substr(1);
           if (fs.existsSync(delteFilePath)) {
             await fs.unlinkSync(delteFilePath);
           }

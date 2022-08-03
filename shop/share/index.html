@@ -78,13 +78,14 @@
   const shareUrl = shopHomeUrl + '/share/?id=' + id;
   const shareCmd = doCreateShareCmd(shareUrl);
   const downloadCmd = doCreateDownloadCmd('/shop' + imageUrl);
+  const announceBox = $('<div style="width: 100%; text-align: left;"></div>');
   const imgBox = doCreateImgBox('/shop' + imageUrl);
   const viewPage = $('<div style="width: 100%; text-align: center;"></div>');
   const sponsorBox = $('<div style="position: relative; min-height: 120px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
   const bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
 
   $(bottomBar).append($(downloadCmd)).append($(shareCmd));
-  $(viewPage).append($(sponsorBox)).append($(imgBox)).append($(bottomBar));
+  $(viewPage).append($(sponsorBox)).append($(announceBox)).append($(imgBox)).append($(bottomBar));
   $('body').append($(viewPage)).css({'text-align': 'center'});
 
   /***************************************************************/
@@ -280,8 +281,8 @@
   let playOptions = {
     delay: 7,
     mode: 'normal',
-    showFileName: true,
-    imageSize: 130
+    showFileName: false,
+    imageSize: 190
   }
   let imageFiles = [];
   let minimum = 0;
@@ -401,4 +402,16 @@
     doCreateMySponsor();
   });
 
+  let announceHTML = '<h2 style="color: red;">ขอช่วยพิจารณา</h2><p>โฆษณาสปอร์ตที่นำเสนออยู่ด้านบน</p><p>หากพิจารณาว่ามีประโยชน์โปรดช่วยแชร์ให้พรรคพวกเพื่อนฝูงญาติพี่น้องด้วยนะครับ</p><p>หากไม่เหมาะสมต้องขออภัยด้วยครับ</p>'
+  $(announceBox).html(announceHTML).css({'line-height': '22px', 'border': '2px solid red'});
+  setTimeout(()=>{
+    $(announceBox).slideUp('slow');
+  }, 20000);
+
+  let visitCounter = localStorage.getItem("page_view");
+  if (visitCounter) {
+     localStorage.setItem("page_view", (Number(visitCounter)+1));
+  } else {
+    localStorage.setItem("page_view", 1);
+  }
 </script>
