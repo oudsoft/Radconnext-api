@@ -5,18 +5,18 @@
 //$('head').append('<script src="' + domainNameUrl + '/lib/jquery.js"></script>');
 $('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/fabric.js"></script>');
 setTimeout(()=>{
-	$('head').append('<link href="https://radconnext.tech/shop/lib/tui-image-editor.min.css" rel="stylesheet">');
-	$('head').append('<link href="https://radconnext.tech/shop/lib/tui-color-picker.css" rel="stylesheet">');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/tui-code-snippet.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/tui-color-picker.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/tui-image-editor.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/simpleUpload.min.js"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/setting/plugin/jqury-readystate-plugin.js"></script>');
+	$('head').append('<link href="https://radconnext.tech/lib/tui-image-editor.min.css" rel="stylesheet">');
+	$('head').append('<link href="https://radconnext.tech/lib/tui-color-picker.css" rel="stylesheet">');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-code-snippet.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-color-picker.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-image-editor.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/simpleUpload.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/setting/plugin/jqury-readystate-plugin.js"></script>');
 
-	$('head').append('<script src="https://radconnext.tech/shop/lib/RecordRTC.min.js"></script>');
+	$('head').append('<script src="https://radconnext.tech/lib/RecordRTC.min.js"></script>');
 
-	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/shop/stylesheets/style.css" type="text/css" />');
-	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/shop/case/css/scanpart.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
 	$('head').append('<script src="https://radconnext.tech/shop/lib/player.js?ty=67x1k10"></script>');
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
