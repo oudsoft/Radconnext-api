@@ -12,7 +12,6 @@ const USRUPLOAD_DIR = process.env.SHOP_USRUPLOAD_DIR;
 const currentDir = __dirname;
 const parentDir = path.normalize(currentDir + '/..');
 const usrUploadDir = path.join(__dirname, '../../../', USRUPLOAD_DIR);
-
 const maxUploadSize = 900000000;
 
 const upload = multer({
@@ -159,7 +158,7 @@ module.exports = function (app) {
 			res.status(200).send({status: {code: 200}, text: 'ok upload image on template.', link: link});
 		}).catch((err) => {
 			console.log('err: 500 >>', err);
-      res.status(500).send({status: {code: 500}, error: ree});
+      res.status(500).send({status: {code: 500}, error: err});
 		});
 	});
 
@@ -167,11 +166,31 @@ module.exports = function (app) {
     let seriesId = req.params.seriesId;
     let shopUsrUploadDir = path.join(__dirname, '../../../', USRUPLOAD_DIR);
     let usrSeriesDir = shopUsrUploadDir + '/' + seriesId;
-    console.log(usrSeriesDir);
     fs.readdir(usrSeriesDir, (err, files) => {
       res.status(200).send(files);
     });
   });
+
+  app.post('/shop/upload/share', upload.array('picture'), function(req, res) {
+    const usrQRCodePath = '/shop/img/usr/qrcode';
+    const newCode = genUniqueID();
+    var shopQRCodeImgDir = path.join(__dirname, '../../../', usrQRCodePath);
+		var newFileName = newCode + '.png';
+		var imgPath = req.files[0].destination + '/' + req.files[0].filename;
+		var newPath = shopQRCodeImgDir + '/'  + newFileName;
+		var readStream = fs.createReadStream(imgPath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+
+		var command = parseStr('rm %s', imgPath);
+		runcommand(command).then((stdout) => {
+			var link =  usrQRCodePath + '/' + newFileName;
+      res.status(200).send({status: {code: 200}, link: link, code: newCode, shareLink: '/shop/share/?id=' + newCode});
+		}).catch((err) => {
+			console.log('err: 500 >>', err);
+			res.status(500).send({status: {code: 500}, error: err});
+		});
+	});
 
 	return {
 		genUniqueID,

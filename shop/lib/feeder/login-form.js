@@ -6,6 +6,7 @@
     }, options );
 
     const $this = this;
+    const browserSupports = ["chrome", "firefox", "safari", "opera", "edge"];
 
     //let mainBox = undefined;
     let signinTextBox = undefined;
@@ -99,7 +100,13 @@
   			if (userdata !== 'undefined') {
   				userdata = JSON.parse(userdata);
   				if (userdata && userdata.usertype){
-  					gotoYourPage(userdata.usertype.id)
+            let userAgent = doBrowserDetect();
+            if (browserSupports.includes(userAgent)) {
+  					  gotoYourPage(userdata.usertype.id);
+            } else {
+              let bowserNotSupportBox = doCreateUserBowserNotSupportBox();
+              $this.append($(bowserNotSupportBox));
+            }
   				}
   			}
   		}
@@ -113,6 +120,25 @@
   			return false;
   		}
   	}
+
+    const doBrowserDetect = function(){
+       let userAgent = navigator.userAgent;
+       let browserName;
+       if(userAgent.match(/chrome|chromium|crios/i)){
+           browserName = "chrome";
+       }else if(userAgent.match(/firefox|fxios/i)){
+         browserName = "firefox";
+       }  else if(userAgent.match(/safari/i)){
+         browserName = "safari";
+       }else if(userAgent.match(/opr\//i)){
+         browserName = "opera";
+       } else if(userAgent.match(/edg/i)){
+         browserName = "edge";
+       }else{
+         browserName="No browser detection";
+       }
+       return browserName;
+    }
 
     const doCreateSigninTextBox = function(){
       let signinTextBox = $('<div></div>');
@@ -293,6 +319,11 @@
         $(errorMsgBox).find('.errormessage').text('').text(errorMsg);
         $(errorMsgBox).show();
       }
+    }
+
+    const doCreateUserBowserNotSupportBox = function(){
+      let notSupportBox = $('<div><h3>โปรดเปลี่ยน Browser เป็น Google Chrome, Firefox หรือ MS Edge</h3></div>');
+      return $(notSupportBox)
     }
 
     const init = function() {

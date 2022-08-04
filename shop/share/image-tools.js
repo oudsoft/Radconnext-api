@@ -22,14 +22,13 @@
     const doOpenFileChooser = function(){
       let fileChooser = $('<input type="file" accept="image/png, image/jpeg"/>');
       $(fileChooser).css({'display': 'none'});
+      settings.scale = 1.0;
       $(fileChooser).on('change', (evt)=> {
         let selectedFiles = evt.currentTarget.files;
         let fileURL = window.URL.createObjectURL(selectedFiles[0]);
         let imageSrc = doCreateSourceImage(fileURL);
         $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
         $(imageSrc).on('click', (evt)=>{
-          //console.log(imageSrc.offsetLeft);
-          //console.log(imageSrc.offsetTop);
           let x = undefined;
           let y = undefined;
           if (settings.scale == 1.0) {
@@ -39,11 +38,17 @@
             x = (evt.pageX - imageSrc.offsetLeft) * (imgSrcFullSizeWidth/imageSrc.width);
             y = (evt.pageY - imageSrc.offsetTop) * (imgSrcFullSizeHeight/imageSrc.height);
           }
-          //console.log(x, y);
-          //console.log(settings);
           let cropCanvas = document.getElementById('CropCanvas');
+
           cropCanvas.width = settings.cropWidth;
           cropCanvas.height = settings.cropHeight;
+          
+          /*
+          cropCanvas.width = settings.cropWidth * (imageSrc.width/imgSrcFullSizeWidth);
+          cropCanvas.height = settings.cropHeight * (imageSrc.height/imgSrcFullSizeHeight);
+          $('#WInput').val(cropCanvas.width);
+          $('#HInput').val(cropCanvas.height);
+          */
           let ctx = cropCanvas.getContext('2d');
           ctx.drawImage(imageSrc, x, y, settings.cropWidth, settings.cropHeight, 0, 0, settings.cropWidth, settings.cropHeight);
           let dataURL = cropCanvas.toDataURL("image/png", 0.9);
@@ -102,8 +107,8 @@
 
     const doCreateWHInputBox = function(inputCallback, zoomCallback){
       let whInputBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'border': '2px solid grey'});;
-      let wInput = $('<input type="number"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
-      let hInput = $('<input type="number"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      let wInput = $('<input type="number" id="WInput"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      let hInput = $('<input type="number" id="HInput"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
       let applyCmd = $('<input type="button" value="Apply"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(applyCmd).on('click', (evt)=>{
         let w = $(wInput).val();
