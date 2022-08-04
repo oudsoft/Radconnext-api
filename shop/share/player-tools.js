@@ -22,7 +22,7 @@ setTimeout(()=>{
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');
 		$(myPBox).css({'position': 'absolute', 'width': '45%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '100px'});
-		let myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330});
+		let myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/'});
 		$('body').append($(myPBox));
 
 		$(myPBox).draggable({containment: "parent"});

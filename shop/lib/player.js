@@ -518,7 +518,7 @@
 
     const doAppendTuiPlugin = function(){
       return new Promise(function(resolve, reject) {
-        $('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+        //$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
         setTimeout(()=>{
           resolve();
         }, 1200);
@@ -526,7 +526,7 @@
     }
 
     const doOpenEditor = function(fileURL){
-      doAppendTuiPlugin().then(()=>{
+      //doAppendTuiPlugin().then(()=>{
         let w = $(playerViewBox).find('.imgbox').find('img').width();
         let h = $(playerViewBox).find('.imgbox').find('img').height();
         var editorbox = $('<div id="EditorBox"></div>');
@@ -566,7 +566,7 @@
         		$(this).css({'min-height': '60px'});
         	}
         });
-      });
+      //});
     }
 
     const fullSceenChangeHandler = function(evt){
