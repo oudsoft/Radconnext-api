@@ -1,8 +1,4 @@
 /* player-tools.js */
-//let domainNameUrl = 'https://' + window.location.hostname;
-//let domainNameUrl = 'https://localhost:4443'
-//console.log(domainNameUrl);
-//$('head').append('<script src="' + domainNameUrl + '/lib/jquery.js"></script>');
 $('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/fabric.js"></script>');
 setTimeout(()=>{
 	$('head').append('<link href="https://radconnext.tech/lib/tui-image-editor.min.css" rel="stylesheet">');
