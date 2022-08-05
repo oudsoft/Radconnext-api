@@ -60,11 +60,11 @@
     return $(downloadIconCmd);
   }
   const doCreateCustomEditorCmd = function(){
-    let openCustomEditorCmdCmd = $('<img src="/images/image-icon.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+    let openCustomEditorCmdCmd = $('<img src="/images/image-icon.png" style="cursor: pointer; margin-left: 20px; width: 80px; height: auto;"/>');
     $(openCustomEditorCmdCmd).on('click', (evt)=>{
       doOpenEditor();
     });
-    return $(openCustomEditorCmdCmd);
+    return $(openCustomEditorCmdCmd).css({'position': 'relative', 'display': 'inline-block', 'top': '16px'});
   }
   const doCreateImgBox = function(imgUrl) {
     let img = new Image();
