@@ -8,6 +8,8 @@
    <script type="text/javascript" src="../lib/jquery.js"></script>
    <script type="text/javascript" src="../lib/jquery-ui.min.js"></script>
    <script type="text/javascript" src="../lib/plugin/jquery-radutil-plugin.js"></script>
+   <script type="text/javascript" src="../lib/imageeditor.js"></script>
+   <script type="text/javascript" src="./editor-tools.js"></script>
    <link href="../lib/jquery-ui.min.css" rel="stylesheet">
    <style>
      @font-face { font-family: EkkamaiStandard; src: url("../font/EkkamaiStandard-Light.ttf");}
@@ -57,6 +59,13 @@
     });
     return $(downloadIconCmd);
   }
+  const doCreateCustomEditorCmd = function(){
+    let openCustomEditorCmdCmd = $('<img src="/images/image-icon.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+    $(openCustomEditorCmdCmd).on('click', (evt)=>{
+      doOpenEditor();
+    });
+    return $(openCustomEditorCmdCmd);
+  }
   const doCreateImgBox = function(imgUrl) {
     let img = new Image();
     img.src = imgUrl;
@@ -78,13 +87,14 @@
   const shareUrl = shopHomeUrl + '/share/?id=' + id;
   const shareCmd = doCreateShareCmd(shareUrl);
   const downloadCmd = doCreateDownloadCmd('/shop' + imageUrl);
+  const openCustomEditor = doCreateCustomEditorCmd();
   const announceBox = $('<div style="width: 100%; text-align: left;"></div>');
   const imgBox = doCreateImgBox('/shop' + imageUrl);
   const viewPage = $('<div style="width: 100%; text-align: center;"></div>');
   const sponsorBox = $('<div style="position: relative; min-height: 120px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
   const bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
 
-  $(bottomBar).append($(downloadCmd)).append($(shareCmd));
+  $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(openCustomEditor));
   $(viewPage).append($(sponsorBox)).append($(announceBox)).append($(imgBox)).append($(bottomBar));
   $('body').append($(viewPage)).css({'text-align': 'center'});
 

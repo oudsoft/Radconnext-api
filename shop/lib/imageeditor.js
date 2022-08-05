@@ -4,8 +4,9 @@
     var settings = $.extend({
       cWidth: 100,
       cHeight: 100,
-      imageInit: '/images/ai-icon.png',
-      uploadApiUrl: '/api/shareupload'
+      //imageInit: 'https://radconnext.tech/shop/img/usr/myqr.png',
+      imageInit: '',
+      uploadApiUrl: '/api/shop/upload/share'
     }, options );
 
     const $this = this;
@@ -35,18 +36,14 @@
     }
 
     const doCreateImageEditor = function(imageData, maxWidth, maxHeight) {
-      var imageEditor = new tui.ImageEditor('#CaptureCanvasDiv', {
+      var createOptions = {
         includeUI: {
-          loadImage: {
-            path: imageData,
-            name: 'Blank'
-          },
-          menu: [/*'undo', 'redo', 'reset', */'crop', 'rotate', 'draw', 'shape', 'icon', 'text'],
+          menu: ['undo', 'redo', 'reset', 'crop', 'rotate', 'draw', 'shape', 'icon', 'text'],
           initMenu: 'text',
           menuBarPosition: 'bottom',
           uiSize: {
-            width: '100%',
-            height: '400px'
+            width: '200%',
+            height: '600px'
           },
         },
         cssMaxWidth: maxWidth,
@@ -55,7 +52,11 @@
           cornerSize: 20,
           rotatingPointOffset: 70
         }
-      });
+      };
+      if ((imageData) && (imageData !== '')) {
+        createOptions.includeUI.loadImage = {path: imageData, name: 'Blank'};
+      }
+      var imageEditor = new tui.ImageEditor('#CaptureCanvasDiv', createOptions);
       return imageEditor;
     }
 
@@ -212,7 +213,6 @@
         let editorContentHeight = (settings.cHeight + 320);
         $(captureCanvasDiv).css({'height': editorContentHeight + 'px', 'top': '20px'});
       };
-
 
       modalFooter = $('<div id="ModalFooterBar" style="position: relative; width: 100%; height: auto; text-align: center; padding: 4px; border: 2px solid blue; background-color: #BBCBFC; margin-top: 10px; height: 42px;"></div>');
       $(modalContent).append($(modalFooter));

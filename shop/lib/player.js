@@ -91,7 +91,7 @@
 
     const doCreateImageEditorCmd = function(){
       let editorCmd = $('<img data-toggle="tooltip" title="Edit"/>');
-      $(editorCmd).attr('src', settings.iconRootPath+ '/images/image-editor-icon.png?ty=7906');
+      $(editorCmd).attr('src', settings.iconRootPath+ '/images/image-editor-icon.png?ty=4306');
       $(editorCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
       $(editorCmd).on('click', (evt)=>{
         let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
@@ -526,47 +526,45 @@
     }
 
     const doOpenEditor = function(fileURL){
-      //doAppendTuiPlugin().then(()=>{
-        let w = $(playerViewBox).find('.imgbox').find('img').width();
-        let h = $(playerViewBox).find('.imgbox').find('img').height();
-        var editorbox = $('<div id="EditorBox"></div>');
-        $(editorbox).css({ 'position': 'absolute', 'width': '60%', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'top': '4px;'});
-        $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
-        $('body').append($(editorbox));
-        let previewPopup = $('<div id="PopupPreview"></div>');
-        $(previewPopup).css({ 'position': 'absolute', 'z-index': '559', 'text-align': 'center', 'top': '4px'});
-        $('body').append($(previewPopup));
+      let w = $(playerViewBox).find('.imgbox').find('img').width();
+      let h = $(playerViewBox).find('.imgbox').find('img').height();
+      var editorbox = $('<div id="EditorBox"></div>');
+      $(editorbox).css({ 'position': 'absolute', 'width': '60%', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'top': '4px;'});
+      $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
+      $('body').append($(editorbox));
+      let previewPopup = $('<div id="PopupPreview"></div>');
+      $(previewPopup).css({ 'position': 'absolute', 'z-index': '559', 'text-align': 'center', 'top': '4px'});
+      $('body').append($(previewPopup));
 
-        $(editorbox).append($('<canvas id="CaptureCanvas" width="100%" height="auto" style="position: relative; margin-top: 4px;"/>'));
+      $(editorbox).append($('<canvas id="CaptureCanvas" width="100%" height="auto" style="position: relative; margin-top: 4px;"/>'));
 
-        let canvas = document.getElementById('CaptureCanvas');
-        let ctx =  canvas.getContext('2d');
-        ctx.canvas.width = w;
-        ctx.canvas.height = h;
+      let canvas = document.getElementById('CaptureCanvas');
+      let ctx =  canvas.getContext('2d');
+      ctx.canvas.width = w;
+      ctx.canvas.height = h;
 
-        let pluginOption = {
-          canvas: canvas,
-          cWidth: w,
-          cHeight: h,
-          imageInit: fileURL,
-          uploadApiUrl: '/api/shop/upload/share'
-        };
+      let pluginOption = {
+        canvas: canvas,
+        cWidth: w,
+        cHeight: h,
+        imageInit: fileURL,
+        uploadApiUrl: '/api/shop/upload/share'
+      };
 
-        const myEditor = $(editorbox).imageeditor(pluginOption);
-        $(editorbox).resizable({
-        	containment: 'parent',
-        	stop: function(evt) {
-        		$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-        	}
-        });
+      const myEditor = $(editorbox).imageeditor(pluginOption);
+      $(editorbox).resizable({
+      	containment: 'parent',
+      	stop: function(evt) {
+      		$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+      	}
+      });
 
-        $(previewPopup).draggable({
-        	containment: "parent",
-        	stop: function(evt) {
-        		$(this).css({'min-height': '60px'});
-        	}
-        });
-      //});
+      $(editorbox).draggable({
+      	containment: "parent",
+      	stop: function(evt) {
+      		$(this).css({'min-height': '60px'});
+      	}
+      });
     }
 
     const fullSceenChangeHandler = function(evt){
