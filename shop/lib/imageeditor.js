@@ -42,8 +42,8 @@
           initMenu: 'text',
           menuBarPosition: 'bottom',
           uiSize: {
-            width: '200%',
-            height: '600px'
+            width: '100%',
+            height: '500px'
           },
         },
         cssMaxWidth: maxWidth,

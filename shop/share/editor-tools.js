@@ -1,7 +1,7 @@
 //*editor-tools.js */
 const doOpenEditor = function(fileURL){
-  let w = $(playerViewBox).find('.imgbox').find('img').width();
-  let h = $(playerViewBox).find('.imgbox').find('img').height();
+  let w = 470;
+  let h = 720;
   var editorbox = $('<div id="EditorBox"></div>');
   $(editorbox).css({ 'position': 'absolute', 'width': '60%', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'top': '4px;'});
   $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
