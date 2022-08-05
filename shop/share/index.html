@@ -8,9 +8,21 @@
    <script type="text/javascript" src="../lib/jquery.js"></script>
    <script type="text/javascript" src="../lib/jquery-ui.min.js"></script>
    <script type="text/javascript" src="../lib/plugin/jquery-radutil-plugin.js"></script>
+   <!--
+   <script type="text/javascript" src="../../lib/fabric.js"></script>
+   <script type="text/javascript" src="../../lib/tui-code-snippet.min.js"></script>
+   <script type="text/javascript" src="../../lib/tui-color-picker.js"></script>
+   <script type="text/javascript" src="../../lib/tui-image-editor.min.js"></script>
+   <script type="text/javascript" src="../../lib/simpleUpload.min.js"></script>
    <script type="text/javascript" src="../lib/imageeditor.js"></script>
+   <link href="../../lib/tui-image-editor.min.css" rel="stylesheet">
+   <link href="../../lib/tui-color-picker.css" rel="stylesheet">
+
+  -->
    <script type="text/javascript" src="./editor-tools.js"></script>
+   
    <link href="../lib/jquery-ui.min.css" rel="stylesheet">
+
    <style>
      @font-face { font-family: EkkamaiStandard; src: url("../font/EkkamaiStandard-Light.ttf");}
      body {font-family: EkkamaiStandard;}
@@ -40,7 +52,7 @@
 
   const doCreateShareCmd = function(myLiffUrl){
     //let myLiffUrl = 'https://liff.line.me/1655999531-z5xnKvpR?id=' + id;
-    let lineShareIconCmd = $('<img src="/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;"/>');
+    let lineShareIconCmd = $('<img src="/images/wide-default.png" style="cursor: pointer; width: 100px; height: auto;" title="แชร์ภาพเข้าห้องแช็ทของไลน์"/>');
     $(lineShareIconCmd).on('click', (evt)=>{
       let linkTarget = 'https://social-plugins.line.me/lineit/share?url=' + myLiffUrl;
       window.open(linkTarget, '_blank');
@@ -48,7 +60,7 @@
     return $(lineShareIconCmd);
   }
   const doCreateDownloadCmd = function(imgSrc){
-    let downloadIconCmd = $('<img src="/images/download-icon-2.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;"/>');
+    let downloadIconCmd = $('<img src="/images/download-icon-2.png" style="cursor: pointer; margin-left: 10px; width: 100px; height: auto;" title="ดาวน์โหลดภาพ"/>');
     $(downloadIconCmd).on('click', (evt)=>{
       let imgPaths = imgSrc.split('/');
       let saveFileName = imgPaths[imgPaths.length-1];
@@ -60,7 +72,7 @@
     return $(downloadIconCmd);
   }
   const doCreateCustomEditorCmd = function(){
-    let openCustomEditorCmdCmd = $('<img src="/images/image-icon.png" style="cursor: pointer; margin-left: 20px; width: 80px; height: auto;"/>');
+    let openCustomEditorCmdCmd = $('<img src="/images/image-icon.png" style="cursor: pointer; margin-left: 20px; width: 80px; height: auto;" title="ฉันอยากมีภาพแบบนี้ด้วย"/>');
     $(openCustomEditorCmdCmd).on('click', (evt)=>{
       doOpenEditor();
     });

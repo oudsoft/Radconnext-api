@@ -38,7 +38,7 @@
     const doCreateImageEditor = function(imageData, maxWidth, maxHeight) {
       var createOptions = {
         includeUI: {
-          menu: ['undo', 'redo', 'reset', 'crop', 'rotate', 'draw', 'shape', 'icon', 'text'],
+          menu: [/*'undo', 'redo', 'reset',*/ 'crop', 'rotate', 'draw', 'shape', 'icon', 'text'],
           initMenu: 'text',
           menuBarPosition: 'bottom',
           uiSize: {
@@ -55,6 +55,8 @@
       };
       if ((imageData) && (imageData !== '')) {
         createOptions.includeUI.loadImage = {path: imageData, name: 'Blank'};
+      } else {
+        createOptions.includeUI.loadImage = {name: 'Blank'};
       }
       var imageEditor = new tui.ImageEditor('#CaptureCanvasDiv', createOptions);
       return imageEditor;
@@ -201,12 +203,17 @@
       $(captureCanvasDiv).append($(settings.canvas));
       $(modalContent).append($(captureCanvasDiv));
 
+      if ((settings.imageInit) && (settings.imageInit !== '')) {
+        ///
+      } else {
+        settings.imageInit = '../../images/tools-icon-wh.png';
+      }
+
       let img = new Image();
       img.src = settings.imageInit;
       img.onload = function() {
         let iWidth = this.width;
         let iHeight = this.height;
-
         let imageEditor = doCreateImageEditor(settings.imageInit, settings.cWidth, settings.cHeight);
         settings.imageEditor = imageEditor;
         $('.tui-image-editor-header-logo').hide();
