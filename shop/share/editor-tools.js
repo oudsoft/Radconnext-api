@@ -51,6 +51,9 @@ const doOpenEditor = function(fileURL){
 
       $(editorbox).draggable({
         containment: "parent",
+        start: function(evt) {
+          evt.stopPropagation();
+        },
         stop: function(evt) {
           $(this).css({'min-height': '60px'});
         }
