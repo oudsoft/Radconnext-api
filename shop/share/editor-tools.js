@@ -48,7 +48,7 @@ const doOpenEditor = function(fileURL){
           $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
         }
       });
-
+      /*
       $(editorbox).draggable({
         containment: "parent",
         start: function(evt) {
@@ -58,6 +58,7 @@ const doOpenEditor = function(fileURL){
           $(this).css({'min-height': '60px'});
         }
       });
+      */
       $('body').css({'min-height': '1250px'});
     }, 1500);
   }, 2200);
