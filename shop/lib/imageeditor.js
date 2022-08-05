@@ -201,6 +201,9 @@
 
       let captureCanvasDiv = $('<div id="CaptureCanvasDiv" style="position: relative; margin-top: 0px; padding: 2px; width: 100%; height: auto;"></div>');
       $(captureCanvasDiv).append($(settings.canvas));
+      $(captureCanvasDiv).on('click', (evt)=>{
+        evt.stopPropagation();
+      });
       $(modalContent).append($(captureCanvasDiv));
 
       if ((settings.imageInit) && (settings.imageInit !== '')) {
