@@ -425,4 +425,9 @@
   } else {
     localStorage.setItem("page_view", 1);
   }
+  if(typeof(EventSource) !== "undefined") {
+    $(announceBox).css({'background-color': 'green', 'color': 'white'});
+  } else {
+    $(announceBox).css({'background-color': 'grey', 'color': 'white'});
+  }
 </script>

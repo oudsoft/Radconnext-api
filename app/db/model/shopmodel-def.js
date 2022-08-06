@@ -53,6 +53,11 @@ const ShopUserInfoDef = {
 	User_LineID :  {
 		type: Sequelize.STRING(80)
 	}
+  /*
+  User_LineUserId
+  User_LineDisplayName
+
+  */
 };
 
 const ShopShopDef = {
