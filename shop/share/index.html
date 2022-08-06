@@ -417,16 +417,34 @@
   $(announceBox).html(announceHTML).css({'line-height': '22px', 'border': '2px solid red'});
   setTimeout(()=>{
     $(announceBox).slideUp('slow');
+    $(announceBox).empty();
   }, 20000);
 
   let visitCounter = localStorage.getItem("page_view");
   if (visitCounter) {
-     localStorage.setItem("page_view", (Number(visitCounter)+1));
+    localStorage.setItem("page_view", (Number(visitCounter)+1));
   } else {
     localStorage.setItem("page_view", 1);
   }
   if(typeof(EventSource) !== "undefined") {
     $(announceBox).css({'background-color': 'green', 'color': 'white'});
+    var source = new EventSource("/sse/events");
+    source.onmessage = function(event) {
+      //document.getElementById("result").innerHTML += event.data + "<br>";
+      //console.log(event);
+      let data = JSON.parse(event.data);
+      //console.log(data);
+      /*
+      data.forEach((item) => {
+        $(announceBox).append($('<p>' + item.info + '</p>'));
+      });
+      */
+      $(announceBox).append($('<p>' + data.info + '</p>'));
+
+      if ($(announceBox).css('display') === 'none') {
+        $(announceBox).slideDown('slow');
+      }
+    };
   } else {
     $(announceBox).css({'background-color': 'grey', 'color': 'white'});
   }

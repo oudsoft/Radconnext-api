@@ -19,8 +19,11 @@ const os = require('os');
 const fs = require('fs');
 
 const express = require('express');
-//const proxy = require('express-http-proxy');
+const bodyParser = require('body-parser');
 const mainApp = express();
+
+mainApp.use(bodyParser.json());
+mainApp.use(bodyParser.urlencoded({extended: false}));
 
 const debug = require('debug')('config:server');
 const http = require('http');
@@ -68,7 +71,7 @@ mainApp.use('/shop', controlOrigin, express.static(__dirname + '/../shop'));
  */
 
 
-httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
+httpsServer = https.createServer(credentials, mainApp);
 httpsServer.listen(port);
 httpsServer.on('error', onError);
 httpsServer.on('listening', onListening);
@@ -108,6 +111,8 @@ mainApp.get('/', (req, res) => {
   log.info('METHODE = ' + req.method);
 })
 
+mainApp.get('/sse/events', sseEventsHandler);
+mainApp.post('/sse/fact', sseAddFact);
 /**
  * Normalize a port into a number, string, or false.
  */
@@ -195,20 +200,49 @@ function doGetAllRootApp() {
 }
 
 /*
-Server Request Listener
+SSE Service
 */
-function reqListener(request, response) {
-  const hostname = req.headers.host;
-	const rootname = req.originalUrl.split('/')[1];
-  log.info('hostname = ' + hostname);
-  log.info('rootname = ' + rootname);
-  log.info('METHODE = ' + request.method);
-  if (request.method == 'POST') {
-  } else if (request.method == 'PUT') {
-  } else if (request.method == 'GET') {
-  } else if (request.method == 'DELETE') {
-  } else {
-    response.writeHead(405);
-  }
-  response.end();
+let clients = [];
+let facts = [];
+
+function sseEventsHandler(request, response, next) {
+  const headers = {
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+    'Cache-Control': 'no-cache'
+  };
+  response.writeHead(200, headers);
+
+  const data = `data: ${JSON.stringify(facts)}\n\n`;
+
+  response.write(data);
+
+  const clientId = Date.now();
+
+  const newClient = {
+    id: clientId,
+    response
+  };
+
+  clients.push(newClient);
+
+  request.on('close', () => {
+    console.log(`${clientId} Connection closed`);
+    clients = clients.filter(client => client.id !== clientId);
+  });
+}
+
+function sseSendEventsToAll(newFact) {
+  clients.forEach((client) => {
+		console.log('client=>' + client.id);
+		client.response.write(`data: ${JSON.stringify(newFact)}\n\n`)
+	})
+}
+
+async function sseAddFact(request, respsonse, next) {
+  const newFact = request.body;
+	console.log('newFact=>' + JSON.stringify(newFact));
+  facts.push(newFact);
+  respsonse.json(newFact)
+  return sseSendEventsToAll(newFact);
 }
