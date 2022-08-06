@@ -430,19 +430,12 @@
     $(announceBox).css({'background-color': 'green', 'color': 'white'});
     var source = new EventSource("/sse/events");
     source.onmessage = function(event) {
-      //document.getElementById("result").innerHTML += event.data + "<br>";
-      //console.log(event);
       let data = JSON.parse(event.data);
-      //console.log(data);
-      /*
-      data.forEach((item) => {
-        $(announceBox).append($('<p>' + item.info + '</p>'));
-      });
-      */
-      $(announceBox).append($('<p>' + data.info + '</p>'));
-
-      if ($(announceBox).css('display') === 'none') {
-        $(announceBox).slideDown('slow');
+      if (data.info !== undefined) {
+        $(announceBox).append($('<p>' + data.info + '</p>'));
+        if ($(announceBox).css('display') === 'none') {
+          $(announceBox).slideDown('slow');
+        }
       }
     };
   } else {

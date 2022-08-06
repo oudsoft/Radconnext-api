@@ -22,8 +22,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mainApp = express();
 
-mainApp.use(bodyParser.json());
-mainApp.use(bodyParser.urlencoded({extended: false}));
+mainApp.use(express.json({limit: '900mb', extended: true, parameterLimit: 50000}));
+mainApp.use(bodyParser.urlencoded({ limit: '900mb', extended: true, parameterLimit: 50000 }));
 
 const debug = require('debug')('config:server');
 const http = require('http');
