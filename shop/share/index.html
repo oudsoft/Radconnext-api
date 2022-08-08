@@ -164,6 +164,20 @@
     $(showFileNameSelectorCell).append($(showFileNameSelector));
     $(dataRow).append($(showFileNameSelectorCell));
     $(closeOrderTable).append($(dataRow));
+
+
+    dataRow = $('<tr></tr>').css({'height': '40px'});
+    $(dataRow).append($('<td align="left"><b>Move Box</b></td>'));
+    let moveBoxSelector = $('<select id="MoveBox"></select>');
+    $(moveBoxSelector).append($('<option value="true">Yes</option>'));
+    $(moveBoxSelector).append($('<option value="false">No</option>'));
+    $(moveBoxSelector).val(playOptions.canmove.toString());
+    let moveBoxSelectorCell = $('<td align="left"></td>');
+    $(moveBoxSelectorCell).append($(moveBoxSelector));
+    $(dataRow).append($(moveBoxSelectorCell));
+    $(closeOrderTable).append($(dataRow));
+
+
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td align="left"><b>Image Size</b></td>'));
     let imageSizeInput = $('<input id="ImageSize" type="number"/><span> px</span>').css({'width': '80px'}).val(playOptions.imageSize);
@@ -189,7 +203,13 @@
           delay: Number($(delayInput).val()),
           mode: $(modeSelector).val(),
           showFileName: ($(showFileNameSelector).val()=='true')?true:false,
+          canmove: ($(moveBoxSelector).val()=='true')?true:false,
           imageSize: Number($(imageSizeInput).val())
+        }
+        if (playOptions.canmove) {
+          $(sponsorBox).draggable({containment: "parent"});
+        } else {
+          $(sponsorBox).draggable('destroy');
         }
         callback(playOptions);
       };
@@ -216,9 +236,14 @@
           delay: Number($(customerDlgContent).find('#DelayTime').val()),
           mode: $(customerDlgContent).find('#PlayMode').val(),
           showFileName: ($(customerDlgContent).find('#ShowFileName').val()=='true')?true:false,
+          canmove: ($(customerDlgContent).find('#MoveBox').val()=='true')?true:false,
           imageSize: Number($(customerDlgContent).find('#ImageSize').val())
         }
-        //console.log(playOptions);
+        if (playOptions.canmove) {
+          $(sponsorBox).draggable({containment: "parent"});
+        } else {
+          $(sponsorBox).draggable('destroy');
+        }
         customerFormBoxHandle.closeAlert();
         callback(playOptions);
       },
@@ -293,6 +318,7 @@
     delay: 7,
     mode: 'normal',
     showFileName: false,
+    canmove: false,
     imageSize: 190
   }
   let imageFiles = [];
