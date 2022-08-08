@@ -27,6 +27,7 @@ const parentDir = path.normalize(currentDir + '/..');
 const usrUploadDir = path.join(__dirname, '../../', USRUPLOAD_DIR);
 
 const maxUploadSize = 900000000;
+const archiveMaxUploadSize = 9000000000;
 
 const upload = multer({
   dest: usrUploadDir,
@@ -48,7 +49,9 @@ const importer = multer({
 }).single('bestand');
 */
 const tempDicomDir = usrUploadDir + '/temp';
+const usrZipDir = path.join(__dirname, '../../', process.env.USRARCHIVE_DIR);
 const importer = multer({dest: tempDicomDir, limits: {fileSize: maxUploadSize}});
+const transferZipper = multer({dest: usrZipDir, limits: {fileSize: archiveMaxUploadSize}});
 
 const parseStr = function (str) {
   var args = [].slice.call(arguments, 1),
@@ -146,6 +149,7 @@ module.exports = function (app) {
 
   app.post('/portal/archiveupload', importer.single('archiveupload'), function(req, res) {
 		var filename = req.file.originalname;
+		info.log('originalname=> ' + req.file.originalname);
 		var fullnames = filename.split('.');
 		var newFileName = genUniqueID() + '.zip';
 		var archivePath = req.file.destination + '/' + req.file.filename;
@@ -203,7 +207,7 @@ module.exports = function (app) {
 		var writeStream = fs.createWriteStream(newPath);
 		readStream.pipe(writeStream);
 
-    setTimeout(async()=>{
+	    setTimeout(async()=>{
       var XLSX = require('xlsx');
       var workbook = XLSX.readFile(newPath);
       var sheet_name_list = workbook.SheetNames;
@@ -212,6 +216,27 @@ module.exports = function (app) {
   		var command = parseStr('rm %s & rm %s', archivePath, newPath);
   		runcommand(command);
     }, 3000);
+	});
+
+	app.post('/transfer/archive', transferZipper.single('archiveupload'), function(req, res) {
+		var filename = req.file.originalname;
+		var archivePath = req.file.destination + '/' + req.file.filename;
+		var newPath = req.file.destination + '/'  + filename;
+		/*
+		console.log('originalname=> ' + req.file.originalname);
+		console.log('destination=> ' + req.file.destination);
+		console.log('archivePath=>' + archivePath);
+		console.log('newPath=>' + newPath);
+		*/
+		var readStream = fs.createReadStream(archivePath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+		setTimeout(async()=>{
+			var command = parseStr('rm %s', archivePath);
+			//console.log(command);
+			let out = await runcommand(command);
+			res.status(200).send({status: {code: 200}, archive: {name: req.file.originalname, link: process.env.USRARCHIVE_PATH + '/' + req.file.originalname}});
+		}, 1000);
 	});
 
   app.post('/usr/upload/share/list', function(req, res) {

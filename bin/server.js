@@ -227,7 +227,7 @@ function sseEventsHandler(request, response, next) {
   clients.push(newClient);
 
   request.on('close', () => {
-    console.log(`${clientId} Connection closed`);
+    //console.log(`${clientId} Connection closed`);
     clients = clients.filter(client => client.id !== clientId);
   });
 }
