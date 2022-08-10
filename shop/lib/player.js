@@ -41,6 +41,9 @@
     let playerCmdBox = undefined;
     let playerViewBox = undefined;
 
+    let recorder =undefined;
+    let captureDimension = undefined;
+
     const doCreateNextCmd = function(){
       let nextImgCmd = $('<img id="NextCmd" data-toggle="tooltip" title="Next"/>');
       $(nextImgCmd).attr('src', settings.iconRootPath + '/images/next-cmd-icon.png');
@@ -82,8 +85,8 @@
     const doCreateRecordSwitch = function(onStartRecord, onStopRecord){
 			let recordSwitchBox = $('<div style="position: relative; display: inline-block; margin-left: 10px; top: -10px;"></div>');
 			let recordOption = {
-				onActionCallback: ()=>{onStartRecord()},
-				offActionCallback: ()=>{onStopRecord()}
+				onActionCallback: (evt)=>{onStartRecord(evt)},
+				offActionCallback: (evt)=>{onStopRecord(evt)}
 			};
 			recordSwitch = $(recordSwitchBox).readystate(recordOption);
       return $(recordSwitchBox)
@@ -207,9 +210,10 @@
         playImg.src = fileURL;
         playImg.id = 'ImagePreview';
 
-        let imgBox = $(playerViewBox).find('.imgbox').empty();
+        let imgBox = $(playerViewBox).find('.imgbox');
+        $(imgBox).empty();
+
         playImg.onload = function() {
-          //console.log(fileURL);
           $(imgBox).append($(this));
           let w = $(this).width();
           let h = $(this).height();
@@ -219,24 +223,28 @@
           } else {
             $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
           }
+
           $(this).on('click', (evt)=>{
             window.open(fileURL, '_blank');
           });
 
           let recordState = recordSwitch.getState();
           if (recordState == true){
-            let imageCanvas = $('#ImageCanvas')[0];
-            let ctx = $(imageCanvas).getContext("2d");
-            ctx.drawImage(playImg, 0, 0, w, h);
-            $(imgCanvas).on('click', (evt)=>{
-              window.open(fileURL, '_blank');
-            });
-
+            let localVideo = document.getElementById('LocalVideo');
+            let playerCanvas = document.getElementById('ImageCanvas');
+            let ctx = playerCanvas.getContext("2d");
             if (w > h) {
-              $(imgCanvas).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
+              //playerCanvas.style.width = /*captureDimension.height*/ 'auto';
+              playerCanvas.height = captureDimension.width;
+              //localVideo.style.width = captureDimension.height + 'px';
+              //localVideo.style.height = captureDimension.width + 'px';
             } else {
-              $(imgCanvas).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
+              playerCanvas.width = captureDimension.width;
+              playerCanvas.height = captureDimension.height;
             }
+            ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
+            localVideo.style.width = captureDimension.width + 'px';
+            localVideo.style.height = captureDimension.height + 'px';
           }
 
           if (fullScreenMode == true) {
@@ -654,66 +662,85 @@
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
 
-    let recorder = undefined;
-
-    const doStartRecord = function(){
-      let imgBox = $(playerViewBox).find('.imgbox');
+    const doStartRecord = function(evt){
       let imgCanvas = $('<canvas id="ImageCanvas"></canvas>');
-      $(imgCanvas).css({'Width': (settings.imgSize + 'px'), 'Height':  'auto', 'cursor': 'pointer'});
+      $(imgCanvas).css({'position': 'absolute', 'width': (settings.imgSize + 'px'), 'height':  'auto', 'display': 'none', 'top': '10px'});
+      $(playerViewBox).append($(imgCanvas));
+      $(imgCanvas).draggable({containment: 'body'});
 
+      let imgBox = $(playerViewBox).find('.imgbox');
       let fileURL = $(imgBox).find('img').prop('src');
-      console.log(fileURL);
 
+      let ww = $(imgBox).width();
+      let hh = $(imgBox).height();
+      captureDimension = {width: ww, height: hh};
 
       let playImg = new Image();
       playImg.src = fileURL;
 
+      let playerCanvas = document.getElementById('ImageCanvas');
+      let playerStream = playerCanvas.captureStream(30);
+      recorder = new MediaRecorder(playerStream, {
+        mimeType: 'video/webm'
+      });
+      recorder.start();
 
-      //let imgCanvas = document.getElementById('ImageCanvas');;
-      //console.log(imgCanvas);
+      let ctx = playerCanvas.getContext("2d");
       playImg.onload = function() {
-        let w = $(this).width();
-        let h = $(this).height();
-
-        let ctx = $(imgCanvas)[0].getContext("2d");
-        ctx.drawImage(playImg, 0, 0, w, h);
-        /*
-        $(imgCanvas).on('click', (evt)=>{
-          window.open(fileURL, '_blank');
-        });
-        */
-        if (w > h) {
-          $(imgCanvas).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
+        //let w = $(this)[0].naturalWidth;
+        //let h = $(this)[0].naturalHeight;
+        if (ww > hh) {
+          $(this).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
+          playerCanvas.width = hh;
+          playerCanvas.height = ww;
+          localVideo.style.width = hh + 'px';
+          localVideo.style.height = ww + 'px';
         } else {
-          $(imgCanvas).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
+          $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
+          playerCanvas.width = ww;
+          playerCanvas.height = hh;
+          localVideo.style.width = ww + 'px';
+          localVideo.style.height = hh + 'px';
         }
+        ctx.drawImage(playImg, 0, 0, ww, hh);
       }
-      recorder = new RecordRTCPromisesHandler(imgCanvas, {
-        type: 'canvas',
-        disableLogs: false
-      });
-      $(imgBox).append($(imgCanvas));
-
-      recorder.startRecording();
+      var localVideo = document.createElement('video');
+      $(playerViewBox).append($(localVideo));
+      localVideo.id = 'LocalVideo';
+      localVideo.style.position = 'absolute';
+      localVideo.style.display = 'block';
+      localVideo.style.width = settings.imgSize + 'px';
+      localVideo.style.height = 'auto';
+      localVideo.style.border = '1px solid green';
+      localVideo.style.padding = '2px';
+      localVideo.style.top = '100px';
+      localVideo.controls = true;
+      localVideo.autoplay = true;
+      localVideo.crossorigin = "anonymous";
+      localVideo.srcObject = playerStream;
+      setTimeout(() => {
+        localVideo.addEventListener("canplay",  function() {
+          console.log('can');
+          localVideo.play();
+        });
+        localVideo.addEventListener("ended",  function() {
+          console.log('end');
+        });
+      }, 500);
+      $(localVideo).draggable({containment: 'body'});
     }
-    const doStopRecord = function(){
-      $('#ImagePreview').show();
-      $('#ImageCanvas').hide();
-      recorder.stopRecording(function() {
-        setTimeout(function() {
-          var blob = recorder.getBlob();
-          console.log(blob);
-          var video = document.createElement('video');
-          let blobUrl = URL.createObjectURL(blob);
-          console.log(blobUrl);
-          video.src = blobUrl;
-          //video.setAttribute('style', 'height: 100%; position: absolute; top:0; left:0;z-index:9999;width:100%;');
-          video.setAttribute('style', 'width: 330px; height: auto;');
-          document.body.appendChild(video);
-          video.controls = true;
-          video.play();
-        }, 3300);
-      });
+    const doStopRecord = function(evt){
+      recorder.ondataavailable = function(e) {
+        var url = window.URL.createObjectURL(e.data);
+        var fileName = ['video_', (new Date() + '').slice(4, 28), '.webm'].join('');
+        var pom = document.createElement('a');
+        pom.setAttribute('href', url);
+        pom.setAttribute('download', fileName);
+        pom.click();
+        let playerViewBoxideo = document.getElementById('LocalVideo');
+        $(playerViewBoxideo).remove();
+      }
+      recorder.stop();
     }
 
     document.addEventListener("fullscreenchange", fullSceenChangeHandler, false);
