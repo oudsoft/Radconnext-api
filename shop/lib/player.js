@@ -371,6 +371,7 @@
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
         let selectedFileType = selectedFiles[n].type;
+        console.log(selectedFileType);
         let fileURL = clipURL.createObjectURL(selectedFiles[n]);
         let imgName = selectedFiles[n].name;
         if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
