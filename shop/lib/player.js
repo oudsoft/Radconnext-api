@@ -387,7 +387,7 @@
 
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
-        } else if (selectedFileType === "video/mp4"){
+        } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
           if (timer) {
             window.clearTimeout(timer);
           }
