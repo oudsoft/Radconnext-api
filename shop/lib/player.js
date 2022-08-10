@@ -217,13 +217,11 @@
           $(imgBox).append($(this));
           let w = $(this).width();
           let h = $(this).height();
-
           if (w > h) {
             $(this).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
           } else {
             $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
           }
-
           $(this).on('click', (evt)=>{
             window.open(fileURL, '_blank');
           });
@@ -234,18 +232,24 @@
             let playerCanvas = document.getElementById('ImageCanvas');
             let ctx = playerCanvas.getContext("2d");
             if (w > h) {
-              playerCanvas.width = captureDimension.height;
-              playerCanvas.height = captureDimension.width;
-              ctx.drawImage(playImg, 0, 0, captureDimension.height, captureDimension.width);
+              h = settings.imgSize;
+              w = (558/330) * settings.imgSize;
+              captureDimension = {width: w, height: h};
+              //console.log(captureDimension);
+              playerCanvas.width = w;
+              playerCanvas.height = h;
+              ctx.drawImage(playImg, 0, 0, w, h);
             } else {
+              h = $(this).height();
+              w = $(this).width();
+              captureDimension = {width: w, height: h};
+              //console.log(captureDimension);
               playerCanvas.width = captureDimension.width;
               playerCanvas.height = captureDimension.height;
               ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
             }
             localVideo.style.width = captureDimension.width + 'px';
             localVideo.style.height = captureDimension.height + 'px';
-
-
           }
 
           if (fullScreenMode == true) {
@@ -688,23 +692,23 @@
 
       let ctx = playerCanvas.getContext("2d");
       playImg.onload = function() {
-        //let w = $(this)[0].naturalWidth;
-        //let h = $(this)[0].naturalHeight;
-        if (ww > hh) {
+        console.log(captureDimension);
+        if (captureDimension.width > captureDimension.height) {
+          //$('#ImageCanvas').show();
+          hh = settings.imgSize;
+          ww = (558/330) * settings.imgSize;
           $(this).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
-          playerCanvas.width = hh;
-          playerCanvas.height = ww;
-          localVideo.style.width = hh + 'px';
-          localVideo.style.height = ww + 'px';
-          ctx.drawImage(playImg, 0, 0, hh, ww);          
-        } else {
-          $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
           playerCanvas.width = ww;
           playerCanvas.height = hh;
-          localVideo.style.width = ww + 'px';
-          localVideo.style.height = hh + 'px';
           ctx.drawImage(playImg, 0, 0, ww, hh);
+        } else {
+          $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
+          playerCanvas.width = captureDimension.width;
+          playerCanvas.height = captureDimension.height;
+          ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
         }
+        localVideo.style.width = settings.imgSize + 'px';
+        localVideo.style.height = 'auto';
       }
       var localVideo = document.createElement('video');
       $(playerViewBox).append($(localVideo));
