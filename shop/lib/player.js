@@ -234,17 +234,18 @@
             let playerCanvas = document.getElementById('ImageCanvas');
             let ctx = playerCanvas.getContext("2d");
             if (w > h) {
-              //playerCanvas.style.width = /*captureDimension.height*/ 'auto';
+              playerCanvas.width = captureDimension.height;
               playerCanvas.height = captureDimension.width;
-              //localVideo.style.width = captureDimension.height + 'px';
-              //localVideo.style.height = captureDimension.width + 'px';
+              ctx.drawImage(playImg, 0, 0, captureDimension.height, captureDimension.width);
             } else {
               playerCanvas.width = captureDimension.width;
               playerCanvas.height = captureDimension.height;
+              ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
             }
-            ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
             localVideo.style.width = captureDimension.width + 'px';
             localVideo.style.height = captureDimension.height + 'px';
+
+
           }
 
           if (fullScreenMode == true) {
@@ -371,7 +372,6 @@
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
         let selectedFileType = selectedFiles[n].type;
-        console.log(selectedFileType);
         let fileURL = clipURL.createObjectURL(selectedFiles[n]);
         let imgName = selectedFiles[n].name;
         if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
@@ -696,14 +696,15 @@
           playerCanvas.height = ww;
           localVideo.style.width = hh + 'px';
           localVideo.style.height = ww + 'px';
+          ctx.drawImage(playImg, 0, 0, hh, ww);          
         } else {
           $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
           playerCanvas.width = ww;
           playerCanvas.height = hh;
           localVideo.style.width = ww + 'px';
           localVideo.style.height = hh + 'px';
+          ctx.drawImage(playImg, 0, 0, ww, hh);
         }
-        ctx.drawImage(playImg, 0, 0, ww, hh);
       }
       var localVideo = document.createElement('video');
       $(playerViewBox).append($(localVideo));
