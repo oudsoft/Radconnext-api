@@ -1048,7 +1048,7 @@ app.post('/reset/dicom/zipfilename', async (req, res) => {
 
 app.post('/newcase/trigger', async (req, res) => {
   let studyID = req.body.studyID;
-  let casesRes = await db.cases.findAll({attributes: ['id'], where: {Case_OrthancStudyID: studyID}});
+  let casesRes = await db.cases.findAll({attributes: ['id'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
   if (casesRes.length > 0) {
     let caseId = casesRes[0].id;
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);

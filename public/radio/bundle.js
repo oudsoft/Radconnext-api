@@ -5908,6 +5908,7 @@ module.exports = function ( jq ) {
 				let myCaseTitleBar = $('<div style="position: relative; width: 100%;"><h3>เคสใหม่</h3></div>');
 				$(myCaseViewBox).append($(myCaseTitleBar))
 	      let caseLists = myNewCase.Records;
+				console.log(caseLists);
 	      if (caseLists.length > 0) {
 					let myNewCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse; margin-top: -25px;"></div>');
 					$(myNewCaseView).appendTo($(myCaseViewBox));
