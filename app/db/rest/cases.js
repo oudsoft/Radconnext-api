@@ -468,11 +468,10 @@ app.post('/add', (req, res) => {
             let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName,Scanparts: newCase.Case_ScanPart};
             let scanpartAux = await common.doSaveScanpartAux(scanpartAuxData, userId);
           }
-
-          let actionAfterChange = await statusControl.onNewCaseEvent(adCase.id);
-
-          res.json({Result: "OK", status: {code: 200}, Record: adCase, actions: actionAfterChange});
+          res.json({Result: "OK", status: {code: 200}, Record: adCase});
           /*
+          let actionAfterChange = await statusControl.onNewCaseEvent(adCase.id);
+          res.json({Result: "OK", status: {code: 200}, Record: adCase, actions: actionAfterChange});
           let patients = await db.patients.findAll({attributes: ['Patient_NameEN', 'Patient_LastNameEN'], where: {id: patientId}});
           let patientNameEN = patients[0].Patient_NameEN;
           let patientLastNameEN = patients[0].Patient_LastNameEN;
@@ -1045,6 +1044,18 @@ app.post('/reset/dicom/zipfilename', async (req, res) => {
   await db.cases.update({Case_DicomZipFilename: archiveFileName}, {where: {Case_OrthancStudyID: studyID}});
   let rmDateTime = uti.removeArchiveScheduleTask(archiveFilePath);
   res.json({status: {code: 200}, result: {zip: archiveFilePath, rm: rmDateTime}});
+});
+
+app.post('/newcase/trigger', async (req, res) => {
+  let studyID = req.body.studyID;
+  let casesRes = await db.cases.findAll({attributes: ['id'], where: {Case_OrthancStudyID: studyID}});
+  if (casesRes.length > 0) {
+    let caseId = casesRes[0].id;
+    let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+    res.json({status: {code: 200}, result: actionAfterChange});
+  } else {
+    res.json({status: {code: 200}, result: 'Not Found Case'});
+  }
 });
 
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {

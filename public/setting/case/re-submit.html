@@ -120,6 +120,15 @@
     });
   }
 
+  const doCancelCase = function(caseId, hospitalId, userId){
+    let remark = 'Case Cancel By Admin'
+    let params = {caseId: caseId, casestatusId: 7, caseDescription: remark};
+    let cancelUrl = '/api/cases/status/shortcut/' + caseId;
+    $.post(cancelUrl, params).then((response) => {
+      console.log(response);
+    });
+  }
+
   function doCallLoadStudyTags(hospitalId, studyId){
     return new Promise(async function(resolve, reject) {
       let rqBody = '{"Level": "Study", "Expand": true, "Query": {"PatientName":"TEST"}}';
@@ -360,6 +369,11 @@
             doReZipCase(cases[i].hospitalId, cases[i].userId, cases[i].Case_OrthancStudyID, cases[i].Case_DicomZipFilename);
           });
           $(cmdCol).append($(reZipCmd).css({'margin-left': '5px'}));
+          let cancelCaseCmd = $('<input type="button" value="Cancel"/>');
+          $(cancelCaseCmd).on('click', (evt)=>{
+            doCancelCase(cases[i].id, cases[i].hospitalId, cases[i].userId,);
+          });
+          $(cmdCol).append($(cancelCaseCmd).css({'margin-left': '5px'}));
         }
         setTimeout(()=> {
           resolve2($(caseTable));
