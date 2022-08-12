@@ -536,7 +536,7 @@ app.post('/update', (req, res) => {
               // normal update
               newTaskOption = false;
               await Case.update(updateData, { where: { id: targetCaseId } });
-              await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+              //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
             } else {
               // un-normal update
@@ -555,7 +555,7 @@ app.post('/update', (req, res) => {
                 await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
               }
               await Case.update(updateData, { where: { id: targetCaseId } });
-              await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+              //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
             }
           } else if (nowCaseStatus == 2) {
@@ -563,7 +563,7 @@ app.post('/update', (req, res) => {
               // normal update
               newTaskOption = false;
               await Case.update(updateData, { where: { id: targetCaseId } });
-              await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+              //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
             } else {
               // un-normal update
@@ -584,7 +584,7 @@ app.post('/update', (req, res) => {
               updateData.casestatusId = 1;
               await Case.update(updateData, { where: { id: targetCaseId } });
 
-              await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+              //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
             }
           } else if ((nowCaseStatus == 4) || (nowCaseStatus == 7)) {
@@ -596,13 +596,13 @@ app.post('/update', (req, res) => {
 
             await db.caseresponses.destroy({ where: { caseId: targetCaseId } }); //<-- กรณีหมอคนก่อนแ่านผลค้างจนหมดเวลา เคสอยู่ในสถานะ draft
 
-            await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+            //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
             res.json({Result: "OK", status: {code: 200}});
           } else {
             // normal update
             newTaskOption = false;
             await Case.update(updateData, { where: { id: targetCaseId } });
-            await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
+            //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
             res.json({Result: "OK", status: {code: 200}});
           }
 
@@ -1056,6 +1056,13 @@ app.post('/newcase/trigger', async (req, res) => {
   } else {
     res.json({status: {code: 200}, result: 'Not Found Case'});
   }
+});
+
+app.post('/updatecase/trigger', async (req, res) => {
+  let caseId = req.body.caseId;
+  let newTaskOption = req.body.newTaskOption;
+  let actionAfterChange = await statusControl.onHospitalUpdateCaseEvent(caseId, newTaskOption);
+  res.json({status: {code: 200}, result: actionAfterChange});
 });
 
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {
