@@ -7913,8 +7913,8 @@ module.exports = function ( jq ) {
 	const doCallSaveResult = function(params){
 		return new Promise(function(resolve, reject) {
 			var apiUri = '/api/uicommon/radio/saveresult';
-			//$.post(apiUri, params, function(response){
 			apiconnector.doCallApi(apiUri, params).then((response)=>{
+				localStorage.removeItem('draftbackup');
 				resolve(response);
 			}).catch((err) => {
 				console.log(JSON.stringify(err));
@@ -7926,8 +7926,8 @@ module.exports = function ( jq ) {
 	const doCallSubmitResult = function(params){
 		return new Promise(function(resolve, reject) {
 			var apiUri = '/api/uicommon/radio/submitresult';
-			//$.post(apiUri, params, function(response){
 			apiconnector.doCallApi(apiUri, params).then((response)=>{
+				localStorage.removeItem('draftbackup');
 				resolve(response);
 			}).catch((err) => {
 				console.log(JSON.stringify(err));

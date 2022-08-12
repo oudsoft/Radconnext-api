@@ -43,6 +43,8 @@
 
     let recorder =undefined;
     let captureDimension = undefined;
+    let playerStream = undefined;
+    let audioStream = undefined;
 
     const doCreateNextCmd = function(){
       let nextImgCmd = $('<img id="NextCmd" data-toggle="tooltip" title="Next"/>');
@@ -234,7 +236,7 @@
             if (w > h) {
               h = settings.imgSize;
               w = (558/330) * settings.imgSize;
-              captureDimension = {width: w, height: h};
+              //captureDimension = {width: w, height: h};
               //console.log(captureDimension);
               playerCanvas.width = w;
               playerCanvas.height = h;
@@ -242,11 +244,11 @@
             } else {
               h = $(this).height();
               w = $(this).width();
-              captureDimension = {width: w, height: h};
+              //captureDimension = {width: w, height: h};
               //console.log(captureDimension);
-              playerCanvas.width = captureDimension.width;
-              playerCanvas.height = captureDimension.height;
-              ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
+              playerCanvas.width = w;
+              playerCanvas.height = h;
+              ctx.drawImage(playImg, 0, 0, w, h);
             }
             localVideo.style.width = captureDimension.width + 'px';
             localVideo.style.height = captureDimension.height + 'px';
@@ -515,17 +517,9 @@
 
     const doCreateNavBar = function(){
       let navBar = $('<div id="NavBar" style="position: relative; display: inline-block;"></div>');
-
-      //let prevCmd = $(playerViewBox).find('#PrevCmd').clone();
       let prevCmd = doCreatePrevCmd();
-
-      //let nextCmd = $(playerViewBox).find('#NextCmd').clone();
       let nextCmd = doCreateNextCmd();
       $(nextCmd).css({'margin-left': '10px'});
-
-      /*
-      return $(navBar).append($(prevCmd)).append($(nextCmd)).append($(fullScreenCmd));
-      */
       return $(navBar).append($(prevCmd)).append($(nextCmd));
     }
 
@@ -667,85 +661,154 @@
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
 
-    const doStartRecord = function(evt){
-      let imgCanvas = $('<canvas id="ImageCanvas"></canvas>');
-      $(imgCanvas).css({'position': 'absolute', 'width': (settings.imgSize + 'px'), 'height':  'auto', 'display': 'none', 'top': '10px'});
-      $(playerViewBox).append($(imgCanvas));
-      $(imgCanvas).draggable({containment: 'body'});
-
-      let imgBox = $(playerViewBox).find('.imgbox');
-      let fileURL = $(imgBox).find('img').prop('src');
-
-      let ww = $(imgBox).width();
-      let hh = $(imgBox).height();
-      captureDimension = {width: ww, height: hh};
-
-      let playImg = new Image();
-      playImg.src = fileURL;
-
-      let playerCanvas = document.getElementById('ImageCanvas');
-      let playerStream = playerCanvas.captureStream(30);
-      recorder = new MediaRecorder(playerStream, {
-        mimeType: 'video/webm'
-      });
-      recorder.start();
-
-      let ctx = playerCanvas.getContext("2d");
-      playImg.onload = function() {
-        console.log(captureDimension);
-        if (captureDimension.width > captureDimension.height) {
-          //$('#ImageCanvas').show();
-          hh = settings.imgSize;
-          ww = (558/330) * settings.imgSize;
-          $(this).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
-          playerCanvas.width = ww;
-          playerCanvas.height = hh;
-          ctx.drawImage(playImg, 0, 0, ww, hh);
-        } else {
-          $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
-          playerCanvas.width = captureDimension.width;
-          playerCanvas.height = captureDimension.height;
-          ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
-        }
-        localVideo.style.width = settings.imgSize + 'px';
-        localVideo.style.height = 'auto';
+    const formatDateStr = function(d) {
+  		var yy, mm, dd, hh, mn, ss;
+  		yy = d.getFullYear();
+  		if (d.getMonth() + 1 < 10) {
+  			mm = '0' + (d.getMonth() + 1);
+  		} else {
+  			mm = '' + (d.getMonth() + 1);
+  		}
+  		if (d.getDate() < 10) {
+  			dd = '0' + d.getDate();
+  		} else {
+  			dd = '' + d.getDate();
+  		}
+      if (d.getHours() < 10) {
+        hh = '0' + d.getHours();
+      } else {
+        hh = '' + d.getHours();
       }
-      var localVideo = document.createElement('video');
-      $(playerViewBox).append($(localVideo));
-      localVideo.id = 'LocalVideo';
-      localVideo.style.position = 'absolute';
-      localVideo.style.display = 'block';
-      localVideo.style.width = settings.imgSize + 'px';
-      localVideo.style.height = 'auto';
-      localVideo.style.border = '1px solid green';
-      localVideo.style.padding = '2px';
-      localVideo.style.top = '100px';
-      localVideo.controls = true;
-      localVideo.autoplay = true;
-      localVideo.crossorigin = "anonymous";
-      localVideo.srcObject = playerStream;
-      setTimeout(() => {
-        localVideo.addEventListener("canplay",  function() {
-          console.log('can');
-          localVideo.play();
-        });
-        localVideo.addEventListener("ended",  function() {
-          console.log('end');
-        });
-      }, 500);
-      $(localVideo).draggable({containment: 'body'});
+      if (d.getMinutes() < 10) {
+        mn = '0' + d.getMinutes();
+      } else {
+        mn = '' + d.getMinutes();
+      }
+      if (d.getSeconds() < 10) {
+        ss = '0' + d.getSeconds();
+      } else {
+        ss = '' + d.getSeconds();
+      }
+  		var td = `${yy}${mm}${dd}-${hh}${mn}${ss}`;
+  		return td;
+  	}
+
+    const delay = function(t) {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          resolve();
+        }, t);
+      });
     }
-    const doStopRecord = function(evt){
+
+    const doGetAudioStream = function() {
+      let streams = [];
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((audioStrean)=>{
+        streams.push(audioStrean);
+      });
+      return delay(100).then(()=> {
+        return streams[0];
+      });
+    }
+
+    const doStartRecord = function(evt){
+      //let promiseList = doGetAudioStream();
+      //Promise.all([promiseList]).then((ob)=>{
+        //audioStream = ob[0];
+        let imgCanvas = $('<canvas id="ImageCanvas"></canvas>');
+        $(imgCanvas).css({'position': 'absolute', 'width': (settings.imgSize + 'px'), 'height':  'auto', 'display': 'none', 'top': '10px'});
+        $(playerViewBox).append($(imgCanvas));
+        $(imgCanvas).draggable({containment: 'body'});
+
+        let imgBox = $(playerViewBox).find('.imgbox');
+        let fileURL = $(imgBox).find('img').prop('src');
+
+        let ww = $(imgBox).width();
+        let hh = $(imgBox).height();
+        captureDimension = {width: ww, height: hh};
+
+        let playImg = new Image();
+        playImg.src = fileURL;
+
+        let playerCanvas = document.getElementById('ImageCanvas');
+        playerStream = playerCanvas.captureStream(30);
+        let combinedStream = new MediaStream([...playerStream.getTracks()/*, ...audioStream.getTracks()*/]);
+        recorder = new MediaRecorder(combinedStream, {
+        //recorder = new MediaRecorder(playerCanvas, {
+          mimeType: 'video/webm'
+        });
+        recorder.start();
+
+        let ctx = playerCanvas.getContext("2d");
+        playImg.onload = function() {
+          console.log(captureDimension);
+          if (captureDimension.width > captureDimension.height) {
+            //$('#ImageCanvas').show();
+            hh = settings.imgSize;
+            ww = (558/330) * settings.imgSize;
+            $(this).css({'width': 'auto', 'height': (settings.imgSize + 'px'), 'cursor': 'pointer'});
+            playerCanvas.width = ww;
+            playerCanvas.height = hh;
+            ctx.drawImage(playImg, 0, 0, ww, hh);
+          } else {
+            $(this).css({'width': (settings.imgSize + 'px'), 'height': 'auto', 'cursor': 'pointer'});
+            playerCanvas.width = captureDimension.width;
+            playerCanvas.height = captureDimension.height;
+            ctx.drawImage(playImg, 0, 0, captureDimension.width, captureDimension.height);
+          }
+          localVideo.style.width = captureDimension.width + 'px';
+          localVideo.style.height = 'auto';
+        }
+        var localVideo = document.createElement('video');
+        $(playerViewBox).append($(localVideo));
+        localVideo.id = 'LocalVideo';
+        localVideo.style.position = 'absolute';
+        localVideo.style.display = 'block';
+        //localVideo.style.width = settings.imgSize + 'px';
+        //localVideo.style.height = 'auto';
+        localVideo.style.border = '1px solid green';
+        localVideo.style.padding = '2px';
+        localVideo.style.top = '100px';
+        localVideo.controls = true;
+        localVideo.autoplay = true;
+        localVideo.crossorigin = "anonymous";
+        localVideo.srcObject = playerStream;
+        setTimeout(() => {
+          localVideo.addEventListener("canplay",  function() {
+            console.log('can');
+            localVideo.play();
+          });
+          localVideo.addEventListener("ended",  function() {
+            console.log('end');
+          });
+        }, 500);
+        $(localVideo).draggable({containment: 'body'});
+      //});
+    }
+
+    const doStopRecord = async function(evt){
       recorder.ondataavailable = function(e) {
         var url = window.URL.createObjectURL(e.data);
-        var fileName = ['video_', (new Date() + '').slice(4, 28), '.webm'].join('');
+        var dateStr = formatDateStr(new Date());
+        var fileName = ['video-', dateStr, '.webm'].join('');
         var pom = document.createElement('a');
         pom.setAttribute('href', url);
         pom.setAttribute('download', fileName);
-        pom.click();
-        let playerViewBoxideo = document.getElementById('LocalVideo');
-        $(playerViewBoxideo).remove();
+        delay(4000).then(()=> {
+          pom.click();
+          let playerViewBoxideo = document.getElementById('LocalVideo');
+          $(playerViewBoxideo).remove();
+        });
       }
+      /*
+      await audioStream.getTracks().forEach(function(track) {
+        track.stop();
+      });
+      */
+      await playerStream.getTracks().forEach(function(track) {
+        track.stop();
+      });
+
       recorder.stop();
     }
 
