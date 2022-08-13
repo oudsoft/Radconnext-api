@@ -85,7 +85,7 @@
     }
 
     const doCreateRecordSwitch = function(onStartRecord, onStopRecord){
-			let recordSwitchBox = $('<div style="position: relative; display: inline-block; margin-left: 10px; top: -10px;"></div>');
+			let recordSwitchBox = $('<div style="position: relative; display: inline-block; margin-left: 5px; top: -10px;"></div>');
 			let recordOption = {
 				onActionCallback: (evt)=>{onStartRecord(evt)},
 				offActionCallback: (evt)=>{onStopRecord(evt)}
@@ -373,7 +373,7 @@
     }
 
     const doCreateFileListBox = function(){
-      let fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 1px solid green; top: -90px;"></div>');
+      let fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 2px solid green; top: -90px; background-color: #dddd"></div>');
     	let fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 300px; margin-top: 10px;"></select>');
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
@@ -386,8 +386,8 @@
           $(playerCmdBox).find('#NavBar').remove();
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
-          $(imgBox).draggable({containment: 'parent'});
-          $(imgBox).resizable({containment: 'parent'});
+          $(imgBox).draggable({containment: 'body', start: function(evt){evt.stopPropagation();}});
+          $(imgBox).resizable({containment: 'body'});
           if (isAutoPlay == true){
             doPlaySlide();
           }
@@ -402,8 +402,8 @@
           $(playerViewBox).find('.imgbox').remove();
           $(playerCmdBox).find('#NavBar').remove();
           doPlayExternalVideo(fileURL);
-          $(playerViewBox).find('#LocalVideo').draggable({containment: 'parent'});
-          $(playerViewBox).find('#LocalVideo').resizable({containment: 'parent'});
+          $(playerViewBox).find('#LocalVideo').draggable({containment: 'body'});
+          $(playerViewBox).find('#LocalVideo').resizable({containment: 'body'});
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
         } else if (selectedFileType === "audio/mpeg"){
@@ -414,8 +414,8 @@
           $(playerViewBox).find('.imgbox').remove();
           $(playerCmdBox).find('#NavBar').remove();
           doPlayExternalAudio(fileURL);
-          $(playerViewBox).find('#LocalAudio').draggable({containment: 'parent'});
-          $(playerViewBox).find('#LocalAudio').resizable({containment: 'parent'});
+          $(playerViewBox).find('#LocalAudio').draggable({containment: 'body'});
+          $(playerViewBox).find('#LocalAudio').resizable({containment: 'body'});
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
         }
@@ -430,7 +430,7 @@
     const doOpenFileChooser = function(){
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
-      $(srcFileListBox).draggable({containment: 'parent'});
+      $(srcFileListBox).draggable({containment: 'body'});
       $(playerViewBox).append($(srcFileListBox));
       let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
       $(fileChooser).css({'display': 'none'});
@@ -441,15 +441,16 @@
         }
         selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
-        $(playerViewBox).find('#AutoPlayCmd').attr('src', settings.iconRootPath+ '/images/start-play-icon.png');
         $(playerViewBox).find('#LocalVideo').remove();
         let filesArray = selectedFiles.toArray();
         filesArray.forEach((item, i) => {
-          let fileOption = $('<option value="' + item.type + '">' + (i+1) + '. ' + item.name + '</option>');
+          let fileOption = $('<option value="' + item.name + '">' + (i+1) + '. ' + item.name + '</option>');
           $(srcFileListBox).find('select').append($(fileOption))
         });
+        $(srcFileListBox).find('select').prop('selectedIndex', 0).change();
+        let autoPlayCmd = $(playerCmdBox).find('#AutoPlayCmd');
+        $(autoPlayCmd).attr('src', settings.iconRootPath+ '/images/start-play-icon.png');
         $(playerViewBox).append($(srcFileListBox));
-        $(playerViewBox).prop('selectedIndex', 0);
         if (timer) {
           window.clearTimeout(timer);
           $('#AuotoPlayCmd').click();
@@ -621,21 +622,21 @@
 
       let fileChooserCmd = $('<img data-toggle="tooltip" title="Open"/>');
       $(fileChooserCmd).attr('src', settings.iconRootPath+ '/images/open-file-icon.png');
-      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '5px', 'margin-left': '10px'});
+      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '5px'});
       $(fileChooserCmd).on('click', (evt)=>{
         doOpenFileChooser(evt);
       });
 
       let autoPlayCmd = $('<img id="AutoPlayCmd" data-toggle="tooltip" title="Start/Stop Slide Show"/>');
       $(autoPlayCmd).attr('src', settings.iconRootPath+ '/images/start-play-icon.png');
-      $(autoPlayCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(autoPlayCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '5px'});
       $(autoPlayCmd).on('click', (evt)=>{
         doToggleAutoPlay(evt);
       });
 
       let togglePlayListCmd = $('<img id="ImageListCmd" data-toggle="tooltip" title="Show Image List"/>');
       $(togglePlayListCmd).attr('src', settings.iconRootPath+ '/images/list-item-icom.png');
-      $(togglePlayListCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(togglePlayListCmd).css({'position': 'relative', 'width': '36px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '14px', 'margin-left': '5px'});
       $(togglePlayListCmd).on('click', (evt)=>{
         let isShow = $('#FileSrcListBox').css('display');
         if (isShow === 'block'){
@@ -649,15 +650,20 @@
 
       let minimizeWindowCmd = $('<img data-toggle="tooltip" title="Minimize Player"/>');
       $(minimizeWindowCmd).attr('src', settings.iconRootPath+ '/images/minimize-icon.png');
-      $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '8px', 'margin-left': '10px'});
+      $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '8px', 'margin-left': '5px'});
       $(minimizeWindowCmd).on('click', (evt)=>{
         doMinimizeWindow(playerCmdBox, playerViewBox);
+      });
+
+      let closePlayerBoxCmd = $('<div><span>X</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute', 'top': '2px', 'right': '2px'})
+      $(closePlayerBoxCmd).on('click', (evt)=>{
+        $($this).remove();
       });
 
       let configCmd = doCreateConfigCmd();
       let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord);
 
-      $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd)).append($(minimizeWindowCmd)).append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch));
+      $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd)).append($(minimizeWindowCmd)).append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(closePlayerBoxCmd));
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
 

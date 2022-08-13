@@ -30,7 +30,6 @@
 
   $( document ).ready(function() {
     console.log(localStorage.getItem('token'));
-
     $.ajaxSetup({
       beforeSend: function(xhr) {
         xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
@@ -121,12 +120,17 @@
   }
 
   const doCancelCase = function(caseId, hospitalId, userId){
-    let remark = 'Case Cancel By Admin'
-    let params = {caseId: caseId, casestatusId: 7, caseDescription: remark};
-    let cancelUrl = '/api/cases/status/shortcut/' + caseId;
-    $.post(cancelUrl, params).then((response) => {
-      console.log(response);
-    });
+    if (localStorage.getItem('token')) {
+      let remark = 'Case Cancel By Admin'
+      let params = {caseId: caseId, casestatusId: 7, caseDescription: remark};
+      let cancelUrl = '/api/cases/status/shortcut/' + caseId;
+      $.post(cancelUrl, params).then((response) => {
+        console.log(response);
+      });
+    } else {
+      alert('Please login before use this function.');
+      window.location.replace('/index.html');
+    }
   }
 
   function doCallLoadStudyTags(hospitalId, studyId){

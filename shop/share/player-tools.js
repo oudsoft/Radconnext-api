@@ -1,4 +1,36 @@
 /* player-tools.js */
+let myPBox = undefined;
+let myPlayerHandle = undefined;
+
+const pBoxStyle = {'position': 'absolute', 'width': '45%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '10px'};
+
+const pBoxOnKeyDownEvt = function(evt) {
+	//console.log(evt.keyCode);
+	//console.log(evt.which);
+	switch (evt.keyCode) {
+		case 39:
+			/* Arrow Right */
+			myPlayerHandle.next();
+		break;
+		case 37:
+			/* Arrow Left */
+			myPlayerHandle.prev();
+		break;
+		case 38:
+			/* Arrow Up */
+			myPlayerHandle.settings.imgSize += 10;
+			$(myPlayerHandle.player).find('video').css({'width': myPlayerHandle.settings.imgSize});
+			$(myPlayerHandle.player).find('#ImagePreview').css({'width': myPlayerHandle.settings.imgSize});
+		break;
+		case 40:
+			/* Arrow Down */
+			myPlayerHandle.settings.imgSize -= 10;
+			$(myPlayerHandle.player).find('video').css({'width': myPlayerHandle.settings.imgSize});
+			$(myPlayerHandle.player).find('#ImagePreview').css({'width': myPlayerHandle.settings.imgSize});
+		break;
+	}
+}
+
 $('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/fabric.js"></script>');
 setTimeout(()=>{
 	$('head').append('<link href="https://radconnext.tech/lib/tui-image-editor.min.css" rel="stylesheet">');
@@ -16,10 +48,9 @@ setTimeout(()=>{
 	$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
-		let myPBox = $('<div id="PBox" tabindex="1"></div>');
-		$(myPBox).css({'position': 'absolute', 'width': '45%', 'min-height': '50px;', 'max-height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '10px'});
-		let myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/'});
-		$('body').append($(myPBox));
+		myPBox = $('<div id="PBox" tabindex="1"></div>');
+		$(myPBox).css(pBoxStyle);
+		myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/'});
 
 		$(myPBox).draggable({containment: "parent"});
 		$(myPBox).resizable({containment: 'parent',
@@ -31,32 +62,34 @@ setTimeout(()=>{
 			$(myPBox).focus();
 		});
 		$(myPBox).on('keydown', (evt)=>{
-			//console.log(evt.keyCode);
-			//console.log(evt.which);
-			switch (evt.keyCode) {
-				case 39:
-					/* Arrow Right */
-					myPlayerHandle.next();
-				break;
-				case 37:
-					/* Arrow Left */
-					myPlayerHandle.prev();
-				break;
-				case 38:
-					/* Arrow Up */
-					myPlayerHandle.settings.imgSize += 10;
-					$(myPlayerHandle.player).find('video').css({'width': myPlayerHandle.settings.imgSize});
-					$(myPlayerHandle.player).find('#ImagePreview').css({'width': myPlayerHandle.settings.imgSize});
-				break;
-				case 40:
-					/* Arrow Down */
-					myPlayerHandle.settings.imgSize -= 10;
-					$(myPlayerHandle.player).find('video').css({'width': myPlayerHandle.settings.imgSize});
-					$(myPlayerHandle.player).find('#ImagePreview').css({'width': myPlayerHandle.settings.imgSize});
-				break;
-			}
+			pBoxOnKeyDownEvt(evt);
 		});
 
+		$('body').append($(myPBox));
 		$(myPBox).focus();
+		$('body').css({'width': '100%', 'heigth': '100%'});
 	}, 500);
 }, 500);
+
+/*
+let myPBox2 = $('<div id="PBox" tabindex="2"></div>');
+$(myPBox2).css(pBoxStyle);
+myPlayerHandle = $(myPBox2).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/'});
+
+$(myPBox2).draggable({containment: "parent"});
+$(myPBox2).resizable({containment: 'parent',
+	stop: function(evt) {
+		$(myPBox2).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+	}
+});
+$(myPBox2).on('click', (evt)=>{
+	$(myPBox2).focus();
+});
+$(myPBox2).on('keydown', (evt)=>{
+	pBoxOnKeyDownEvt(evt);
+});
+
+$('body').append($(myPBox2));
+$(myPBox2).find('#PlayerBox').css({'backgroud-color': 'grey'});
+$(myPBox2).focus();
+*/
