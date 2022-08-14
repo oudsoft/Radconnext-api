@@ -150,7 +150,8 @@ var toAsciidoc = function (string) {
             {
                 patterns: ['b', 'strong'],
                 replacement: function (str, attrs, innerHTML) {
-                    return innerHTML ? '**' + innerHTML + '**' : '';
+                    //return innerHTML ? '**' + innerHTML + '**' : '';
+                    return innerHTML ? innerHTML : '';
                 }
             },
             {

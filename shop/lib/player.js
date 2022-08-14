@@ -386,7 +386,12 @@
           $(playerCmdBox).find('#NavBar').remove();
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
-          $(imgBox).draggable({containment: 'body', start: function(evt){evt.stopPropagation();}});
+          $(imgBox).draggable({containment: 'body', start: function(evt){
+              //evt.stopPropagation();
+              evt.preventDefault();
+              evt.stopImmediatePropagation();
+            }
+          });
           $(imgBox).resizable({containment: 'body'});
           if (isAutoPlay == true){
             doPlaySlide();
@@ -617,6 +622,9 @@
 
     const init = function() {
       playerMainBox = $('<div id="PlayerBox" style="width: 100%; height: 100%;"></div>'); // background-color: rgba(0,0,0,0.1)
+      if (settings.backgroundColor) {
+        $(playerMainBox).css({'background-color': settings.backgroundColor});
+      }
       playerCmdBox = $('<div id="PlayerCmdBox" style="position: relative; width: 100%; top: 0px; padding: 5px; top: -20px;"></div>');
       playerViewBox = $('<div id="PlayerViewBox" style="position: relative; width: 100%; top: 100px;"></div>');
 
