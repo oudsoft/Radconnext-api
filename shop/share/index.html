@@ -81,8 +81,11 @@
 
   const queryString = decodeURIComponent(window.location.search).replace("?liff.state=", "");
   const params = new URLSearchParams(queryString);
-  const id = params.get('id');
 
+  let id = params.get('id');
+  if (!id) {
+    id = 'myqrcode';
+  }
   const shopHomeUrl = 'https://radconnext.tech/shop'
   const imageUrl = '/img/usr/qrcode/' + id + '.png';
   const shareUrl = shopHomeUrl + '/share/?id=' + id;
@@ -439,12 +442,22 @@
     doCreateMySponsor();
   });
 
-  let announceHTML = '<h2 style="color: red;">ขอช่วยพิจารณา</h2><p>โฆษณาสปอร์ตที่นำเสนออยู่ด้านบน</p><p>หากพิจารณาว่ามีประโยชน์โปรดช่วยแชร์ให้พรรคพวกเพื่อนฝูงญาติพี่น้องด้วยนะครับ</p><p>หากไม่เหมาะสมต้องขออภัยด้วยครับ</p>'
-  $(announceBox).html(announceHTML).css({'line-height': '22px', 'border': '2px solid red'});
+  let announceHTML1 = '<h2 style="color: red;">อัพโหลดภาพของคุณมาเติมแต่งพร้อมแชร์ให้ผู้คนได้แล้ววันนี้</h2><p>หากคุณใช้อุปกรณ์ Desktop เปิดที่หน้านี้ คลิกที่ไอคอน ขวาล่าง เพื่ออัพโหลดภาพของคุณขึ้นมาตกแต่งตามแต่จินตนาการของคุณ แล้วแชร์ภาพสวยๆ ให้โลกเห็นง่ายๆ เป็นบริการฟรีสำหรับทุกคน</p><img src="/images/image-icon.png" style="width: 40px; heigth: auto; left: 50%; position: relative; transform: translateX(-50%);"/>'
+  let announceHTML2 = '<h2 style="color: red;">ขอช่วยพิจารณา</h2><p>โฆษณาสปอร์ตที่นำเสนออยู่ด้านบน</p><p>หากพิจารณาว่ามีประโยชน์โปรดช่วยแชร์ให้พรรคพวกเพื่อนฝูงญาติพี่น้องด้วยนะครับ</p><p>หากไม่เหมาะสมต้องขออภัยด้วยครับ</p>'
+  let announceHTMLs = [announceHTML1, announceHTML2];
+
+  $(announceBox).empty();
+  $(announceBox).html(announceHTMLs[1]).css({'line-height': '22px', 'border': '2px solid red'});
+  $(announceBox).slideDown('slow');
   setTimeout(()=>{
     $(announceBox).slideUp('slow');
-    $(announceBox).empty();
+    $(announceBox).html(announceHTMLs[0]).css({'line-height': '22px', 'border': '2px solid red'});
+    $(announceBox).slideDown('slow');
+    setTimeout(()=>{
+      $(announceBox).slideUp('slow');
+    }, 20000);
   }, 20000);
+
 
   let visitCounter = localStorage.getItem("page_view");
   if (visitCounter) {

@@ -386,7 +386,7 @@
           $(playerCmdBox).find('#NavBar').remove();
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
-          $(imgBox).draggable({containment: 'body', start: function(evt){
+          $(imgBox).draggable({containment: 'body', stop: function(evt){
               //evt.stopPropagation();
               evt.preventDefault();
               evt.stopImmediatePropagation();
@@ -620,6 +620,31 @@
       });
     }
 
+    const onKeyDownEvt = function(evt) {
+    	switch (evt.keyCode) {
+    		case 39:
+    			/* Arrow Right */
+    			doShowNextImage();
+    		break;
+    		case 37:
+    			/* Arrow Left */
+    			doShowPrevImage();
+    		break;
+    		case 38:
+    			/* Arrow Up */
+    			settings.imgSize += 10;
+    			$(playerViewBox).find('video').css({'width': settings.imgSize});
+    			$(playerViewBox).find('#ImagePreview').css({'width': settings.imgSize});
+    		break;
+    		case 40:
+    			/* Arrow Down */
+    			settings.imgSize -= 10;
+    			$(playerViewBox).find('video').css({'width': settings.imgSize});
+    			$(playerViewBox).find('#ImagePreview').css({'width': settings.imgSize});
+    		break;
+    	}
+    }
+
     const init = function() {
       playerMainBox = $('<div id="PlayerBox" style="width: 100%; height: 100%;"></div>'); // background-color: rgba(0,0,0,0.1)
       if (settings.backgroundColor) {
@@ -646,11 +671,11 @@
       $(togglePlayListCmd).attr('src', settings.iconRootPath+ '/images/list-item-icom.png');
       $(togglePlayListCmd).css({'position': 'relative', 'width': '36px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '14px', 'margin-left': '5px'});
       $(togglePlayListCmd).on('click', (evt)=>{
-        let isShow = $('#FileSrcListBox').css('display');
+        let isShow = $(playerViewBox).find('#FileSrcListBox').css('display');
         if (isShow === 'block'){
-          $('#FileSrcListBox').css('display', 'none');
+          $(playerViewBox).find('#FileSrcListBox').css('display', 'none');
         } else {
-          $('#FileSrcListBox').css('display', 'block');
+          $(playerViewBox).find('#FileSrcListBox').css('display', 'block');
         }
       });
 
@@ -837,6 +862,9 @@
 
     let player = init();
     this.empty().append($(player));
+    this.on('keydown', (evt)=>{
+      onKeyDownEvt(evt);
+    });
 
     /* public method of plugin */
     var output = {
