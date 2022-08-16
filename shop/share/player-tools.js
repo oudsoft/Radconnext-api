@@ -14,14 +14,14 @@ setTimeout(()=>{
 
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
-	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
-	$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
-	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	//$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
+	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
 		myPBox = $('<div id="PBox" tabindex="1"></div>');
 		$(myPBox).css(pBoxStyle);
-		myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/'});
+		myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/', backgroundColor: 'grey'});
 
 		$(myPBox).draggable({containment: "parent"});
 		$(myPBox).resizable({containment: 'parent',
