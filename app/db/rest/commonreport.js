@@ -543,6 +543,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       log.info('doSubmitReport ERROR=> The caseresponseId is undefined!')
     }
 
+    let newReportRes = undefined;
     if (autoConvert == 1){
       const cases = await db.cases.findAll({attributes: ['Case_OrthancStudyID', 'Case_StudyInstanceUID', 'Case_Modality', 'Case_RadiologistId', 'casestatusId', 'userId'], where: {id: caseId}});
       let pdfLinkPaths = report.reportPdfLinkPath.split('/');
@@ -570,7 +571,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           log.info('Not Found Pdf file at => ' + reportPdfFilePath);
           log.info('start Create new pdf file');
           let newPdfFileName = pdfReportFileName + '.pdf';
-          let newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, newPdfFileName, hostname);
+          newReportRes = await doCreateNewReport(caseId, responseId, userId, hospitalId, newPdfFileName, hostname);
           log.info('Create-New-Report=> ' + JSON.stringify(newReportRes));
           pdfPages = await doCountPagePdf(reportPdfFilePath);
         }
