@@ -6945,7 +6945,7 @@ module.exports = function ( jq ) {
 				$.notify("ส่งผลอ่าน - Success", "success");
 				$('body').loading('stop');
 				$('#quickreply').empty();
-				$('#quickreply').removeAttr('stle');
+				$('#quickreply').removeAttr('style');
 				$("#dialog").empty();
 				if (saveResponseData.previewOption === 1){
 					resolve(saveResponseRes);
