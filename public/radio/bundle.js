@@ -6576,6 +6576,7 @@ module.exports = function ( jq ) {
 		const doCloseDialog = function(){
 			$(modalDialog).parent().empty();
 			$(modalDialog).parent().removeAttr('style');
+			$('#AcceptedCaseCmd').click();
 		}
 
 		$(closeCmd).on('click', (evt)=>{
@@ -6950,10 +6951,8 @@ module.exports = function ( jq ) {
 					resolve(saveResponseRes);
 					$('#AcceptedCaseCmd').click();
 				} else {
-					let pdfReportLink = saveResponseRes.reportLink + '?t=' + common.genUniqueID();
-					let pdfReportPages = saveResponseRes.reportPages;
+					let pdfReportLink = saveResponseData.reportPdfLinkPath + '?t=' + common.genUniqueID();
 					console.log(pdfReportLink);
-					console.log(pdfReportPages);
 					/*
 					saveNewResponseData.reportPdfLinkPath = saveResponseRes.reportLink;
 					saveNewResponseData.reportPages = pdfReportPages;
@@ -6962,6 +6961,7 @@ module.exports = function ( jq ) {
 					$(resultPDFDialog).css({'margin': '20px auto'});
 					$("#dialog").empty();
 					$("#dialog").append($(resultPDFDialog));
+					resolve(pdfReportLink);
 				}
 			} else {
 				$.notify("ไม่สามารถส่งผลอ่าน - Error โปรดติดต่อผู้ดูแลระบบ", "error");
