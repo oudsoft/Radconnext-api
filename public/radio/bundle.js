@@ -6944,10 +6944,10 @@ module.exports = function ( jq ) {
 			if ((saveResponseRes.status.code == 200) || (saveResponseRes.status.code == 203)){
 				$.notify("ส่งผลอ่าน - Success", "success");
 				$('body').loading('stop');
+				$('#quickreply').empty();
+				$('#quickreply').removeAttr('stle');
+				$("#dialog").empty();
 				if (saveResponseData.previewOption === 1){
-					$('#quickreply').empty();
-					$('#quickreply').removeAttr('style');
-					$("#dialog").empty();
 					resolve(saveResponseRes);
 					$('#AcceptedCaseCmd').click();
 				} else {
@@ -6959,7 +6959,6 @@ module.exports = function ( jq ) {
 					*/
 					let resultPDFDialog = doCreateResultPDFDialog(caseId, pdfReportLink);
 					$(resultPDFDialog).css({'margin': '20px auto'});
-					$("#dialog").empty();
 					$("#dialog").append($(resultPDFDialog));
 					resolve(pdfReportLink);
 				}
