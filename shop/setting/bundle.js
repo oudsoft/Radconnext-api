@@ -2672,11 +2672,11 @@ module.exports = function ( jq ) {
 			width: '420px',
 			onOk: async function(evt) {
 				radConfirmBox.closeAlert();
-				let menugitemRes = await common.doCallApi('/api/shop/menugitem/delete', {id: groupmenuId});
-				if (menugitemRes.status.code == 200) {
+				let menuitemRes = await common.doCallApi('/api/shop/menuitem/delete', {id: groupmenuId});
+				if (menuitemRes.status.code == 200) {
 					$.notify("ลบรายการเมนูสำเร็จ", "success");
 					await doShowMenuitemItem(shopData, workAreaBox);
-				} else if (menugitemRes.status.code == 201) {
+				} else if (menuitemRes.status.code == 201) {
 					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
 					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเมนูได้", "error");
@@ -2691,7 +2691,7 @@ module.exports = function ( jq ) {
 
 	const doCreateNewQRCode = function(evt, menuId) {
 		return new Promise(async function(resolve, reject) {
-			let callUrl = '/api/shop/menugitem/qrcode/create/' + menuId;
+			let callUrl = '/api/shop/menuitem/qrcode/create/' + menuId;
 			let qrRes = await common.doCallApi(callUrl, {id: menuId});
 			let qrcodeImg = evt.currentTarget;
 			qrcodeImg.src = qrRes.qrLink;
