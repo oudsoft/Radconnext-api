@@ -23,12 +23,13 @@ const doCreateLKQRCode = function(lkText) {
 		const maxW = 220;
 		const imageCanvas = createCanvas(maxW, maxH);
 		const ctx = imageCanvas.getContext('2d');
-		ctx.globalAlpha = 0.8;
-		ctx.fillStyle = "black";
+		//ctx.globalAlpha = 0.8;
+		ctx.fillStyle = "white";
 		ctx.fillRect(0, 0, maxW, maxH);
 		ctx.fill();
     const qrcodeCanvas = createCanvas(200, 200);
     qrCode.toCanvas(qrcodeCanvas, lkText, function (error) {
+      ctx.drawImage(qrcodeCanvas, 10, 10, 200, 200);
       let imageFileName = "LKQR-" + genUniqueID();
 			let imageFileExName = '.png';
       let imageLink = '/img/usr/qrcode/' + imageFileName + imageFileExName;
