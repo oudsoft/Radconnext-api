@@ -187,7 +187,7 @@ app.post('/delete', (req, res) => {
 
 app.get('/options/(:shopId)/(:groupId)', (req, res) => {
   let shopId = req.params.shopId;
-  let groupId = reg.params.groupId
+  let groupId = req.params.groupId
   doGenOptions(shopId, groupId).then((result) => {
     res.json(result);
   })
@@ -195,14 +195,14 @@ app.get('/options/(:shopId)/(:groupId)', (req, res) => {
 
 app.post('/options/(:shopId)/(:groupId)', async (req, res) => {
   let shopId = req.params.shopId;
-  let groupId = reg.params.groupId
+  let groupId = req.params.groupId
   doGenOptions(shopId, groupId).then((result) => {
     res.json(result);
   })
 });
 
 app.post('/qrcode/create/(:menuId)', (req, res) => {
-  let menuId = reg.params.menuId;
+  let menuId = req.params.menuId;
   let lkText = 'https://radconnext.tech/shop/scanaccess/?mid=' + menuId;
   lkQRgen.doCreateLKQRCode(lkText).then(async(qrCode)=>{
     await db.menuitems.update({QRCodePicture: qrCode.qrName}, { where: { id: menuId } });
