@@ -2693,6 +2693,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let callUrl = '/api/shop/menuitem/qrcode/create/' + menuId;
 			let qrRes = await common.doCallApi(callUrl, {id: menuId});
+			console.log(qrRes);
 			let qrcodeImg = evt.currentTarget;
 			qrcodeImg.src = qrRes.qrLink;
 			$(qrcodeImg).on('click', (evt)=>{
