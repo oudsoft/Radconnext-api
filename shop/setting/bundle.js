@@ -2453,21 +2453,23 @@ module.exports = function ( jq ) {
 				let qrcodeImg = new Image();
 				qrcodeImg.id = 'MenuQRCode_' + item.id;
 				if ((item.QRCodePicture) && (item.QRCodePicture != '')) {
-	      	qrcodeImg.src = '/shop/img/usr/qrcode/' + item.QRCodePicture + '.png';
+					let qrLink = '/shop/img/usr/qrcode/' + item.QRCodePicture + '.png';
+	      	qrcodeImg.src = qrLink;
 					// open dialog for print qrcode
 					$(qrcodeImg).attr('title', 'พิมพ์คิวอาร์โค้ดรายการนี้');
+					$(qrcodeImg).css({'width': '55px', 'height': 'auto', 'cursor': 'pointer'});
 					$(qrcodeImg).on('click', (evt)=>{
-						doOpenQRCodePopup(evt, item.id, item.QRCodePicture)
+						doOpenQRCodePopup(evt, item.id, item.QRCodePicture, qrLink);
 					});
 				} else {
 					qrcodeImg.src = '../../images/scan-qrcode-icon.png';
 					$(qrcodeImg).attr('title', 'สร้างคิวอาร์โค้ดให้รายการนี้');
+					$(qrcodeImg).css({'width': '45px', 'height': 'auto', 'cursor': 'pointer'});
 					// generate new qrcode
 					$(qrcodeImg).on('click', async (evt)=>{
 						await doCreateNewQRCode(evt, item.id);
 					});
 				}
-				$(qrcodeImg).css({'width': '45px', 'height': 'auto', 'cursor': 'pointer'});
 				let menuitemQRCodeBox = $('<div></div>').css({'text-align': 'center'}).append($(qrcodeImg));
 
 				let editMenuitemCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
@@ -2689,6 +2691,10 @@ module.exports = function ( jq ) {
 		let radConfirmBox = $('body').radalert(radconfirmoption);
   }
 
+	const doOpenQRCodePopup = function(evt, menuId, qrCodeName, qrLink) {
+		 printJS(qrLink, 'image');
+	}
+
 	const doCreateNewQRCode = function(evt, menuId) {
 		return new Promise(async function(resolve, reject) {
 			let callUrl = '/api/shop/menuitem/qrcode/create/' + menuId;
@@ -2697,7 +2703,7 @@ module.exports = function ( jq ) {
 			let qrcodeImg = evt.currentTarget;
 			qrcodeImg.src = qrRes.qrLink;
 			$(qrcodeImg).on('click', (evt)=>{
-				doOpenQRCodePopup(evt, menuId, qrRes.qrName);
+				doOpenQRCodePopup(evt, menuId, qrRes.qrName, qrRes.qrLink);
 			});
 			resolve(qrRes);
 		});
