@@ -4,6 +4,7 @@ const fs = require('fs');
 const util = require("util");
 const path = require("path");
 const qrCode = require('qrcode');
+const {createCanvas, createImageData} = require('canvas');
 
 const shopDir = path.normalize(__dirname + '/../../../shop');
 
