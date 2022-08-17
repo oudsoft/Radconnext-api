@@ -193,7 +193,7 @@
       mainModal = $('<div style="position: relative; width: 100%; height: auto;"></div>');
       modalContent = $('<div id ="ModalContent" style="position: relative; width: 100%;"></div>');
       $(mainModal).append($(modalContent));
-      modalHeader = $('<div style="text-align: center; padding: 4px; border: 2px solid blue; background-color: #BBCBFC"></div>');
+      modalHeader = $('<div id ="ModalHeader" style="text-align: center; padding: 4px; border: 2px solid blue; background-color: #BBCBFC"></div>');
 
       let modalTitle = $('<h3 id="dialog-title">Your Image Editor</h3>');
       $(modalHeader).append($(modalTitle));

@@ -49,7 +49,7 @@
     const doCreateNextCmd = function(){
       let nextImgCmd = $('<img id="NextCmd" data-toggle="tooltip" title="Next"/>');
       $(nextImgCmd).attr('src', settings.iconRootPath + '/images/next-cmd-icon.png');
-      $(nextImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(nextImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(nextImgCmd).on('click', (evt)=>{
         doShowNextImage();
       });
@@ -59,7 +59,7 @@
     const doCreatePrevCmd = function(){
       let prevImgCmd = $('<img id="PrevCmd" data-toggle="tooltip" title="Previous"/>');
       $(prevImgCmd).attr('src', settings.iconRootPath + '/images/prev-cmd-icon.png');
-      $(prevImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(prevImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(prevImgCmd).on('click', (evt)=>{
         doShowPrevImage();
       });
@@ -69,7 +69,7 @@
     const doCreateFullScreenCmd = function(){
       let fullScreenCmd = $('<img data-toggle="tooltip" title="Full Screen"/>');
       $(fullScreenCmd).attr('src', settings.iconRootPath+ '/images/fullscreen-icon.png');
-      $(fullScreenCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(fullScreenCmd).css({'position': 'relative', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
       $(fullScreenCmd).on('click', (evt)=>{
         let xElem = document.getElementById('ImgBox');
         if (xElem) {
@@ -542,13 +542,37 @@
       let w = $(playerViewBox).find('.imgbox').find('img').width();
       let h = $(playerViewBox).find('.imgbox').find('img').height();
       var editorbox = $('<div id="EditorBox"></div>');
+      let pinSwitchBox = $('<div style="position: absolute; display: inline-block; right: 5px; top: 5px;"></div>');
+			let pinOption = {
+				onActionCallback: (evt)=>{
+          $(editorbox).resizable({
+          	containment: 'parent',
+            start: function(evt) {
+              $('body').css({'width': '100%', 'height': '100%'});
+            },
+          	stop: function(evt) {
+          		$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+          	}
+          });
+          $(editorbox).draggable({
+          	containment: "parent",
+            start: function(evt) {
+              $('body').css({'width': '100%', 'height': '100%'});
+            },
+          	stop: function(evt) {
+          		$(this).css({'min-height': '60px'});
+          	}
+          });
+        },
+				offActionCallback: (evt)=>{
+          $(editorbox).resizable('destroy');
+          $(editorbox).draggable('destroy');
+        }
+			};
+			pinSwitch = $(pinSwitchBox).readystate(pinOption);
       $(editorbox).css({ 'position': 'absolute', 'width': '60%', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'top': '4px;'});
       $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
       $('body').append($(editorbox));
-      let previewPopup = $('<div id="PopupPreview"></div>');
-      $(previewPopup).css({ 'position': 'absolute', 'z-index': '559', 'text-align': 'center', 'top': '4px'});
-      $('body').append($(previewPopup));
-
       $(editorbox).append($('<canvas id="CaptureCanvas" width="100%" height="auto" style="position: relative; margin-top: 4px;"/>'));
 
       let canvas = document.getElementById('CaptureCanvas');
@@ -563,21 +587,9 @@
         imageInit: fileURL,
         uploadApiUrl: '/api/shop/upload/share'
       };
-
-      const myEditor = $(editorbox).imageeditor(pluginOption);
-      $(editorbox).resizable({
-      	containment: 'parent',
-      	stop: function(evt) {
-      		$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-      	}
-      });
-
-      $(editorbox).draggable({
-      	containment: "parent",
-      	stop: function(evt) {
-      		$(this).css({'min-height': '60px'});
-      	}
-      });
+      let myEditor = $(editorbox).imageeditor(pluginOption);
+      let modalHeader = $(editorbox).find('#ModalHeader');
+      $(modalHeader).append($(pinSwitchBox));
     }
 
     const fullSceenChangeHandler = function(evt){
@@ -650,26 +662,26 @@
       if (settings.backgroundColor) {
         $(playerMainBox).css({'background-color': settings.backgroundColor});
       }
-      playerCmdBox = $('<div id="PlayerCmdBox" style="position: relative; width: 100%; top: 0px; padding: 5px; top: -20px;"></div>');
+      playerCmdBox = $('<div id="PlayerCmdBox" style="position: relative; width: 100%; top: 0px;"></div>');
       playerViewBox = $('<div id="PlayerViewBox" style="position: relative; width: 100%; top: 100px;"></div>');
 
       let fileChooserCmd = $('<img data-toggle="tooltip" title="Open"/>');
       $(fileChooserCmd).attr('src', settings.iconRootPath+ '/images/open-file-icon.png');
-      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '5px'});
+      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px'});
       $(fileChooserCmd).on('click', (evt)=>{
         doOpenFileChooser(evt);
       });
 
       let autoPlayCmd = $('<img id="AutoPlayCmd" data-toggle="tooltip" title="Start/Stop Slide Show"/>');
       $(autoPlayCmd).attr('src', settings.iconRootPath+ '/images/start-play-icon.png');
-      $(autoPlayCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '5px'});
+      $(autoPlayCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '0px', 'margin-left': '5px'});
       $(autoPlayCmd).on('click', (evt)=>{
         doToggleAutoPlay(evt);
       });
 
       let togglePlayListCmd = $('<img id="ImageListCmd" data-toggle="tooltip" title="Show Image List"/>');
       $(togglePlayListCmd).attr('src', settings.iconRootPath+ '/images/list-item-icom.png');
-      $(togglePlayListCmd).css({'position': 'relative', 'width': '36px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '14px', 'margin-left': '5px'});
+      $(togglePlayListCmd).css({'position': 'relative', 'width': '36px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-2px', 'margin-left': '5px'});
       $(togglePlayListCmd).on('click', (evt)=>{
         let isShow = $(playerViewBox).find('#FileSrcListBox').css('display');
         if (isShow === 'block'){
@@ -680,21 +692,23 @@
       });
 
       let fullScreenCmd = doCreateFullScreenCmd();
+      $(fullScreenCmd).css({'top': '-2px'});
 
       let minimizeWindowCmd = $('<img data-toggle="tooltip" title="Minimize Player"/>');
       $(minimizeWindowCmd).attr('src', settings.iconRootPath+ '/images/minimize-icon.png');
-      $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '8px', 'margin-left': '5px'});
+      $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px', 'margin-left': '5px'});
       $(minimizeWindowCmd).on('click', (evt)=>{
         doMinimizeWindow(playerCmdBox, playerViewBox);
       });
 
-      let closePlayerBoxCmd = $('<div><span>X</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute', 'top': '2px', 'right': '2px'})
+      let closePlayerBoxCmd = $('<div><span>X</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute', 'top': '-10px', 'right': '0px'})
       $(closePlayerBoxCmd).on('click', (evt)=>{
         $($this).remove();
       });
 
       let configCmd = doCreateConfigCmd();
-      let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord);
+      $(configCmd).css({'top': '-14px'});
+      let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord).css({'top': '-22px'});
 
       $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd)).append($(minimizeWindowCmd)).append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(closePlayerBoxCmd));
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));

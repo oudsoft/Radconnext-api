@@ -1,6 +1,6 @@
 /* player-tools.js */
 
-const pBoxStyle = {'position': 'absolute', 'width': '45%', 'height': 'fit-content', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '2px'};
+const pBoxStyle = {'position': 'absolute', 'width': '45%', 'height': '50px', 'background-color': '#fefefe', 'padding': '5px', 'border': '4px solid #888',  'z-index': '45', 'top': '2px'};
 
 $('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/fabric.js"></script>');
 setTimeout(()=>{
@@ -14,10 +14,10 @@ setTimeout(()=>{
 
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	//$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
-	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
+	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
+	$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
 		myPBox = $('<div id="PBox" tabindex="1"></div>');
 		$(myPBox).css(pBoxStyle);
