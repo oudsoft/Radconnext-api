@@ -111,7 +111,10 @@ const ShopMenuItemDef = {
   },
   Unit : {
     type: Sequelize.STRING(30)
-  }
+  },
+  QRCodePicture : {
+    type: Sequelize.STRING(30)
+  },
 };
 const ShopCustomerDef = {
   Name : {

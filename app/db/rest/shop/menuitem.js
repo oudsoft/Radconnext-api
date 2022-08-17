@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, auth, lkQRgen;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -201,9 +201,19 @@ app.post('/options/(:shopId)/(:groupId)', async (req, res) => {
   })
 });
 
+app.post('/qrcode/create/(:menuId)', (req, res) => {
+  let menuId = reg.params.menuId;
+  let lkText = 'https://radconnext.tech/shop/scanaccess/?mid=' + menuId;
+  lkQRgen.doCreateLKQRCode(lkText).then(async(qrCode)=>{
+    await db.menuitems.update({QRCodePicture: qrCode.qrName}, { where: { id: menuId } });
+    res.json(qrCode);
+  });
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
+  lkQRgen = require('../../../lib/shop/lk-qrcode.js')(log);
   return app;
 }
