@@ -211,6 +211,7 @@ $( document ).ready(function() {
     let ionCalendarCssUrl = "../stylesheets/ion.calendar.css";
 
     let utilityPlugin = "../lib/plugin/jquery-radutil-plugin.js";
+    let html5QRCodeUrl = "../lib/html5-qrcode.min.js";
 
     $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
   	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -227,6 +228,7 @@ $( document ).ready(function() {
     $('head').append('<link rel="stylesheet" href="' + ionCalendarCssUrl + '" type="text/css" />');
 
     $('head').append('<script src="' + utilityPlugin + '"></script>');
+    $('head').append('<script src="' + html5QRCodeUrl + '"></script>');
 
     $('body').append($('<div id="MainBox"></div>').css({'position': 'absolute', 'top': '0px', 'float': 'left', 'right': '0px', 'left': '0px'}));
     $('body').append($('<div id="MenuBox"></div>').css({'display': 'none', 'position': 'fixed', 'z-index': '42', 'left': '0px', 'top': '0px', 'width': '100%;', 'width': '100%', 'height': '100%', 'overflow': 'scroll', 'background-color': 'rgb(240, 240, 240)'}));
@@ -12537,7 +12539,7 @@ module.exports = function ( jq ) {
       let wrapperBox = $('<div></div>');
       let searchInputBox = $('<div></div>').css({'width': '100%', 'padding': '4px'});
       let gooditemListBox = $('<div></div>').css({'width': '100%', 'padding': '4px', 'min-height': '200px'});
-      let searchKeyInput = $('<input id="SearchKeyInput" type="text" size="40" value="*"/>');
+      let searchKeyInput = $('<input id="SearchKeyInput" type="text" value="*"/>').css({'width': '120px'});
       let gooditemResult = undefined;
       $(searchKeyInput).css({'background': 'url(../../images/search-icon.png) no-repeat right center', 'background-size': '6% 100%', 'padding-right': '3px'});
       $(searchKeyInput).on('keyup', async (evt)=>{
@@ -12552,6 +12554,38 @@ module.exports = function ( jq ) {
           $(gooditemListBox).empty().append($(gooditemResult));
         }
       });
+			let scanQRCodeCmd = $('<img src="../../images/scan-qrcode-icon.png" title="ค้นหาโดยสแกนคิวอาร์โค้ด"/>').css({'width': '28px', 'height': 'auto', 'cursor': 'pointer', 'margin-left': '10px', 'margin-bottom': '-8px'});
+			$(scanQRCodeCmd).on('click', (evt)=>{
+				let qrCodeBox = $('<div id="QRCodeReaderBox"></div>').css({'width': '100%', 'heigth': '100px', 'text-align': 'center', 'display': 'none'});
+				$(searchInputBox).append($(qrCodeBox));
+				$(qrCodeBox).slideDown('slow');
+				let onScanSuccess = function(decodedText, decodedResult) {
+			    //console.log(`Scan result: ${decodedText}`, decodedResult);
+					let temps = decodedText.split('?')
+					temps = temps[1].split('=');
+					let mid = temps[1];
+					if ((temps[0]=='mid') && (Number(temps[1]) > 0)) {
+						let key = Number(temps[1]);
+						let result = menuitems.filter((item)=>{
+		          if (item.id === key) {
+		            return item;
+		          }
+		        });
+						if (result.length > 0) {
+							let menuKey = result[0].MenuName;
+							$(searchKeyInput).val(menuKey).trigger('keyup')
+						}
+						html5QrcodeScanner.clear();
+						$(qrCodeBox).remove();
+					}
+				}
+				let onScanError = function(errorMessage) {
+    			console.log(errorMessage);
+				}
+
+				let html5QrcodeScanner = new Html5QrcodeScanner("QRCodeReaderBox", { fps: 10, qrbox: 250 });
+				html5QrcodeScanner.render(onScanSuccess, onScanError);
+			});
       let addGoodItemCmd = $('<input type="button" value=" เพิ่มสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
       $(addGoodItemCmd).on('click', (evt)=>{
         //$(wrapperBox).empty();
@@ -12571,7 +12605,7 @@ module.exports = function ( jq ) {
 				});
         $(wrapperBox).append($(newGooditemForm))
       });
-      $(searchInputBox).append($(searchKeyInput)).append($(addGoodItemCmd));
+      $(searchInputBox).append($(searchKeyInput)).append($(scanQRCodeCmd)).append($(addGoodItemCmd));
       gooditemResult = await doShowList(menuitems, gooditemSeleted, successCallback);
       $(gooditemListBox).empty().append($(gooditemResult));
       $(wrapperBox).append($(searchInputBox)).append($(gooditemListBox));
@@ -12625,6 +12659,7 @@ module.exports = function ( jq ) {
 	              $(qtyInput).css({'border': ''});
 	              let applyResult = results[i];
 	              applyResult.Qty = qtyValue;
+								applyResult.ItemStatus = 'New';
 								$(resultRow).remove();
 	              successCallback(applyResult);
 	            } else {
@@ -12831,6 +12866,29 @@ module.exports = function ( jq ) {
           $(field).text(item.menugroup[menugroupTableFields[i].fieldName]);
           $(itemRow).append($(field));
         }
+
+				let qrcodeImg = new Image();
+				qrcodeImg.id = 'MenuQRCode_' + item.id;
+				if ((item.QRCodePicture) && (item.QRCodePicture != '')) {
+					let qrLink = '/shop/img/usr/qrcode/' + item.QRCodePicture + '.png';
+	      	qrcodeImg.src = qrLink;
+					// open dialog for print qrcode
+					$(qrcodeImg).attr('title', 'พิมพ์คิวอาร์โค้ดรายการนี้');
+					$(qrcodeImg).css({'width': '55px', 'height': 'auto', 'cursor': 'pointer'});
+					$(qrcodeImg).on('click', (evt)=>{
+						doOpenQRCodePopup(evt, item.id, item.QRCodePicture, qrLink);
+					});
+				} else {
+					qrcodeImg.src = '../../images/scan-qrcode-icon.png';
+					$(qrcodeImg).attr('title', 'สร้างคิวอาร์โค้ดให้รายการนี้');
+					$(qrcodeImg).css({'width': '45px', 'height': 'auto', 'cursor': 'pointer'});
+					// generate new qrcode
+					$(qrcodeImg).on('click', async (evt)=>{
+						await doCreateNewQRCode(evt, item.id);
+					});
+				}
+				let menuitemQRCodeBox = $('<div></div>').css({'text-align': 'center'}).append($(qrcodeImg));
+
 				let editMenuitemCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
 				$(editMenuitemCmd).on('click', (evt)=>{
 					doOpenEditMenuitemForm(shopData, workAreaBox, item);
@@ -12839,10 +12897,11 @@ module.exports = function ( jq ) {
 				$(deleteMenuitemCmd).on('click', (evt)=>{
 					doDeleteMenuitem(shopData, workAreaBox, item.id);
 				});
+				let menuitemBtnBox = $('<div></div>').css({'text-align': 'center'}).append($(editMenuitemCmd)).append($(deleteMenuitemCmd));
 
 				let commandCell = $('<td align="center"></td>');
-				$(commandCell).append($(editMenuitemCmd));
-				$(commandCell).append($(deleteMenuitemCmd));
+				$(commandCell).append($(menuitemQRCodeBox));
+				$(commandCell).append($(menuitemBtnBox));
 				$(itemRow).append($(commandCell));
 				$(menuitemTable).append($(itemRow));
 			}
@@ -13032,11 +13091,11 @@ module.exports = function ( jq ) {
 			width: '420px',
 			onOk: async function(evt) {
 				radConfirmBox.closeAlert();
-				let menugitemRes = await common.doCallApi('/api/shop/menugitem/delete', {id: groupmenuId});
-				if (menugitemRes.status.code == 200) {
+				let menuitemRes = await common.doCallApi('/api/shop/menuitem/delete', {id: groupmenuId});
+				if (menuitemRes.status.code == 200) {
 					$.notify("ลบรายการเมนูสำเร็จ", "success");
 					await doShowMenuitemItem(shopData, workAreaBox);
-				} else if (menugitemRes.status.code == 201) {
+				} else if (menuitemRes.status.code == 201) {
 					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
 					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเมนูได้", "error");
@@ -13048,6 +13107,25 @@ module.exports = function ( jq ) {
 		}
 		let radConfirmBox = $('body').radalert(radconfirmoption);
   }
+
+	const doOpenQRCodePopup = function(evt, menuId, qrCodeName, qrLink) {
+		 printJS(qrLink, 'image');
+	}
+
+	const doCreateNewQRCode = function(evt, menuId) {
+		return new Promise(async function(resolve, reject) {
+			let callUrl = '/api/shop/menuitem/qrcode/create/' + menuId;
+			let qrRes = await common.doCallApi(callUrl, {id: menuId});
+			let qrcodeImg = evt.currentTarget;
+			qrcodeImg.src = qrRes.qrLink;
+			$(qrcodeImg).attr('title', 'พิมพ์คิวอาร์โค้ดรายการนี้');
+			$(qrcodeImg).css({'width': '55px', 'height': 'auto', 'cursor': 'pointer'});
+			$(qrcodeImg).on('click', (evt)=>{
+				doOpenQRCodePopup(evt, menuId, qrRes.qrName, qrRes.qrLink);
+			});
+			resolve(qrRes);
+		});
+	}
 
   return {
     doShowMenuitemItem,
