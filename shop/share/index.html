@@ -78,7 +78,32 @@
     };
     return $(img);
   }
-
+  const doCreateVideoBox = function(videoUrl) {
+    let video = $('<video></video>');
+    $(video).attr('src', videoUrl);
+    $(video).attr('controls', true);
+    $(video).attr('autoplay', true);
+    $(video).attr('crossorigin', 'anonymous');
+    $(video).css({'width': '100%', 'margin-top': '50px'});
+    return $(video);
+  }
+  const doCreateMediaBox = function(shareId) {
+    return new Promise(async function(resolve, reject) {
+      let getMineTypeUrl =   '/api/shop/share/minetype/' + shareId;
+      $.post(getMineTypeUrl, {}, function(res){
+        let mediaUrl = '/shop/img/usr/qrcode/' + shareId;
+        if (res.minetype === 'png'){
+          let imageUrl = mediaUrl + '.png';
+          let imageBox = doCreateImgBox(imageUrl);
+          resolve($(imageBox));
+        } else if (res.minetype === 'mp4'){
+          let videoUrl = mediaUrl + '.mp4';
+          let videoBox = doCreateVideoBox(videoUrl);
+          resolve($(videoBox));
+        }
+      });
+    });
+  }
   const queryString = decodeURIComponent(window.location.search).replace("?liff.state=", "");
   const params = new URLSearchParams(queryString);
 
@@ -86,6 +111,7 @@
   if (!id) {
     id = 'myqrcode';
   }
+
   const shopHomeUrl = 'https://radconnext.tech/shop'
   const imageUrl = '/img/usr/qrcode/' + id + '.png';
   const shareUrl = shopHomeUrl + '/share/?id=' + id;
@@ -93,14 +119,24 @@
   const downloadCmd = doCreateDownloadCmd('/shop' + imageUrl);
   const openCustomEditor = doCreateCustomEditorCmd();
   const announceBox = $('<div style="width: 100%; text-align: left;"></div>');
-  const imgBox = doCreateImgBox('/shop' + imageUrl);
+
   const viewPage = $('<div style="width: 100%; text-align: center;"></div>');
   const sponsorBox = $('<div style="position: relative; min-height: 120px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
   const bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
 
-  $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(openCustomEditor));
-  $(viewPage).append($(sponsorBox)).append($(announceBox)).append($(imgBox)).append($(bottomBar));
-  $('body').append($(viewPage)).css({'text-align': 'center'});
+  (async ()=>{
+    //const imgBox = doCreateImgBox('/shop' + imageUrl);
+    const mediaBox = await doCreateMediaBox(id);
+    let mediaTypes = $(mediaBox).attr('src').split('.');
+    console.log(mediaTypes);
+    if (mediaTypes[1] === 'png') {
+      $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(openCustomEditor));
+    } else {
+      $(bottomBar).append($(shareCmd)).append($(openCustomEditor));
+    }
+    $(viewPage).append($(sponsorBox)).append($(announceBox)).append($(mediaBox)).append($(bottomBar));
+    $('body').append($(viewPage)).css({'text-align': 'center'});
+  })();
 
   /***************************************************************/
           /****  Control Play Sport Box *****7
@@ -455,6 +491,7 @@
     $(announceBox).slideDown('slow');
     setTimeout(()=>{
       $(announceBox).slideUp('slow');
+      $(announceBox).empty();
     }, 20000);
   }, 20000);
 
@@ -474,6 +511,12 @@
         $(announceBox).append($('<p>' + data.info + '</p>'));
         if ($(announceBox).css('display') === 'none') {
           $(announceBox).slideDown('slow');
+          setTimeout(()=>{
+            $(announceBox).slideUp('slow');
+            $(announceBox).empty();
+          }, 20000);
+        } else {
+
         }
       }
     };

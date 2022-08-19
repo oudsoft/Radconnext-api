@@ -192,6 +192,22 @@ module.exports = function (app) {
 		});
 	});
 
+
+  app.post('/shop/share/minetype/(:shareId)', function(req, res) {
+    const usrQRCodePath = '/shop/img/usr/qrcode';
+    let shareId = req.params.shareId;
+    let shopQRCodeImgDir = path.join(__dirname, '../../../', usrQRCodePath);
+    let fileSharePath = shopQRCodeImgDir + '/' +  shareId + '.png';
+    if (fs.existsSync(fileSharePath)) {
+      res.status(200).send({status: {code: 200}, minetype: 'png'});
+    } else {
+      fileSharePath = shopQRCodeImgDir + '/' +  shareId + '.mp4';
+      if (fs.existsSync(fileSharePath)) {
+        res.status(200).send({status: {code: 200}, minetype: 'mp4'});
+      }
+    }
+  });
+
 	return {
 		genUniqueID,
 		parseStr,
