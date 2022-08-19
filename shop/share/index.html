@@ -128,7 +128,7 @@
     //const imgBox = doCreateImgBox('/shop' + imageUrl);
     const mediaBox = await doCreateMediaBox(id);
     let mediaTypes = $(mediaBox).attr('src').split('.');
-    console.log(mediaTypes);
+    //console.log(mediaTypes);
     if (mediaTypes[1] === 'png') {
       $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(openCustomEditor));
     } else {
