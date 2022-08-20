@@ -233,7 +233,9 @@
 
       let saveCmd = $('<input type="button" id="SaveEdit-Cmd" value=" Save & Share " style="height: 38px; margin-left: 10px;"/>');
       $(saveCmd).appendTo($(modalFooter));
-      $(saveCmd).on('click', (evt)=>{ doSaveCaptureImage(evt) });
+      $(saveCmd).on('click', (evt)=>{
+        doSaveCaptureImage(evt);
+      });
       let clearCmd = $('<input type="Button" value=" Clear " style="height: 38px; margin-left: 10px;"/>');
       $(clearCmd).appendTo($(modalFooter));
       $(clearCmd).on('click', (evt)=>{
@@ -241,6 +243,28 @@
         var tuiCanvas = imageEditor._graphics.getCanvas();
         let context = tuiCanvas.getContext('2d');
         context.clearRect(0, 0, tuiCanvas.width, tuiCanvas.height);
+      });
+
+      let downloadCmd = $('<input type="Button" value=" Download " style="height: 38px; margin-left: 10px;"/>');
+      $(downloadCmd).appendTo($(modalFooter));
+      $(downloadCmd).on('click', (evt)=>{
+        let imageEditor = settings.imageEditor;
+        var tuiCanvas = imageEditor._graphics.getCanvas();
+        var dataURL = tuiCanvas.toDataURL("image/png", 1.0);
+        var base64ImageContent = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+        var blob = base64ToBlob(base64ImageContent, 'image/png');
+        var reader = new FileReader();
+        reader.onloadend = function(event) {
+          let fileName = prompt("ชื่อไฟล์", 'download');
+          if (fileName !== '') {
+            let pom = document.createElement('a');
+            pom.setAttribute('target', "_blank");
+            pom.setAttribute('href', reader.result);
+            pom.setAttribute('download', fileName + '.png');
+            pom.click();
+          }
+        };
+        reader.readAsDataURL(blob);
       });
 
       let closeCmd = $('<input type="Button" value=" Close " style="height: 38px; margin-left: 10px;"/>');

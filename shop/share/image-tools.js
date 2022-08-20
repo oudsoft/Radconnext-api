@@ -24,67 +24,100 @@
       let fileChooser = $('<input type="file" accept="image/png, image/jpeg, image/webp"/>');
       $(fileChooser).css({'display': 'none'});
       settings.scale = 1.0;
-      let imageSrcBox = $('<div id="ImageSrcBox"></div>');
       $(fileChooser).on('change', (evt)=> {
         let selectedFiles = evt.currentTarget.files;
         let fileURL = window.URL.createObjectURL(selectedFiles[0]);
-        let imageSrc = doCreateSourceImage(fileURL);
-        $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
-        $(imageSrc).on('click', (evt)=>{
-          $('#CropBox').remove();
-          let pos = $('#LayoutBox').offset();
-          let x = undefined;
-          let y = undefined;
-          if (settings.scale == 1.0) {
-            x = (pos.left - imageSrc.offsetLeft);
-            y = (pos.top - imageSrc.offsetTop);
-          } else{
-            x = (pos.left - imageSrc.offsetLeft) * (imgSrcFullSizeWidth/imageSrc.width);
-            y = (pos.top - imageSrc.offsetTop) * (imgSrcFullSizeHeight/imageSrc.height);
-          }
-
-          let cropCanvas = document.getElementById('CropCanvas');
-
-          cropCanvas.width = settings.cropWidth;
-          cropCanvas.height = settings.cropHeight;
-
-          let ctx = cropCanvas.getContext('2d');
-          ctx.drawImage(imageSrc, x, y, settings.cropWidth, settings.cropHeight, 0, 0, settings.cropWidth, settings.cropHeight);
-          let dataURL = cropCanvas.toDataURL("image/png", 0.9);
-          let cropImage = doCreateCropImage(dataURL);
-          let fileCode = genUniqueID();
-          let downloadCropImageCmd = $('<input type="button" value="Download"/>');
-          $(downloadCropImageCmd).on('click', (evt)=>{
-            let tempLink = document.createElement('a');
-            let fileName = fileCode + '.png';
-            tempLink.download = fileName;
-            tempLink.href = dataURL;
-            tempLink.click();
-          });
-          let uploadCropImageCmd = $('<input type="button" value="Upload"/>').css({'margin-left': '10px'});
-          $(uploadCropImageCmd).on('click', (evt)=>{
-
-          });
-          let removeCmd = $('<input type="button" value="Remove"/>').css({'margin-left': '10px'});
-          $(removeCmd).on('click', (evt)=>{
-            $(cropBox).remove();
-          });
-          let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center', 'border': '2px solid green'});
-          let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center'});
-          $(cropImageBox).append($(cropImage));
-          $(cropImageCmdBox).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
-          let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
-          $(cropBox).append($(cropImageBox)).append($(cropImageCmdBox));
-          $this.append($(cropBox));
-        });
-
-        let layoutBox = doCreateLayoutBox();
-
-        $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
-        $this.append($(imageSrcBox));
-        $('body').css({'width': '100%', 'heigth': '100%'});
+        doCreateImageTools(fileURL);
       });
       $(fileChooser).click();
+    }
+
+    const doCreateImageTools = function(fileURL){
+      $('#CropCanvas').remove();
+      let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
+      $this.append($(cropCanvas));      
+      let imageSrcBox = $('<div id="ImageSrcBox"></div>');
+      let imageSrc = doCreateSourceImage(fileURL);
+      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
+      $(imageSrc).on('click', (evt)=>{
+        $('#CropBox').remove();
+        let pos = $('#LayoutBox').offset();
+        let x = undefined;
+        let y = undefined;
+        if (settings.scale == 1.0) {
+          x = (pos.left - imageSrc.offsetLeft);
+          y = (pos.top - imageSrc.offsetTop);
+        } else{
+          x = (pos.left - imageSrc.offsetLeft) * (imgSrcFullSizeWidth/imageSrc.width);
+          y = (pos.top - imageSrc.offsetTop) * (imgSrcFullSizeHeight/imageSrc.height);
+        }
+
+        let cropCanvas = document.getElementById('CropCanvas');
+
+        cropCanvas.width = settings.cropWidth;
+        cropCanvas.height = settings.cropHeight;
+
+        let ctx = cropCanvas.getContext('2d');
+        ctx.drawImage(imageSrc, x, y, settings.cropWidth, settings.cropHeight, 0, 0, settings.cropWidth, settings.cropHeight);
+        let dataURL = cropCanvas.toDataURL("image/png", 0.9);
+        let cropImage = doCreateCropImage(dataURL);
+
+        let editImageCmd = $('<input type="button" value="Edit"/>');
+        $(editImageCmd).on('click', (evt)=>{
+          let w = settings.cropWidth;
+          let h = settings.cropHeight;
+          var editorbox = $('<div id="EditorBox"></div>');
+          $(editorbox).css({ 'position': 'absolute', 'width': '80%', 'min-height': '650px', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'margin-left': '10%'});
+          $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
+          $('body').append($(editorbox).css({'top': '10px'}));
+          let pluginOption = {
+            canvas: cropCanvas,
+            cWidth: w,
+            cHeight: h,
+            imageInit: dataURL,
+            uploadApiUrl: '/api/shop/upload/share'
+          };
+
+          const myEditor = $(editorbox).imageeditor(pluginOption);
+          $(editorbox).resizable({
+            containment: 'parent',
+            stop: function(evt) {
+              $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+            }
+          });
+          $('body').css({'min-height': '1250px'});
+        });
+
+        let fileCode = genUniqueID();
+        let downloadCropImageCmd = $('<input type="button" value="Download"/>').css({'margin-left': '10px'})
+        $(downloadCropImageCmd).on('click', (evt)=>{
+          let tempLink = document.createElement('a');
+          let fileName = fileCode + '.png';
+          tempLink.download = fileName;
+          tempLink.href = dataURL;
+          tempLink.click();
+        });
+        let uploadCropImageCmd = $('<input type="button" value="Upload"/>').css({'margin-left': '10px'});
+        $(uploadCropImageCmd).on('click', (evt)=>{
+
+        });
+        let removeCmd = $('<input type="button" value="Remove"/>').css({'margin-left': '10px'});
+        $(removeCmd).on('click', (evt)=>{
+          $(cropBox).remove();
+        });
+        let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center', 'border': '2px solid green'});
+        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center'});
+        $(cropImageBox).append($(cropImage));
+        $(cropImageCmdBox).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
+        let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
+        $(cropBox).append($(cropImageBox)).append($(cropImageCmdBox));
+        $this.append($(cropBox));
+      });
+      let layoutBox = doCreateLayoutBox();
+      $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
+      $this.append($(imageSrcBox));
+      $('body').css({'width': '100%', 'heigth': '100%'});
+      return $(imageSrcBox);
     }
 
     const doCreateSourceImage = function(imageUrl) {
@@ -191,8 +224,6 @@
       });
       $(cropInputBox).prepend($(fileChooserCmd).css({'display': 'inline-block'}));
       $this.append($(cropInputBox));
-      let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
-      $this.append($(cropCanvas));
     }
 
     init();
@@ -200,6 +231,7 @@
     var output = {
       settings: settings,
       handle: this,
+      doCreateImageTools: doCreateImageTools
     }
 
     return output;

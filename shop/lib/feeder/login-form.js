@@ -206,7 +206,7 @@
     }
 
     const doCreateLoginButtonCmd = function(){
-      let loginButtonCmd = $('<input type="button" value=" SIGN IN " style="width: 100%; margin-top: 44px;"/>');
+      let loginButtonCmd = $('<input type="button" value=" SIGN IN " style="width: 100%; margin-top: 20px;"/>');
       $(loginButtonCmd).css({'background-color': '#184175', 'color': 'white'}); //#2F4646
       $(loginButtonCmd).on('click', (evt)=>{
         doUserClickLogin();
@@ -215,7 +215,7 @@
     }
 
     const doCreateRegisterButtonCmd = function(){
-      let registerButtonCmd = $('<input type="button" value=" ลงทะเบียน " style="width: 100%; margin-top: 44px;"/>');
+      let registerButtonCmd = $('<input type="button" value=" ลงทะเบียน " style="width: 100%; margin-top: 20px;"/>');
       $(registerButtonCmd).css({'background-color': '#184175', 'color': 'white'}); //#2F4646
       $(registerButtonCmd).on('click', (evt)=>{
         window.location.replace('/shop/reg/');

@@ -60,6 +60,6 @@ const doOpenEditor = function(fileURL){
       });
       */
       $('body').css({'min-height': '1250px'});
-    }, 1500);
-  }, 2200);
+    }, 1100);
+  }, 1200);
 }
