@@ -453,6 +453,7 @@
           $(srcFileListBox).find('select').append($(fileOption))
         });
         $(srcFileListBox).find('select').prop('selectedIndex', 0).change();
+        $(srcFileListBox).hide();
         let autoPlayCmd = $(playerCmdBox).find('#AutoPlayCmd');
         $(autoPlayCmd).attr('src', settings.iconRootPath+ '/images/start-play-icon.png');
         $(playerViewBox).append($(srcFileListBox));

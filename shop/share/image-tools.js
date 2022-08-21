@@ -9,6 +9,8 @@
 
     const $this = this;
 
+    const videoConstraints = {video: {displaySurface: "application", height: 1080, width: 1920 }};
+
     let imgSrcFullSizeWidth = 0;
     let imgSrcFullSizeHeight = 0;
 
@@ -33,6 +35,7 @@
     }
 
     const doCreateImageTools = function(fileURL){
+      $('#CropBox').remove();
       $('#CropCanvas').remove();
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
@@ -40,7 +43,6 @@
       let imageSrc = doCreateSourceImage(fileURL);
       $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
       $(imageSrc).on('click', (evt)=>{
-        $('#CropBox').remove();
         let pos = $('#LayoutBox').offset();
         let x = undefined;
         let y = undefined;
@@ -147,7 +149,7 @@
       let whInputBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'top': '-15px'});;
       let wInput = $('<input type="number" id="WInput"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
       let hInput = $('<input type="number" id="HInput"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
-      let applyCmd = $('<input type="button" value="Apply"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
+      let applyCmd = $('<input type="button" value="Apply" id="ApplyCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(applyCmd).on('click', (evt)=>{
         let w = $(wInput).val();
         let h = $(hInput).val();
@@ -168,10 +170,20 @@
         settings.scale = curValue + 0.05;
         zoomCallback(settings.scale);
       });
-      let zoomResetCmd = $('<input type="button" value="Reset"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
+      let zoomResetCmd = $('<input type="button" value="Reset" id="ZoomResetCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomResetCmd).on('click', (evt)=>{
         settings.scale = 1.0;
         zoomCallback(settings.scale);
+      });
+      $(wInput).on('keypress',function(evt) {
+        if(evt.which == 13) {
+          $(applyCmd).click();
+        }
+      });
+      $(hInput).on('keypress',function(evt) {
+        if(evt.which == 13) {
+          $(applyCmd).click();
+        }
       });
       $(whInputBox).append($(wLabel)).append($(wInput)).append($(hLabel)).append($(hInput)).append($(applyCmd));
       return $(whInputBox).append($(zoomInCmd)).append($(zoomValue)).append($(zoomOutCmd)).append($(zoomResetCmd));
@@ -193,6 +205,100 @@
         }
       });
       return $(layoutBox);
+    }
+
+    const doCreateCaptureCmd = function(){
+      let hsIcon = new Image();
+      hsIcon.src = '/images/screen-capture-icon.png';
+      $(hsIcon).css({'position': 'relative', "width": '40px', "height": 'auto', "cursor": 'pointer', "padding": '2px', 'top': '24px', 'margin-left': '20px'});
+      $(hsIcon).css({'border': '4px solid #ddd', 'border-radius': '5px', 'margin': '4px'});
+      $(hsIcon).prop('data-toggle', 'tooltip');
+      $(hsIcon).prop('title', 'Capture Sreen');
+      $(hsIcon).hover(()=>{
+        $(hsIcon).css({'border': '4px solid grey'});
+      },()=>{
+        $(hsIcon).css({'border': '4px solid #ddd'});
+      });
+      $(hsIcon).on("click", function(evt){
+        onCaptureClick(evt);
+  		});
+      return $(hsIcon);
+    }
+
+    const onCaptureClick = async function(evt) {
+      await openDisplayMedia(invokeGetDisplayMedia, doGetScreenSignalError);
+    }
+
+    const openDisplayMedia = function(successCallback, errorCallback){
+      return new Promise(function(resolve, reject) {
+        if(navigator.mediaDevices.getDisplayMedia) {
+          navigator.mediaDevices.getDisplayMedia(videoConstraints).then(successCallback).catch(errorCallback);
+        } else {
+          navigator.getDisplayMedia(videoConstraints).then(successCallback).catch(errorCallback);
+        }
+        resolve();
+      });
+    }
+
+    const doGetScreenSignalError = function(evt) {
+      var error = {
+    		name: evt.name || 'UnKnown',
+    		message: evt.message || 'UnKnown',
+    		stack: evt.stack || 'UnKnown'
+    	};
+    	if(error.name === 'PermissionDeniedError') {
+    		if(location.protocol !== 'https:') {
+    			error.message = 'Please use HTTPs.';
+    			error.stack   = 'HTTPs is required.';
+    		}
+    	}
+    	console.error(error.name);
+    	console.error(error.message);
+    	console.error(error.stack);
+    }
+
+    const invokeGetDisplayMedia = function(stream){
+      $('#ImageSrcBox').remove();
+      $("body").append($('<video id="CaptureVideo" width="520" height="290" autoplay/>'));
+      $("body").append($('<canvas id="CaptureCanvas" width="100%" height="auto"/>'));
+  		let canvas = document.getElementById('CaptureCanvas');
+  		let video = document.getElementById('CaptureVideo');
+  		let ctx =  canvas.getContext('2d');
+  		let vw, vh;
+      video.srcObject = stream;
+
+      video.addEventListener( "loadedmetadata", function (evt) {
+        vw = this.videoWidth;
+        vh = this.videoHeight;
+        video.width = vw;
+        video.height = vh;
+
+        ctx.canvas.width = vw;
+        ctx.canvas.height = vh;
+
+        imgSrcFullSizeWidth = vw;
+        imgSrcFullSizeHeight = vh;
+
+        $('#WInput').val(400);
+        $('#HInput').val(600);
+        $('#ApplyCmd').click();
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var dataURL = canvas.toDataURL("image/png", 1.0);
+
+        doCreateImageTools(dataURL);
+        $('#ZoomResetCmd').click();
+        if (video.srcObject){
+    			video.srcObject.getTracks().forEach(function(track) {
+    				track.stop();
+    			});
+    			video.srcObject = null;
+          $('#CaptureVideo').remove();
+    		}
+
+        $('#CaptureCanvas').remove();
+
+      }, false);
     }
 
     const init = function() {
@@ -223,7 +329,9 @@
         $('#LayoutBox').height(settings.cropHeight * scale);
         $('#LayoutBox').offset(newPos);
       });
+      let captureScreenCmd = doCreateCaptureCmd();
       $(cropInputBox).prepend($(fileChooserCmd).css({'display': 'inline-block'}));
+      $(cropInputBox).append($(captureScreenCmd).css({'display': 'inline-block'}));
       $this.append($(cropInputBox));
     }
 
