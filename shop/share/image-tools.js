@@ -35,7 +35,7 @@
     const doCreateImageTools = function(fileURL){
       $('#CropCanvas').remove();
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
-      $this.append($(cropCanvas));      
+      $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
       let imageSrc = doCreateSourceImage(fileURL);
       $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
@@ -115,7 +115,8 @@
       });
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
-      $this.append($(imageSrcBox));
+      //$this.append($(imageSrcBox));
+      $('body').append($(imageSrcBox));
       $('body').css({'width': '100%', 'heigth': '100%'});
       return $(imageSrcBox);
     }

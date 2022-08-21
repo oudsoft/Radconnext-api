@@ -248,6 +248,7 @@ app.post('/radio/submitresult', (req, res) => {
           }
           res.json(submitRes);
         } catch(error) {
+          log.info('==Radio Submit Result with Error==');
           log.error(error);
           res.json({status: {code: 500}, error: error});
           let errorMsg = uti.fmtStr('มีข้อผิดพลาดเกิดที่ API %s', '/radio/submitresult');

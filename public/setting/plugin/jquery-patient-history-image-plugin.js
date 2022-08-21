@@ -186,6 +186,8 @@ $.widget( "custom.imagehistory", {
       onClick: function(e){me.captureClick(e, imageListDiv)}
     };
     let captureIconCmd = $( "<div></div>" ).appendTo($(iconCmdDiv)).iconitem( captureIconProp );
+    //this._setOption('doUploadBlob', this.doUploadBlob);
+    this.options.doUploadBlob = this.doUploadBlob;
   },
   uploadClick: function(e, imageListBox){
     let $this = this;
@@ -335,7 +337,6 @@ $.widget( "custom.imagehistory", {
     });
   },
   openDisplayMedia: function(successCallback, errorCallback){
-    let $this = this;
     return new Promise(function(resolve, reject) {
       if(navigator.mediaDevices.getDisplayMedia) {
         navigator.mediaDevices.getDisplayMedia(videoConstraints).then(successCallback).catch(errorCallback);
@@ -500,34 +501,39 @@ $.widget( "custom.imagehistory", {
     //var base64ImageContent = dataURL.replace("image/jpg", "image/octet-stream");
     var blob = $this.base64ToBlob(base64ImageContent, 'image/jpg');
 
-    var formData = new FormData();
-    formData.append('picture', blob);
-
-    $.ajax({
-      url: $this.options.captureUploadApiUrl,
-      type: "POST",
-      cache: false,
-      contentType: false,
-      processData: false,
-      data: formData}).done(function(data){
-        //console.log(data);
-        let context = tuiCanvas.getContext('2d');
-        context.clearRect(0, 0, tuiCanvas.width, tuiCanvas.height);
-        //console.log(data.link);
-        if (window.location.hostname == 'localhost') {
-          data.link = 'https://radconnext.info' + data.link;
+    $this.doUploadBlob(blob).then(function(data){
+      let context = tuiCanvas.getContext('2d');
+      context.clearRect(0, 0, tuiCanvas.width, tuiCanvas.height);
+    });
+  },
+  doUploadBlob: function(blob) {
+    return new Promise(function(resolve, reject) {
+      let $this = imagehistory;
+      let formData = new FormData();
+      formData.append('picture', blob);
+      $.ajax({
+        url: $this.options.captureUploadApiUrl,
+        type: "POST",
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: formData}).done(function(data){
+          if (window.location.hostname == 'localhost') {
+            data.link = 'https://radconnext.info' + data.link;
+          }
+          setTimeout(()=>{
+            $this.doAppendNewImageData(data);
+            let uploadImageProp = {
+              imgUrl: data.link,
+              onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
+            };
+            $( "<div></div>" ).appendTo($("#ImageListDiv")).imageitem( uploadImageProp );
+            $('#main-dialog').remove();
+            resolve(data);
+          }, 400);
         }
-        setTimeout(()=>{
-          $this.doAppendNewImageData(data);
-          let uploadImageProp = {
-            imgUrl: data.link,
-            onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
-          };
-          $( "<div></div>" ).appendTo($("#ImageListDiv")).imageitem( uploadImageProp );
-          $('#main-dialog').remove();
-        }, 400);
-      }
-    );
+      );
+    });
   },
   doDownloadCaptureImage: function(e){
     let $this = imagehistory;
