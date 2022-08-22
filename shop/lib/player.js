@@ -387,12 +387,15 @@
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
           $(imgBox).draggable({containment: 'body', stop: function(evt){
-              //evt.stopPropagation();
-              evt.preventDefault();
-              evt.stopImmediatePropagation();
+              evt.stopPropagation();
+              //evt.preventDefault();
+              //evt.stopImmediatePropagation();
             }
           });
-          $(imgBox).resizable({containment: 'body'});
+          $(imgBox).resizable({containment: 'body', stop: function(evt){
+              settings.imgSize = evt.target.clientWidth;
+            }
+          });
           if (isAutoPlay == true){
             doPlaySlide();
           }

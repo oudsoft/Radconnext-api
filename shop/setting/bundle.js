@@ -164,6 +164,16 @@ module.exports = function ( jq ) {
 		return $(reportDocButtonBox).append($(openReportDocCmd)).append($(openReportQrCmd));
 	}
 
+	const doCalOrderTotal = function(gooditems){
+    return new Promise(async function(resolve, reject) {
+      let total = 0;
+      await gooditems.forEach((item, i) => {
+        total += Number(item.Price) * Number(item.Qty);
+      });
+      resolve(total);
+    });
+  }
+
   return {
 		fileUploadMaxSize,
     doCallApi,
@@ -179,7 +189,8 @@ module.exports = function ( jq ) {
 		calendarOptions,
 		genUniqueID,
 		isExistsResource,
-		doCreateReportDocButtonCmd
+		doCreateReportDocButtonCmd,
+		doCalOrderTotal
 	}
 }
 
@@ -349,7 +360,7 @@ module.exports = {
   doShowShopMng,
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":14,"jquery":18}],4:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":15,"jquery":19}],4:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1141,7 +1152,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./order-history.js":12,"./order-mng.js":13}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./order-history.js":12,"./order-mng.js":14}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1866,7 +1877,7 @@ module.exports = function ( jq ) {
       let wrapperBox = $('<div></div>');
       let searchInputBox = $('<div></div>').css({'width': '100%', 'padding': '4px'});
       let gooditemListBox = $('<div></div>').css({'width': '100%', 'padding': '4px', 'min-height': '200px'});
-      let searchKeyInput = $('<input id="SearchKeyInput" type="text" value="*"/>').css({'width': '120px'});
+      let searchKeyInput = $('<input id="SearchKeyInput" type="text" value="*"/>').css({'width': '70px'});
       let gooditemResult = undefined;
       $(searchKeyInput).css({'background': 'url(../../images/search-icon.png) no-repeat right center', 'background-size': '6% 100%', 'padding-right': '3px'});
       $(searchKeyInput).on('keyup', async (evt)=>{
@@ -2926,6 +2937,94 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
+  const common = require('../../../home/mod/common-lib.js')($);
+
+	const orderSelectCallback = function(evt, orders, srcIndex, destIndex) {
+		console.log(evt, orders, srcIndex, destIndex);
+		/*
+		let newValue = $(editInput).val();
+		if(newValue !== '') {
+			$(editInput).css({'border': ''});
+			let params = {data: {Price: newValue}, id: gooditems[index].id};
+			let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+			if (menuitemRes.status.code == 200) {
+				$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
+				dlgHandle.closeAlert();
+				successCallback(newValue);
+			} else if (menuitemRes.status.code == 201) {
+				$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+			} else {
+				$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการเมนูได้", "error");
+			}
+		} else {
+			$.notify('ราคาสินค้าต้องไม่ว่าง', 'error');
+			$(editInput).css({'border': '1px solid red'});
+		}
+
+
+		*/
+	}
+
+	const doMergeOrder = async function(orders, srcIndex) {
+		let orderMergerForm = await doCreateMergeSelectOrderForm(orders, srcIndex, orderSelectCallback);
+		let mergeDlgOption = {
+			title: 'เลือกออร์เดอร์ปลายทางที่ต้องการนำไปยุบรวม',
+			msg: $(orderMergerForm),
+			width: '420px',
+			onOk: async function(evt) {
+				dlgHandle.closeAlert();
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(mergeDlgOption);
+		$(dlgHandle.okCmd).hide();
+	}
+
+  const doCreateMergeSelectOrderForm = function(orders, srcIndex, selectedCallback){
+    return new Promise(async function(resolve, reject) {
+      let selectOrderForm = $('<div></div>').css({'width': '100%', 'height': '220px', 'overflow': 'scroll', 'padding': '5px'});
+      const promiseList = new Promise(async function(resolve2, reject2){
+				for (let i=0; i < orders.length; i++) {
+          if ((orders[i].Status == 1) && (orders[i].id != orders[srcIndex].id)) {
+						let total = await common.doCalOrderTotal(orders[i].Items);
+            let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
+            let orderBox = $('<div></div>').css({'width': '95%', 'position': 'relative', 'cursor': 'pointer', 'padding': '5px', 'background-color': '#dddd', 'border': '4px solid #dddd'});
+            $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b>ผู้รับออร์เดอร์ :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
+						$(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
+            $(orderBox).hover(()=>{
+              $(orderBox).css({'border': '4px solid grey'});
+            },()=>{
+              $(orderBox).css({'border': '4px solid #dddd'});
+            });
+            $(orderBox).on('click', (evt)=>{
+              selectedCallback(evt, orders, srcIndex, i);
+            });
+            $(selectOrderForm).append($(orderBox));
+          }
+        }
+        setTimeout(()=> {
+          resolve2($(selectOrderForm));
+        }, 500);
+      });
+      Promise.all([promiseList]).then((ob)=>{
+        resolve(ob[0]);
+      });
+    });
+  }
+
+  return {
+		doMergeOrder,
+    doCreateMergeSelectOrderForm
+	}
+}
+
+},{"../../../home/mod/common-lib.js":1}],14:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
 	//const welcome = require('./welcome.js')($);
 	//const login = require('./login.js')($);
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2933,6 +3032,7 @@ module.exports = function ( jq ) {
   const gooditemdlg = require('./gooditem-dlg.js')($);
 	const closeorderdlg = require('./closeorder-dlg.js')($);
 	const calendardlg = require('./calendar-dlg.js')($);
+	const mergeorderdlg = require('./order-merge-dlg.js')($);
 
   const doShowOrderList = function(shopData, workAreaBox, orderDate){
     return new Promise(async function(resolve, reject) {
@@ -3161,6 +3261,8 @@ module.exports = function ( jq ) {
 			$(editCustomerCmd).hide();
 			$(saveNewOrderCmd).hide();
 		}
+
+		$('#App').find('#SummaryBox').remove();
 
     const customerSelectedCallback = function(customerSelected){
       orderObj.customer = customerSelected;
@@ -3542,6 +3644,13 @@ module.exports = function ( jq ) {
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
 						if (orders[i].Status == 1) {
 							$(orderBox).css({'background-color': 'yellow'});
+							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+							$(mergeOrderCmdBox).append($('<span>ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(mergeOrderCmdBox).on('click', async (evt)=>{
+								evt.stopPropagation();
+								mergeorderdlg.doMergeOrder(orders, i);
+							});
+							$(orderBox).append($(mergeOrderCmdBox));
 							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
 							$(cancelOrderCmdBox).append($('<span>ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(cancelOrderCmdBox).on('click', async (evt)=>{
@@ -3551,7 +3660,8 @@ module.exports = function ( jq ) {
 								if (orderRes.status.code == 200) {
 									$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
 									$('#OrderListBox').remove();
-									doCreateOrderList(shopData, workAreaBox, orderDate);
+									let orderListBox = await doCreateOrderList(shopData, workAreaBox, orderDate);
+									$(workAreaBox).append($(orderListBox));
 								} else {
 									$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
 								}
@@ -3639,6 +3749,7 @@ module.exports = function ( jq ) {
         });
         Promise.all([promiseList]).then((ob)=>{
           $(workAreaBox).append($(ob[0]));
+					$('#App').find('#SummaryBox').remove();
 					let summaryData = {yellowOrders, orangeOrders, greenOrders, greyOrders};
 					let summaryBox = $('<div id="SummaryBox"></div>').css({'position': 'relative', 'width': '99%', 'min-height': '60px', 'cursor': 'pointer', 'font-size': '18px', 'text-align': 'center', 'background-color': ' #dddd', 'border': '2px solid grey', 'margin-top': '45px', 'overflow': 'auto'});
 					$(summaryBox).append($('<span><b>สรุป</b></span>').css({'line-height': '60px'}));
@@ -3769,7 +3880,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./closeorder-dlg.js":5,"./customer-dlg.js":6,"./gooditem-dlg.js":9}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./closeorder-dlg.js":5,"./customer-dlg.js":6,"./gooditem-dlg.js":9,"./order-merge-dlg.js":13}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4097,7 +4208,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":15}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":16}],16:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4270,7 +4381,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":7,"./menugroup-mng.js":10,"./menuitem-mng.js":11,"./order-mng.js":13,"./template-design.js":16,"./user-mng.js":17}],16:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":7,"./menugroup-mng.js":10,"./menuitem-mng.js":11,"./order-mng.js":14,"./template-design.js":17,"./user-mng.js":18}],17:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4806,7 +4917,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":8}],17:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":8}],18:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -5248,7 +5359,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],18:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":1}],19:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
