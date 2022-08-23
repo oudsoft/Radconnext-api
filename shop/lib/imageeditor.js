@@ -255,13 +255,18 @@
         var blob = base64ToBlob(base64ImageContent, 'image/png');
         var reader = new FileReader();
         reader.onloadend = function(event) {
-          let fileName = prompt("ชื่อไฟล์", 'download');
+          let lastFilename = localStorage.getItem('lastFilename');
+          if (!lastFilename) {
+            lastFilename = 'download-01';
+          }
+          let fileName = prompt("ชื่อไฟล์", lastFilename);
           if (fileName !== '') {
             let pom = document.createElement('a');
             pom.setAttribute('target', "_blank");
             pom.setAttribute('href', reader.result);
             pom.setAttribute('download', fileName + '.png');
             pom.click();
+            localStorage.setItem('lastFilename', lastFilename);
           }
         };
         reader.readAsDataURL(blob);
