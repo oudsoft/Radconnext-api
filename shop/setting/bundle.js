@@ -2939,34 +2939,40 @@ module.exports = function ( jq ) {
 
   const common = require('../../../home/mod/common-lib.js')($);
 
-	const orderSelectCallback = function(evt, orders, srcIndex, destIndex) {
-		console.log(evt, orders, srcIndex, destIndex);
-		/*
-		let newValue = $(editInput).val();
-		if(newValue !== '') {
-			$(editInput).css({'border': ''});
-			let params = {data: {Price: newValue}, id: gooditems[index].id};
-			let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
-			if (menuitemRes.status.code == 200) {
-				$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
-				dlgHandle.closeAlert();
-				successCallback(newValue);
-			} else if (menuitemRes.status.code == 201) {
-				$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
-			} else {
-				$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการเมนูได้", "error");
+	let dlgHandle = undefined;
+
+	const orderSelectCallback = function(evt, orders, srcIndex, destIndex, mergeSuccessCallback) {
+		let	promiseList = new Promise(async function(resolve2, reject2){
+			for (let i=0; i < orders[srcIndex].Items.length; i++) {
+				srcItemId = orders[srcIndex].Items[i].id;
+				let foundIndex = orders[destIndex].Items.findIndex((item)=>{
+					return (item.id === srcItemId);
+				});
+				if (foundIndex >= 0) {
+					let srcQty = orders[srcIndex].Items[i].Qty;
+					let destQty = orders[destIndex].Items[foundIndex].Qty;
+					let newQty = Number(srcQty) + Number(destQty);
+					orders[destIndex].Items[foundIndex].Qty = newQty;
+				} else {
+					orders[destIndex].Items.push(orders[srcIndex].Items[i]);
+				}
 			}
-		} else {
-			$.notify('ราคาสินค้าต้องไม่ว่าง', 'error');
-			$(editInput).css({'border': '1px solid red'});
-		}
-
-
-		*/
+			setTimeout(()=>{
+				resolve2($(orders));
+			}, 500);
+		});
+		Promise.all([promiseList]).then((ob)=>{
+			$('body').loading('start');
+			mergeSuccessCallback(ob[0], destIndex);
+			$('body').loading('stop');
+			if (dlgHandle) {
+				dlgHandle.closeAlert();
+			}
+		});
 	}
 
-	const doMergeOrder = async function(orders, srcIndex) {
-		let orderMergerForm = await doCreateMergeSelectOrderForm(orders, srcIndex, orderSelectCallback);
+	const doMergeOrder = async function(orders, srcIndex, mergeSuccessCallback) {
+		let orderMergerForm = await doCreateMergeSelectOrderForm(orders, srcIndex, orderSelectCallback, mergeSuccessCallback);
 		let mergeDlgOption = {
 			title: 'เลือกออร์เดอร์ปลายทางที่ต้องการนำไปยุบรวม',
 			msg: $(orderMergerForm),
@@ -2978,14 +2984,14 @@ module.exports = function ( jq ) {
 				dlgHandle.closeAlert();
 			}
 		}
-		let dlgHandle = $('body').radalert(mergeDlgOption);
+		dlgHandle = $('body').radalert(mergeDlgOption);
 		$(dlgHandle.okCmd).hide();
 	}
 
-  const doCreateMergeSelectOrderForm = function(orders, srcIndex, selectedCallback){
+  const doCreateMergeSelectOrderForm = function(orders, srcIndex, selectedCallback, mergeSuccessCallback){
     return new Promise(async function(resolve, reject) {
       let selectOrderForm = $('<div></div>').css({'width': '100%', 'height': '220px', 'overflow': 'scroll', 'padding': '5px'});
-      const promiseList = new Promise(async function(resolve2, reject2){
+      let promiseList = new Promise(async function(resolve2, reject2){
 				for (let i=0; i < orders.length; i++) {
           if ((orders[i].Status == 1) && (orders[i].id != orders[srcIndex].id)) {
 						let total = await common.doCalOrderTotal(orders[i].Items);
@@ -3000,7 +3006,7 @@ module.exports = function ( jq ) {
               $(orderBox).css({'border': '4px solid #dddd'});
             });
             $(orderBox).on('click', (evt)=>{
-              selectedCallback(evt, orders, srcIndex, i);
+              selectedCallback(evt, orders, srcIndex, i, mergeSuccessCallback);
             });
             $(selectOrderForm).append($(orderBox));
           }
@@ -3217,8 +3223,10 @@ module.exports = function ( jq ) {
 			if (addNewGoodItemCmd) {
 				$(lastCell).append($(addNewGoodItemCmd));
 			}
-			lastCell = $(goodItemTable).children(":last").children(":last");
-			$(lastCell).append($(callCreateCloseOrderCmd));
+			if ([1, 2].includes(orderObj.Status)) {
+				lastCell = $(goodItemTable).children(":last").children(":last");
+				$(lastCell).append($(callCreateCloseOrderCmd));
+			}
       $(itemlistWorkingBox).append($(goodItemTable));
     }
 
@@ -3281,14 +3289,11 @@ module.exports = function ( jq ) {
 			if (addNewGoodItemCmd) {
 				$(lastCell).append($(addNewGoodItemCmd));
 			}
-			lastCell = $(goodItemTable).children(":last").children(":last");
-			$(lastCell).append($(callCreateCloseOrderCmd));
+			if ([1, 2].includes(orderObj.Status)) {
+				lastCell = $(goodItemTable).children(":last").children(":last");
+				$(lastCell).append($(callCreateCloseOrderCmd));
+			}
       $(itemlistWorkingBox).empty().append($(goodItemTable));
-			/*
-      if (dlgHandle) {
-        dlgHandle.closeAlert();
-      }
-			*/
     }
 
 		const invoiceCallback = async function(newInvoiceData){
@@ -3570,7 +3575,9 @@ module.exports = function ( jq ) {
               let total = await doCalOrderTotal(orderData.gooditems);
               $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
             });
-            $(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
+						if ([1, 2].includes(orderData.Status)) {
+            	$(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
+						}
             $(goodItemForm).append($(goodItemRow));
 						itenNoCells.push($(itenNoCell));
           }
@@ -3648,7 +3655,26 @@ module.exports = function ( jq ) {
 							$(mergeOrderCmdBox).append($('<span>ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(mergeOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
-								mergeorderdlg.doMergeOrder(orders, i);
+								mergeorderdlg.doMergeOrder(orders, i, async (newOrders, destIndex)=>{
+									let params = {data: {Status: 0, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[i].id};
+									let orderRes = await common.doCallApi('/api/shop/order/update', params);
+									if (orderRes.status.code == 200) {
+										$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
+										params = {data: {Items: orders[destIndex].Items, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[destIndex].id};
+					          orderRes = await common.doCallApi('/api/shop/order/update', params);
+					          if (orderRes.status.code == 200) {
+					            $.notify("ยุบรวมรายการออร์เดอร์สำเร็จ", "success");
+											$('#OrderListBox').remove();
+											//let orderListBox = await doCreateOrderList(shopData, workAreaBox, orderDate);
+											await doCreateOrderList(shopData, workAreaBox, orderDate);
+											//$(workAreaBox).append($(orderListBox));
+					          } else {
+					            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+					          }
+									} else {
+										$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+									}
+								});
 							});
 							$(orderBox).append($(mergeOrderCmdBox));
 							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});

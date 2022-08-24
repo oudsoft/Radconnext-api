@@ -255,18 +255,21 @@
         var blob = base64ToBlob(base64ImageContent, 'image/png');
         var reader = new FileReader();
         reader.onloadend = function(event) {
-          let lastFilename = localStorage.getItem('lastFilename');
-          if (!lastFilename) {
+          let localFilename = JSON.parse(localStorage.getItem('lastFilename'));
+          let lastFilename = undefined;
+          if (!localFilename) {
             lastFilename = 'download-01';
+          } else {
+            lastFilename = localFilename.name;
           }
           let fileName = prompt("ชื่อไฟล์", lastFilename);
           if (fileName !== '') {
+            localStorage.setItem('lastFilename', JSON.stringify({name: fileName}));
             let pom = document.createElement('a');
             pom.setAttribute('target', "_blank");
             pom.setAttribute('href', reader.result);
             pom.setAttribute('download', fileName + '.png');
             pom.click();
-            localStorage.setItem('lastFilename', lastFilename);
           }
         };
         reader.readAsDataURL(blob);

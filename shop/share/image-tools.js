@@ -4,11 +4,14 @@
     var settings = $.extend({
       cropWidth: 200,
       cropHeight: 200,
-      scale: 1.0
+      scale: 1.0,
+      uploadUrl: '/api/shop/upload/share'
     }, options );
 
     const $this = this;
-
+    const waterMarkText = 'Double Click';
+    const waterMarkFontSize = 54;
+    const waterMarkFontColor = 'white';
     const videoConstraints = {video: {displaySurface: "application", height: 1080, width: 1920 }};
 
     let imgSrcFullSizeWidth = 0;
@@ -20,6 +23,23 @@
   		}
   		return s4() + s4() + s4();
   	}
+
+    const base64ToBlob = function (base64, mime) {
+    	mime = mime || '';
+    	var sliceSize = 1024;
+    	var byteChars = window.atob(base64);
+    	var byteArrays = [];
+    	for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+    		var slice = byteChars.slice(offset, offset + sliceSize);
+    		var byteNumbers = new Array(slice.length);
+    		for (var i = 0; i < slice.length; i++) {
+    			byteNumbers[i] = slice.charCodeAt(i);
+    		}
+    		var byteArray = new Uint8Array(byteNumbers);
+    		byteArrays.push(byteArray);
+    	}
+    	return new Blob(byteArrays, {type: mime});
+    }
 
     const doOpenFileChooser = function(){
       $('#ImageSrcBox').remove();
@@ -64,8 +84,33 @@
         let dataURL = cropCanvas.toDataURL("image/png", 0.9);
         let cropImage = doCreateCropImage(dataURL);
 
-        let editImageCmd = $('<input type="button" value="Edit"/>');
+        let stampTextCmd = $('<input type="button" value="Stamp"/>');
+        $(stampTextCmd).on('click', (evt)=>{
+          evt.stopPropagation();
+          let tempCanvas = document.createElement('canvas');
+          tempCanvas.width = cropImage.width;
+          tempCanvas.height = cropImage.height;
+          let tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(cropImage, 0, 0);
+          //let size = tempCtx.measureText(waterMarkText);
+          let tx = settings.cropWidth - 4;
+          let ty = settings.cropHeight - 4;
+          tempCtx.font = waterMarkFontSize + 'px EkkamaiStandard';
+          //tempCtx.globalAlpha = .50;
+          tempCtx.fillStyle = waterMarkFontColor;
+          tempCtx.translate(tx, ty);
+          tempCtx.rotate(-Math.PI / 2);
+          tempCtx.translate(-tx, -ty);
+          tempCtx.fillText(waterMarkText, tx, ty);
+          let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
+          let tempCropImage = doCreateCropImage(tempDataURL);
+          $(cropImage).remove();
+          $(cropImageBox).append($(tempCropImage));
+          dataURL = tempDataURL;
+        });
+        let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'})
         $(editImageCmd).on('click', (evt)=>{
+          evt.stopPropagation();
           let w = settings.cropWidth;
           let h = settings.cropHeight;
           var editorbox = $('<div id="EditorBox"></div>');
@@ -77,7 +122,7 @@
             cWidth: w,
             cHeight: h,
             imageInit: dataURL,
-            uploadApiUrl: '/api/shop/upload/share'
+            uploadApiUrl: settings.uploadUrl
           };
 
           const myEditor = $(editorbox).imageeditor(pluginOption);
@@ -90,30 +135,66 @@
           $('body').css({'min-height': '1250px'});
         });
 
-        let fileCode = genUniqueID();
-        let downloadCropImageCmd = $('<input type="button" value="Download"/>').css({'margin-left': '10px'})
+        let downloadCropImageCmd = $('<input type="button" value="Download"/>').css({'margin-left': '10px'});
         $(downloadCropImageCmd).on('click', (evt)=>{
-          let tempLink = document.createElement('a');
-          let fileName = fileCode + '.png';
-          tempLink.download = fileName;
-          tempLink.href = dataURL;
-          tempLink.click();
+          evt.stopPropagation();
+          let localFilename = JSON.parse(localStorage.getItem('lastFilename'));
+          let lastFilename = undefined;
+          if (!localFilename) {
+            lastFilename = 'download-01';
+          } else {
+            lastFilename = localFilename.name;
+          }
+          let fileName = prompt("ชื่อไฟล์", lastFilename);
+          if (fileName !== '') {
+            localStorage.setItem('lastFilename', JSON.stringify({name: fileName}));
+            let tempLink = document.createElement('a');
+            let downloadFileName = fileName + '.png';
+            tempLink.download = downloadFileName;
+            tempLink.href = dataURL;
+            tempLink.click();
+          }
         });
         let uploadCropImageCmd = $('<input type="button" value="Upload"/>').css({'margin-left': '10px'});
         $(uploadCropImageCmd).on('click', (evt)=>{
-
+          evt.stopPropagation();
+          var base64ImageContent = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+          var blob = base64ToBlob(base64ImageContent, 'image/png');
+          var formData = new FormData();
+          formData.append('picture', blob);
+          $.ajax({
+            url: settings.uploadUrl,
+            type: "POST",
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: formData}).done(function(data){
+              console.log(data);
+              window.open(data.shareLink, '_blank');
+            }
+          );
         });
         let removeCmd = $('<input type="button" value="Remove"/>').css({'margin-left': '10px'});
         $(removeCmd).on('click', (evt)=>{
+          evt.stopPropagation();
           $(cropBox).remove();
         });
         let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center', 'border': '2px solid green'});
-        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center'});
-        $(cropImageBox).append($(cropImage));
-        $(cropImageCmdBox).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
+        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'right'});
+
+        $(cropImageCmdBox).append($(stampTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
+        $(cropImageBox).append($(cropImageCmdBox)).append($(cropImage));
         let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
-        $(cropBox).append($(cropImageBox)).append($(cropImageCmdBox));
+        $(cropBox).append($(cropImageBox));
         $this.append($(cropBox));
+        $(imageSrc).slideUp('slow');
+        $(cropBox).on('click', (evt)=>{
+          if ($(imageSrc).css('display') === 'none') {
+            $(imageSrc).slideDown('slow');
+          } else {
+            $(imageSrc).slideUp('slow');
+          }
+        })
       });
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
@@ -138,6 +219,7 @@
 
     const doCreateCropImage = function(imageUrl) {
       let cropImg = new Image();
+      cropImg.id = 'CropImg';
       cropImg.src = imageUrl;
       cropImg.onload = function() {
         console.log('success!!');
@@ -192,7 +274,7 @@
     const doCreateLayoutBox = function(){
       let layoutBox = $('<div id="LayoutBox"></div>').css({'position': 'absolute', 'border': '1px dashed red', 'background-color': 'rgba(255, 0, 0, 0.3)', 'top': '60px', 'left': '0px'});
       $(layoutBox).css({'width': (settings.cropWidth * settings.scale) + 'px', 'height': (settings.cropHeight * settings.scale) + 'px'});
-      $(layoutBox).draggable({containment: 'body'});
+      $(layoutBox).draggable({containment: 'parent'});
       $(layoutBox).resizable({
         containment: 'body',
         stop: function(evt){
