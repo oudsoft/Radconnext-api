@@ -121,7 +121,7 @@
           evt.stopPropagation();
           let tx = 10;
           let ty = 70;
-          let tw = 100;
+          let tw = 200;
           let th = undefined;
           let newTextBox = undefined;
           let newTextWord = 'สวัสดีชาวโลก';
@@ -132,30 +132,34 @@
             $(newTextBox).resizable({containment: "parent"});
             $(newTextBox).draggable('destroy');
             $(newTextBox).resizable('destroy');
-            $(newTextBox).on('dblclick', (evt)=>{
-              console.log(evt);
-              evt.stopPropagation();
-              let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
-              if (newTextValue !== ''){
-                newTextWord = newTextValue;
-                reDrawCropImage(newTextWord);
-                $(newTextBox).draggable({
-                  containment: "parent",
-                  stop: function(evt) {
-                    onDragEvt(evt);
-                  }
-                });
-                $(newTextBox).resizable({
-                  containment: "parent",
-                  stop: function(evt) {
-                    onResizeEvt(evt);
-                  }
-                });
-              }
-            });
             $(newTextBox).on('click', (evt)=>{
               evt.stopPropagation();
-              cropImage = tempCropImage;
+              console.log(evt);
+              if (evt.ctrlKey) {
+                let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
+                if (newTextValue !== ''){
+                  newTextWord = newTextValue;
+                  reDrawCropImage(newTextWord);
+                  $(newTextBox).draggable({
+                    containment: "parent",
+                    stop: function(evt) {
+                      onDragEvt(evt);
+                    }
+                  });
+                  $(newTextBox).resizable({
+                    containment: "parent",
+                    stop: function(evt) {
+                      onResizeEvt(evt);
+                    }
+                  });
+                }
+              } else {
+                let userConfirm = confirm("Are you sure?");
+                if (userConfirm) {
+                  cropImage = tempCropImage;
+                  $(newTextBox).remove();
+                }
+              }
             });
             let tempCanvas = document.createElement('canvas');
             tempCanvas.width = cropImage.width;
@@ -200,7 +204,6 @@
             th = evt.target.clientHeight;
             newText = $(newTextBox).text();
             let newFontSize = calculateFontSize(tw, th, newText);
-            console.log(newFontSize);
             fntSize = newFontSize;
             reDrawCropImage(newText);
             $(newTextBox).css({'width': 'fit-content'});
@@ -220,7 +223,6 @@
           $(cropImageWrapper).append($(newTextBox));
           let newText = $(newTextBox).text();
           let newFontSize = calculateFontSize(tw, th, newText);
-          console.log(newFontSize);
           fntSize = newFontSize;
           reDrawCropImage(newText);
           $(newTextBox).draggable({

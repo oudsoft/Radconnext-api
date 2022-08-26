@@ -6434,7 +6434,7 @@ module.exports = function ( jq ) {
 	const ai = require('./ai-lib.js')($);
 
 	const commandLinkStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
-	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white'/*, 'color': 'white', 'background-color': 'blue'*/};
+	const commandButtonStyle = {'padding': '3px', 'cursor': 'pointer'/*, 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'*/};
 
 	const backwardCaseStatus = [1, 2, 5, 6, 10, 11, 12, 13, 14];
 	let caseHospitalId = undefined;
@@ -7213,7 +7213,7 @@ module.exports = function ( jq ) {
 	//const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, casetime, hospitalId){
 	const doCreateDicomCmdBox = function(caseDicomZipFilename){
 		let dicomCmdBox = $('<div></div>');
-		let downloadCmd = $('<span class="action-btn">Download</span>');
+		let downloadCmd = $('<div class="action-btn">Download</div>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(dicomCmdBox));
 		$(downloadCmd).on('click', async (evt)=>{
@@ -7243,6 +7243,7 @@ module.exports = function ( jq ) {
 					let fileName = fileNames.split('.');
 					let fileCode = fileName[0];
 					let codeLink = $('<div class="action-btn" style="width: 100%; cursor: pointer;">' + fileCode + '</div>');
+					$(codeLink).css(commandButtonStyle);
 					$(hrbackwardBox).append($(codeLink));
 					//$(codeLink).css(commandLinkStyle);
 					$(codeLink).on('click',(evt)=>{
@@ -7256,7 +7257,7 @@ module.exports = function ( jq ) {
 
 	const doCreateResponseBackwardBox = function(backwardCaseId, responseId, responseText, patientFullName, casedate){
 		let responseBackwarBox = $('<div></div>');
-		let downloadCmd = $('<span class="action-btn">Download</span>');
+		let downloadCmd = $('<div class="action-btn" style="position: relative; display: inline-block;">Download</div>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(responseBackwarBox));
 		$(downloadCmd).on('click', async (evt)=>{
@@ -7274,8 +7275,8 @@ module.exports = function ( jq ) {
 			pom.click();
 			//$('body').loading('stop');
 		});
-		let pasteCmd = $('<span class="action-btn">Paste</span>');
-		$(pasteCmd).css(commandButtonStyle);
+		let pasteCmd = $('<div class="action-btn" style="position: relative; display: inline-block;">Paste</div>');
+		$(pasteCmd).css(commandButtonStyle).css({'margin-left': '8px'});
 		$(pasteCmd).appendTo($(responseBackwarBox));
 		$(pasteCmd).on('click', async (evt)=>{
 			let yourResponse = $('#SimpleEditor').val();
@@ -7502,15 +7503,21 @@ module.exports = function ( jq ) {
 			let buttonCmdArea = $('<div style="padding: 5px;"></div>');
 			let buttonCmdTable = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let buttonCmdRow1 = $('<tr></tr>');
+			/*
 			let buttonCmdRow2 = $('<tr></tr>');
 			let buttonCmdRow3 = $('<tr></tr>');
+			*/
 			let downloadCmdCell = $('<td width="30%" align="left"></td>');
+			/*
 			let blankCell = $('<td align="left"><div style="wisth: 100%; min-height: 30px;"></div></td>');
 			let open3rdPartyCmdCell = $('<td align="left"></td>');
+			*/
 			$(buttonCmdRow1).append($(downloadCmdCell));
+			/*
 			$(buttonCmdRow2).append($(blankCell));
 			$(buttonCmdRow3).append($(open3rdPartyCmdCell));
-			$(buttonCmdTable).append($(buttonCmdRow1)).append($(buttonCmdRow2)).append($(buttonCmdRow3));
+			*/
+			$(buttonCmdTable).append($(buttonCmdRow1))/*.append($(buttonCmdRow2)).append($(buttonCmdRow3))*/;
 			$(buttonCmdArea).append($(buttonCmdTable));
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
 			let downloadCmd = $('<input type="button" value=" DL/Open " class="special-action-btn" style="cursor: pointer;"/>');
@@ -7567,7 +7574,7 @@ module.exports = function ( jq ) {
 			$(misstakeCaseNotifyRow).append($(misstakeCaseNotifyCell))
 			$(misstakeCaseNotifyCell).append($(misstakeCaseNotifyCmd));
 			$(misstakeCaseNotifyTable).append($(misstakeCaseNotifyRow));
-			$(summarySecondAreaRight).append($(misstakeCaseNotifyTable));
+			$(summarySecondAreaRight).append($(misstakeCaseNotifyBox));
 			resolve($(summarySecondLine));
 		});
 	}
