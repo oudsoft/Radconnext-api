@@ -5,13 +5,13 @@
       cropWidth: 200,
       cropHeight: 200,
       scale: 1.0,
-      uploadUrl: '/api/shop/upload/share'
+      uploadUrl: '/api/shop/upload/share',
+      waterMarkText: 'Double Click',
+      waterMarkFontSize: 54,
+      waterMarkFontColor:'white'
     }, options );
 
     const $this = this;
-    const waterMarkText = 'Double Click';
-    const waterMarkFontSize = 54;
-    const waterMarkFontColor = 'white';
     const videoConstraints = {video: {displaySurface: "application", height: 1080, width: 1920 }};
 
     let imgSrcFullSizeWidth = 0;
@@ -95,20 +95,149 @@
           //let size = tempCtx.measureText(waterMarkText);
           let tx = settings.cropWidth - 4;
           let ty = settings.cropHeight - 4;
-          tempCtx.font = waterMarkFontSize + 'px EkkamaiStandard';
+          tempCtx.font = settings.waterMarkFontSize + 'px EkkamaiStandard';
           //tempCtx.globalAlpha = .50;
-          tempCtx.fillStyle = waterMarkFontColor;
+          tempCtx.fillStyle = settings.waterMarkFontColor;
           tempCtx.translate(tx, ty);
           tempCtx.rotate(-Math.PI / 2);
           tempCtx.translate(-tx, -ty);
-          tempCtx.fillText(waterMarkText, tx, ty);
+          tempCtx.fillText(settings.waterMarkText, tx, ty);
           let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
           let tempCropImage = doCreateCropImage(tempDataURL);
-          $(cropImage).remove();
-          $(cropImageBox).append($(tempCropImage));
+          $(cropImageWrapper).empty().append($(tempCropImage));
           dataURL = tempDataURL;
+          cropImage = tempCropImage;
         });
-        let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'})
+        let stampTextSettingCmd = $('<input type="button" value="Text Setting"/>').css({'margin-left': '10px'});
+        $(stampTextSettingCmd).on('click', (evt)=>{
+          evt.stopPropagation();
+          let eventData = {waterMarkText: settings.waterMarkText, waterMarkFontSize: settings.waterMarkFontSize, waterMarkFontColor: settings.waterMarkFontColor};
+          let eventName = 'updatestamptext'
+          let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: eventData}});
+          document.dispatchEvent(event);
+        });
+        let addTextCmd = $('<input type="button" value="Add Text"/>').css({'margin-left': '10px'});
+        $(addTextCmd).on('click', (evt)=>{
+          evt.stopPropagation();
+          let tx = 10;
+          let ty = 70;
+          let tw = 100;
+          let th = undefined;
+          let newTextBox = undefined;
+          let newTextWord = 'สวัสดีชาวโลก';
+          let fntSize = settings.waterMarkFontSize;
+          const reDrawCropImage = function(text) {
+            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': '2px solid red', 'z-index': '201', 'left': tx + 'px', 'top': ty + 'px', 'font-size': fntSize + 'px', 'color': settings.waterMarkFontColor});
+            $(newTextBox).draggable({containment: "parent"});
+            $(newTextBox).resizable({containment: "parent"});
+            $(newTextBox).draggable('destroy');
+            $(newTextBox).resizable('destroy');
+            $(newTextBox).on('dblclick', (evt)=>{
+              console.log(evt);
+              evt.stopPropagation();
+              let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
+              if (newTextValue !== ''){
+                newTextWord = newTextValue;
+                reDrawCropImage(newTextWord);
+                $(newTextBox).draggable({
+                  containment: "parent",
+                  stop: function(evt) {
+                    onDragEvt(evt);
+                  }
+                });
+                $(newTextBox).resizable({
+                  containment: "parent",
+                  stop: function(evt) {
+                    onResizeEvt(evt);
+                  }
+                });
+              }
+            });
+            $(newTextBox).on('click', (evt)=>{
+              evt.stopPropagation();
+              cropImage = tempCropImage;
+            });
+            let tempCanvas = document.createElement('canvas');
+            tempCanvas.width = cropImage.width;
+            tempCanvas.height = cropImage.height;
+            let tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(cropImage, 0, 0);
+            tempCtx.font = fntSize + 'px EkkamaiStandard';
+            tempCtx.fillStyle = settings.waterMarkFontColor;
+            tempCtx.fillText(text, tx, ty);
+            let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
+            let tempCropImage = doCreateCropImage(tempDataURL);
+            $(cropImageWrapper).empty().append($(tempCropImage)).append($(newTextBox));
+            dataURL = tempDataURL;
+          }
+          const calculateFontSize = function (width, height, text){
+            let area = width*height;
+            let contentLength = text.length;
+            return  Math.sqrt(area/contentLength); //this provides the font-size in points.
+          }
+          const onDragEvt = function(evt){
+            evt.stopPropagation();
+            tx = evt.target.offsetLeft;
+            ty = evt.target.offsetTop;
+            newText = $(newTextBox).text();
+            reDrawCropImage(newText);
+            $(newTextBox).draggable({
+              containment: "parent",
+              stop: function(evt) {
+                onDragEvt(evt);
+              }
+            });
+            $(newTextBox).resizable({
+              containment: "parent",
+              stop: function(evt) {
+                onResizeEvt(evt);
+              }
+            });
+          }
+          const onResizeEvt = function(evt){
+            evt.stopPropagation();
+            tw = evt.target.clientWidth;
+            th = evt.target.clientHeight;
+            newText = $(newTextBox).text();
+            let newFontSize = calculateFontSize(tw, th, newText);
+            console.log(newFontSize);
+            fntSize = newFontSize;
+            reDrawCropImage(newText);
+            $(newTextBox).css({'width': 'fit-content'});
+            $(newTextBox).resizable({
+              containment: "parent",
+              stop: function(evt) {
+                onResizeEvt(evt);
+              }
+            });
+            $(newTextBox).draggable({
+              containment: "parent",
+              stop: function(evt) {
+                onDragEvt(evt);
+              }
+            });
+          }
+          $(cropImageWrapper).append($(newTextBox));
+          let newText = $(newTextBox).text();
+          let newFontSize = calculateFontSize(tw, th, newText);
+          console.log(newFontSize);
+          fntSize = newFontSize;
+          reDrawCropImage(newText);
+          $(newTextBox).draggable({
+            containment: "parent",
+            stop: function(evt) {
+              onDragEvt(evt);
+            }
+          });
+          $(newTextBox).resizable({
+            containment: "parent",
+            stop: function(evt) {
+              onResizeEvt(evt);
+            }
+          });
+        });
+
+        let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'});
         $(editImageCmd).on('click', (evt)=>{
           evt.stopPropagation();
           let w = settings.cropWidth;
@@ -179,11 +308,13 @@
           evt.stopPropagation();
           $(cropBox).remove();
         });
-        let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'center', 'border': '2px solid green'});
-        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'right'});
 
-        $(cropImageCmdBox).append($(stampTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
-        $(cropImageBox).append($(cropImageCmdBox)).append($(cropImage));
+        let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
+        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'right'});
+        let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
+        $(cropImageWrapper).append($(cropImage));
+        $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
+        $(cropImageBox).append($(cropImageCmdBox)).append($(cropImageWrapper));
         let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
         $(cropBox).append($(cropImageBox));
         $this.append($(cropBox));
@@ -292,7 +423,7 @@
     const doCreateCaptureCmd = function(){
       let hsIcon = new Image();
       hsIcon.src = '/images/screen-capture-icon.png';
-      $(hsIcon).css({'position': 'relative', "width": '40px', "height": 'auto', "cursor": 'pointer', "padding": '2px', 'top': '24px', 'margin-left': '20px'});
+      $(hsIcon).css({'position': 'relative', "width": '40px', "height": 'auto', "cursor": 'pointer', "padding": '2px', 'top': '24px', 'margin-left': '25px'});
       $(hsIcon).css({'border': '4px solid #ddd', 'border-radius': '5px', 'margin': '4px'});
       $(hsIcon).prop('data-toggle', 'tooltip');
       $(hsIcon).prop('title', 'Capture Sreen');
@@ -383,6 +514,13 @@
       }, false);
     }
 
+    const doSetupWaterMarkOption = function(newValue) {
+      console.log(newValue);
+      settings.waterMarkText =  newValue.waterMarkText;
+      settings.waterMarkFontSize =  newValue.waterMarkFontSize;
+      settings.waterMarkFontColor =  newValue.waterMarkFontColor;
+    }
+
     const init = function() {
       let fileChooserCmd = $('<img data-toggle="tooltip" title="Open"/>');
       $(fileChooserCmd).attr('src', '/images/open-file-icon.png');
@@ -422,7 +560,8 @@
     var output = {
       settings: settings,
       handle: this,
-      doCreateImageTools: doCreateImageTools
+      doCreateImageTools: doCreateImageTools,
+      doSetupWaterMarkOption: doSetupWaterMarkOption
     }
 
     return output;

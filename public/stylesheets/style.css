@@ -64,9 +64,19 @@ input[type='text'], input[type='number'], select, textarea {
 	background-color: #2579B8;
 	color: white;
 	line-height: 26px;
+	border: 2px solid black;
 }
 
 .none-action-btn {
 	line-height: 26px;
 	height: 32.6px;
+	border: 2px solid black;
+}
+
+.special-action-btn {
+	background-color: #38B402;
+	color: white;
+	line-height: 26px;
+	border: 2px solid black;
+	font-style: bold;
 }

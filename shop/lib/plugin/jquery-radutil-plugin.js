@@ -44,7 +44,7 @@
 
     const doCreateTitleBar = function(){
       let titleBar = $('<div style="position: relative; background-color: #184175; color: white; border: 2px solid grey; min-height: 28px;"></div>');
-      let titleTextBox = $('<span style="display: inline-block; margin-left: 8px;"></span>');
+      let titleTextBox = $('<span style="display: inline-block; margin-left: 8px; margin-top: 6px;"></span>');
       $(titleTextBox).append(settings.title);
       //$(figgerIcon).css({'margin-top': '5px'})
       //return $(titleBar).append($(figgerIcon)).append($(titleTextBox));
