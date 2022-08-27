@@ -94,6 +94,8 @@ $.widget( "custom.imageitem", {
       if (!validImageTypes.includes(this.options.fileType)) {
         if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
           hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
+        } else if (this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') {
+          hsImage.src = 'https://radconnext.info/images/zip-icon.png';
         } else {
           hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
         }
@@ -199,17 +201,26 @@ $.widget( "custom.imagehistory", {
   doOpenSelectFile: function (imageListBox){
     let $this = this;
     let fileBrowser = $('<input type="file"/>');
-    $(fileBrowser).attr("name", 'patienthistory');
     $(fileBrowser).attr("multiple", true);
     $(fileBrowser).css('display', 'none');
     $(fileBrowser).on('change', function(e) {
-      const defSize = 10000000;
-      var fileSize = e.currentTarget.files[0].size;
-      var fileType = e.currentTarget.files[0].type;
-      if (fileSize <= defSize) {
-        $this.doUploadImage(fileBrowser, imageListBox, fileType);
+      const defSize = 100000000;
+      let fileSize = e.currentTarget.files[0].size;
+      let fileType = e.currentTarget.files[0].type;
+      if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+        if (fileSize <= defSize*100) {
+          $(fileBrowser).attr("name", 'archiveupload');
+          $this.doUploadImage(fileBrowser, imageListBox, fileType);
+        } else {
+          $(imageListBox).append('<div>' + 'File not excess ' + defSize + ' Byte.' + '</div>');
+        }
       } else {
-        $(imageListBox).append('<div>' + 'File not excess ' + defSize + ' Byte.' + '</div>');
+        if (fileSize <= defSize) {
+          $(fileBrowser).attr("name", 'patienthistory');
+          $this.doUploadImage(fileBrowser, imageListBox, fileType);
+        } else {
+          $(imageListBox).append('<div>' + 'File not excess ' + defSize + ' Byte.' + '</div>');
+        }
       }
     });
     $(fileBrowser).appendTo($(imageListBox));
@@ -217,13 +228,23 @@ $.widget( "custom.imagehistory", {
   },
   doUploadImage: function(fileBrowser, imageListBox, fileType) {
     let $this = this;
-    var uploadUrl = $this.options.attachFileUploadApiUrl;
+    let uploadUrl = $this.options.attachFileUploadApiUrl;
+    if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+      uploadUrl = 'https://radconnext.info/api/transfer/archive';
+    }
     $(fileBrowser).simpleUpload(uploadUrl, {
       success: function(data){
+        console.log(data);
         $(fileBrowser).remove();
         setTimeout(() => {
           if (window.location.hostname == 'localhost') {
-            data.link = 'https://radconnext.info' + data.link;
+            let dwnLink = undefined;
+            if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+              dwnLink = 'https://radconnext.info' + data.archive.link;
+            } else {
+              dwnLink = 'https://radconnext.info' + data.link;
+            }
+            data.link = dwnLink;
           }
           $this.doAppendNewImageData(data);
           let uploadImageProp = {
@@ -506,13 +527,20 @@ $.widget( "custom.imagehistory", {
       context.clearRect(0, 0, tuiCanvas.width, tuiCanvas.height);
     });
   },
-  doUploadBlob: function(blob) {
+  doUploadBlob: function(blob, type='image') {
     return new Promise(function(resolve, reject) {
       let $this = imagehistory;
       let formData = new FormData();
-      formData.append('picture', blob);
+      let uploadUrl = undefined;
+      if (type === 'image') {
+        formData.append('picture', blob);
+        uploadUrl = $this.options.captureUploadApiUrl;
+      } else {
+        formData.append('archiveupload', blob);
+        uploadUrl = 'https://radconnext.info/api/transfer/archive';
+      }
       $.ajax({
-        url: $this.options.captureUploadApiUrl,
+        url: uploadUrl,
         type: "POST",
         cache: false,
         contentType: false,

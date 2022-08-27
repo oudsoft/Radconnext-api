@@ -41,7 +41,7 @@ const controlOrigin = (req, res, next) => {
 		//log.info(origin + '==> yes!!')
     res.header('Access-Control-Allow-Origin', origin);
 		res.header('Access-Control-Allow-Methods','HEAD', 'POST, GET, PUT, PATCH, DELETE, OPTIONS');
-	  res.header('Access-Control-Allow-Headers','Origin, Content-Type, Option, Authorization');
+	  res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Option, Authorization, Accept');
 		//res.header('Access-Control-Allow-Headers','append,delete,entries,foreach,get,has,keys,set,values,Authorization');
   } else {
 		//log.info(origin + '==> no!!')

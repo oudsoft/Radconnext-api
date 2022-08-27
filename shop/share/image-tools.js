@@ -116,25 +116,28 @@
           let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: eventData}});
           document.dispatchEvent(event);
         });
+
+        let fntSize = settings.waterMarkFontSize;
+        console.log(fntSize);
         let addTextCmd = $('<input type="button" value="Add Text"/>').css({'margin-left': '10px'});
         $(addTextCmd).on('click', (evt)=>{
           evt.stopPropagation();
-          let tx = 10;
-          let ty = 70;
-          let tw = 200;
-          let th = undefined;
+          let tx = 5;
+          let ty = 50;
+          let tw = 350;
+          let th = 80;
           let newTextBox = undefined;
           let newTextWord = 'สวัสดีชาวโลก';
-          let fntSize = settings.waterMarkFontSize;
           const reDrawCropImage = function(text) {
-            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': '2px solid red', 'z-index': '201', 'left': tx + 'px', 'top': ty + 'px', 'font-size': fntSize + 'px', 'color': settings.waterMarkFontColor});
+            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': '2px solid red', 'z-index': '201', 'left': tx + 'px', 'top': ty + 'px'});
+            $(newTextBox).css({'overflow': 'visible', 'width': tw + 'px', 'height': th + 'px', /*'font-size': fntSize + 'px',*/ 'color': settings.waterMarkFontColor});
+            console.log($(newTextBox));
             $(newTextBox).draggable({containment: "parent"});
             $(newTextBox).resizable({containment: "parent"});
             $(newTextBox).draggable('destroy');
             $(newTextBox).resizable('destroy');
             $(newTextBox).on('click', (evt)=>{
               evt.stopPropagation();
-              console.log(evt);
               if (evt.ctrlKey) {
                 let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
                 if (newTextValue !== ''){
@@ -147,7 +150,7 @@
                     }
                   });
                   $(newTextBox).resizable({
-                    containment: "parent",
+                    containment: "body",
                     stop: function(evt) {
                       onResizeEvt(evt);
                     }
@@ -192,7 +195,7 @@
               }
             });
             $(newTextBox).resizable({
-              containment: "parent",
+              containment: "body",
               stop: function(evt) {
                 onResizeEvt(evt);
               }
@@ -205,10 +208,11 @@
             newText = $(newTextBox).text();
             let newFontSize = calculateFontSize(tw, th, newText);
             fntSize = newFontSize;
+            $(cropImageWrapper).css({'font-size': fntSize + 'px'});
             reDrawCropImage(newText);
             $(newTextBox).css({'width': 'fit-content'});
             $(newTextBox).resizable({
-              containment: "parent",
+              containment: "body",
               stop: function(evt) {
                 onResizeEvt(evt);
               }
@@ -220,10 +224,11 @@
               }
             });
           }
-          $(cropImageWrapper).append($(newTextBox));
           let newText = $(newTextBox).text();
           let newFontSize = calculateFontSize(tw, th, newText);
           fntSize = newFontSize;
+          $(cropImageWrapper).css({'font-size': fntSize + 'px'});
+          $(cropImageWrapper).append($(newTextBox));
           reDrawCropImage(newText);
           $(newTextBox).draggable({
             containment: "parent",
@@ -232,7 +237,7 @@
             }
           });
           $(newTextBox).resizable({
-            containment: "parent",
+            containment: "body",
             stop: function(evt) {
               onResizeEvt(evt);
             }
@@ -314,6 +319,7 @@
         let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
         let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'right'});
         let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
+        $(cropImageWrapper).css({'font-size': fntSize + 'px'});
         $(cropImageWrapper).append($(cropImage));
         $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
         $(cropImageBox).append($(cropImageCmdBox)).append($(cropImageWrapper));
@@ -321,13 +327,16 @@
         $(cropBox).append($(cropImageBox));
         $this.append($(cropBox));
         $(imageSrc).slideUp('slow');
+        $(layoutBox).slideUp('slow');
         $(cropBox).on('click', (evt)=>{
           if ($(imageSrc).css('display') === 'none') {
             $(imageSrc).slideDown('slow');
+            $(layoutBox).slideDown('slow');
           } else {
             $(imageSrc).slideUp('slow');
+            $(layoutBox).slideUp('slow');
           }
-        })
+        });
       });
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
