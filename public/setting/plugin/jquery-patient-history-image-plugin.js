@@ -535,7 +535,7 @@ $.widget( "custom.imagehistory", {
       if (type === 'image') {
         formData.append('picture', blob);
         uploadUrl = $this.options.captureUploadApiUrl;
-      } else {
+      } else if (type === 'zip') {
         formData.append('archiveupload', blob);
         uploadUrl = 'https://radconnext.info/api/transfer/archive';
       }
