@@ -532,12 +532,19 @@ $.widget( "custom.imagehistory", {
       let $this = imagehistory;
       let formData = new FormData();
       let uploadUrl = undefined;
+      let fileType = undefined;
       if (type === 'image') {
         formData.append('picture', blob);
         uploadUrl = $this.options.captureUploadApiUrl;
+        fileType = 'image/jpeg';
+      } else if (type === 'pdf') {
+        formData.append('picture', blob);
+        uploadUrl = $this.options.captureUploadApiUrl;        
+        fileType = 'application/pdf';
       } else if (type === 'zip') {
         formData.append('archiveupload', blob);
         uploadUrl = 'https://radconnext.info/api/transfer/archive';
+        fileType = 'application/zip';
       }
       $.ajax({
         url: uploadUrl,
@@ -547,12 +554,19 @@ $.widget( "custom.imagehistory", {
         processData: false,
         data: formData}).done(function(data){
           if (window.location.hostname == 'localhost') {
-            data.link = 'https://radconnext.info' + data.link;
+            let dwnLink = undefined;
+            if (type === 'zip') {
+              dwnLink = 'https://radconnext.info' + data.archive.link;
+            } else {
+              dwnLink = 'https://radconnext.info' + data.link;
+            }
+            data.link = dwnLink;
           }
           setTimeout(()=>{
             $this.doAppendNewImageData(data);
             let uploadImageProp = {
               imgUrl: data.link,
+              fileType: fileType,
               onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
             };
             $( "<div></div>" ).appendTo($("#ImageListDiv")).imageitem( uploadImageProp );
