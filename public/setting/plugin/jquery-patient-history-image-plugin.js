@@ -94,9 +94,10 @@ $.widget( "custom.imageitem", {
       if (!validImageTypes.includes(this.options.fileType)) {
         if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
           hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
-        } else if (this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') {
+        } else if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
           hsImage.src = 'https://radconnext.info/images/zip-icon.png';
         } else {
+          console.log(this.options.fileType);
           hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
         }
       } else {
@@ -207,7 +208,7 @@ $.widget( "custom.imagehistory", {
       const defSize = 100000000;
       let fileSize = e.currentTarget.files[0].size;
       let fileType = e.currentTarget.files[0].type;
-      if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+      if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
         if (fileSize <= defSize*100) {
           $(fileBrowser).attr("name", 'archiveupload');
           $this.doUploadImage(fileBrowser, imageListBox, fileType);
@@ -229,7 +230,7 @@ $.widget( "custom.imagehistory", {
   doUploadImage: function(fileBrowser, imageListBox, fileType) {
     let $this = this;
     let uploadUrl = $this.options.attachFileUploadApiUrl;
-    if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+    if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
       uploadUrl = 'https://radconnext.info/api/transfer/archive';
     }
     $(fileBrowser).simpleUpload(uploadUrl, {
@@ -239,7 +240,7 @@ $.widget( "custom.imagehistory", {
         setTimeout(() => {
           if (window.location.hostname == 'localhost') {
             let dwnLink = undefined;
-            if (fileType.toUpperCase() === 'APPLICATION/ZIP') {
+            if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
               dwnLink = 'https://radconnext.info' + data.archive.link;
             } else {
               dwnLink = 'https://radconnext.info' + data.link;
@@ -539,7 +540,7 @@ $.widget( "custom.imagehistory", {
         fileType = 'image/jpeg';
       } else if (type === 'pdf') {
         formData.append('picture', blob);
-        uploadUrl = $this.options.captureUploadApiUrl;        
+        uploadUrl = $this.options.captureUploadApiUrl;
         fileType = 'application/pdf';
       } else if (type === 'zip') {
         formData.append('archiveupload', blob);

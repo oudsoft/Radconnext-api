@@ -546,7 +546,7 @@ const doCreateTaskWarning = function(warnings, caseId, radioProfile, triggerTime
 const doSaveScanpartAux = function(scanpartAuxData, userId){
   return new Promise(async function(resolve, reject) {
     ////let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription,ProtocolName: newCase.Case_ProtocolName,Scanparts: newCase.Case_ScanPart};
-    const whereClous = {StudyDesc: scanpartAuxData.StudyDesc, ProtocolName: scanpartAuxData.ProtocolName};
+    const whereClous = {StudyDesc: scanpartAuxData.StudyDesc, ProtocolName: scanpartAuxData.ProtocolName, userId: userId};
     const scanPartAuxs = await db.scanpartauxs.findAll({ attributes: excludeColumn, where: whereClous});
     if (scanPartAuxs.length > 0) {
       let auxId = scanPartAuxs[0].id;

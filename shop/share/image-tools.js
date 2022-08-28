@@ -317,7 +317,7 @@
         });
 
         let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
-        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'right'});
+        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#aaaa', 'padding': '4px 0px 4px'});
         let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
         $(cropImageWrapper).css({'font-size': fntSize + 'px'});
         $(cropImageWrapper).append($(cropImage));
@@ -387,7 +387,7 @@
         settings.scale = curValue - 0.05;
         zoomCallback(settings.scale);
       });
-      let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2) + '%').css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
       let zoomOutCmd = $('<input type="button" value="Zoom-Out"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomOutCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
@@ -535,7 +535,7 @@
     const init = function() {
       let fileChooserCmd = $('<img data-toggle="tooltip" title="Open"/>');
       $(fileChooserCmd).attr('src', '/images/open-file-icon.png');
-      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
+      $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '1px', 'top': '10px', 'margin-left': '2px'});
       $(fileChooserCmd).on('click', (evt)=>{
         doOpenFileChooser(evt);
       });

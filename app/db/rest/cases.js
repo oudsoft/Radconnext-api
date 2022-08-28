@@ -465,7 +465,7 @@ app.post('/add', (req, res) => {
 
           const optionScanPartSave = req.body.option.scanpart.save;
           if (optionScanPartSave == 1){
-            let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName,Scanparts: newCase.Case_ScanPart};
+            let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName, Scanparts: newCase.Case_ScanPart};
             let scanpartAux = await common.doSaveScanpartAux(scanpartAuxData, userId);
           }
           res.json({Result: "OK", status: {code: 200}, Record: adCase});
