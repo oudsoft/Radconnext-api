@@ -1691,12 +1691,12 @@ module.exports = function ( jq ) {
 
 	const onSimpleEditorPaste = function(evt){
 		let pathElems = evt.originalEvent.path;
-		let simpleEditor = pathElems.find((path)=>{
+		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
 				return path;
 			}
 		});
-		if (simpleEditor) {
+		if (simpleEditorPath) {
 			evt.stopPropagation();
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
@@ -1708,6 +1708,7 @@ module.exports = function ( jq ) {
 			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
 			let oldContent = $(simpleEditor).val();
 			if ((htmlFormat) && (htmlFormat !== '')) {
+				htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
 				document.execCommand('insertHTML', false, htmlFormat);
 				let newContent = oldContent + htmlFormat;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -1715,6 +1716,7 @@ module.exports = function ( jq ) {
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
 			} else {
 				if ((textPastedData) && (textPastedData !== '')) {
+					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
 					document.execCommand('insertText', false, textPastedData);
 					let newContent = oldContent + textPastedData;
 					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -1724,6 +1726,24 @@ module.exports = function ( jq ) {
 			}
 			//console.log(localStorage.getItem('draftbackup'));
 		}
+	}
+
+	const doExtractHTMLFromAnotherSource = function(anotherText){
+		let startPointText = '<!--StartFragment-->';
+		let endPointText = '<!--EndFragment-->';
+		let tempToken = anotherText.replace('\n', '');
+		let startPosition = tempToken.indexOf(startPointText);
+		if (startPosition >= 0) {
+			let endPosition = tempToken.indexOf(endPointText);
+			tempToken = tempToken.slice((startPosition+20), (endPosition));
+		}
+		/*
+		tempToken = tempToken.split(startPointText).join('<div>');
+		tempToken = tempToken.split(endPointText).join('</div>');
+		*/
+		tempToken = tempToken.replace(startPointText, '<div>');
+		tempToken = tempToken.replace(endPointText, '</div>');
+		return tempToken;
 	}
 
 	const doCallLoadStudyTags = function(hospitalId, studyId){
@@ -6732,12 +6752,17 @@ module.exports = function ( jq ) {
 				let endPosition = tempToken.indexOf(endPointText);
 				tempToken = tempToken.slice((startPosition+20), (endPosition));
 			}
-			tempToken = tempToken.split(startPointText).join('');
-			tempToken = tempToken.split(endPointText).join('');
+			/*
+			tempToken = tempToken.split(startPointText).join('<div>');
+			tempToken = tempToken.split(endPointText).join('</div>');
+			*/
+			tempToken = tempToken.replace(startPointText, '<div>');
+			tempToken = tempToken.replace(endPointText, '</div>');
 			if (tempToken !== '') {
 				let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
 				localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 				responseText = toAsciidoc(tempToken);
+				console.log(responseText);
 				let rsW = saveNewResponseData.resultFormat.width;
 				let fnS = saveNewResponseData.resultFormat.fontsize;
 				let rsH = doCalResultHeigth(tempToken, rsW, fnS);
@@ -6963,7 +6988,7 @@ module.exports = function ( jq ) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			let responseHTML = $('#SimpleEditor').val();
-			let startPointText = '<!--StartFragment-->'
+			let startPointText = '<!--StartFragment-->';
 			let endPointText = '<!--EndFragment-->';
 			let tempToken = responseHTML.replace('\n', '');
 			let startPosition = tempToken.indexOf(startPointText);
@@ -6971,8 +6996,12 @@ module.exports = function ( jq ) {
 				let endPosition = tempToken.indexOf(endPointText);
 				tempToken = tempToken.slice((startPosition+20), (endPosition));
 			}
-			tempToken = tempToken.split(startPointText).join('');
-			tempToken = tempToken.split(endPointText).join('');
+			/*
+			tempToken = tempToken.split(startPointText).join('<div>');
+			tempToken = tempToken.split(endPointText).join('</div>');
+			*/
+			tempToken = tempToken.replace(startPointText, '<div>');
+			tempToken = tempToken.replace(endPointText, '</div>');
 			let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
 			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 			responseText = toAsciidoc(tempToken);

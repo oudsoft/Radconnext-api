@@ -118,7 +118,6 @@
         });
 
         let fntSize = settings.waterMarkFontSize;
-        console.log(fntSize);
         let addTextCmd = $('<input type="button" value="Add Text"/>').css({'margin-left': '10px'});
         $(addTextCmd).on('click', (evt)=>{
           evt.stopPropagation();
@@ -126,12 +125,13 @@
           let ty = 50;
           let tw = 350;
           let th = 80;
+          let thbt = 2;
+          let thbtVal = thbt + 'px dashed red';
           let newTextBox = undefined;
           let newTextWord = 'สวัสดีชาวโลก';
           const reDrawCropImage = function(text) {
-            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': '2px solid red', 'z-index': '201', 'left': tx + 'px', 'top': ty + 'px'});
-            $(newTextBox).css({'overflow': 'visible', 'width': tw + 'px', 'height': th + 'px', /*'font-size': fntSize + 'px',*/ 'color': settings.waterMarkFontColor});
-            console.log($(newTextBox));
+            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': thbtVal, 'z-index': '201', 'text-align': 'left', 'left': tx + 'px', 'top': ty + 'px'});
+            $(newTextBox).css({'overflow': 'visible', 'width': tw + 'px', 'height': th + 'px', /*'font-size': fntSize + 'px',*/ 'color': /*settings.waterMarkFontColor*/ 'blue'});
             $(newTextBox).draggable({containment: "parent"});
             $(newTextBox).resizable({containment: "parent"});
             $(newTextBox).draggable('destroy');
@@ -171,7 +171,7 @@
             tempCtx.drawImage(cropImage, 0, 0);
             tempCtx.font = fntSize + 'px EkkamaiStandard';
             tempCtx.fillStyle = settings.waterMarkFontColor;
-            tempCtx.fillText(text, tx, ty);
+            tempCtx.fillText(text, tx, (ty+fntSize-(thbt*2)));
             let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
             let tempCropImage = doCreateCropImage(tempDataURL);
             $(cropImageWrapper).empty().append($(tempCropImage)).append($(newTextBox));
@@ -187,6 +187,10 @@
             tx = evt.target.offsetLeft;
             ty = evt.target.offsetTop;
             newText = $(newTextBox).text();
+            let newFontSize = calculateFontSize(tw, th, newText);
+            fntSize = newFontSize;
+            $(cropImageWrapper).css({'font-size': fntSize + 'px'});
+            $(cropImageWrapper).append($(newTextBox));
             reDrawCropImage(newText);
             $(newTextBox).draggable({
               containment: "parent",
@@ -242,6 +246,7 @@
               onResizeEvt(evt);
             }
           });
+          onDragEvt(evt);
         });
 
         let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'});
@@ -364,23 +369,23 @@
       cropImg.id = 'CropImg';
       cropImg.src = imageUrl;
       cropImg.onload = function() {
-        console.log('success!!');
+        //console.log('success!!');
       }
       return cropImg;
     }
 
     const doCreateWHInputBox = function(inputCallback, zoomCallback){
       let whInputBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'top': '-15px'});;
-      let wInput = $('<input type="number" id="WInput"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
-      let hInput = $('<input type="number" id="HInput"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      let wInput = $('<input type="number" id="WInput"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '2px'});
+      let hInput = $('<input type="number" id="HInput"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '2px'});
       let applyCmd = $('<input type="button" value="Apply" id="ApplyCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(applyCmd).on('click', (evt)=>{
         let w = $(wInput).val();
         let h = $(hInput).val();
         inputCallback(evt, w, h);
       });
-      let wLabel = $('<span>X:</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
-      let hLabel = $('<span>Y:</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
+      let wLabel = $('<span>X :</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
+      let hLabel = $('<span>Y :</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
       let zoomInCmd = $('<input type="button" value="Zoom-In"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomInCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);

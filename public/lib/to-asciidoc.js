@@ -100,13 +100,13 @@ var toAsciidoc = function (string) {
     function traverse(string) {
         var ELEMENTS = [
             {
-                patterns: ["script", "iframe", "meta","embed"],
+                patterns: ["script", "iframe", "meta", "embed"],
                 replacement: function (str, attrs, innerHTML) {
                     return "";
                 }
             },
-            {
-                patterns: ["div", "span", "body", "i", "section", "html"],
+            {   /* 2. เพิ่ม แท็ก ที่ต้อง strip ให้ตรงตามข้อ 1. */
+                patterns: ["div", "span", "body", "i", "section", "html", "font", "b"],
                 replacement: function (str, attrs, innerHTML) {
                     return innerHTML ? innerHTML : '';
                 }
@@ -246,12 +246,15 @@ var toAsciidoc = function (string) {
         return string;
     }
 
+    /* 1. เพิ่ม แท็ก ที่ต้อง strip */
     function strip(html) {
         html = html.replace(/<[\/]?(meta)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(span)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(div)[^><]*>/ig, "");
+        html = html.replace(/<[\/]?(font)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(section)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(i)[^><]*>/ig, "");
+        html = html.replace(/<[\/]?(b)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(html)[^><]*>/ig, "");
         html = html.replace(/<[\/]?(body)[^><]*>/ig, "");
         html = html.replace(/(&gt;)/ig, ">");
