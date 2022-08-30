@@ -97,6 +97,9 @@ const ShopMenuGroupDef = {
   },
   GroupPicture : {
     type: Sequelize.STRING(80)
+  },
+  GroupDesc : {
+    type: Sequelize.STRING
   }
 };
 const ShopMenuItemDef = {
@@ -115,6 +118,9 @@ const ShopMenuItemDef = {
   QRCodePicture : {
     type: Sequelize.STRING(30)
   },
+  Desc : {
+    type: Sequelize.STRING
+  }
 };
 const ShopCustomerDef = {
   Name : {

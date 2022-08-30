@@ -1976,6 +1976,7 @@ module.exports = function ( jq ) {
 						return (item.id == results[i].id);
 					});
 					if (itemOnOrders.length == 0) {
+						let descRow = undefined;
 	          let resultRow = $('<tr></tr>').css({'cursor': 'pointer', 'padding': '4px'});
 	          $(resultRow).hover(()=>{
 	            $(resultRow).css({'background-color': 'grey', 'color': 'white'});
@@ -1999,6 +2000,9 @@ module.exports = function ( jq ) {
 	              applyResult.Qty = qtyValue;
 								applyResult.ItemStatus = 'New';
 								$(resultRow).remove();
+								if ($(descRow)) {
+									$(descRow).remove();
+								}
 	              successCallback(applyResult);
 	            } else {
 	              $(qtyInput).css({'border': '1px solid red'});
@@ -2017,6 +2021,14 @@ module.exports = function ( jq ) {
 	          $(qtyCell).append($(qtyInput)).append($('<span>*</spam>').css({'color': 'red'}));
 	          $(resultRow).append($(pictureCell)).append($(nameCell)).append($(qtyCell)).append($(priceCell)).append($(unitCell)).append($(groupCell));
 	          $(gooditemTable).append($(resultRow));
+						if ((results[i].Desc) && (results[i].Desc != '')) {
+							$(resultRow).attr('title', results[i].Desc);
+							descRow = $('<tr></tr>');
+							let descCell = $('<td colspan="6" align="left" valign="middle"></td>').css({'font-size': '14px'});
+							$(descCell).text(results[i].Desc.substring(0, 150));
+							$(descRow).append($(descCell))
+							$(gooditemTable).append($(descRow));
+						}
 					}
         }
         setTimeout(()=>{
@@ -2108,7 +2120,8 @@ module.exports = function ( jq ) {
   const common = require('../../../home/mod/common-lib.js')($);
 
   const groupmenuTableFields = [
-		{fieldName: 'GroupName', displayName: 'ชื่อกลุ่มเมนู', width: '30%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'GroupName', displayName: 'ชื่อกลุ่มเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'GroupDesc', displayName: 'รายละเอียด', width: '30%', align: 'left', inputSize: '30', verify: false, showHeader: true},
 		{fieldName: 'GroupPicture', displayName: 'โลโก้', width: '25%', align: 'center', inputSize: '30', verify: false, showHeader: true}
 	];
 
@@ -2397,6 +2410,7 @@ module.exports = function ( jq ) {
 
   const menuitemTableFields = [
 		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'Desc', displayName: 'รายละเอียด', width: '20%', align: 'left', inputSize: '30', verify: false, showHeader: true},
 		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'center', inputSize: '30', verify: false, showHeader: true},
     {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'right', inputSize: '20', verify: true, showHeader: true},
 		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
@@ -3067,8 +3081,8 @@ module.exports = function ( jq ) {
 				common.calendarOptions.onClick = async function(date){
 					selectDate = common.doFormatDateStr(new Date(date));
 					$(orderDateBox).text(selectDate);
-					$('#OrderListBox').remove();
 					calendarHandle.closeAlert();
+					$('#OrderListBox').remove();
 					let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
 					$(workAreaBox).append($(orderListBox));
 				}
@@ -3626,6 +3640,7 @@ module.exports = function ( jq ) {
 			if (orderDate) {
 				orderReqParams = {orderDate: orderDate};
 			}
+
       let orderRes = await common.doCallApi('/api/shop/order/list/by/shop/' + shopData.id, orderReqParams);
       let orders = orderRes.Records;
       console.log(orders);
@@ -3634,6 +3649,7 @@ module.exports = function ( jq ) {
 			let orangeOrders = [];
 			let greenOrders = [];
 			let greyOrders = [];
+
       let orderListBox = $('<div id="OrderListBox"></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px', 'overflow': 'auto'});
       if ((orders) && (orders.length > 0)) {
         let	promiseList = new Promise(async function(resolve2, reject2){
@@ -3651,7 +3667,7 @@ module.exports = function ( jq ) {
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
 						if (orders[i].Status == 1) {
 							$(orderBox).css({'background-color': 'yellow'});
-							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
 							$(mergeOrderCmdBox).append($('<span>ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(mergeOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
@@ -3664,10 +3680,11 @@ module.exports = function ( jq ) {
 					          orderRes = await common.doCallApi('/api/shop/order/update', params);
 					          if (orderRes.status.code == 200) {
 					            $.notify("ยุบรวมรายการออร์เดอร์สำเร็จ", "success");
-											$('#OrderListBox').remove();
-											//let orderListBox = await doCreateOrderList(shopData, workAreaBox, orderDate);
-											await doCreateOrderList(shopData, workAreaBox, orderDate);
-											//$(workAreaBox).append($(orderListBox));
+											common.delay(500).then(async()=>{
+												$('#OrderListBox').remove();
+												let newOrderListBox = await doCreateOrderList(shopData, workAreaBox, orderReqParams.orderDate);
+												$(workAreaBox).append($(newOrderListBox));
+											});
 					          } else {
 					            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
 					          }
@@ -3677,7 +3694,7 @@ module.exports = function ( jq ) {
 								});
 							});
 							$(orderBox).append($(mergeOrderCmdBox));
-							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
 							$(cancelOrderCmdBox).append($('<span>ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(cancelOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
@@ -3685,9 +3702,11 @@ module.exports = function ( jq ) {
 								let orderRes = await common.doCallApi('/api/shop/order/update', params);
 								if (orderRes.status.code == 200) {
 									$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
-									$('#OrderListBox').remove();
-									let orderListBox = await doCreateOrderList(shopData, workAreaBox, orderDate);
-									$(workAreaBox).append($(orderListBox));
+									common.delay(500).then(async()=>{
+										$('#OrderListBox').remove();
+										let newOrderListBox = await doCreateOrderList(shopData, workAreaBox, orderReqParams.orderDate);
+										$(workAreaBox).append($(newOrderListBox));
+									});
 								} else {
 									$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
 								}

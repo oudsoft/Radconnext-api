@@ -390,19 +390,19 @@
       $(zoomInCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
         settings.scale = curValue - 0.05;
-        zoomCallback(settings.scale);
+        zoomCallback(evt, settings.scale);
       });
       let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
       let zoomOutCmd = $('<input type="button" value="Zoom-Out"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomOutCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
         settings.scale = curValue + 0.05;
-        zoomCallback(settings.scale);
+        zoomCallback(evt, settings.scale);
       });
       let zoomResetCmd = $('<input type="button" value="Reset" id="ZoomResetCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomResetCmd).on('click', (evt)=>{
         settings.scale = 1.0;
-        zoomCallback(settings.scale);
+        zoomCallback(evt, settings.scale);
       });
       $(wInput).on('keypress',function(evt) {
         if(evt.which == 13) {
@@ -550,20 +550,39 @@
         console.log(settings);
         $('#LayoutBox').width(settings.cropWidth * settings.scale);
         $('#LayoutBox').height(settings.cropHeight * settings.scale);
-      }, (scale)=>{
+      }, (evt, scale)=>{
+        console.log(scale);
         let newW = (imgSrcFullSizeWidth * scale) + 'px';
         $('#ImageSrc').css({'width': '' + newW + '', 'height': 'auto'});
         $('#ImageSrc').parent().css({'border': '1px solid red'});
         $('#ZoomValue').text((settings.scale * 100).toFixed(2) + '%');
-
-        let pos = $('#LayoutBox').offset();
-        //console.log(pos);
-
-        let newPos = {top: (pos.top * scale), left: (pos.left * scale)};
-
-        $('#LayoutBox').width(settings.cropWidth * scale);
-        $('#LayoutBox').height(settings.cropHeight * scale);
-        $('#LayoutBox').offset(newPos);
+        if (evt.ctrlKey) {
+          let pos = $('#LayoutBox').offset();
+          let newPos = {top: (pos.top * scale), left: (pos.left * scale)};
+          $('#LayoutBox').width(settings.cropWidth * scale);
+          $('#LayoutBox').height(settings.cropHeight * scale);
+          $('#LayoutBox').offset(newPos);
+        } else {
+          if (scale >= 1.0) {
+            //zoom-out
+            let newW = settings.cropWidth / scale;
+            let newH = settings.cropHeight / scale;
+            $('#LayoutBox').width(newW);
+            $('#LayoutBox').height(newH);
+            settings.cropWidth = newW;
+            settings.cropHeight = newH;
+          } else {
+            //zoom-in
+            let newW = settings.cropWidth * scale;
+            let newH = settings.cropHeight * scale;
+            $('#LayoutBox').width(newW);
+            $('#LayoutBox').height(newH);
+            settings.cropWidth = newW;
+            settings.cropHeight = newH;
+          }
+        }
+        let newFnt = settings.waterMarkFontSize * scale;
+        settings.waterMarkFontSize = newFnt;
       });
       let captureScreenCmd = doCreateCaptureCmd();
       $(cropInputBox).prepend($(fileChooserCmd).css({'display': 'inline-block'}));

@@ -164,6 +164,16 @@ module.exports = function ( jq ) {
 		return $(reportDocButtonBox).append($(openReportDocCmd)).append($(openReportQrCmd));
 	}
 
+	const doCalOrderTotal = function(gooditems){
+    return new Promise(async function(resolve, reject) {
+      let total = 0;
+      await gooditems.forEach((item, i) => {
+        total += Number(item.Price) * Number(item.Qty);
+      });
+      resolve(total);
+    });
+  }
+
   return {
 		fileUploadMaxSize,
     doCallApi,
@@ -179,7 +189,8 @@ module.exports = function ( jq ) {
 		calendarOptions,
 		genUniqueID,
 		isExistsResource,
-		doCreateReportDocButtonCmd
+		doCreateReportDocButtonCmd,
+		doCalOrderTotal
 	}
 }
 
@@ -12539,7 +12550,7 @@ module.exports = function ( jq ) {
       let wrapperBox = $('<div></div>');
       let searchInputBox = $('<div></div>').css({'width': '100%', 'padding': '4px'});
       let gooditemListBox = $('<div></div>').css({'width': '100%', 'padding': '4px', 'min-height': '200px'});
-      let searchKeyInput = $('<input id="SearchKeyInput" type="text" value="*"/>').css({'width': '120px'});
+      let searchKeyInput = $('<input id="SearchKeyInput" type="text" value="*"/>').css({'width': '70px'});
       let gooditemResult = undefined;
       $(searchKeyInput).css({'background': 'url(../../images/search-icon.png) no-repeat right center', 'background-size': '6% 100%', 'padding-right': '3px'});
       $(searchKeyInput).on('keyup', async (evt)=>{
@@ -12638,6 +12649,7 @@ module.exports = function ( jq ) {
 						return (item.id == results[i].id);
 					});
 					if (itemOnOrders.length == 0) {
+						let descRow = undefined;
 	          let resultRow = $('<tr></tr>').css({'cursor': 'pointer', 'padding': '4px'});
 	          $(resultRow).hover(()=>{
 	            $(resultRow).css({'background-color': 'grey', 'color': 'white'});
@@ -12661,6 +12673,9 @@ module.exports = function ( jq ) {
 	              applyResult.Qty = qtyValue;
 								applyResult.ItemStatus = 'New';
 								$(resultRow).remove();
+								if ($(descRow)) {
+									$(descRow).remove();
+								}
 	              successCallback(applyResult);
 	            } else {
 	              $(qtyInput).css({'border': '1px solid red'});
@@ -12679,6 +12694,14 @@ module.exports = function ( jq ) {
 	          $(qtyCell).append($(qtyInput)).append($('<span>*</spam>').css({'color': 'red'}));
 	          $(resultRow).append($(pictureCell)).append($(nameCell)).append($(qtyCell)).append($(priceCell)).append($(unitCell)).append($(groupCell));
 	          $(gooditemTable).append($(resultRow));
+						if ((results[i].Desc) && (results[i].Desc != '')) {
+							$(resultRow).attr('title', results[i].Desc);
+							descRow = $('<tr></tr>');
+							let descCell = $('<td colspan="6" align="left" valign="middle"></td>').css({'font-size': '14px'});
+							$(descCell).text(results[i].Desc.substring(0, 150));
+							$(descRow).append($(descCell))
+							$(gooditemTable).append($(descRow));
+						}
 					}
         }
         setTimeout(()=>{
@@ -12771,6 +12794,7 @@ module.exports = function ( jq ) {
 
   const menuitemTableFields = [
 		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
+		{fieldName: 'Desc', displayName: 'รายละเอียด', width: '20%', align: 'left', inputSize: '30', verify: false, showHeader: true},
 		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'center', inputSize: '30', verify: false, showHeader: true},
     {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'right', inputSize: '20', verify: true, showHeader: true},
 		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
