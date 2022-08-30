@@ -399,7 +399,7 @@ module.exports = function ( jq ) {
 			addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
 	    $(addNewGoodItemCmd).on('click', async (evt)=>{
 				let gooditemDlgContent = await gooditemdlg.doCreateFormDlg({id: shopId}, orderObj.gooditems, gooditemSelectedCallback);
-				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
+				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '180px', 'background': 'url("../../images/search-icon.png") right center / 12% 100% no-repeat'});
 				$(pageHandle.menuContent).empty().append($(gooditemDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
 	    }).css({'display': 'inline-block', 'width': '80px'});
@@ -981,6 +981,7 @@ module.exports = function ( jq ) {
   const orderForm = require('./order-form-lib.js')($);
 	const styleCommon = require('./style-common-lib.js')($);
 	const closeorderdlg = require('../../setting/admin/mod/closeorder-dlg.js')($);
+	const mergeorderdlg = require('../../setting/admin/mod/order-merge-dlg.js')($);
 
   let pageHandle = undefined;
 
@@ -1033,7 +1034,19 @@ module.exports = function ( jq ) {
 			$(newOrderCmd).on('click', (evt)=>{
 				orderForm.doOpenOrderForm(shopId, workAreaBox, undefined, undefined, doShowOrderList);
 			});
-			$(newOrderCmdBox).append($(newOrderCmd))
+			let canceledOrderHiddenToggleCmd = common.doCreateTextCmd('ซ่อนออร์เดอร์ที่ถูกยกเลิก', 'grey', 'white');
+			$(canceledOrderHiddenToggleCmd).on('click', (evt)=>{
+				let displayStatus = $('.canceled-order').css('display');
+				if (displayStatus === 'none') {
+					$('.canceled-order').css('display', 'block');
+					$(canceledOrderHiddenToggleCmd).text('ซ่อนออร์เดอร์ที่ถูกยกเลิก');
+				} else {
+					$('.canceled-order').css('display', 'none');
+					$(canceledOrderHiddenToggleCmd).text('แสดงออร์เดอร์ที่ถูกยกเลิก');
+				}
+			});
+
+			$(newOrderCmdBox).append($(canceledOrderHiddenToggleCmd)).append($(newOrderCmd).css({'margin-left': '4px'}));
 			$(workAreaBox).append($(newOrderCmdBox));
 
       $('#OrderListBox').remove();
@@ -1075,7 +1088,34 @@ module.exports = function ( jq ) {
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
 						if (orders[i].Status == 1) {
 							$(orderBox).css({'background-color': 'yellow'});
-							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
+							$(mergeOrderCmdBox).append($('<span>ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(mergeOrderCmdBox).on('click', async (evt)=>{
+								evt.stopPropagation();
+								mergeorderdlg.doMergeOrder(orders, i, async (newOrders, destIndex)=>{
+									let params = {data: {Status: 0, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[i].id};
+									let orderRes = await common.doCallApi('/api/shop/order/update', params);
+									if (orderRes.status.code == 200) {
+										$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
+										params = {data: {Items: orders[destIndex].Items, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[destIndex].id};
+					          orderRes = await common.doCallApi('/api/shop/order/update', params);
+					          if (orderRes.status.code == 200) {
+					            $.notify("ยุบรวมรายการออร์เดอร์สำเร็จ", "success");
+											common.delay(500).then(async()=>{
+												$('#OrderListBox').remove();
+												let newOrderListBox = await doCreateOrderList(shopData, workAreaBox, orderReqParams.orderDate);
+												$(workAreaBox).append($(newOrderListBox));
+											});
+					          } else {
+					            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+					          }
+									} else {
+										$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+									}
+								});
+							});
+							$(orderBox).append($(mergeOrderCmdBox));
+							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
 							$(cancelOrderCmdBox).append($('<span>ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(cancelOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
@@ -1083,8 +1123,11 @@ module.exports = function ( jq ) {
 								let orderRes = await common.doCallApi('/api/shop/order/update', params);
 								if (orderRes.status.code == 200) {
 									$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
-									$('#OrderListBox').remove();
-									doCreateOrderList(shopId, workAreaBox, orderDate);
+									common.delay(500).then(async()=>{
+										$('#OrderListBox').remove();
+										let newOrderListBox = await doCreateOrderList(shopId, workAreaBox, orderReqParams.orderDate);
+										$(workAreaBox).append($(newOrderListBox));
+									});
 								} else {
 									$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
 								}
@@ -1149,6 +1192,7 @@ module.exports = function ( jq ) {
 							}
 						} else if (orders[i].Status == 0) {
 							$(orderBox).css({'background-color': 'grey'});
+							$(orderBox).addClass('canceled-order');
 						}
             $(orderBox).on('click', (evt)=>{
 							evt.stopPropagation();
@@ -1198,7 +1242,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":1,"../../setting/admin/mod/closeorder-dlg.js":7,"./order-form-lib.js":3,"./style-common-lib.js":5}],5:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":1,"../../setting/admin/mod/closeorder-dlg.js":7,"../../setting/admin/mod/order-merge-dlg.js":11,"./order-form-lib.js":3,"./style-common-lib.js":5}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -13156,6 +13200,100 @@ module.exports = function ( jq ) {
 		doCreateNewMenuitemForm,
 		doVerifyMenuitemForm
   }
+}
+
+},{"../../../home/mod/common-lib.js":1}],11:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const common = require('../../../home/mod/common-lib.js')($);
+
+	let dlgHandle = undefined;
+
+	const orderSelectCallback = function(evt, orders, srcIndex, destIndex, mergeSuccessCallback) {
+		let	promiseList = new Promise(async function(resolve2, reject2){
+			for (let i=0; i < orders[srcIndex].Items.length; i++) {
+				srcItemId = orders[srcIndex].Items[i].id;
+				let foundIndex = orders[destIndex].Items.findIndex((item)=>{
+					return (item.id === srcItemId);
+				});
+				if (foundIndex >= 0) {
+					let srcQty = orders[srcIndex].Items[i].Qty;
+					let destQty = orders[destIndex].Items[foundIndex].Qty;
+					let newQty = Number(srcQty) + Number(destQty);
+					orders[destIndex].Items[foundIndex].Qty = newQty;
+				} else {
+					orders[destIndex].Items.push(orders[srcIndex].Items[i]);
+				}
+			}
+			setTimeout(()=>{
+				resolve2($(orders));
+			}, 500);
+		});
+		Promise.all([promiseList]).then((ob)=>{
+			$('body').loading('start');
+			mergeSuccessCallback(ob[0], destIndex);
+			$('body').loading('stop');
+			if (dlgHandle) {
+				dlgHandle.closeAlert();
+			}
+		});
+	}
+
+	const doMergeOrder = async function(orders, srcIndex, mergeSuccessCallback) {
+		let orderMergerForm = await doCreateMergeSelectOrderForm(orders, srcIndex, orderSelectCallback, mergeSuccessCallback);
+		let mergeDlgOption = {
+			title: 'เลือกออร์เดอร์ปลายทางที่ต้องการนำไปยุบรวม',
+			msg: $(orderMergerForm),
+			width: '420px',
+			onOk: async function(evt) {
+				dlgHandle.closeAlert();
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		dlgHandle = $('body').radalert(mergeDlgOption);
+		$(dlgHandle.okCmd).hide();
+	}
+
+  const doCreateMergeSelectOrderForm = function(orders, srcIndex, selectedCallback, mergeSuccessCallback){
+    return new Promise(async function(resolve, reject) {
+      let selectOrderForm = $('<div></div>').css({'width': '100%', 'height': '220px', 'overflow': 'scroll', 'padding': '5px'});
+      let promiseList = new Promise(async function(resolve2, reject2){
+				for (let i=0; i < orders.length; i++) {
+          if ((orders[i].Status == 1) && (orders[i].id != orders[srcIndex].id)) {
+						let total = await common.doCalOrderTotal(orders[i].Items);
+            let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
+            let orderBox = $('<div></div>').css({'width': '95%', 'position': 'relative', 'cursor': 'pointer', 'padding': '5px', 'background-color': '#dddd', 'border': '4px solid #dddd'});
+            $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b>ผู้รับออร์เดอร์ :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
+						$(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
+            $(orderBox).hover(()=>{
+              $(orderBox).css({'border': '4px solid grey'});
+            },()=>{
+              $(orderBox).css({'border': '4px solid #dddd'});
+            });
+            $(orderBox).on('click', (evt)=>{
+              selectedCallback(evt, orders, srcIndex, i, mergeSuccessCallback);
+            });
+            $(selectOrderForm).append($(orderBox));
+          }
+        }
+        setTimeout(()=> {
+          resolve2($(selectOrderForm));
+        }, 500);
+      });
+      Promise.all([promiseList]).then((ob)=>{
+        resolve(ob[0]);
+      });
+    });
+  }
+
+  return {
+		doMergeOrder,
+    doCreateMergeSelectOrderForm
+	}
 }
 
 },{"../../../home/mod/common-lib.js":1}]},{},[2]);
