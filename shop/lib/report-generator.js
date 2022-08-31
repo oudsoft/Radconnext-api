@@ -109,6 +109,9 @@ function doReplaceDynamicContent(variable, field) {
     case 'grandtotal':
       return doFormatNumber(variable.grandtotal);
     break;
+    case 'baht_word':
+      return variable.baht_word;
+    break;
   }
 }
 
@@ -385,7 +388,12 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
 }
 
 const doRenderTable = function(wrapper, tableRows, left, top, ratio){
-  let table = $('<table cellpadding="0" cellspacing="0" width="100%" border="1"></tble>');
+  let table = $('<table cellpadding="2" cellspacing="0" width="100%" border="1"></tble>');
+  let fullW = 0;
+  tableRows[0].fields.forEach((field, i) => {
+    fullW += Number(field.width);
+  });
+
   for (let i=0; i < tableRows.length; i++){
     let row = $('<tr></tr>');
     if (tableRows[i].backgroundColor) {
@@ -393,10 +401,22 @@ const doRenderTable = function(wrapper, tableRows, left, top, ratio){
     }
     for (let j=0; j < tableRows[i].fields.length; j++) {
       let cell = $('<td></td>');
-      if (tableRows[i].fields.length == 2) {
+      if (tableRows[i].fields.length == 1) {
+        $(cell).attr("colspan", (tableRows[0].fields.length).toString());
+      } else if (tableRows[i].fields.length == 2) {
         $(cell).attr("colspan", (tableRows[0].fields.length - 1).toString());
+      } else if (tableRows[i].fields.length == 3) {
+        if (j == 1) {
+          $(cell).attr("colspan", (tableRows[0].fields.length - 2).toString());
+        }
+      } else if (tableRows[i].fields.length == 4) {
+        if (j == 3) {
+          $(cell).attr("colspan", (tableRows[0].fields.length - 3).toString());
+        }
       }
-      $(cell).attr({'align': tableRows[i].fields[j].fontalign, 'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio)/* + 'px'*/});
+      $(cell).attr({'align': tableRows[i].fields[j].fontalign});
+      //$(cell).css({'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio) + 'px'});
+      $(cell).css({'width': (Number(tableRows[i].fields[j].width / fullW) * 100) + '%'});
       $(cell).css({'font-size': Number(tableRows[i].fields[j].fontsize)*ratio + "px", 'font-weight': tableRows[i].fields[j].fontweight, 'font-style': tableRows[i].fields[j].fontstyle});
       $(cell).text(tableRows[i].fields[j].cellData);
       $(row).append($(cell));

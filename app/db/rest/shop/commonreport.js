@@ -471,7 +471,7 @@ const doCreateReport = function(orderId, docType, shopId){
 		const pdfFileName = reportVar.print_filename;
 		const shops = await db.shops.findAll({ attributes: ['Shop_PromptPayNo', 'Shop_PromptPayName'], where: {id: shopId}});
 		let qr = undefined;
-		if (docType == 1) {
+		if ((docType == 1) || (docType == 2)) {
 			if ((shops.length > 0) && (shops[0].Shop_PromptPayNo !== '') && (shops[0].Shop_PromptPayName !== '')) {
 				let ppType = undefined;
 				if (shops[0].Shop_PromptPayNo.length == 10) {

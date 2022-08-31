@@ -319,6 +319,10 @@
         $(removeCmd).on('click', (evt)=>{
           evt.stopPropagation();
           $(cropBox).remove();
+          if ($(imageSrc).css('display') === 'none') {
+            $(imageSrc).slideDown('slow');
+            $(layoutBox).slideDown('slow');
+          }
         });
 
         let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});

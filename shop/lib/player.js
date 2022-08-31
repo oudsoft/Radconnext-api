@@ -388,8 +388,6 @@
           $(playerViewBox).append($(imgBox));
           $(imgBox).draggable({containment: 'body', stop: function(evt){
               evt.stopPropagation();
-              //evt.preventDefault();
-              //evt.stopImmediatePropagation();
             }
           });
           $(imgBox).resizable({containment: 'body', stop: function(evt){
@@ -698,14 +696,20 @@
       let fullScreenCmd = doCreateFullScreenCmd();
       $(fullScreenCmd).css({'top': '-2px'});
 
+      /*
       let minimizeWindowCmd = $('<img data-toggle="tooltip" title="Minimize Player"/>');
       $(minimizeWindowCmd).attr('src', settings.iconRootPath+ '/images/minimize-icon.png');
       $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px', 'margin-left': '5px'});
       $(minimizeWindowCmd).on('click', (evt)=>{
         doMinimizeWindow(playerCmdBox, playerViewBox);
       });
+      */
 
-      let closePlayerBoxCmd = $('<div><span>X</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute', 'top': '-10px', 'right': '0px'})
+      let minPlayerBoxCmd = $('<div><span>_</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute',/* 'border': '1px solid #dddd',*/ 'padding': '2px', 'vertical-align': 'sup', /* 'top': '-10px',*/ 'bottom': '40px', 'right': '25px'})
+      $(minPlayerBoxCmd).on('click', (evt)=>{
+        doMinimizeWindow(playerCmdBox, playerViewBox);
+      });
+      let closePlayerBoxCmd = $('<div><span>X</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute',/* 'border': '1px solid #dddd',*/ 'padding': '2px', 'top': '-10px', 'right': '0px', 'margin-left': '10px'})
       $(closePlayerBoxCmd).on('click', (evt)=>{
         $($this).remove();
       });
@@ -714,7 +718,7 @@
       $(configCmd).css({'top': '-14px'});
       let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord).css({'top': '-22px'});
 
-      $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd)).append($(minimizeWindowCmd)).append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(closePlayerBoxCmd));
+      $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd))/*.append($(minimizeWindowCmd))*/.append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(minPlayerBoxCmd)).append($(closePlayerBoxCmd));
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
 

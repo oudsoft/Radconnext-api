@@ -16,23 +16,27 @@ setTimeout(()=>{
 
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	//$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
+	$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
+	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
 	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
-		myPBox = $('<div id="PBox" tabindex="1"></div>');
+		let myPBox = $('<div id="PBox" tabindex="1"></div>');
 		$(myPBox).css(pBoxStyle);
 		myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/', backgroundColor: 'grey'});
 
 		$(myPBox).draggable({containment: "parent"});
 		$(myPBox).resizable({containment: 'parent',
 			stop: function(evt) {
-				$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+				evt.stopPropagation();
+				//$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+				$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
 			}
 		});
 		$(myPBox).on('click', (evt)=>{
-			$(myPBox).focus();
+			evt.stopPropagation();
+			//$(myPBox).focus();
+			$(this).focus();
 		});
 		$('body').append($(myPBox));
 		$(myPBox).focus();
@@ -41,21 +45,44 @@ setTimeout(()=>{
 }, 500);
 
 /*
-let myPBox2 = $('<div id="PBox2" tabindex="2"></div>');
-$(myPBox2).css(pBoxStyle);
-let myPlayerHandle2 = $(myPBox2).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/', backgroundColor: 'grey'});
+$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/fabric.js"></script>');
+$('head').append('<link rel="stylesheet" href="https://radconnext.tech/lib/jquery-ui.min.css" type="text/css" />');
+$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/jquery-ui.min.js"></script>');
+setTimeout(()=>{
+	$('head').append('<link href="https://radconnext.tech/lib/tui-image-editor.min.css" rel="stylesheet">');
+	$('head').append('<link href="https://radconnext.tech/lib/tui-color-picker.css" rel="stylesheet">');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-code-snippet.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-color-picker.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-image-editor.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/simpleUpload.min.js"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/setting/plugin/jqury-readystate-plugin.js"></script>');
 
-$(myPBox2).draggable({containment: "parent"});
-$(myPBox2).resizable({containment: 'parent',
-	stop: function(evt) {
-		$(myPBox2).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-	}
-});
-$(myPBox2).on('click', (evt)=>{
-	$(myPBox2).focus();
-});
-$('body').append($(myPBox2));
-$(myPBox2).focus();
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
+	//$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k10"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
+	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+	setTimeout(()=>{
+		let myPBox2 = $('<div id="PBox" tabindex="1"></div>');
+		$(myPBox2).css(pBoxStyle);
+		myPlayerHandle2 = $(myPBox2).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/', backgroundColor: 'grey'});
+
+		$(myPBox2).draggable({containment: "parent"});
+		$(myPBox2).resizable({containment: 'parent',
+			stop: function(evt) {
+				$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+			}
+		});
+		$(myPBox2).on('click', (evt)=>{
+			$(this).focus();
+		});
+		$('body').append($(myPBox2));
+		$(myPBox2).focus();
+		$('body').css({'width': '100%', 'heigth': '100%'});
+	}, 500);
+}, 500);
+
 */
 
 /*
