@@ -435,3 +435,17 @@ $( document ).ready(function() {
     }
   });
 });
+
+/*
+Re-Create Document Report invoice/bill/taxinvoice
+let docParams = {orderId: 181, shopId: 6};
+let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
+
+let apiUrl = '/api/shop/bill/create/report';
+let rqParams = {orderId: 181, shopId: 6};
+$.post(apiUrl, rqParams, function(data){
+	console.log(data);
+}).fail(function(error) {
+	console.error(error);
+});
+*/

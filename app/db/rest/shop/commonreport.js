@@ -505,7 +505,11 @@ const doCreateReport = function(orderId, docType, shopId){
 	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			}
 
-	    resolve({status: {code: 200}, doc: {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink, pngLink: docReport.reportPNGLinkPath}});
+			let doc = {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink, pngLink: docReport.reportPNGLinkPath};
+			if (qr) {
+				doc.ppLink = qr.qrLink;
+			}
+	    resolve({status: {code: 200}, doc: doc});
 
 			let from = reportVar.print_status;
 			let canUpdateStatus = doCanUpdateOrederStatus(from, docType);

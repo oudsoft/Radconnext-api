@@ -336,9 +336,15 @@
       rememberMeOptionBox = doCreateRememberMeOptionBox();
       loginButtonCmd = doCreateLoginButtonCmd();
       registerButtonCmd = doCreateRegisterButtonCmd();
-      $this.append($(signinTextBox)).append($(signinYourAccountTextBox));
-      $this.append($(usernameInputBox)).append($(passwordInputBox));
-      return $this.append($(errorMessageBox)).append($(rememberMeOptionBox)).append($(loginButtonCmd)).append($(registerButtonCmd));
+      let isMobileDevice = isMobileDeviceCheck();
+      if (isMobileDevice) {
+        $this.append($(usernameInputBox)).append($(passwordInputBox));
+        return $this.append($(errorMessageBox)).append($(rememberMeOptionBox)).append($(loginButtonCmd)).append($(registerButtonCmd));
+      } else {
+        $this.append($(signinTextBox)).append($(signinYourAccountTextBox));
+        $this.append($(usernameInputBox)).append($(passwordInputBox));
+        return $this.append($(errorMessageBox)).append($(rememberMeOptionBox)).append($(loginButtonCmd)).append($(registerButtonCmd));
+      }
     }
 
     init();

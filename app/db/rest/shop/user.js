@@ -203,9 +203,9 @@ app.post('/update', (req, res) => {
           let updateUser = req.body.data;
           userId = req.body.id;
           infoId = req.body.userinfoId;
-          await duserinfoIdb.userinfoes.update(updateUser, { where: { id: infoId } });
+          await db.userinfoes.update(updateUser, { where: { id: infoId } });
           //await db.users.update({usertypeId: updateUser.usertypeId}, { where: { id: userId } });
-          res.json({Result: "OK"});
+          res.json({status: {code: 200}, Result: "OK"});
         } catch(error) {
       		log.error(error);
           res.json({ status: {code: 500}, error: error });
