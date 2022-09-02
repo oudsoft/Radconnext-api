@@ -29,7 +29,7 @@
     const clipURL = window.URL;
 
     let timer = undefined;
-    let selectedFiles = undefined;
+    let selectedFiles = [];
     let isAutoPlay = false;
     let imageViewMode = 'preview';
     let fullScreenMode = false;
@@ -104,7 +104,8 @@
         if (n == selectedFiles.length){
           n = 0;
         }
-        var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+        //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+        let fileURL = selectedFiles[n].url;
         doOpenEditor(fileURL);
       });
       return $(editorCmd);
@@ -204,7 +205,8 @@
       if (n == selectedFiles.length){
         n = 0;
       }
-      var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+      //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+      let fileURL = selectedFiles[n].url;
       let fileType = selectedFiles[n].type
       if (fileType.indexOf("image") >= 0){
         let imgName = selectedFiles[n].name;
@@ -312,7 +314,8 @@
               if (n == selectedFiles.length){
                 n = 0;
               }
-              var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+              //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+              let fileURL = selectedFiles[n].url;
               localVideo.src = fileURL;
               $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
             }
@@ -359,7 +362,8 @@
               if (n == selectedFiles.length){
                 n = 0;
               }
-              var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+              //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
+              let fileURL = selectedFiles[n].url;
               localAudio.src = fileURL;
               $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
             }
@@ -378,7 +382,8 @@
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
         let selectedFileType = selectedFiles[n].type;
-        let fileURL = clipURL.createObjectURL(selectedFiles[n]);
+        //let fileURL = clipURL.createObjectURL(selectedFiles[n]);
+        let fileURL = selectedFiles[n].url;
         let imgName = selectedFiles[n].name;
         if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
           $(playerViewBox).find('video').remove();
@@ -430,7 +435,29 @@
           $(playerCmdBox).find('#AutoPlayCmd').click();
         }
       });
-      return $(fileSrcListBox).append($(fileSrcSelector));
+      let addFileCmd = $('<span>+</span>').css({'font-size': '28px', 'padding': '2px', 'cursor': 'pointer'});
+      $(addFileCmd).on('click', (evt)=>{
+        evt.stopPropagation();
+        let srcFileListBox = $(playerViewBox).find('#FileSrcListBox');
+        doCreateFileChooser(srcFileListBox, ()=>{});
+      });
+      let deleteFileCmd = $('<span>-</span>').css({'font-size': '28px', 'padding': '2px', 'cursor': 'pointer'});
+      $(deleteFileCmd).on('click', (evt)=>{
+        evt.stopPropagation();
+        let srcFileListBox = $(playerViewBox).find('#FileSrcListBox');
+        let srcFileSelector = $(srcFileListBox).find('select');
+        let n = $(srcFileSelector).prop('selectedIndex');
+        selectedFiles.splice(n, 1);
+        $(srcFileSelector).find('option:selected').remove();
+        if (selectedFiles.length >= n) {
+          $(srcFileSelector).prop('selectedIndex', n).change();
+        } else if (selectedFiles.length > 0) {
+          $(srcFileSelector).prop('selectedIndex', 0).change();
+        }
+      });
+      let fileCmdBox = $('<div style="text-align: left;"></div>');
+      $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
+      return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
     const doOpenFileChooser = function(){
@@ -438,21 +465,13 @@
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'body'});
       $(playerViewBox).append($(srcFileListBox));
-      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
-      $(fileChooser).css({'display': 'none'});
-      $(fileChooser).on('change', (evt)=> {
+      doCreateFileChooser(srcFileListBox, ()=>{
         if (isAutoPlay == true) {
           window.clearTimeout(timer);
           isAutoPlay = false;
         }
-        selectedFiles = evt.currentTarget.files;
         $(playerViewBox).find('.imgbox').remove();
         $(playerViewBox).find('#LocalVideo').remove();
-        let filesArray = selectedFiles.toArray();
-        filesArray.forEach((item, i) => {
-          let fileOption = $('<option value="' + item.name + '">' + (i+1) + '. ' + item.name + '</option>');
-          $(srcFileListBox).find('select').append($(fileOption))
-        });
         $(srcFileListBox).find('select').prop('selectedIndex', 0).change();
         $(srcFileListBox).hide();
         let autoPlayCmd = $(playerCmdBox).find('#AutoPlayCmd');
@@ -462,6 +481,31 @@
           window.clearTimeout(timer);
           $('#AuotoPlayCmd').click();
         }
+      });
+    }
+
+    const doCreateFileChooser = function(srcFileListBox, chooseSuccessCallback) {
+      let startCount = 0;
+      let fileSelector = $(srcFileListBox).find('select');
+      if (fileSelector) {
+        startCount = $(fileSelector).find('option').length;
+      }
+      let fileChooser = $('<input type="file" multiple accept="video/*, image/png, image/jpeg, audio/mp3"/>');
+      $(fileChooser).css({'display': 'none'});
+      $(fileChooser).on('change', (evt)=> {
+        let choosedFiles = evt.currentTarget.files;
+        for (let i = 0; i < choosedFiles.length; i++) {
+          let url = clipURL.createObjectURL(choosedFiles[i]);
+          let name = choosedFiles[i].name;
+          let type = choosedFiles[i].type
+          selectedFiles.push({url, name, type});
+        }
+        let filesArray = choosedFiles.toArray();
+        filesArray.forEach((item, i) => {
+          let fileOption = $('<option value="' + item.name + '">' + (startCount + i + 1) + '. ' + item.name + '</option>');
+          $(srcFileListBox).find('select').append($(fileOption));
+        });
+        chooseSuccessCallback();
       });
 
       $(fileChooser).click();

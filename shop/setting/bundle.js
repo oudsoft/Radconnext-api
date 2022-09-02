@@ -1,8 +1,20 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+module.exports=[
+  {"filename": "shop-mng.js", "elementId": "orderMngCmd", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "titleTextBox", "defaultWord": "รายการออร์เดอร์ของร้าน", "customWord": "รายการแจ้งซ่อมของร้าน"},
+  {"filename": "order-mng.js", "elementId": "newOrderCmd", "defaultWord": "เปิดออร์เดอร์ใหม", "customWord": "เปิดรายการแจ้งซ่อมใหม่"},
+  {"filename": "order-mng.js", "elementId": "canceledOrderHiddenToggleCmd", "defaultWord": "ออร์เดอร์ที่ถูกยกเลิก", "customWord": "รายการแจ้งซ่อมที่ถูกยกเลิก"},
+  {"filename": "order-mng.js", "elementId": "TitleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "OrderListBox", "defaultWord": "ไม่พบรายการออร์เดอร์ของวันที์", "customWord": "ไม่พบรายการแจ้งซ่อมของวันที"}
+]
+
+},{}],2:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
   const fileUploadMaxSize = 10000000;
+
+	const shopSensitives = [1, 6];
 
   const doCallApi = function(apiUrl, rqParams) {
     return new Promise(function(resolve, reject) {
@@ -97,7 +109,7 @@ module.exports = function ( jq ) {
   }
 
 	const doCreateTextCmd = function(text, bgcolor, textcolor, bordercolor, hovercolor) {
-    let textCmd = $('<span></span>').css({'min-height': '35px', 'line-height': '30px', 'cursor': 'pointer', 'border-radius': '4px', 'padding': '4px', 'text-align': 'center'});
+    let textCmd = $('<span></span>').css({/*'min-height': '35px', 'line-height': '30px',*/ 'cursor': 'pointer', 'border-radius': '4px', 'padding': '4px', 'text-align': 'center', 'font-size': '16px'});
 		$(textCmd).text(text);
 		$(textCmd).css({'background-color': bgcolor, 'color': textcolor});
 		if (bordercolor){
@@ -174,8 +186,20 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doResetSensitiveWord = function(words){
+    return new Promise(async function(resolve, reject) {
+			await words.forEach((word, i) => {
+				if ($('#' + word.elementId).hasClass('sensitive-word')) {
+					$('#' + word.elementId).text(word.customWord);
+				}
+			});
+			resolve();
+    });
+  }
+
   return {
 		fileUploadMaxSize,
+		shopSensitives,
     doCallApi,
     doGetApi,
 		doUserLogout,
@@ -190,11 +214,12 @@ module.exports = function ( jq ) {
 		genUniqueID,
 		isExistsResource,
 		doCreateReportDocButtonCmd,
-		doCalOrderTotal
+		doCalOrderTotal,
+		doResetSensitiveWord
 	}
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 const A4Width = 1004;
 const A4Height = 1410;
 const SlipWidth = 374;
@@ -260,7 +285,7 @@ module.exports = {
   defaultTableData
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -327,7 +352,6 @@ $( document ).ready(function() {
 	};
 
 	initPage();
-
   //doTestCreateInvoice();
 });
 
@@ -360,7 +384,7 @@ module.exports = {
   doShowShopMng,
 }
 
-},{"../../home/mod/common-lib.js":1,"./mod/shop-item-mng.js":15,"jquery":19}],4:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"./mod/shop-item-mng.js":16,"jquery":20}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -376,7 +400,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],5:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -666,7 +690,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],6:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -817,7 +841,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],7:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1152,7 +1176,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./order-history.js":12,"./order-mng.js":14}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":5,"./order-history.js":13,"./order-mng.js":15}],9:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1862,7 +1886,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/constant-lib.js":2}],9:[function(require,module,exports){
+},{"../../../home/mod/constant-lib.js":3}],10:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2114,7 +2138,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],10:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2403,7 +2427,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2774,7 +2798,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2947,7 +2971,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":1}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3041,7 +3065,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3075,8 +3099,8 @@ module.exports = function ( jq ) {
 				selectDate = common.doFormatDateStr(new Date());
 			}
       let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			let titleTextBox = $('<div></div>').text('รายการออร์เดอร์ของร้าน');
-			let orderDateBox = $('<div></div>').text(selectDate).css({'width': 'fit-content', 'display': 'inline-block', 'background-color': 'white', 'color': 'black', 'padding': '4px', 'cursor': 'pointer', 'font-size': '16px'});
+			let titleTextBox = $('<div class="sensitive-word" id="titleTextBox"></div>').text('รายการออร์เดอร์ของร้าน');
+			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 30%', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
 			$(orderDateBox).on('click', (evt)=>{
 				common.calendarOptions.onClick = async function(date){
 					selectDate = common.doFormatDateStr(new Date(date));
@@ -3088,16 +3112,26 @@ module.exports = function ( jq ) {
 				}
 				let calendarHandle = doShowCalendarDlg(common.calendarOptions);
 			});
+			$(orderDateBox).hover(()=>{
+				$(orderDateBox).css({'border': '3px solid black'});
+			},()=>{
+				$(orderDateBox).css({'border': '3px solid grey'});
+			});
+
 			$(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 
 			$(workAreaBox).append($(titlePageBox));
-			let newOrderCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+			//let newOrderCmdBox = $('<div></div>').css({'position': 'absolute', 'text-align': 'right', 'padding': '4px', 'margin-bottom': '4px'});
 			//let newOrderCmd = $('<input type="button" value=" เปิดออร์เดอร์ใหม่ " class="action-btn"/>');
 			let newOrderCmd = common.doCreateTextCmd('เปิดออร์เดอร์ใหม', 'green', 'white');
+			$(newOrderCmd).addClass('sensitive-word');
+			$(newOrderCmd).attr('id', 'newOrderCmd');
 			$(newOrderCmd).on('click', (evt)=>{
 				doOpenOrderForm(shopData, workAreaBox);
 			});
 			let canceledOrderHiddenToggleCmd = common.doCreateTextCmd('ซ่อนออร์เดอร์ที่ถูกยกเลิก', 'grey', 'white');
+			$(canceledOrderHiddenToggleCmd).addClass('sensitive-word');
+			$(canceledOrderHiddenToggleCmd).attr('id', 'canceledOrderHiddenToggleCmd');
 			$(canceledOrderHiddenToggleCmd).on('click', (evt)=>{
 				let displayStatus = $('.canceled-order').css('display');
 				if (displayStatus === 'none') {
@@ -3109,13 +3143,16 @@ module.exports = function ( jq ) {
 				}
 			});
 
-			$(newOrderCmdBox).append($(canceledOrderHiddenToggleCmd)).append($(newOrderCmd).css({'margin-left': '4px'}));
-			$(workAreaBox).append($(newOrderCmdBox));
+			//$(newOrderCmdBox).append($(canceledOrderHiddenToggleCmd)).append($(newOrderCmd).css({'margin-left': '4px'}));
+			//$(workAreaBox).append($(newOrderCmdBox));
+			$(titlePageBox).append($(newOrderCmd).css({'float': 'right', 'margin-right': '5px'})).append($(canceledOrderHiddenToggleCmd).css({'float': 'right', 'margin-right': '10px'}));
+			//$(titlePageBox).append($(newOrderCmdBox));
 
 			$('#OrderListBox').remove();
 			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
 			$(workAreaBox).append($(orderListBox));
-
+			let orderDateBoxPos = (($(titleTextBox).width() - $(orderDateBox).width()) / 2) - ($(orderDateBox).width());
+			$(orderDateBox).css({'margin-left': orderDateBoxPos + 'px'});
       resolve();
     });
   }
@@ -3145,15 +3182,15 @@ module.exports = function ( jq ) {
 
     let orderObj = {};
     $(workAreaBox).empty();
-    let titleText = 'เปิดออร์เดอร์ใหม่';
+    let titleText = $('<div>เปิด<span id="TitleOrderForm" class="sensitive-word">ออร์เดอร์</span>ใหม่</div>');
     if (orderData) {
-      titleText = 'แก้ไขออร์เดอร์';
+      titleText = $('<div>แก้ไข<span id="TitleOrderForm" class="sensitive-word">ออร์เดอร์</span></div>');
 			orderObj.id = orderData.id;
 			orderObj.Status = orderData.Status
     } else {
 			orderObj.Status = 1;
 		}
-    let titlePageBox = $('<div style="padding: 4px;"></viv>').text(titleText).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+    let titlePageBox = $('<div style="padding: 4px;"></viv>').append($(titleText)).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
     let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
     let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 99.1%;"></viv>');
     let saveNewOrderCmdBox = $('<div></div>').css({'width': '99.1%', 'text-align': 'center'});
@@ -3298,6 +3335,13 @@ module.exports = function ( jq ) {
 
 		$('#App').find('#SummaryBox').remove();
 
+		if (common.shopSensitives.includes(shopData.id)) {
+			let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+			common.delay(500).then(async ()=>{
+				await common.doResetSensitiveWord(sensitiveWordJSON);
+			});
+		}
+		
     const customerSelectedCallback = function(customerSelected){
       orderObj.customer = customerSelected;
       customerDataBox = doRenderCustomerContent(customerSelected);
@@ -3818,10 +3862,17 @@ module.exports = function ( jq ) {
 						$(summaryBox).off('click');
 					});
 					$('#App').append($(summaryBox).css({'padding': '5px'}));
-          resolve(ob[0]);
+					if (common.shopSensitives.includes(shopData.id)) {
+						let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+						common.delay(500).then(async ()=>{
+							await common.doResetSensitiveWord(sensitiveWordJSON);
+						});
+					}
+					resolve(ob[0]);
         });
       } else {
 				$(orderListBox).text('ไม่พบรายการออร์เดอร์ของวันที่ ' + orderDate);
+				$(orderListBox).addClass('sensitive-word');
         resolve($(orderListBox));
       }
     });
@@ -3939,7 +3990,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./calendar-dlg.js":4,"./closeorder-dlg.js":5,"./customer-dlg.js":6,"./gooditem-dlg.js":9,"./order-merge-dlg.js":13}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":5,"./closeorder-dlg.js":6,"./customer-dlg.js":7,"./gooditem-dlg.js":10,"./order-merge-dlg.js":14}],16:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4227,7 +4278,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doOpenManageShop = function(shopData, uploadLogoCallback, editShopCallback){
-		shopmng.doShowShopMhg(shopData, uploadLogoCallback, editShopCallback)
+		shopmng.doShowShopMhg(shopData, uploadLogoCallback, editShopCallback);
 	}
 
 	const doDeleteShop = function(shopId){
@@ -4267,7 +4318,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"./shop-mng.js":16}],16:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./shop-mng.js":17}],17:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4357,44 +4408,64 @@ module.exports = function ( jq ) {
   }
 
   const doCreateContolShopCmds = function(shopData){
-    let commandsBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'left', 'font-size': '14px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white', 'margin-top': '10px'});
-    let userMngCmd = $('<input type="button" value=" ผู้ใช้งาน " class="action-btn"/>').css({'margin-left': '10px'});
+    let commandsBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'height': '35px', 'text-align': 'left', 'border': '2px solid black', 'border-radius': '4px', 'background-color': 'grey', 'margin-top': '5px'});
+    //let userMngCmd = $('<input type="button" value=" ผู้ใช้งาน " class="action-btn"/>').css({'margin-left': '10px'});
+		let userMngCmd = $('<span>ผู้ใช้งาน</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(userMngCmd).hover(()=>{	$(userMngCmd).css({'border': '3px solid black'});}, ()=>{	$(userMngCmd).css({'border': '3px solid grey'});});
     $(userMngCmd).on('click', (evt)=>{
       doUserMngClickCallBack(evt, shopData);
     });
-    let customerMngCmd = $('<input type="button" value=" รายการลูกค้า " class="action-btn"/>').css({'margin-left': '10px'});
+    //let customerMngCmd = $('<input type="button" value=" รายการลูกค้า " class="action-btn"/>').css({'margin-left': '10px'});
+		let customerMngCmd = $('<span>รายการลูกค้า</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(customerMngCmd).hover(()=>{	$(customerMngCmd).css({'border': '3px solid black'});}, ()=>{	$(customerMngCmd).css({'border': '3px solid grey'});});
     $(customerMngCmd).on('click', (evt)=>{
       doCustomerMngClickCallBack(evt, shopData);
     });
-    let menugroupMngCmd = $('<input type="button" value=" รายการกลุ่มสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
+    //let menugroupMngCmd = $('<input type="button" value=" รายการกลุ่มสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
+		let menugroupMngCmd = $('<span>รายการกลุ่มสินค้า</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(menugroupMngCmd).hover(()=>{	$(menugroupMngCmd).css({'border': '3px solid black'});}, ()=>{	$(menugroupMngCmd).css({'border': '3px solid grey'});});
     $(menugroupMngCmd).on('click', (evt)=>{
       doMenugroupMngClickCallBack(evt, shopData);
     });
-    let menuitemMngCmd = $('<input type="button" value=" รายการสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
+    //let menuitemMngCmd = $('<input type="button" value=" รายการสินค้า " class="action-btn"/>').css({'margin-left': '10px'});
+		let menuitemMngCmd = $('<span>รายการสินค้า</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(menuitemMngCmd).hover(()=>{	$(menuitemMngCmd).css({'border': '3px solid black'});}, ()=>{	$(menuitemMngCmd).css({'border': '3px solid grey'});});
     $(menuitemMngCmd).on('click', (evt)=>{
       doMenuitemMngClickCallBack(evt, shopData);
     });
 
-    let orderMngCmd = $('<input type="button" value=" ออร์เดอร์ " class="action-btn"/>').css({'margin-left': '10px'});
+    //let orderMngCmd = $('<input type="button" value=" ออร์เดอร์ " class="action-btn"/>').css({'margin-left': '10px'});
+		let orderMngCmd = $('<span id="orderMngCmd">ออร์เดอร์</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(orderMngCmd).hover(()=>{	$(orderMngCmd).css({'border': '3px solid black'});}, ()=>{ $(orderMngCmd).css({'border': '3px solid grey'});});
+		$(orderMngCmd).addClass('sensitive-word');
     $(orderMngCmd).on('click', (evt)=>{
       doOrderMngClickCallBack(evt, shopData);
     });
 
-		let templateMngCmd = $('<input type="button" value=" รูปแบบเอกสาร " class="action-btn"/>').css({'margin-left': '10px'});
+		//let templateMngCmd = $('<input type="button" value=" รูปแบบเอกสาร " class="action-btn"/>').css({'margin-left': '10px'});
+		let templateMngCmd = $('<span>รูปแบบเอกสาร</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 0px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'left'});
+		$(templateMngCmd).hover(()=>{	$(templateMngCmd).css({'border': '3px solid black'});}, ()=>{ $(templateMngCmd).css({'border': '3px solid grey'});});
     $(templateMngCmd).on('click', (evt)=>{
       doTemplateMngClickCallBack(evt, shopData);
     });
 
-		let logoutCmd = $('<span>ออกจากระบบ</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin-right': '5px', 'margin-top': '1px', 'padding': '4px', 'font-size': '14px', 'float': 'right'});
+		let logoutCmd = $('<span>ออกจากระบบ</span>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 0px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey', 'float': 'right'});
 		$(logoutCmd).on('click', (evt)=>{
 			common.doUserLogout();
 		});
-		//$(titlePageBox).append($(logoutCmd));
+		$(logoutCmd).hover(()=>{
+			$(logoutCmd).css({'border': '3px solid black'});
+		},()=>{
+			$(logoutCmd).css({'border': '3px solid grey'});
+		});
+
+
 
     return $(commandsBox).append($(orderMngCmd)).append($(menuitemMngCmd)).append($(menugroupMngCmd)).append($(customerMngCmd)).append($(userMngCmd)).append($(templateMngCmd)).append($(logoutCmd));
   }
 
   const doShowShopMhg = function(shopData, uploadLogCallback, editShopCallback){
+		doSaveSensitiveWord();
     let titlePage = doCreateTitlePage(shopData, uploadLogCallback, editShopCallback);
     $('#App').empty().append($(titlePage));
     let shopCmdControl = doCreateContolShopCmds(shopData);
@@ -4427,7 +4498,14 @@ module.exports = function ( jq ) {
 
   const doOrderMngClickCallBack = async function(evt, shopData){
 		let workingAreaBox = $('#WorkingAreaBox');
-		await order.doShowOrderList(shopData, workingAreaBox)
+		await order.doShowOrderList(shopData, workingAreaBox);
+
+		if (common.shopSensitives.includes(shopData.id)) {
+			let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));			
+			common.delay(500).then(async ()=>{
+				await common.doResetSensitiveWord(sensitiveWordJSON);
+			});
+		}
   }
 
 	const doTemplateMngClickCallBack = async function(evt, shopData){
@@ -4435,12 +4513,18 @@ module.exports = function ( jq ) {
 		await template.doShowTemplateDesign(shopData, workingAreaBox)
 	}
 
+	const doSaveSensitiveWord = function(){
+		const sensitiveWordJSON = require('../../../../../api/shop/lib/sensitive-word.json');
+		localStorage.setItem('sensitiveWordJSON', JSON.stringify(sensitiveWordJSON))
+	}
+
   return {
-    doShowShopMhg
+    doShowShopMhg,
+		doSaveSensitiveWord
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../main.js":3,"./customer-mng.js":7,"./menugroup-mng.js":10,"./menuitem-mng.js":11,"./order-mng.js":14,"./template-design.js":17,"./user-mng.js":18}],17:[function(require,module,exports){
+},{"../../../../../api/shop/lib/sensitive-word.json":1,"../../../home/mod/common-lib.js":2,"../main.js":4,"./customer-mng.js":8,"./menugroup-mng.js":11,"./menuitem-mng.js":12,"./order-mng.js":15,"./template-design.js":18,"./user-mng.js":19}],18:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4976,7 +5060,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1,"../../../home/mod/constant-lib.js":2,"./element-property-lib.js":8}],18:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"../../../home/mod/constant-lib.js":3,"./element-property-lib.js":9}],19:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -5418,7 +5502,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":1}],19:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],20:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -16301,4 +16385,4 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}]},{},[3]);
+},{}]},{},[4]);

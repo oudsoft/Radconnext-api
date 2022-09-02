@@ -142,13 +142,13 @@
 
     const doCreateSigninTextBox = function(){
       let signinTextBox = $('<div></div>');
-      let signinText = $('<h2>Sign In</h2>');
+      let signinText = $('<h2>เข้าใช้งาน</h2>');
       return $(signinTextBox).append($(signinText));
     }
 
     const doCreateSigninYourAccountTextBox = function(){
       let signinYourAccountTextBox = $('<div></div>');
-      let signinYourAccountText = $('<h3>Sign in to your account.</h3>');
+      let signinYourAccountText = $('<h3>ล็อกอินเข้าใช้งานด้วยบัญชีของคุณ</h3>');
       return $(signinYourAccountTextBox).append($(signinYourAccountText));
     }
 
@@ -197,7 +197,7 @@
     const doCreateRememberMeOptionBox = function(){
       let rememberMeOptionBox = $('<div style="margin-top: 10px;"></div>');
       let optionBox = $('<input type="checkbox" id="RememberMe" value="1"/>');
-      let labelBox = $('<label for="RememberMe" style="margin-left: 5px;">Remember my account in this device.</label>');
+      let labelBox = $('<label for="RememberMe" style="margin-left: 5px;">จดจำบัญชีใช้งานของฉันไว้ในอุปกรณ์นี้</label>');
       let lastStorageOption = localStorage.getItem('rememberme');
       if (lastStorageOption == 1) {
         $(optionBox).prop("checked", true);
@@ -206,7 +206,7 @@
     }
 
     const doCreateLoginButtonCmd = function(){
-      let loginButtonCmd = $('<input type="button" value=" SIGN IN " style="width: 100%; margin-top: 20px;"/>');
+      let loginButtonCmd = $('<input type="button" value=" ล็อกอิน " style="width: 100%; margin-top: 20px;"/>');
       $(loginButtonCmd).css({'background-color': '#184175', 'color': 'white'}); //#2F4646
       $(loginButtonCmd).on('click', (evt)=>{
         doUserClickLogin();
@@ -371,7 +371,7 @@
 
 (()=>{
 
-  const loginBox = $('<div></div>');
+  const loginBox = $('<div id="LoginForm"></div>');
   //$(loginBox).css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
 
   const radconnextOption = {};
