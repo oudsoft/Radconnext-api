@@ -4,8 +4,8 @@ module.exports=[
   {"filename": "order-mng.js", "elementId": "titleTextBox", "defaultWord": "รายการออร์เดอร์ของร้าน", "customWord": "รายการแจ้งซ่อมของร้าน"},
   {"filename": "order-mng.js", "elementId": "newOrderCmd", "defaultWord": "เปิดออร์เดอร์ใหม", "customWord": "เปิดรายการแจ้งซ่อมใหม่"},
   {"filename": "order-mng.js", "elementId": "canceledOrderHiddenToggleCmd", "defaultWord": "ออร์เดอร์ที่ถูกยกเลิก", "customWord": "รายการแจ้งซ่อมที่ถูกยกเลิก"},
-  {"filename": "order-mng.js", "elementId": "TitleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
-  {"filename": "order-mng.js", "elementId": "OrderListBox", "defaultWord": "ไม่พบรายการออร์เดอร์ของวันที์", "customWord": "ไม่พบรายการแจ้งซ่อมของวันที"}
+  {"filename": "order-mng.js", "elementId": "titleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"}
 ]
 
 },{}],2:[function(require,module,exports){
@@ -3100,7 +3100,7 @@ module.exports = function ( jq ) {
 			}
       let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
 			let titleTextBox = $('<div class="sensitive-word" id="titleTextBox"></div>').text('รายการออร์เดอร์ของร้าน');
-			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 30%', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
+			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 25%', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
 			$(orderDateBox).on('click', (evt)=>{
 				common.calendarOptions.onClick = async function(date){
 					selectDate = common.doFormatDateStr(new Date(date));
@@ -3151,8 +3151,8 @@ module.exports = function ( jq ) {
 			$('#OrderListBox').remove();
 			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
 			$(workAreaBox).append($(orderListBox));
-			let orderDateBoxPos = (($(titleTextBox).width() - $(orderDateBox).width()) / 2) - ($(orderDateBox).width());
-			$(orderDateBox).css({'margin-left': orderDateBoxPos + 'px'});
+			//let orderDateBoxPos = (($(titleTextBox).width() - $(orderDateBox).width()) / 2) - ($(orderDateBox).width());
+			//$(orderDateBox).css({'margin-left': orderDateBoxPos + 'px'});
       resolve();
     });
   }
@@ -3182,9 +3182,9 @@ module.exports = function ( jq ) {
 
     let orderObj = {};
     $(workAreaBox).empty();
-    let titleText = $('<div>เปิด<span id="TitleOrderForm" class="sensitive-word">ออร์เดอร์</span>ใหม่</div>');
+    let titleText = $('<div>เปิด<span id="titleOrderForm" class="sensitive-word">ออร์เดอร์</span>ใหม่</div>');
     if (orderData) {
-      titleText = $('<div>แก้ไข<span id="TitleOrderForm" class="sensitive-word">ออร์เดอร์</span></div>');
+      titleText = $('<div>แก้ไข<span id="titleOrderForm" class="sensitive-word">ออร์เดอร์</span></div>');
 			orderObj.id = orderData.id;
 			orderObj.Status = orderData.Status
     } else {
@@ -3341,7 +3341,7 @@ module.exports = function ( jq ) {
 				await common.doResetSensitiveWord(sensitiveWordJSON);
 			});
 		}
-		
+
     const customerSelectedCallback = function(customerSelected){
       orderObj.customer = customerSelected;
       customerDataBox = doRenderCustomerContent(customerSelected);
@@ -3871,8 +3871,8 @@ module.exports = function ( jq ) {
 					resolve(ob[0]);
         });
       } else {
-				$(orderListBox).text('ไม่พบรายการออร์เดอร์ของวันที่ ' + orderDate);
-				$(orderListBox).addClass('sensitive-word');
+				let notFoundOrderDatbox = $('<div>ไม่พบรายการ<span id="notFoundOrderDatbox" class="sensitive-word">ออร์เดอร์</span>ของวันที่ ' + orderDate + '</div>');
+				$(orderListBox).append($(notFoundOrderDatbox));
         resolve($(orderListBox));
       }
     });
