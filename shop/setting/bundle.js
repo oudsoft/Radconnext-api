@@ -3,7 +3,6 @@ module.exports=[
   {"filename": "shop-mng.js", "elementId": "orderMngCmd", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
   {"filename": "order-mng.js", "elementId": "titleTextBox", "defaultWord": "รายการออร์เดอร์ของร้าน", "customWord": "รายการแจ้งซ่อมของร้าน"},
   {"filename": "order-mng.js", "elementId": "newOrderCmd", "defaultWord": "เปิดออร์เดอร์ใหม", "customWord": "เปิดรายการแจ้งซ่อมใหม่"},
-  {"filename": "order-mng.js", "elementId": "canceledOrderHiddenToggleCmd", "defaultWord": "ออร์เดอร์ที่ถูกยกเลิก", "customWord": "รายการแจ้งซ่อมที่ถูกยกเลิก"},
   {"filename": "order-mng.js", "elementId": "titleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
   {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"},
   {"filename": "order-mng.js", "elementId": "opennerOrderLabel", "defaultWord": "ผู้รับออร์เดอร์", "customWord": "ผู้รับแจ้งซ่อม"},
@@ -3113,9 +3112,9 @@ module.exports = function ( jq ) {
 			} else {
 				selectDate = common.doFormatDateStr(new Date());
 			}
-      let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
-			let titleTextBox = $('<div class="sensitive-word" id="titleTextBox"></div>').text('รายการออร์เดอร์ของร้าน');
-			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 25%', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
+      let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'height': '75px', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+			let titleTextBox = $('<div></div>').append('รายการ<span class="sensitive-word" id="titleTextBox">ออร์เดอร์</span>ของร้าน วันที่ ');
+			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
 			$(orderDateBox).on('click', (evt)=>{
 				common.calendarOptions.onClick = async function(date){
 					selectDate = common.doFormatDateStr(new Date(date));
@@ -3133,7 +3132,7 @@ module.exports = function ( jq ) {
 				$(orderDateBox).css({'border': '3px solid grey'});
 			});
 
-			$(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
+			$(titlePageBox).append($(titleTextBox).append($(orderDateBox)));
 
 			$(workAreaBox).append($(titlePageBox));
 			//let newOrderCmdBox = $('<div></div>').css({'position': 'absolute', 'text-align': 'right', 'padding': '4px', 'margin-bottom': '4px'});
@@ -3144,30 +3143,35 @@ module.exports = function ( jq ) {
 			$(newOrderCmd).on('click', (evt)=>{
 				doOpenOrderForm(shopData, workAreaBox);
 			});
-			let canceledOrderHiddenToggleCmd = common.doCreateTextCmd('ซ่อนออร์เดอร์ที่ถูกยกเลิก', 'grey', 'white');
-			$(canceledOrderHiddenToggleCmd).addClass('sensitive-word');
-			$(canceledOrderHiddenToggleCmd).attr('id', 'canceledOrderHiddenToggleCmd');
+			if (common.shopSensitives.includes(shopData.id)) {
+				let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+				$(newOrderCmd).text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'newOrderCmd') return item}).customWord) ;
+			}
+
+			let canceledOrderHiddenToggleCmd = common.doCreateTextCmd('ซ่อนรายการที่ถูกยกเลิก', 'grey', 'white');
 			$(canceledOrderHiddenToggleCmd).on('click', (evt)=>{
 				let displayStatus = $('.canceled-order').css('display');
 				if (displayStatus === 'none') {
 					$('.canceled-order').css('display', 'block');
-					$(canceledOrderHiddenToggleCmd).text('ซ่อนออร์เดอร์ที่ถูกยกเลิก');
+					$(canceledOrderHiddenToggleCmd).text('ซ่อนรายการที่ถูกยกเลิก');
 				} else {
 					$('.canceled-order').css('display', 'none');
-					$(canceledOrderHiddenToggleCmd).text('แสดงออร์เดอร์ที่ถูกยกเลิก');
+					$(canceledOrderHiddenToggleCmd).text('แสดงรายการที่ถูกยกเลิก');
 				}
 			});
 
-			//$(newOrderCmdBox).append($(canceledOrderHiddenToggleCmd)).append($(newOrderCmd).css({'margin-left': '4px'}));
-			//$(workAreaBox).append($(newOrderCmdBox));
-			$(titlePageBox).append($(newOrderCmd).css({'float': 'right', 'margin-right': '5px'})).append($(canceledOrderHiddenToggleCmd).css({'float': 'right', 'margin-right': '10px'}));
-			//$(titlePageBox).append($(newOrderCmdBox));
+			$(titlePageBox).append($(newOrderCmd).css({'float': 'right', 'margin-right': '5px', 'margin-top': '10px'})).append($(canceledOrderHiddenToggleCmd).css({'float': 'right', 'margin-right': '10px', 'margin-top': '10px'}));
+
 
 			$('#OrderListBox').remove();
 			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
 			$(workAreaBox).append($(orderListBox));
-			//let orderDateBoxPos = (($(titleTextBox).width() - $(orderDateBox).width()) / 2) - ($(orderDateBox).width());
-			//$(orderDateBox).css({'margin-left': orderDateBoxPos + 'px'});
+			//console.log($(orderListBox).find('.canceled-order').length);
+			if ($(orderListBox).find('.canceled-order')){
+				$(canceledOrderHiddenToggleCmd).show();
+			} else {
+				$(canceledOrderHiddenToggleCmd).hide();
+			}
       resolve();
     });
   }
@@ -3737,9 +3741,13 @@ module.exports = function ( jq ) {
             $(orderBox).append($('<div><b><span id ="opennerOrderLabel" class="sensitive-word">ผู้รับออร์เดอร์</span> :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
+
+						let mergeOrderCmdBox = undefined;
+						let cancelOrderCmdBox = undefined;
+
 						if (orders[i].Status == 1) {
 							$(orderBox).css({'background-color': 'yellow'});
-							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
+							mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
 							$(mergeOrderCmdBox).append($('<span id ="mergeOrderCmd" class="sensitive-word">ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(mergeOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
@@ -3766,7 +3774,7 @@ module.exports = function ( jq ) {
 								});
 							});
 							$(orderBox).append($(mergeOrderCmdBox));
-							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
+							cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
 							$(cancelOrderCmdBox).append($('<span id ="cancelOrderCmd" class="sensitive-word">ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(cancelOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
@@ -3859,6 +3867,18 @@ module.exports = function ( jq ) {
               $(orderListBox).remove();
               doOpenOrderForm(shopData, workAreaBox, orderData, orderDate);
             });
+
+						if (common.shopSensitives.includes(shopData.id)) {
+							let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+							$(orderBox).find("#opennerOrderLabel").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'opennerOrderLabel') return item}).customWord) ;
+							if (mergeOrderCmdBox) {
+								$(mergeOrderCmdBox).find("#mergeOrderCmd").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'mergeOrderCmd') return item}).customWord) ;
+							}
+							if (cancelOrderCmdBox) {
+								$(cancelOrderCmdBox).find("#cancelOrderCmd").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'cancelOrderCmd') return item}).customWord) ;
+							}
+						}
+
             $(orderListBox).append($(orderBox));
           }
           setTimeout(()=>{
@@ -3877,16 +3897,14 @@ module.exports = function ( jq ) {
 						$(summaryBox).off('click');
 					});
 					$('#App').append($(summaryBox).css({'padding': '5px'}));
-					if (common.shopSensitives.includes(shopData.id)) {
-						let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
-						common.delay(500).then(async ()=>{
-							await common.doResetSensitiveWord(sensitiveWordJSON);
-						});
-					}
 					resolve(ob[0]);
         });
       } else {
 				let notFoundOrderDatbox = $('<div>ไม่พบรายการ<span id="notFoundOrderDatbox" class="sensitive-word">ออร์เดอร์</span>ของวันที่ ' + orderDate + '</div>');
+				if (common.shopSensitives.includes(shopData.id)) {
+					let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+					$(notFoundOrderDatbox).find("#notFoundOrderDatbox").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'notFoundOrderDatbox') return item}).customWord) ;
+				}
 				$(orderListBox).append($(notFoundOrderDatbox));
         resolve($(orderListBox));
       }
@@ -5086,7 +5104,7 @@ module.exports = function ( jq ) {
 		{fieldName: 'User_LastNameEN', displayName: 'นามสกุล (ภาษาอังกฤษ)', width: '12%', align: 'left', inputSize: '30', verify: false, showHeader: false},
     {fieldName: 'User_NameTH', displayName: 'ชื่อ (ภาษาไทย)', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true},
 		{fieldName: 'User_LastNameTH', displayName: 'นามสกุล (ภาษาไทย)', width: '15%', align: 'left', inputSize: '30', verify: true, showHeader: true},
-		{fieldName: 'User_Phone', displayName: 'โทรศัพท์', width: '10%', align: 'left', inputSize: '20', verify: false, showHeader: true},
+		{fieldName: 'User_Phone', displayName: 'โทรศัพท์', width: '10%', align: 'left', inputSize: '20', verify: true, showHeader: true},
 		{fieldName: 'User_Email', displayName: 'อีเมล์', width: '10%', align: 'left', inputSize: '30', verify: false, showHeader: false},
 		{fieldName: 'User_LineID', displayName: 'Line ID', width: '10%', align: 'center', inputSize: '30', verify: false, showHeader: false},
 	];
@@ -5360,6 +5378,7 @@ module.exports = function ( jq ) {
 			width: '520px',
 			onOk: async function(evt) {
 				let newUserFormObj = doVerifyUserForm();
+				console.log(newUserFormObj);
 				if (newUserFormObj) {
 					let hasValue = newUserFormObj.hasOwnProperty('User_NameTH');
 					if (hasValue){

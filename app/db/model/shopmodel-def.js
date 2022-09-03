@@ -30,18 +30,18 @@ const ShopUserDef = {
 };
 const ShopUserInfoDef = {
 	User_NameEN :  {
-		type: Sequelize.STRING(80),
-		allowNull: false
+		type: Sequelize.STRING(80)
 	},
 	User_LastNameEN :  {
+		type: Sequelize.STRING(80)
+	},
+	User_NameTH :  {
 		type: Sequelize.STRING(80),
 		allowNull: false
 	},
-	User_NameTH :  {
-		type: Sequelize.STRING(80)
-	},
 	User_LastNameTH :  {
-		type: Sequelize.STRING(80)
+		type: Sequelize.STRING(80),
+		allowNull: false    
 	},
 	User_Email :  {
 		type: Sequelize.STRING(60)
