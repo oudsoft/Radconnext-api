@@ -5,7 +5,10 @@ module.exports=[
   {"filename": "order-mng.js", "elementId": "newOrderCmd", "defaultWord": "เปิดออร์เดอร์ใหม", "customWord": "เปิดรายการแจ้งซ่อมใหม่"},
   {"filename": "order-mng.js", "elementId": "canceledOrderHiddenToggleCmd", "defaultWord": "ออร์เดอร์ที่ถูกยกเลิก", "customWord": "รายการแจ้งซ่อมที่ถูกยกเลิก"},
   {"filename": "order-mng.js", "elementId": "titleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
-  {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"}
+  {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "opennerOrderLabel", "defaultWord": "ผู้รับออร์เดอร์", "customWord": "ผู้รับแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "mergeOrderCmd", "defaultWord": "ยุบรวมออร์เดอร", "customWord": "ยุบรวมแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "cancelOrderCmd", "defaultWord": "ยกเลิกออร์เดอร", "customWord": "ยกเลิกแจ้งซ่อม"}
 ]
 
 },{}],2:[function(require,module,exports){
@@ -14,7 +17,7 @@ module.exports = function ( jq ) {
 
   const fileUploadMaxSize = 10000000;
 
-	const shopSensitives = [1, 6];
+	const shopSensitives = [6];
 
   const doCallApi = function(apiUrl, rqParams) {
     return new Promise(function(resolve, reject) {
@@ -343,11 +346,15 @@ $( document ).ready(function() {
     $('body').loading({overlay: $("#overlay"), stoppable: true});
 
     let userdata = JSON.parse(localStorage.getItem('userdata'));
-    //console.log(userdata);
-    if (userdata.usertypeId == 1) {
-      doShowShopItems();
+    console.log(userdata);
+    if ((!userdata) || (userdata == null)) {
+      common.doUserLogout();
     } else {
-      doShowShopMng(userdata.shopId);
+      if (userdata.usertypeId == 1) {
+        doShowShopItems();
+      } else {
+        doShowShopMng(userdata.shopId);
+      }
     }
 	};
 
@@ -368,6 +375,14 @@ const doShowShopMng = async function(shopId) {
   let editShopCallback = shopitem.doOpenEditShopForm;
   let uploadLogCallback = shopitem.doStartUploadPicture;
   shopitem.doOpenManageShop(shopData, uploadLogCallback, editShopCallback);
+  if (common.shopSensitives.includes(shopId)) {
+    let sensitiveWordJSON = require('../../../../api/shop/lib/sensitive-word.json');
+    localStorage.setItem('sensitiveWordJSON', JSON.stringify(sensitiveWordJSON))
+    sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+    common.delay(500).then(async ()=>{
+      await common.doResetSensitiveWord(sensitiveWordJSON);
+    });
+  }
 }
 
 const doTestCreateInvoice = async function(){
@@ -384,7 +399,7 @@ module.exports = {
   doShowShopMng,
 }
 
-},{"../../home/mod/common-lib.js":2,"./mod/shop-item-mng.js":16,"jquery":20}],5:[function(require,module,exports){
+},{"../../../../api/shop/lib/sensitive-word.json":1,"../../home/mod/common-lib.js":2,"./mod/shop-item-mng.js":16,"jquery":20}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3719,13 +3734,13 @@ module.exports = function ( jq ) {
             let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
             let orderBox = $('<div></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'float': 'left', 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
             $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
-            $(orderBox).append($('<div><b>ผู้รับออร์เดอร์ :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b><span id ="opennerOrderLabel" class="sensitive-word">ผู้รับออร์เดอร์</span> :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
 						if (orders[i].Status == 1) {
 							$(orderBox).css({'background-color': 'yellow'});
 							let mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
-							$(mergeOrderCmdBox).append($('<span>ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(mergeOrderCmdBox).append($('<span id ="mergeOrderCmd" class="sensitive-word">ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(mergeOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
 								mergeorderdlg.doMergeOrder(orders, i, async (newOrders, destIndex)=>{
@@ -3752,7 +3767,7 @@ module.exports = function ( jq ) {
 							});
 							$(orderBox).append($(mergeOrderCmdBox));
 							let cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
-							$(cancelOrderCmdBox).append($('<span>ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(cancelOrderCmdBox).append($('<span id ="cancelOrderCmd" class="sensitive-word">ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
 							$(cancelOrderCmdBox).on('click', async (evt)=>{
 								evt.stopPropagation();
 								let params = {data: {Status: 0, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[i].id};
@@ -4279,6 +4294,14 @@ module.exports = function ( jq ) {
 
 	const doOpenManageShop = function(shopData, uploadLogoCallback, editShopCallback){
 		shopmng.doShowShopMhg(shopData, uploadLogoCallback, editShopCallback);
+		if (common.shopSensitives.includes(shopData.id)) {
+	    let sensitiveWordJSON = require('../../../../../api/shop/lib/sensitive-word.json');
+	    localStorage.setItem('sensitiveWordJSON', JSON.stringify(sensitiveWordJSON))
+	    sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+	    common.delay(500).then(async ()=>{
+	      await common.doResetSensitiveWord(sensitiveWordJSON);
+	    });
+	  }
 	}
 
 	const doDeleteShop = function(shopId){
@@ -4318,7 +4341,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2,"./shop-mng.js":17}],17:[function(require,module,exports){
+},{"../../../../../api/shop/lib/sensitive-word.json":1,"../../../home/mod/common-lib.js":2,"./shop-mng.js":17}],17:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4465,7 +4488,6 @@ module.exports = function ( jq ) {
   }
 
   const doShowShopMhg = function(shopData, uploadLogCallback, editShopCallback){
-		doSaveSensitiveWord();
     let titlePage = doCreateTitlePage(shopData, uploadLogCallback, editShopCallback);
     $('#App').empty().append($(titlePage));
     let shopCmdControl = doCreateContolShopCmds(shopData);
@@ -4499,13 +4521,6 @@ module.exports = function ( jq ) {
   const doOrderMngClickCallBack = async function(evt, shopData){
 		let workingAreaBox = $('#WorkingAreaBox');
 		await order.doShowOrderList(shopData, workingAreaBox);
-
-		if (common.shopSensitives.includes(shopData.id)) {
-			let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));			
-			common.delay(500).then(async ()=>{
-				await common.doResetSensitiveWord(sensitiveWordJSON);
-			});
-		}
   }
 
 	const doTemplateMngClickCallBack = async function(evt, shopData){
@@ -4513,18 +4528,12 @@ module.exports = function ( jq ) {
 		await template.doShowTemplateDesign(shopData, workingAreaBox)
 	}
 
-	const doSaveSensitiveWord = function(){
-		const sensitiveWordJSON = require('../../../../../api/shop/lib/sensitive-word.json');
-		localStorage.setItem('sensitiveWordJSON', JSON.stringify(sensitiveWordJSON))
-	}
-
   return {
-    doShowShopMhg,
-		doSaveSensitiveWord
+    doShowShopMhg
 	}
 }
 
-},{"../../../../../api/shop/lib/sensitive-word.json":1,"../../../home/mod/common-lib.js":2,"../main.js":4,"./customer-mng.js":8,"./menugroup-mng.js":11,"./menuitem-mng.js":12,"./order-mng.js":15,"./template-design.js":18,"./user-mng.js":19}],18:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"../main.js":4,"./customer-mng.js":8,"./menugroup-mng.js":11,"./menuitem-mng.js":12,"./order-mng.js":15,"./template-design.js":18,"./user-mng.js":19}],18:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 

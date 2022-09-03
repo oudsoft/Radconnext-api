@@ -4,5 +4,8 @@
   {"filename": "order-mng.js", "elementId": "newOrderCmd", "defaultWord": "เปิดออร์เดอร์ใหม", "customWord": "เปิดรายการแจ้งซ่อมใหม่"},
   {"filename": "order-mng.js", "elementId": "canceledOrderHiddenToggleCmd", "defaultWord": "ออร์เดอร์ที่ถูกยกเลิก", "customWord": "รายการแจ้งซ่อมที่ถูกยกเลิก"},
   {"filename": "order-mng.js", "elementId": "titleOrderForm", "defaultWord": "ออร์เดอร์", "customWord": "แจ้งซ่อม"},
-  {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"}
+  {"filename": "order-mng.js", "elementId": "notFoundOrderDatbox", "defaultWord": "ออร์เดอร์", "customWord": "รายการแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "opennerOrderLabel", "defaultWord": "ผู้รับออร์เดอร์", "customWord": "ผู้รับแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "mergeOrderCmd", "defaultWord": "ยุบรวมออร์เดอร", "customWord": "ยุบรวมแจ้งซ่อม"},
+  {"filename": "order-mng.js", "elementId": "cancelOrderCmd", "defaultWord": "ยกเลิกออร์เดอร", "customWord": "ยกเลิกแจ้งซ่อม"}
 ]
