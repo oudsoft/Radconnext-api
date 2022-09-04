@@ -504,6 +504,8 @@ const doCreateReport = function(orderId, docType, shopId){
 			} else {
 	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			}
+			let advertElem = doCreateAdvertElelment('/shop/img/usr/doubleclick-05.png', '**', '**', '400', '**');
+			reportElements.push(advertElem);
 
 			let doc = {link: docReport.reportPdfLinkPath, pagecount: docReport.reportPages, qrLink: docReport.qrLink, pngLink: docReport.reportPNGLinkPath};
 			if (qr) {
@@ -539,6 +541,24 @@ const doCreatePPQRElelment = function(qrUrl, top, left, width, height){
 		refresh: ""
 	};
 	return qrElem;
+}
+
+const doCreateAdvertElelment = function(adImgUrl, top, left, width, height){
+	let advertElem = {
+		elementType: "image",
+		type: "dynamic",
+		x: left,
+		y: top,
+		width: width,
+		height: height,
+		id: "image-element-Advert",
+		url: adImgUrl,
+		elementselect: "",
+		elementdrop: "",
+		elementresizestop: "",
+		refresh: ""
+	};
+	return advertElem;
 }
 
 module.exports = (dbconn, monitor) => {

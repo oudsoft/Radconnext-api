@@ -273,14 +273,21 @@ function doMapContent(elements, variable, paperSize){
         return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x == '*') && (item.y == '*'))
       });
       if (imageDynamicIndex >= 0) {
-        doMapImageAtBottomPage(successElements[imageDynamicIndex], maxTop, paperSize)
+        doMapImageAtLeftBottomPage(successElements[imageDynamicIndex], maxTop, paperSize)
+      }
+      imageDynamicIndex = await successElements.findIndex((item)=>{
+        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x == '**') && (item.y == '**'))
+      });
+      if (imageDynamicIndex >= 0) {
+        //element.id === 'image-element-Advert'
+        doMapImageAtRightBottomPage(successElements[imageDynamicIndex], maxTop, paperSize, 400);
       }
       resolve(successElements);
     });
   });
 }
 
-function doMapImageAtBottomPage(element, maxTop, paperSize) {
+function doMapImageAtLeftBottomPage(element, maxTop, paperSize) {
   let w = 240;
   let h = 267;
   let x = 0;
@@ -291,6 +298,25 @@ function doMapImageAtBottomPage(element, maxTop, paperSize) {
   } else if (paperSize == 2) {
     x = (SlipWidth/2) - (w/2);
     y = maxTop;
+  }
+  element.x = x;
+  element.y = y;
+  element.width = w;
+  element.height = h;
+  return element;
+}
+
+function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth) {
+  let w = imageWidth;
+  let h = 123;
+  let x = 0;
+  let y = 0;
+  if (paperSize == 1) {
+    x = 10;
+    y = (A4Height - h) + 240;
+  } else if (paperSize == 2) {
+    x = (SlipWidth/2) - (w/2);
+    y = top + 20;
   }
   element.x = x;
   element.y = y;
@@ -369,7 +395,12 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
       newImage.src = elem.url;
       newImage.setAttribute("width", Number(elem.width)*newRatio);
       $(element).append(newImage);
-      $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": "auto"});
+      $(element).css({"width": Number(elem.width)*newRatio + "px", "height": "auto"});
+      if (element.id === 'image-element-Advert') {
+        $(element).css({"right": Number(elem.x)*newRatio + "px" });
+      } else {
+        $(element).css({"left": Number(elem.x)*newRatio + "px"});
+      }
       if (Number(elem.y) < (Number(rsDimension.top))) {
         newTop = Number(elem.y)*newRatio;
         $(element).css({"top": newTop + "px"});
