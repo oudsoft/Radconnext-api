@@ -358,7 +358,7 @@ $( document ).ready(function() {
 	};
 
 	initPage();
-  doTestCreateInvoice();
+  //doTestCreateInvoice();
 });
 
 const doShowShopItems = function(){
