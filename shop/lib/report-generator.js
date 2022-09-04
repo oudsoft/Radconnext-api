@@ -270,13 +270,13 @@ function doMapContent(elements, variable, paperSize){
     Promise.all([promiseList]).then(async (ob)=> {
       successElements = ob[0];
       let imageDynamicIndex = await successElements.findIndex((item)=>{
-        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x == '*') && (item.y == '*'))
+        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x === '*') && (item.y === '*'))
       });
       if (imageDynamicIndex >= 0) {
         doMapImageAtLeftBottomPage(successElements[imageDynamicIndex], maxTop, paperSize)
       }
       imageDynamicIndex = await successElements.findIndex((item)=>{
-        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x == '**') && (item.y == '**'))
+        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x === '**') && (item.y === '**'))
       });
       if (imageDynamicIndex >= 0) {
         //element.id === 'image-element-Advert'
@@ -313,7 +313,7 @@ function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth) {
   let y = 0;
   if (paperSize == 1) {
     x = 10;
-    y = (A4Height - h) + 240;
+    y = (A4Height - h) + 90;
   } else if (paperSize == 2) {
     x = (SlipWidth/2) - (w/2);
     y = top + 20;
@@ -396,7 +396,7 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
       newImage.setAttribute("width", Number(elem.width)*newRatio);
       $(element).append(newImage);
       $(element).css({"width": Number(elem.width)*newRatio + "px", "height": "auto"});
-      if (element.id === 'image-element-Advert') {
+      if (elem.id === 'image-element-Advert') {
         $(element).css({"right": Number(elem.x)*newRatio + "px" });
       } else {
         $(element).css({"left": Number(elem.x)*newRatio + "px"});
