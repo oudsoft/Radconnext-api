@@ -4053,7 +4053,7 @@ function doLoadMainPage(){
           $(".mainfull").empty().append($(opencasePage));
           common.doScrollTopPage();
           util.doResetPingCounter();
-          $.notify('เปิดเคส - Success', 'success');
+          $.notify('เปิดเคส สำเร็จ', 'success');
           //$('.jqte_editor').css(common.sizeA4Style);
           //console.log($('.jqte_editor').css('font-family'));
         }).catch(async (err)=>{
@@ -4067,7 +4067,7 @@ function doLoadMainPage(){
                 $(".mainfull").empty().append($(opencasePage));
                 common.doScrollTopPage();
                 util.doResetPingCounter();
-                $.notify('เปิดเคส - Success', 'success');
+                $.notify('เปิดเคส สำเร็จ', 'success');
               });
             } else {
               common.doUserLogout(wsm);
@@ -7034,7 +7034,7 @@ module.exports = function ( jq ) {
 					if (!caseResponseId) {
 						$.notify("เกิดความผิดพลาด Case Response API", "error");
 					}
-					$.notify("บันทึก Draft - Success", "success");
+					$.notify("บันทึก Draft สำเร็จ", "success");
 					$('body').loading('stop');
 				} else {
 					$.notify("ไม่สามารถบันทึก Draft - Error โปรดติดต่อผู้ดูแลระบบ", "error");
