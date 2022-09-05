@@ -4355,7 +4355,7 @@ function onUpdateUserProfileTrigger(evt){
 function onNewReportLocalTrigger(evt){
   let triggerData = evt.detail.data;
   console.log(triggerData);
-  $.notify('ส่งผลอ่านของ ' + triggerData.patientFullName + 'เข้า PACS รพ. สำเร็จ', 'success');
+  $.notify('ส่งผลอ่านของ ' + triggerData.patientFullName + ' เข้า PACS รพ. สำเร็จ', 'success');
 }
 
 function doSetupAutoReadyAfterLogin(){
