@@ -554,10 +554,11 @@ const onSuccessCaseEvent = function(caseId){
     let userProfile = await common.doLoadUserProfile(userId);
 
     let refreshSucCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
-    let radioNotify = {type: 'notify', message: 'Send Case Result - success.'};
     await socket.sendMessage(refreshSucCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Send Case Result - success.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     let radioNameTH = radioProfile.User_NameTH;
     let radioLastNameTH = radioProfile.User_LastNameTH;
     let studyDesc = undefined;

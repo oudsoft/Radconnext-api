@@ -266,8 +266,12 @@ function RadconWebSocketServer (arg, db, log) {
 						let returnMsg = {type: 'echoreturn', message: data.myconnection};
 						$this.sendMessage(returnMsg, returnSender);
 					break;
-					case "clientupdate":
 
+					case "clientupdate":
+					break;
+					case "newreportlocalresult":
+						let msgCasemisstakeSend = {type: 'newreportlocalresult', result: data.result, from: data.from, hospitalId: data.hospitalId, patientFullName: data.patientFullName};
+						let sendCasemisstakeResult = await $this.sendMessage(msgCasemisstakeSend, data.sendto);
 					break;
 					case "casemisstake":
 						let sendtoCasemisstake = data.sendto;

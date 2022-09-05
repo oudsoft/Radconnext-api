@@ -3918,6 +3918,7 @@ function doLoadMainPage(){
   document.addEventListener("unlockscreen", onUnLockScreenTrigger);
   document.addEventListener("autologout", onAutoLogoutTrigger);
   document.addEventListener("updateuserprofile", onUpdateUserProfileTrigger);
+  document.addEventListener("newreportlocalresult", onNewReportLocalTrigger);
 
   let userdata = JSON.parse(doGetUserData());
 
@@ -4349,6 +4350,12 @@ function onUpdateUserProfileTrigger(evt){
     readyLogic = false;
   }
   $('#app').find('#ReadyState').find('input[type="checkbox"]').prop('checked', readyLogic);
+}
+
+function onNewReportLocalTrigger(evt){
+  let triggerData = evt.detail.data;
+  console.log(triggerData);
+  $.notify('ส่งผลอ่านเข้า PACS รพ. สำเร็จ', 'success');
 }
 
 function doSetupAutoReadyAfterLogin(){
@@ -6819,7 +6826,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doCreateResultManagementDialog = function(saveResponseData){
-		let report = {reportPdfLinkPath: saveResponseData.reportPdfLinkPath, reportPages: saveResponseData.reportPages};
+		let report = {reportPdfLinkPath: saveResponseData.reportPdfLinkPath, reportPages: saveResponseData.reportPages, patientFullName: saveResponseData.patientFullName};
 		saveResponseData.report = report;
 		let saveTypeOptionBox = $('<table width="100%" border="0" cellspacing="0" cellpadding="2"></table>');
 
@@ -6942,7 +6949,7 @@ module.exports = function ( jq ) {
 				responseId: caseResponseId,
 				hospitalId: caseHospitalId,
 				reporttype: reportType,
-				report: saveResponseData.report
+				report: saveResponseData.report,
 			};
 
 			let saveResponseRes = await doCallSubmitResult(params);
@@ -6950,7 +6957,7 @@ module.exports = function ( jq ) {
 			console.log(saveResponseRes);
 
 			if ((saveResponseRes.status.code == 200) || (saveResponseRes.status.code == 203)){
-				$.notify("ส่งผลอ่าน - Success", "success");
+				$.notify("ส่งผลอ่านเข้า cloud สำเร็จ", "success");
 				$('body').loading('stop');
 				$('#quickreply').empty();
 				$('#quickreply').removeAttr('style');
@@ -10265,6 +10272,10 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalresult') {
+			let eventName = 'newreportlocalresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
 		} else if (data.type == 'wrtc') {
 			switch(data.wrtc) {
 				//when somebody wants to call us
@@ -10280,7 +10291,7 @@ module.exports = function ( jq, wsm) {
 				break;
 				case "interchange":
 					wrtcCommon.wsHandleInterchange(wsm, data.interchange);
-				break;				
+				break;
 				case "leave":
 					wrtcCommon.wsHandleLeave(wsm, data.leave);
 				break;

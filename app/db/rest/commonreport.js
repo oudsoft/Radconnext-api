@@ -582,24 +582,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let dicom = undefined;
       if (lastReports[0].PDF_DicomSeriesIds) {
         if ((isEditResponse) && (lastReports.length > 0)) {
-          /*
-          let seriesIds = lastReports[0].PDF_DicomSeriesIds.items;
-
-          let deleteRes = await doDeleteResultSeries(seriesIds, hospitalId, hostname);
-
-          if (seriesIds.length > pdfPages){
-            let htmlFileName = pdfReportFileName + '.html';
-            log.info('htmlFileName=> ' + htmlFileName);
-            let newReport = await doAppendBlankPageToHtmlFile(htmlFileName, 1);
-            log.info('newReport=> ' + JSON.stringify(newReport));
-            pdfPages = newReport.reportPages;
-          }
-
-          let seriesInstanceUIDs = lastReports[0].SeriesInstanceUIDs.items;
-          let sopInstanceUIDs = lastReports[0].SOPInstanceUIDs.items;
-          dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages, seriesInstanceUIDs, sopInstanceUIDs);
-          */
-
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
           log.info('dicom last result => ' + JSON.stringify(dicom));
           await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
@@ -617,8 +599,9 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       common.removeReportTempFile(pdfReportFileName);
 
       let radioId = cases[0].Case_RadiologistId;
+      let radioProfile = await common.doLoadRadioProfile(radioId);
       let risParams = await risParamCreator(caseId, radioId);
-      let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom};
+      let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom, radioProfile: radioProfile, hospitalId: hospitalId, caseId: caseId, patientFullName: report.patientFullName};
 
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
@@ -638,6 +621,11 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           /*
           send Admin Notify
           */
+          let radioSocket = await websocket.findUserSocket(radioProfile.username);
+          if (radioSocket) {
+            let radioNotify = {type: 'notify', message: 'ส่งผลอ่านเข้า PACS รพ. ไม่สำเร็จ'};
+            radioSocket.send(JSON.stringify(radioNotify));
+          }
           let subject = 'Cuase of API not found local user owner case socket'
           let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfReportFileName, responseId);
           msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
