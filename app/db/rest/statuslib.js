@@ -433,10 +433,11 @@ const onAcceptCaseEvent = function(caseId) {
     let userProfile = await common.doLoadUserProfile(userId);
 
     let refreshAccCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
-    let radioNotify = {type: 'notify', message: 'Accept Case - success.'};
     await socket.sendMessage(refreshAccCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Accept Case - success.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     let lineCaseDetaileMsg = uti.fmtStr(common.msgAccCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
 
     let hospitalNotify = {type: 'notify', message: lineCaseDetaileMsg};
@@ -479,10 +480,11 @@ const onRejectCaseEvent = function(caseId) {
     let userProfile = await common.doLoadUserProfile(userId);
 
     let refreshRejCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
-    let radioNotify = {type: 'notify', message: 'Reject Case - success.'};
     await socket.sendMessage(refreshRejCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Reject Case - success.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
 
     let hospitalNotify = {type: 'notify', message: lineCaseDetaileMsg};
