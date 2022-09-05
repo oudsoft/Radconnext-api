@@ -738,10 +738,11 @@ const onViewResultCaseEvent = function(caseId) {
 
     let refreshViewCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
 
-    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
     await socket.sendMessage(refreshViewCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Your Result Case was view by owner case.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     /*
     let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
     */
