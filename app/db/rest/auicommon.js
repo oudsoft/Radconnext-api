@@ -229,6 +229,8 @@ app.post('/radio/submitresult', (req, res) => {
           let cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
           let nowStatusId = cases[0].casestatusId;
 
+          res.json({status: {code: 200}, submit: 'done',});
+          
           let submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
 
           let responseType = 'normal';
@@ -246,7 +248,7 @@ app.post('/radio/submitresult', (req, res) => {
           if (nowStatusId == 14){
             db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
           }
-          res.json(submitRes);
+          //res.json(submitRes);
         } catch(error) {
           log.info('==Radio Submit Result with Error==');
           log.error(error);

@@ -655,10 +655,11 @@ const onOpenCaseEvent = function(caseId){
 
     let refreshOpenCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
 
-    let radioNotify = {type: 'notify', message: 'Open Case - success.'};
     await socket.sendMessage(refreshOpenCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Open Case - success.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     /*
     let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
     */
@@ -689,10 +690,11 @@ const onDraftResultCaseEvent = function(caseId){
 
     let refreshDraftCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
 
-    let radioNotify = {type: 'notify', message: 'Save Draft - success.'};
     await socket.sendMessage(refreshDraftCase, radioProfile.username);
+    /*
+    let radioNotify = {type: 'notify', message: 'Save Draft - success.'};
     await socket.sendMessage(radioNotify, radioProfile.username);
-
+    */
     /*
     let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
     */
