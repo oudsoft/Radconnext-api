@@ -270,8 +270,8 @@ function RadconWebSocketServer (arg, db, log) {
 					case "clientupdate":
 					break;
 					case "newreportlocalresult":
-						let msgCasemisstakeSend = {type: 'newreportlocalresult', result: data.result, from: data.from, hospitalId: data.hospitalId, patientFullName: data.patientFullName};
-						let sendCasemisstakeResult = await $this.sendMessage(msgCasemisstakeSend, data.sendto);
+						let newreportlocalSend = {type: 'newreportlocalresult', result: data.result, from: data.from, hospitalId: data.hospitalId, patientFullName: data.patientFullName};
+						let newreportlocalResult = await $this.sendMessage(newreportlocalSend, data.sendto);
 					break;
 					case "casemisstake":
 						let sendtoCasemisstake = data.sendto;
