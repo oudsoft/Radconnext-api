@@ -5639,7 +5639,7 @@ module.exports = function ( jq ) {
 				$.notify('ปฏิเสธเคสสำเร็จ', 'success');
 				$('#NewCaseCmd').click();
 			} else {
-				alert('ปฏิเสธเคสไม่สำเร็จในขณะนี้');
+				$.notify('ปฏิเสธเคสไม่สำเร็จในขณะนี้', 'error');
 			}
     });
     $(caseCmdBox).append($(notAacceptCmd))
