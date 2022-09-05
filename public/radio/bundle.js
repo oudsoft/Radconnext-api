@@ -4356,7 +4356,6 @@ function onNewReportLocalTrigger(evt){
   let triggerData = evt.detail.data;
   console.log(triggerData);
   $.notify('ส่งผลอ่านของ ' + triggerData.patientFullName + ' เข้า PACS รพ. สำเร็จ', 'success');
-  //$('#AcceptedCaseCmd').click();
 }
 
 function doSetupAutoReadyAfterLogin(){
@@ -4527,13 +4526,13 @@ module.exports = function ( jq ) {
 		      eventData.statusId = newCaseStatus;
 		      $(openCmd).trigger('opencase', [eventData]);
 				} else {
-					alert('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้');
+					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
 				}
 			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9) || (currentCaseRes.current == 14)){
 				eventData.statusId = caseItem.casestatusId;
 	      $(openCmd).trigger('opencase', [eventData]);
 			} else {
-				alert ('ขออภัย เคสไม่อยู่ในสถานะที่จะพิมพ์ผลอ่านแล้ว');
+				$.notify('ขออภัย เคสไม่อยู่ในสถานะที่จะพิมพ์ผลอ่านแล้ว', 'error');
 				//refresh page
 			}
     });
