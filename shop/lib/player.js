@@ -715,6 +715,7 @@
       $(fileChooserCmd).attr('src', settings.iconRootPath+ '/images/open-file-icon.png');
       $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px'});
       $(fileChooserCmd).on('click', (evt)=>{
+        selectedFiles = [];
         doOpenFileChooser(evt);
       });
 

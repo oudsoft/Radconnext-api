@@ -97,6 +97,12 @@ function doReplaceDynamicContent(variable, field) {
     case 'print_datetime':
       return variable.print_datetime;
     break;
+    case 'print_date':
+      return variable.print_date;
+    break;
+    case 'print_time':
+      return variable.print_time;
+    break;
     case 'total':
       return doFormatNumber(variable.total);
     break;
@@ -411,15 +417,17 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
       }
     break;
     case "table":
-      newTop = doRenderTable(wrapper, elem.rows, elem.x, elem.y, newRatio);
+      newTop = doRenderTable(wrapper, elem.rows, elem.x, elem.y, elem.border, newRatio);
     break;
   }
   $(element).appendTo($(wrapper));
   return newTop;
 }
 
-const doRenderTable = function(wrapper, tableRows, left, top, ratio){
-  let table = $('<table cellpadding="2" cellspacing="0" width="100%" border="1"></tble>');
+const doRenderTable = function(wrapper, tableRows, left, top, border, ratio){
+  console.log(border);
+  let table = $('<table cellpadding="2" cellspacing="0" width="100%"></tble>');
+  $(table).attr('border', border);
   let fullW = 0;
   tableRows[0].fields.forEach((field, i) => {
     fullW += Number(field.width);
@@ -428,7 +436,7 @@ const doRenderTable = function(wrapper, tableRows, left, top, ratio){
   for (let i=0; i < tableRows.length; i++){
     let row = $('<tr></tr>');
     if (tableRows[i].backgroundColor) {
-      $(row).css({'background-color': tableRows[i].backgroundColor})
+      $(row).css({'background-color': tableRows[i].backgroundColor, 'height': tableRows[i].height + 'px'})
     }
     for (let j=0; j < tableRows[i].fields.length; j++) {
       let cell = $('<td></td>');
@@ -446,6 +454,7 @@ const doRenderTable = function(wrapper, tableRows, left, top, ratio){
         }
       }
       $(cell).attr({'align': tableRows[i].fields[j].fontalign});
+      $(cell).attr({'valign': tableRows[i].fields[j].valign});
       //$(cell).css({'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio) + 'px'});
       $(cell).css({'width': (Number(tableRows[i].fields[j].width / fullW) * 100) + '%'});
       $(cell).css({'font-size': Number(tableRows[i].fields[j].fontsize)*ratio + "px", 'font-weight': tableRows[i].fields[j].fontweight, 'font-style': tableRows[i].fields[j].fontstyle});

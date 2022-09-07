@@ -131,12 +131,15 @@
       y: 0,
       width: '100%',
       height: '20',
-      border: "1px solid black;",
+      lineStyle: 'solid',
+      lineThick: 1,
+      //border: "1px solid black;",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
         $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width + "px", "height": settings.height + "px"});
+        $this.find("hr").css({"border": settings.lineThick + 'px ' + settings.lineStyle + ' black'});
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -176,7 +179,7 @@
         "top": settings.y + "px",
         "width": hrw + "px",
         "height": settings.height + "px"});
-      $(element > "hr").css({"border": settings.border});
+      $(element > "hr").css({"border": settings.lineThick + 'px ' + settings.lineStyle + ' black'});
       $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
@@ -371,12 +374,12 @@
       y: 0,
       width: '99.1%',
       height: '20',
-      //border: "1px solid black;",
+      border: "1",
       refresh: function() {
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width, "height": settings.height + "px"});
+        $this.css({"left": settings.x + "px", "top": settings.y + "px", "width": settings.width, "height": settings.height + "px", "border": settings.border + "px solid black"});
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -409,7 +412,7 @@
         "top": settings.y + "px",
         "width": settings.width,
         "height": settings.height + "px",
-        "border": settings.border
+        "border": settings.border + "px solid black"
       });
       $(element).attr("tabindex", 1);
       $(element).draggable({
@@ -492,7 +495,7 @@
         let elementData = {options: settings};
         $this.resizable('destroy');
         $this.draggable('destroy');
-        $this.css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor});
+        $this.css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor, "height": settings.height  + "px"}); 
         $this.resizable({
           containment: "parent",
           stop: function(evt) {
@@ -520,7 +523,7 @@
       $(element).addClass("reportElement");
       $(element).addClass("trElement");
       $(element).css({'position': 'relative'});
-      $(element).css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor, "width": settings.width, "height": settings.height, "float": "left", "min-height": "30px"});
+      $(element).css({"left": settings.x + "px", "top": settings.y + "px", "background-color": settings.backgroundColor, "width": settings.width + "px", "height": settings.height  + "px", "float": "left", "min-height": "30px"});
       $(element).attr("tabindex", 1);
       $(element).draggable({
         containment: "parent",
@@ -604,6 +607,7 @@
       fontweight: 'normal',
       fontstyle: 'normal',
       fontalign: 'left',
+      vlign: 'middle',
       cellData: 'ช่องข้อมูล',
       refresh: function() {
         let elementData = {options: settings};
@@ -614,6 +618,7 @@
         $this.css({"font-weight": settings.fontweight});
         $this.css({"font-style": settings.fontstyle});
         $this.css({"text-align": settings.fontalign});
+        $this.css({"vertical-align": settings.valign});
         $this.text(settings.cellData);
         $this.resizable({
           containment: "parent",
@@ -643,6 +648,11 @@
       $(element).addClass("tdElement");
       $(element).css({'position': 'relative', 'display': 'inline-block'});
       $(element).css({"left": settings.x + "px", "top": settings.y + "px", 'width': settings.width + 'px', 'height': settings.height + 'px'});
+      $this.css({"font-size": settings.fontsize + "px"});
+      $this.css({"font-weight": settings.fontweight});
+      $this.css({"font-style": settings.fontstyle});
+      $this.css({"text-align": settings.fontalign});
+      $this.css({"vertical-align": settings.valign});
       $(element).text(settings.cellData);
       $(element).attr("tabindex", 1);
       $(element).draggable({

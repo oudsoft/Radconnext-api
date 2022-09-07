@@ -504,7 +504,7 @@ const doCreateReport = function(orderId, docType, shopId){
 				reportElements.push(advertElem);
 				docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			} else {
-				reportElements.push(advertElem);				
+				reportElements.push(advertElem);
 	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			}
 
