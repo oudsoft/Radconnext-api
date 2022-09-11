@@ -124,6 +124,7 @@ app.post('/update', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         let updateItem = req.body.data;
+        updateItem.menugroupId = req.body.data.menugroupId;
         await db.menuitems.update(updateItem, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){

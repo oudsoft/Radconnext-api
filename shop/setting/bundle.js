@@ -2784,7 +2784,7 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doCreateNewMenuitemForm = function(menuitemData){
+  const doCreateNewMenuitemForm = function(menuitemData, groupId){
     let menuitemFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
 		for (let i=0; i < menuitemTableFields.length; i++) {
       if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
@@ -2814,6 +2814,12 @@ module.exports = function ( jq ) {
 		$(fieldRow).append($(inputField));
 		$(menuitemFormTable).append($(fieldRow));
 
+		if (groupId) {
+			$(inputValue).val(groupId);
+		} else {
+			$(inputValue).val(menuitemData);
+		}
+
 		return $(menuitemFormTable);
   }
 
@@ -2839,12 +2845,12 @@ module.exports = function ( jq ) {
 				}
 			}
 		}
-    menuitemDataForm.groupId = $('#GroupId').val();
+    menuitemDataForm.menugroupId = $('#GroupId').val();
 		return menuitemDataForm;
   }
 
   const doOpenNewMenuitemForm = function(shopData, workAreaBox, groupId){
-    let newMenuitemForm = doCreateNewMenuitemForm();
+    let newMenuitemForm = doCreateNewMenuitemForm(groupId);
     let radNewMenuitemFormBox = $('<div></div>');
     $(radNewMenuitemFormBox).append($(newMenuitemForm));
     const newmenuitemformoption = {
@@ -2882,7 +2888,7 @@ module.exports = function ( jq ) {
   }
 
   const doOpenEditMenuitemForm = function(shopData, workAreaBox, menuitemData, groupId){
-    let editMenuitemForm = doCreateNewMenuitemForm(menuitemData);
+    let editMenuitemForm = doCreateNewMenuitemForm(menuitemData, groupId);
 		let radEditMenuitemFormBox = $('<div></div>');
 		$(radEditMenuitemFormBox).append($(editMenuitemForm));
 		const editmenuitemformoption = {
