@@ -359,9 +359,9 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
 
     console.log('rsDimension=>' + JSON.stringify(variable.rsDimension));
     if (paperSize == 2) {
-      maxTop = maxTop + 50;
-      $(wrapper).find('#image-element-Advert').css({'top': (maxTop)+'px'});
       maxTop = maxTop + 80;
+      $(wrapper).find('#image-element-Advert').css({'top': (maxTop)+'px'});
+      maxTop = maxTop + 100;
       $(wrapper).find('#image-element-PPQR').css({'top': (maxTop)+'px'});
       maxTop = maxTop + 300;
       $(wrapper).css({'heigth' : (maxTop)+'px'})
