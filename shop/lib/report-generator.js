@@ -118,6 +118,15 @@ function doReplaceDynamicContent(variable, field) {
     case 'baht_word':
       return variable.baht_word;
     break;
+    case 'paytype':
+      return variable.paytype;
+    break;
+    case 'payamount':
+      return doFormatNumber(variable.payamount);
+    break;
+    case 'cashchange':
+      return doFormatNumber(variable.cashchange);
+    break;
   }
 }
 
@@ -286,7 +295,7 @@ function doMapContent(elements, variable, paperSize){
       });
       if (imageDynamicIndex >= 0) {
         //element.id === 'image-element-Advert'
-        doMapImageAtRightBottomPage(successElements[imageDynamicIndex], maxTop, paperSize, 400);
+        doMapImageAtRightBottomPage(successElements[imageDynamicIndex], maxTop, paperSize, 400, variable.rsDimension);
       }
       resolve(successElements);
     });
@@ -312,17 +321,19 @@ function doMapImageAtLeftBottomPage(element, maxTop, paperSize) {
   return element;
 }
 
-function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth) {
-  let w = imageWidth;
+function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth, rsDimension) {
+  let w = 0;
   let h = 123;
   let x = 0;
   let y = 0;
   if (paperSize == 1) {
+    w = imageWidth;
     x = 10;
     y = (A4Height - h) + 90;
   } else if (paperSize == 2) {
+    w = imageWidth * 0.5;
     x = (SlipWidth/2) - (w/2);
-    y = top + 20;
+    y = (Number(rsDimension.top) + Number(rsDimension.height.template)) + 120;
   }
   element.x = x;
   element.y = y;
@@ -336,14 +347,25 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
   let formatedContents = elements;
   doMapContent(elements, variable, paperSize).then(async (formatedContents)=>{
     let maxTop = 0;
+    let lastElement = undefined;
     await formatedContents.forEach((item, i) => {
-      let newTop = doCreateElement(wrapper, item.elementType, item, paperSize, variable.rsDimension);
+      let newElement = doCreateElement(wrapper, item.elementType, item, paperSize, variable.rsDimension);
+      let newTop = parseFloat($(newElement).css('top'));
       if (newTop > maxTop) {
         maxTop = newTop;
+        lastElement = $(newElement);
       }
     });
 
     console.log('rsDimension=>' + JSON.stringify(variable.rsDimension));
+    if (paperSize == 2) {
+      maxTop = maxTop + 30;
+      $(wrapper).find('#image-element-Advert').css({'top': (maxTop)+'px'});
+      maxTop = maxTop + 70;
+      $(wrapper).find('#image-element-PPQR').css({'top': (maxTop)+'px'});
+      maxTop = maxTop + 300;
+      $(wrapper).css({'heigth' : (maxTop)+'px'})
+    }
     console.log('maxTop=>' + maxTop);
     cb($(wrapper).html(), maxTop);
   });
@@ -354,19 +376,14 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
   rsDimension = {top: tableTop, height: {real: totalHeight, template: tableHeight}}
   */
   const newRatio = 1.0;
-  /*
-  let wrapperWidth = undefined;
-  if (paperSize == 1){
-    wrapperWidth = A4Width;
-  } else if (paperSize == 2){
-    wrapperWidth = SlipWidth;
-  }
-  */
   let rsH = Number(rsDimension.top) + Number(rsDimension.height.template);
   let element, beforeTop, newTop;
   switch (elemType) {
     case "text":
       element = $("<div></div>").css({'position': 'absolute'});
+      if (elem.id) {
+        $(element).attr('id', elem.id);
+      }
       $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
       if (Number(elem.y) < (Number(rsDimension.top))) {
         newTop = Number(elem.y)*newRatio;
@@ -384,6 +401,9 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
     break;
     case "hr":
       element = $("<div><hr/></div>").css({'position': 'absolute'});
+      if (elem.id) {
+        $(element).attr('id', elem.id);
+      }
       $(element).css({"left": Number(elem.x)*newRatio + "px", "width": Number(elem.width)*newRatio + "px", "height": Number(elem.height)*newRatio + "px"});
       if (Number(elem.y) < (Number(rsDimension.top))) {
         newTop = Number(elem.y)*newRatio;
@@ -397,6 +417,9 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
     break;
     case "image":
       element = $("<div></div>").css({'position': 'absolute'});
+      if (elem.id) {
+        $(element).attr('id', elem.id);
+      }
       let newImage = new Image();
       newImage.src = elem.url;
       newImage.setAttribute("width", Number(elem.width)*newRatio);
@@ -417,15 +440,17 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
       }
     break;
     case "table":
-      newTop = doRenderTable(wrapper, elem.rows, elem.x, elem.y, elem.border, newRatio);
+      element = doRenderTable(wrapper, elem.rows, elem.x, elem.y, elem.border, newRatio);
+      if (elem.id) {
+        $(element).attr('id', elem.id);
+      }
     break;
   }
   $(element).appendTo($(wrapper));
-  return newTop;
+  return $(element);
 }
 
 const doRenderTable = function(wrapper, tableRows, left, top, border, ratio){
-  console.log(border);
   let table = $('<table cellpadding="2" cellspacing="0" width="100%"></tble>');
   $(table).attr('border', border);
   let fullW = 0;
@@ -465,7 +490,7 @@ const doRenderTable = function(wrapper, tableRows, left, top, border, ratio){
   }
   let topPos = Number(top)*ratio;
   $(wrapper).append($(table).css({'position': 'absolute', 'left': Number(left)*ratio+'px', 'top': topPos+'px'}));
-  return topPos;
+  return $(table);
 }
 
 $( document ).ready(function() {

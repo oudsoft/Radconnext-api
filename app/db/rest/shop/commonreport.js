@@ -247,12 +247,13 @@ const doLoadVariable = function(docType, orderId, docNo){
         docs = await db.taxinvoices.findAll({include: docInclude, where: {orderId: orderId}});
       }
       let payments = await db.payments.findAll({include: paymentInclude, where: {orderId: orderId}});
+
       let total = 0;
       await orders[0].Items.forEach((item, i) => {
         total += Number(item.Price) * Number(item.Qty);
       });
 
-      let grandtotal = (total - Number(docs[0].Discount)) + Number(docs[0].Vat)
+      let grandtotal = (total - Number(docs[0].Discount)) + Number(docs[0].Vat);
       let rs = await doFindGooditemTableHight(orders[0].shopId, docType, orders[0].Items);
 
       const variable = {
@@ -403,7 +404,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 					} else if (paperSize = 2) {
 						let paperWidth = 80;
 						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
-						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s -T 10 -B 10 -L 10 -R 10 http://localhost:8088/shop%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
+						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s -T 10 -B 10 -L 4 -R 4 http://localhost:8088/shop%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
 					}
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					runcommand(creatReportCommand).then(async (cmdout) => {
@@ -414,7 +415,9 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 						let pngFileName = fileNames[0] + '.png';
 						let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
 						//let createReportPNGCommnand = fmtStr('convert -density 288 %s -resize 25% %s', reportPdfFilePath, reportPNGFilePath);
-						let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+						//let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+						let createReportPNGCommnand = fmtStr('convert %s %s', reportPdfFilePath, reportPNGFilePath);
+						//log.info('createReportPNGCommnand >>', createReportPNGCommnand);
 						await runcommand(createReportPNGCommnand);
 						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath;
 						let reportPNGLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pngFileName;

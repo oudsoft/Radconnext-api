@@ -102,6 +102,8 @@ app.post('/add', async (req, res) => {
       if (ur.length > 0){
         let newPayment = req.body.data;
         let adPayment = await db.payments.create(newPayment);
+        let ctlrPayment = {shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, userinfoId: req.body.userinfoId, paytypeId: newPayment.PayType};
+        await db.payments.update(ctlrPayment, { where: { id: adPayment.id } });
         res.json({Result: "OK", status: {code: 200}, Record: adPayment});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

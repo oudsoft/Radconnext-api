@@ -1,7 +1,7 @@
 /*jquery-radutil-plugin.js*/
 (function ( $ ) {
 
-	const overlayStyle = { 'position': 'fixed', 'z-index': '43', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
+	const overlayStyle = { 'position': 'fixed', 'z-index': '23', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': 'rgb(0,0,0)', 'background-color': 'rgba(0,0,0,0.4)'};
 	const contentStyle = { 'background-color': '#fefefe', 'margin': '8% auto', 'padding': '10px', 'border': '1px solid #888', /*'min-width': '420px', 'max-width': '820px', 'font-family': 'THSarabunNew', */ 'font-size': '20px', 'line-height': '22px'};
   const cmdButtonStyle = {'padding': '3px', 'cursor': 'pointer', 'border': '1px solid white', 'color': 'white', 'background-color': 'blue'};
 
