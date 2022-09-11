@@ -42,7 +42,11 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
           const menuInclude = [{model: db.menugroups, attributes: ['id', 'GroupName']}];
-          const menuitems = await db.menuitems.findAll({attributes: excludeColumn, include: menuInclude, where: {shopId: shopId}, order: orderby});
+          let whereClause = {shopId: shopId};
+          if (req.body.groupId) {
+            whereClause.menugroupId = req.body.groupId;
+          }
+          const menuitems = await db.menuitems.findAll({attributes: excludeColumn, include: menuInclude, where: whereClause, order: orderby});
           res.json({status: {code: 200}, Records: menuitems});
         } catch(error) {
           log.error(error);

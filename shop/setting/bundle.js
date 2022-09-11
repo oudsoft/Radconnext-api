@@ -2139,7 +2139,9 @@ module.exports = function ( jq ) {
           let n = item.MenuName.search(key);
           if (n >= 0) {
             return item;
-          }
+          } else if (item.Desc.search(key) >= 0) {
+						return item;
+					}
         });
         resolve(result);
       }
@@ -2598,23 +2600,43 @@ module.exports = function ( jq ) {
 		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true}
   ];
 
-  const doShowMenuitemItem = function(shopData, workAreaBox){
+  const doShowMenuitemItem = function(shopData, workAreaBox, groupId){
     return new Promise(async function(resolve, reject) {
       let menugroupRes = await common.doCallApi('/api/shop/menugroup/options/' + shopData.id, {});
       let menugroups = menugroupRes.Options;
       localStorage.setItem('menugroups', JSON.stringify(menugroups));
 
       $(workAreaBox).empty();
-      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, {});
+			let listParams = {};
+			if (groupId) {
+				listParams.groupId = groupId;
+			}
+      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, listParams);
 			let menuitemItems = menuitemRes.Records;
       let titlePageBox = $('<div style="padding: 4px;">รายการเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
       $(workAreaBox).append($(titlePageBox));
       let newMenuitemCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
       let newMenuitemCmd = $('<input type="button" value=" + New Menu " class="action-btn"/>');
       $(newMenuitemCmd).on('click', (evt)=>{
-        doOpenNewMenuitemForm(shopData, workAreaBox);
+        doOpenNewMenuitemForm(shopData, workAreaBox, groupId);
       });
-      $(newMenuitemCmdBox).append($(newMenuitemCmd))
+			let menugroupFilter = $('<select></select>');
+			$(menugroupFilter).append($('<option value="0">All</option>'));
+			menugroups.forEach((item, i) => {
+				$(menugroupFilter).append($('<option value="' +item.Value + '">' + item.DisplayText + '</option>'));
+			});
+			if (groupId) {
+				$(menugroupFilter).val(groupId);
+			}
+			$(menugroupFilter).on('change', async (evt)=>{
+				let selectGroupId = $(menugroupFilter).val();
+				if (selectGroupId != 0) {
+					await doShowMenuitemItem(shopData, workAreaBox, selectGroupId);
+				} else {
+					await doShowMenuitemItem(shopData, workAreaBox);
+				}
+			});
+      $(newMenuitemCmdBox).append($(menugroupFilter)).append($(newMenuitemCmd).css({'margin-left': '10px'}));
       $(workAreaBox).append($(newMenuitemCmdBox));
 
       let menuitemTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
@@ -2710,11 +2732,11 @@ module.exports = function ( jq ) {
 
 				let editMenuitemCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
 				$(editMenuitemCmd).on('click', (evt)=>{
-					doOpenEditMenuitemForm(shopData, workAreaBox, item);
+					doOpenEditMenuitemForm(shopData, workAreaBox, item, groupId);
 				});
 				let deleteMenuitemCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
 				$(deleteMenuitemCmd).on('click', (evt)=>{
-					doDeleteMenuitem(shopData, workAreaBox, item.id);
+					doDeleteMenuitem(shopData, workAreaBox, item.id, groupId);
 				});
 				let menuitemBtnBox = $('<div></div>').css({'text-align': 'center'}).append($(editMenuitemCmd)).append($(deleteMenuitemCmd));
 
@@ -2784,10 +2806,8 @@ module.exports = function ( jq ) {
 		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
 		let inputValue = $('<select id="GroupId"></select>');
 		let menugroups = JSON.parse(localStorage.getItem('menugroups'));
-		console.log(menugroups);
 		menugroups.forEach((item, i) => {
-			//console.log(item);
-			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
+			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'))
 		});
 		$(inputField).append($(inputValue));
 		$(fieldRow).append($(labelField));
@@ -2823,7 +2843,7 @@ module.exports = function ( jq ) {
 		return menuitemDataForm;
   }
 
-  const doOpenNewMenuitemForm = function(shopData, workAreaBox){
+  const doOpenNewMenuitemForm = function(shopData, workAreaBox, groupId){
     let newMenuitemForm = doCreateNewMenuitemForm();
     let radNewMenuitemFormBox = $('<div></div>');
     $(radNewMenuitemFormBox).append($(newMenuitemForm));
@@ -2841,7 +2861,7 @@ module.exports = function ( jq ) {
             let menuitemRes = await common.doCallApi('/api/shop/menuitem/add', params);
             if (menuitemRes.status.code == 200) {
               $.notify("เพิ่มรายการเมนูสำเร็จ", "success");
-              await doShowMenuitemItem(shopData, workAreaBox)
+              await doShowMenuitemItem(shopData, workAreaBox, groupId)
             } else if (menuitemRes.status.code == 201) {
               $.notify("ไม่สามารถเพิ่มรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
             } else {
@@ -2861,7 +2881,7 @@ module.exports = function ( jq ) {
     let newMenuitemFormBox = $('body').radalert(newmenuitemformoption);
   }
 
-  const doOpenEditMenuitemForm = function(shopData, workAreaBox, menuitemData){
+  const doOpenEditMenuitemForm = function(shopData, workAreaBox, menuitemData, groupId){
     let editMenuitemForm = doCreateNewMenuitemForm(menuitemData);
 		let radEditMenuitemFormBox = $('<div></div>');
 		$(radEditMenuitemFormBox).append($(editMenuitemForm));
@@ -2879,7 +2899,7 @@ module.exports = function ( jq ) {
 						let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
 						if (menuitemRes.status.code == 200) {
 							$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
-							await doShowMenuitemItem(shopData, workAreaBox)
+							await doShowMenuitemItem(shopData, workAreaBox, groupId)
 						} else if (menuitemRes.status.code == 201) {
 							$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 						} else {
@@ -2899,7 +2919,7 @@ module.exports = function ( jq ) {
 		let editMenuitemFormBox = $('body').radalert(editmenuitemformoption);
   }
 
-  const doDeleteMenuitem = function(shopData, workAreaBox, menuitemId){
+  const doDeleteMenuitem = function(shopData, workAreaBox, menuitemId, groupId){
     let radConfirmMsg = $('<div></div>');
 		$(radConfirmMsg).append($('<p>คุณต้องการลบเมนูรายการที่เลือกออกจากร้าน ใช่ หรือไม่</p>'));
 		$(radConfirmMsg).append($('<p>คลิกปุ่ม <b>ตกลง</b> หาก <b>ใช่</b> เพื่อลบเมน</p>'));
@@ -2910,10 +2930,10 @@ module.exports = function ( jq ) {
 			width: '420px',
 			onOk: async function(evt) {
 				radConfirmBox.closeAlert();
-				let menuitemRes = await common.doCallApi('/api/shop/menuitem/delete', {id: groupmenuId});
+				let menuitemRes = await common.doCallApi('/api/shop/menuitem/delete', {id: menuitemId});
 				if (menuitemRes.status.code == 200) {
 					$.notify("ลบรายการเมนูสำเร็จ", "success");
-					await doShowMenuitemItem(shopData, workAreaBox);
+					await doShowMenuitemItem(shopData, workAreaBox, groupId);
 				} else if (menuitemRes.status.code == 201) {
 					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
@@ -5445,7 +5465,7 @@ module.exports = function ( jq ) {
 		let usertypes = JSON.parse(localStorage.getItem('usertypes'));
 		//console.log(usertypes);
 		usertypes.forEach((item, i) => {
-			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '<option>'))
+			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'))
 		});
 		if ((userData) && (userData.usertypeId)) {
 			$(inputValue).val(userData.usertypeId);
