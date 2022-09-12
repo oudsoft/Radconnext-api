@@ -363,8 +363,8 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
       let diff = A4Height - realH;
       console.log('diff=' + diff); //1410
       if (diff > 220) {
-        $(wrapper).find('#image-element-Advert').css({'top': (A4Height-420)+'px'});
-        $(wrapper).find('#image-element-PPQR').css({'top': (A4Height-620)+'px'});
+        $(wrapper).find('#image-element-Advert').css({'top': 1340 + 'px'});
+        $(wrapper).find('#image-element-PPQR').css({'top': 1190 + 'px'});
       } else {
         $(wrapper).find('#image-element-Advert').css({'top': (maxTop + 50)+'px'});
         $(wrapper).find('#image-element-PPQR').css({'top': (maxTop + 50)+'px'});
