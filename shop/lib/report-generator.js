@@ -358,13 +358,24 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
     });
 
     console.log('rsDimension=>' + JSON.stringify(variable.rsDimension));
-    if (paperSize == 2) {
+    if (paperSize == 1) {
+      let realH = Number(variable.rsDimension.top) + Number(variable.rsDimension.height.real);
+      let diff = A4Height - realH;
+      console.log('diff=' + diff); //1410
+      if (diff > 220) {
+        $(wrapper).find('#image-element-Advert').css({'top': (A4Height-420)+'px'});
+        $(wrapper).find('#image-element-PPQR').css({'top': (A4Height-620)+'px'});
+      } else {
+        $(wrapper).find('#image-element-Advert').css({'top': (maxTop + 50)+'px'});
+        $(wrapper).find('#image-element-PPQR').css({'top': (maxTop + 50)+'px'});
+      }
+    } else if (paperSize == 2) {
       maxTop = maxTop + 80;
       $(wrapper).find('#image-element-Advert').css({'top': (maxTop)+'px'});
       maxTop = maxTop + 100;
       $(wrapper).find('#image-element-PPQR').css({'top': (maxTop)+'px'});
       maxTop = maxTop + 300;
-      $(wrapper).css({'heigth' : (maxTop)+'px'})
+      $(wrapper).css({'heigth' : (maxTop)+'px'});
     }
     console.log('maxTop=>' + maxTop);
     cb($(wrapper).html(), maxTop);
@@ -451,7 +462,6 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
 }
 
 const doRenderTable = function(wrapper, tableRows, left, top, border, ratio){
-  console.log(border);
   let table = $('<table cellpadding="2" cellspacing="0" width="100%"></tble>');
   $(table).attr('border', border);
   let fullW = 0;
@@ -493,7 +503,6 @@ const doRenderTable = function(wrapper, tableRows, left, top, border, ratio){
       }
       $(cell).attr({'align': tableRows[i].fields[j].fontalign});
       $(cell).attr({'valign': tableRows[i].fields[j].valign});
-      //$(cell).css({'width': (Number(tableRows[i].fields[j].width.replace(/px$/, ''))*ratio) + 'px'});
       if (i == 0) {
         $(cell).attr({'width': (Number(tableRows[i].fields[j].width / fullW) * 100) + '%'});
       }
