@@ -451,7 +451,9 @@ const onAcceptCaseEvent = function(caseId) {
 
     let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     log.info('triggerDate=>' + triggerDate);
-
+    let tsks = tasks.getTasks();
+    log.info('all case tasks === ' + JSON.stringify(tsks));
+    
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       let action = 'quick';
       let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, triggerDate);

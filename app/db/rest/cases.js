@@ -455,7 +455,7 @@ app.post('/add', (req, res) => {
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'Create New Case Success'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
-          log.info('newCaseData.option=>' + JSON.stringify(req.body.option));
+          //log.info('newCaseData.option=>' + JSON.stringify(req.body.option));
           const optionScanPartSave = req.body.option.scanpart.save;
           if (optionScanPartSave == 1){
             let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName, Scanparts: newCase.Case_ScanPart};
