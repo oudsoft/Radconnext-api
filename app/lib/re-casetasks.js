@@ -156,7 +156,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
               log.info('triggerMinut=>' + triggerMinut);
               if ((triggerMinut) && (triggerMinut > 0)) {
                 let hospitalCode = aliveCase.hospital.Hos_Code;
-                let voiceTransactionId = uti.doCreateVoiceTranctionId();
+                let voiceTransactionId = uti.doCreateTranctionId();
                 let voipTriggerParam = undefined;
                 let voiceUrgent = undefined;
                 let triggerAt = totalMinut - triggerMinut;

@@ -216,7 +216,7 @@ const formatDateTimeStr = function(dt){
 	return td;
 }
 
-const doCreateVoiceTranctionId = function(){
+const doCreateTranctionId = function(){
 	d = new Date();
 	d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
 	var yy, mm, dd, hh, mn, ss;
@@ -449,7 +449,7 @@ module.exports = (dbconn, monitor) => {
 		doMyLoadOrthanc,
 		doFormateDateTime,
 		formatDateTimeStr,
-		doCreateVoiceTranctionId,
+		doCreateTranctionId,
 		formatStudyDate,
 		formatStudyTime,
 		contains,

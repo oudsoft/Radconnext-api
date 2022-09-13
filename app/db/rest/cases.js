@@ -266,11 +266,10 @@ app.post('/status/(:caseId)', async (req, res) => {
         const userId = ur[0].id;
 
         let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark)
-
-
+        res.json({status: {code: 200}, actions: changeResult.change.actiohs});
+        /*
         if (changeResult.change.status == true) {
           if((currentStatus==1) && (reqCaseStatusId==2)) {
-            //send triggerDatetime message to chat bot
             let radioProfile = await common.doLoadRadioProfile(userId);
             if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
               let action = 'quick';
@@ -283,23 +282,16 @@ app.post('/status/(:caseId)', async (req, res) => {
             if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
               let action = 'quick';
               let patientNameEN = targetCases[0].patient.Patient_NameEN + ' ' + targetCases[0].patient.Patient_LastNameEN;
-              /*
-              let studyDesc = targetCases[0].Case_StudyDescription;
-              let modality = targetCases[0].Case_Modality;
-              let actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s\nStudy Desc. %s\nModality %s แล้ว\n แล้ว';
-              let actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN, studyDesc, modality);
-              */
               let actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s แล้ว\n แล้ว';
               let actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN);
-
               let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
               await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
             }
           }
-          res.json({status: {code: 200}, actions: changeResult.change.actiohs});
         } else {
           res.json({status: {code: 203}, actions: []});
         }
+        */
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
@@ -463,6 +455,7 @@ app.post('/add', (req, res) => {
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'Create New Case Success'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
+          log.info('newCaseData.option=>' + JSON.stringify(req.body.option));
           const optionScanPartSave = req.body.option.scanpart.save;
           if (optionScanPartSave == 1){
             let scanpartAuxData = {StudyDesc: newCase.Case_StudyDescription, ProtocolName: newCase.Case_ProtocolName, Scanparts: newCase.Case_ScanPart};

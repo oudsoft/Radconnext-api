@@ -77,7 +77,7 @@ app.post('/callradio', async function(req, res) {
   let hospitalCode = req.body.hospitalCode;
   let urgentCode = req.body.urgentCode;
   let msisdn = req.body.msisdn;
-  let voiceTransactionId = uti.doCreateVoiceTranctionId();
+  let voiceTransactionId = uti.doCreateTranctionId();
 
   const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
   let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);

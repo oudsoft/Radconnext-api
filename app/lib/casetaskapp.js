@@ -132,6 +132,19 @@ app.get('/remove/(:caseId)', (req, res) => {
   });
 });
 
+app.get('/find/transaction/(:transactionId)', (req, res) => {
+  let transactionId = req.params.transactionId;
+  Task.filterTaskByTransactionId(transactionId).then((tasks)=>{
+    if (tasks.length > 0) {
+      let radioUsername = tasks[0].username;
+      let radioNewToken = auth.doEncodeToken(radioUsername);
+      res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken});
+    } else {
+      res.status(200).send({Result: "OK"});
+    }
+  });
+});
+
 app.get('/warning/list', (req, res) => {
   Warning.getTasks().then((tasks)=>{
     res.status(200).send({Result: "OK", Records: tasks});

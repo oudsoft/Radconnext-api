@@ -392,8 +392,8 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
     const action = 'quick';
     log.info('The Task of caseId ' + caseId + ' will be clear and will be replace with new task.');
     await tasks.removeTaskByCaseId(caseId);
-
-    let newTask = await tasks.doCreateNewTaskCase(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, async (caseId, socket, endDateTime)=>{
+    let newTransactionId = uti.doCreateTranctionId();
+    let newTask = await tasks.doCreateNewTaskCase(caseId, userProfile.username, triggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, newTransactionId, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       if (nowcaseStatus.length > 0){
         if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
@@ -411,6 +411,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         }
       }
     });
+
     let endTime = newTask.triggerAt;
 
     let endDateText = uti.doFormateDateTimeChatbot(endTime);
@@ -432,17 +433,12 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
-        /*
-        ย้ายไปส่ง line notift ให้ radio ที่
-        linebot -> postMeassage x401 แทน
-        */
-        /*
-        let lineCaseMsgFmt = 'แจ้งกำหนดเวลาส่งผลอ่านของเคส\nชื่อ %s\nรพ.%s\n\nกำหนดส่งผลอ่าน %s\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
-        let lineCaseMsg = uti.fmtStr(lineCaseMsgFmt, caseMsgData.patientNameEN, caseMsgData.hospitalName, endDateText);
-
-        let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
+        await lineApi.pushConnect(radioProfile.lineUserId, { type: "text",	text: 'เข้าอ่านผลได้โดยคลิกที่ลิงค์' });
+        //let newQuickLink = 'https://radconnext.info/api/tasks/find/transaction/' + newTransactionId;
+        let newQuickLink = 'https://radconnext.info/radio/?transactionId=' + newTransactionId;
+        let menuQuickReply = lineApi.createBotMenu(newQuickLink, action, lineApi.radioMainMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
-        */
+
         if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
           let radioNameTH = radioProfile.User_NameTH;
           let radioLastNameTH = radioProfile.User_LastNameTH;
@@ -488,7 +484,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       */
 
       let urgentCode = urgentType;
-      let voiceTransactionId = uti.doCreateVoiceTranctionId();
+      let voiceTransactionId = uti.doCreateTranctionId();
       let msisdn = radioProfile.radioPhoneNo;
       log.info('urgentCode=>' + urgentCode);
       if (urgentCode){

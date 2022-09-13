@@ -235,7 +235,7 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
 const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, casestatusId){
   return new Promise(async function(resolve, reject) {
     if ((radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '') && (radioProfile.radioPhoneNo !== '0999999999')) {
-      let voiceTransactionId = uti.doCreateVoiceTranctionId();
+      let voiceTransactionId = uti.doCreateTranctionId();
       let voipTriggerParam = undefined;
       let voiceUrgent = undefined;
       let triggerAt = totalMinut - triggerMinut;
@@ -353,13 +353,15 @@ const onNewCaseEvent = function(caseId, options){
           let currentStatusId = newCase.casestatusId;
           let remark = 'Change case status to accapted by auto Accept of Radio Profile';
           let radioId = newCase.Case_RadiologistId
-          let changeResult = await doChangeCaseStatus(currentStatusId, acceptedCaseStatusId, caseId, radioId, remark)
+          let changeResult = await doChangeCaseStatus(currentStatusId, acceptedCaseStatusId, caseId, radioId, remark);
+          /*
           if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
             let action = 'quick';
             let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, changeResult.triggerDate);
             let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
+          */
         } else {
           log.info('== But Radio Lock Screen ==');
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
@@ -413,7 +415,6 @@ const onNewCaseEvent = function(caseId, options){
 
 const onAcceptCaseEvent = function(caseId) {
   return new Promise(async function(resolve, reject) {
-    const tenMinutes = 10 * 60 * 1000;
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
@@ -450,7 +451,16 @@ const onAcceptCaseEvent = function(caseId) {
 
     let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     log.info('triggerDate=>' + triggerDate);
+
+    if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+      let action = 'quick';
+      let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, triggerDate);
+      let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
+      await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+    }
+
     let triggerAt = new Date(triggerDate);
+    let tenMinutes = 10 * 60 * 1000;
     let warningTime = triggerAt.getTime() - tenMinutes;
     log.info('warningTime=>' + new Date(warningTime));
     let theWarning = await common.doCreateTaskWarning(warnings, caseId, radioProfile, warningTime, targetCase.casestatusId, caseMsgData);
@@ -499,11 +509,18 @@ const onRejectCaseEvent = function(caseId) {
       await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
     }
     */
+    let action = 'quick';
+    if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
+      let actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s แล้ว\n แล้ว';
+      let actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN);
+      let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
+      await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+    }
 
     if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
       let lineCaseMsgFmt = 'เคส\nชื่อ %s\n\nได้ถูกรังสีแพทย์(%s %s)ปฏิเสธแล้ว\n\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ'
       let lineCaseMsg = uti.fmtStr(lineCaseMsgFmt, patientNameEN, radioProfile.User_NameTH, radioProfile.User_LastNameTH);
-      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, 'quick', lineApi.techMainMenu);
+      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
       await lineApi.pushConnect(userProfile.lineUserId, menuQuickReply);
     }
 

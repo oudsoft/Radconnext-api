@@ -15,7 +15,7 @@ function RadconCaseTask (socket, db, log) {
     tasks Model {caseId, statusId, triggerAt: datetime, task<cron.schedule>}
   */
 
-  this.doCreateNewTaskCase = function (caseId, username, triggerParam, radioUsername, hospitalName, baseCaseStatusId, cb) {
+  this.doCreateNewTaskCase = function (caseId, username, triggerParam, radioUsername, hospitalName, baseCaseStatusId, transactionId, cb) {
     return new Promise(async function(resolve, reject) {
       const startDate = new Date();
       const day = Number(triggerParam.dd) * 24 * 60 * 60 * 1000;
@@ -33,7 +33,8 @@ function RadconCaseTask (socket, db, log) {
         log.info('Case Task start trigger => ' + caseId);
         cb(caseId, socket, endDate);
       });
-      let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate, task: task};
+
+      let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate, transactionId: transactionId, task: task};
 
       $this.caseTasks.push(newTask);
       /*
@@ -74,7 +75,7 @@ function RadconCaseTask (socket, db, log) {
         }
       });
       if (theCase){
-        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, triggerAt: theCase.triggerAt};
+        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, transactionId: theCase.transactionId, triggerAt: theCase.triggerAt};
         resolve(thisTask);
       } else {
         resolve();
@@ -91,7 +92,7 @@ function RadconCaseTask (socket, db, log) {
       });
       let fmtTasks = [];
       await yourcases.forEach((task, i) => {
-        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt};
+        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, transactionId: task.transactionId, triggerAt: task.triggerAt};
         fmtTasks.push(thisTask);
       });
       resolve(fmtTasks);
@@ -107,7 +108,23 @@ function RadconCaseTask (socket, db, log) {
       });
       let fmtTasks = [];
       await yourcases.forEach((task, i) => {
-        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt};
+        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, transactionId: task.transactionId, triggerAt: task.triggerAt};
+        fmtTasks.push(thisTask);
+      });
+      resolve(fmtTasks);
+    });
+  }
+
+  this.filterTaskByTransactionId = function (transactionId) {
+    return new Promise(async function(resolve, reject) {
+      let yourcases = await $this.caseTasks.filter((task)=>{
+        if (task.transactionId == transactionId) {
+          return task;
+        }
+      });
+      let fmtTasks = [];
+      await yourcases.forEach((task, i) => {
+        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, transactionId: task.transactionId, triggerAt: task.triggerAt};
         fmtTasks.push(thisTask);
       });
       resolve(fmtTasks);
@@ -118,7 +135,7 @@ function RadconCaseTask (socket, db, log) {
     return new Promise(async function(resolve, reject) {
       let finalTasks = [];
       await $this.caseTasks.forEach((item, i) => {
-        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt};
+        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, transactionId: item.transactionId, triggerAt: item.triggerAt};
         finalTasks.push(nwTask);
       });
       resolve(finalTasks);
