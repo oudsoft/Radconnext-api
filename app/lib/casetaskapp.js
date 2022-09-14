@@ -136,7 +136,7 @@ app.get('/find/transaction/(:transactionId)', (req, res) => {
   let transactionId = req.params.transactionId;
   Task.filterTaskByTransactionId(transactionId).then(async(tasks)=>{
     if (tasks.length > 0) {
-      let radioUsername = tasks[0].username;
+      let radioUsername = tasks[0].radioUsername;
       let radioUserData = await auth.doExistUser(radioUsername);
       if ((radioUserData) && (radioUserData.length > 0)) {
         let radioNewToken = auth.doEncodeToken(radioUsername);
