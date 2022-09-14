@@ -451,14 +451,28 @@ const onAcceptCaseEvent = function(caseId) {
 
     let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     log.info('triggerDate=>' + triggerDate);
-    let tsks = await tasks.getTasks();
-    log.info('all case tasks === ' + JSON.stringify(tsks));
 
+    let lineCaseMsg = undefined;
+    let menuQuickReply = undefined;
+    let action = 'quick';
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-      let action = 'quick';
-      let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, triggerDate);
-      let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
+      let tskCase = await tasks.selectTaskByCaseId(caseId);
+      //log.info('all case tasks === ' + JSON.stringify(tsks));
+      let newTransactionId = tskCase.transactionId;
+      let triggerDateText = uti.doFormateDateTimeChatbot(triggerDate);
+      //let newQuickLink = 'https://radconnext.info/api/tasks/find/transaction/' + newTransactionId;
+      let newQuickLink = 'https://radconnext.info/radio/?transactionId=' + newTransactionId;
+      lineCaseMsg = uti.fmtStr('รับเคส\nชื่อ %s แล้ว\nกำหนดเวลาส่งผล %s\nเข้าอ่านผลได้โดยคลิกที่ลิงค์\n%s', patientNameEN, triggerDateText, newQuickLink);
+      let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);
       await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+    }
+
+    if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
+      let radioNameTH = radioProfile.User_NameTH;
+      let radioLastNameTH = radioProfile.User_LastNameTH;
+      lineCaseMsg = uti.fmtStr('รังสีแพทย์(%s %s)รับเคส\nชื่อ %s\แล้ว', radioNameTH, radioLastNameTH, patientNameEN);
+      menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
+      await lineApi.pushConnect(userProfile.lineUserId, menuQuickReply);
     }
 
     let triggerAt = new Date(triggerDate);

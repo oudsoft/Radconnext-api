@@ -134,11 +134,24 @@ app.get('/remove/(:caseId)', (req, res) => {
 
 app.get('/find/transaction/(:transactionId)', (req, res) => {
   let transactionId = req.params.transactionId;
-  Task.filterTaskByTransactionId(transactionId).then((tasks)=>{
+  Task.filterTaskByTransactionId(transactionId).then(async(tasks)=>{
     if (tasks.length > 0) {
       let radioUsername = tasks[0].username;
-      let radioNewToken = auth.doEncodeToken(radioUsername);
-      res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken});
+      let radioUserData = await auth.doExistUser(radioUsername);
+      if (radioUserData) {
+        let radioNewToken = auth.doEncodeToken(radioUsername);
+        let caseId = tasks[0].caseId;
+        let targetCases = await db.cases.findAll({ attributes: ['id', 'patientId', 'hospitalId', 'casestatusId', 'Case_Modality', 'Case_StudyDescription', 'Case_ProtocolName'], where: {id: caseId}});
+        let caseItem = targetCases[0];
+        let caseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
+        caseData.Modality = caseItem.Case_Modality;
+        caseData.StudyDescription = caseItem.Case_StudyDescription;
+        caseData.ProtocolName = caseItem.Case_ProtocolName;
+        caseData.statusId = caseItem.casestatusId;
+        res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken, radioUserData: radioUserData, caseData: caseData});
+      } else {
+        res.status(200).send({Result: "OK"});
+      }
     } else {
       res.status(200).send({Result: "OK"});
     }

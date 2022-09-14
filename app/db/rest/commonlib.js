@@ -433,21 +433,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
       } else if (baseCaseStatusId == 2 ) {
-        await lineApi.pushConnect(radioProfile.lineUserId, { type: "text",	text: 'เข้าอ่านผลได้โดยคลิกที่ลิงค์' });
-        //let newQuickLink = 'https://radconnext.info/api/tasks/find/transaction/' + newTransactionId;
-        let newQuickLink = 'https://radconnext.info/radio/?transactionId=' + newTransactionId;
-        let menuQuickReply = lineApi.createBotMenu(newQuickLink, action, lineApi.radioMainMenu);
-        await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
-
-        if ((userProfile.lineUserId) && (userProfile.lineUserId !== '')) {
-          let radioNameTH = radioProfile.User_NameTH;
-          let radioLastNameTH = radioProfile.User_LastNameTH;
-          let patientNameEN = caseMsgData.patientNameEN;
-          let lineCaseMsg = uti.fmtStr('รังสีแพทย์(%s %s)รับเคส\nชื่อ %s\แล้ว', radioNameTH, radioLastNameTH, patientNameEN);
-          //lineCaseMsg = lineCaseDetaileMsg  + 'ได้ถูกตอบรับโดยรังสีแพทย์เรียบร้อยแล้ว\nเคสนี้จะหมดอายุสำหรับส่งผลอ่านภายใน ' + endDateText + '\nหากคุณต้องการใช้บริการอื่นๆ เชิญเลือกจากเมนูด้านล่างครับ';
-          menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.techMainMenu);
-          await lineApi.pushConnect(userProfile.lineUserId, menuQuickReply);
-        }
+        // move to statuscontrol at onAcceptCaseEvent
       }
     }
 

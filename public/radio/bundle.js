@@ -3817,7 +3817,37 @@ $( document ).ready(function() {
           doLoadLogin();
         }
   		} else {
-  			doLoadLogin();
+        let queryString = decodeURIComponent(window.location.search);
+        let params = new URLSearchParams(queryString);
+        let transactionId = params.get('transactionId');
+        console.log(transactionId);
+        if ((transactionId) && (transactionId !== '')) {
+          let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
+          $.get(callURLTokenURL, {}, function(data){
+            console.log(data);
+            if ((data) && (data.token)) {
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
+              let taskData = data.Records[0];
+              console.log(taskData);
+              let quickCaseId = taskData.caseId;
+              userdata = data.radioUserData;
+              console.log(userdata);
+              doLoadMainPage();
+              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+              doSetupAutoReadyAfterLogin();
+              let eventData = data.caseData;
+              eventData.startDownload = 1;
+              $('#OpenCaseCmd').trigger('opencase', [eventData]);
+            } else {
+              doLoadLogin();
+            }
+          }).fail(function(error) {
+            console.erroe(error);
+          });
+        } else {
+          doLoadLogin();
+        }
   		}
     } else {
       doLoadLogin();
@@ -4502,7 +4532,7 @@ module.exports = function ( jq ) {
 		} else {
 			openCmdText = 'อ่านผล';
 		}
-    let openCmd = $('<div></div>').text(openCmdText);
+    let openCmd = $('<div id="OpenCaseCmd"></div>').text(openCmdText);
     $(openCmd).css({'display': 'inline-block', 'margin': '3px', 'padding': '5px 12px', 'border-radius': '12px', 'cursor': 'pointer', 'color': 'white'});
 		if (caseItem.casestatusId == 2) {
 			$(openCmd).css({'background-color' : 'orange'});
@@ -4524,6 +4554,7 @@ module.exports = function ( jq ) {
 	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, 'Radiologist Open accepted case by Web App');
 				if (response.status.code == 200) {
 		      eventData.statusId = newCaseStatus;
+					eventData.startDownload = 0;
 		      $(openCmd).trigger('opencase', [eventData]);
 				} else {
 					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
