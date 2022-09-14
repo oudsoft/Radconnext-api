@@ -3783,7 +3783,9 @@ const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0'
 
 $( document ).ready(function() {
   const initPage = function() {
-    if (sessionStorage.getItem('logged')) {
+    let logined = sessionStorage.getItem('logged');
+    console.log(logined);
+    if (logined) {
   		var token = doGetToken();
   		if (token !== 'undefined') {
         let userdata = doGetUserData();
@@ -3850,7 +3852,7 @@ $( document ).ready(function() {
         }
   		}
     } else {
-      doLoadLogin();
+      //doLoadLogin();
     }
 	};
 
