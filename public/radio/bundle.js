@@ -3782,6 +3782,8 @@ const softphone = require('../case/mod/softphonelib.js')($);
 
 const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
 
+let quickCaseId = undefined;
+
 $( document ).ready(function() {
   const initPage = function() {
     let logined = sessionStorage.getItem('logged');
@@ -3833,10 +3835,8 @@ $( document ).ready(function() {
             localStorage.setItem('token', data.token);
             localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
             let taskData = data.Records[0];
-            console.log(taskData);
-            let quickCaseId = taskData.caseId;
+            quickCaseId = taskData.caseId;
             userdata = data.radioUserData;
-            console.log(userdata);
             if (userdata.userprofiles.length == 0){
               userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
             }
@@ -4428,7 +4428,9 @@ function doAutoAcceptCase(){
             let caseItem = caseLists[i];
             await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
           }
-          $('#AcceptedCaseCmd').click();
+          if (!quickCaseId) {
+            $('#AcceptedCaseCmd').click();
+          }
         } else {
           doLoadDefualtPage();
         }
