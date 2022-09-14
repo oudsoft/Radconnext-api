@@ -239,22 +239,56 @@
 
               if (usertype == 4) {
                 if (response.data.userprofiles.length == 0){
-                  const defaultProfile = {
+                  const defaultRadioProfileV2 = {
                     readyState: 1,
-                		readyBy: 'user',
-                    screen: {
-                      lock: 30,
-                      unlock: 0
+                    readyBy: 'user',
+                    activeState: {
+                      autoAcc: 0,
+                      autoReady:0,
+                      webNotify: 1,
+                      lineNotify: 1,
+                      phoneCall: 0,
+                      phoneCallOptions: {
+                        manAutoOption: 1,
+                        optionCaseControl: {
+                          case1H: 0,
+                          case4H: 0,
+                          case24HL: 0,
+                          case24HU: 0
+                        }
+                      }
                     },
-                    auotacc: 0,
-                    casenotify: {
-                      webmessage: 1,
-                      line: 1,
-                      autocall: 0,
-                      mancall:0
+                    lockState: {
+                      autoLockScreen: 30,
+                      passwordUnlock: 0,
+                      lineNotify: 1,
+                      phoneCall: 0,
+                      phoneCallOptions: {
+                        manAutoOption: 1,
+                        optionCaseControl: {
+                          case1H: 0,
+                          case4H: 0,
+                          case24HL: 0,
+                          case24HU: 0
+                        }
+                      }
+                    },
+                    offlineState: {
+                      autoLogout: 0,
+                      lineNotify: 1,
+                      phoneCall: 0,
+                      phoneCallOptions: {
+                        manAutoOption: 1,
+                        optionCaseControl: {
+                          case1H: 0,
+                          case4H: 0,
+                          case24HL: 0,
+                          case24HU: 0
+                        }
+                      }
                     }
                   };
-                  response.data.userprofiles.push({Profile: defaultProfile});
+                  response.data.userprofiles.push({Profile: defaultRadioProfileV2});
                 }
               }
 

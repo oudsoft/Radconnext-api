@@ -3835,6 +3835,9 @@ $( document ).ready(function() {
             console.log(taskData);
             let quickCaseId = taskData.caseId;
             userdata = data.radioUserData;
+            if (userdata.userprofiles.length == 0){
+              userdata.userprofiles = profile.defaultRadioProfileV2;
+            }
             console.log(userdata);
             doLoadMainPage();
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
