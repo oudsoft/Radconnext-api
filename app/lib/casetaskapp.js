@@ -138,7 +138,7 @@ app.get('/find/transaction/(:transactionId)', (req, res) => {
     if (tasks.length > 0) {
       let radioUsername = tasks[0].username;
       let radioUserData = await auth.doExistUser(radioUsername);
-      if (radioUserData) {
+      if ((radioUserData) && (radioUserData.length > 0)) {
         let radioNewToken = auth.doEncodeToken(radioUsername);
         let caseId = tasks[0].caseId;
         let targetCases = await db.cases.findAll({ attributes: ['id', 'patientId', 'hospitalId', 'casestatusId', 'Case_Modality', 'Case_StudyDescription', 'Case_ProtocolName'], where: {id: caseId}});
@@ -148,7 +148,7 @@ app.get('/find/transaction/(:transactionId)', (req, res) => {
         caseData.StudyDescription = caseItem.Case_StudyDescription;
         caseData.ProtocolName = caseItem.Case_ProtocolName;
         caseData.statusId = caseItem.casestatusId;
-        res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken, radioUserData: radioUserData, caseData: caseData});
+        res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken, radioUserData: radioUserData[0], caseData: caseData});
       } else {
         res.status(200).send({Result: "OK"});
       }
