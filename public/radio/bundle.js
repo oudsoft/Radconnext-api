@@ -3844,10 +3844,10 @@ $( document ).ready(function() {
             doSetupAutoReadyAfterLogin();
             let eventData = data.caseData;
             eventData.startDownload = 1;
-            $('#OpenCaseCmd').trigger('opencase', [eventData]);
+            onOpenCaseTrigger(eventData);
           } else {
-            //doLoadLogin();
-            console.log(data);
+            doLoadLogin();
+            //console.log(data);
           }
         }).fail(function(error) {
           console.erroe(error);
@@ -4082,33 +4082,7 @@ function doLoadMainPage(){
         });
       });
       $(document).on('opencase', async (evt, caseData)=>{
-        let opencaseTitlePage = acccase.doCreateAccCaseTitlePage();
-        $("#TitleContent").empty().append($(opencaseTitlePage));
-        opencase.doCreateOpenCasePage(caseData).then((opencasePage)=>{
-          $(".mainfull").empty().append($(opencasePage));
-          common.doScrollTopPage();
-          util.doResetPingCounter();
-          $.notify('เปิดเคส สำเร็จ', 'success');
-          //$('.jqte_editor').css(common.sizeA4Style);
-          //console.log($('.jqte_editor').css('font-family'));
-        }).catch(async (err)=>{
-          if (err.error.code == 210){
-            let rememberme = localStorage.getItem('rememberme');
-            if (rememberme == 1) {
-              let newUserData = await apiconnector.doCallNewTokenApi();
-              localStorage.setItem('token', newUserData.token);
-              localStorage.setItem('userdata', JSON.stringify(newUserData.data));
-              opencase.doCreateOpenCasePage(caseData).then((opencasePage)=>{
-                $(".mainfull").empty().append($(opencasePage));
-                common.doScrollTopPage();
-                util.doResetPingCounter();
-                $.notify('เปิดเคส สำเร็จ', 'success');
-              });
-            } else {
-              common.doUserLogout(wsm);
-            }
-          }
-        });
+        onOpenCaseTrigger(caseData);
       });
       $(document).on('openprofile', async (evt, data)=>{
         let profileTitlePage = profile.doCreateProfileTitlePage();
@@ -4206,6 +4180,36 @@ function doLoadMainPage(){
 
       $('body').loading('stop');
     });
+  });
+}
+
+const onOpenCaseTrigger = function(caseData) {
+  let opencaseTitlePage = acccase.doCreateAccCaseTitlePage();
+  $("#TitleContent").empty().append($(opencaseTitlePage));
+  opencase.doCreateOpenCasePage(caseData).then((opencasePage)=>{
+    $(".mainfull").empty().append($(opencasePage));
+    common.doScrollTopPage();
+    util.doResetPingCounter();
+    $.notify('เปิดเคส สำเร็จ', 'success');
+    //$('.jqte_editor').css(common.sizeA4Style);
+    //console.log($('.jqte_editor').css('font-family'));
+  }).catch(async (err)=>{
+    if (err.error.code == 210){
+      let rememberme = localStorage.getItem('rememberme');
+      if (rememberme == 1) {
+        let newUserData = await apiconnector.doCallNewTokenApi();
+        localStorage.setItem('token', newUserData.token);
+        localStorage.setItem('userdata', JSON.stringify(newUserData.data));
+        opencase.doCreateOpenCasePage(caseData).then((opencasePage)=>{
+          $(".mainfull").empty().append($(opencasePage));
+          common.doScrollTopPage();
+          util.doResetPingCounter();
+          $.notify('เปิดเคส สำเร็จ', 'success');
+        });
+      } else {
+        common.doUserLogout(wsm);
+      }
+    }
   });
 }
 
