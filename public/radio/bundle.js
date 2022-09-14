@@ -3796,7 +3796,7 @@ $( document ).ready(function() {
     			  doLoadMainPage();
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
-            $('#AcceptedCaseCmd').click();            
+            doAutoAcceptCase(1);
             /*
             if (userdata.userinfo.User_SipPhone){
               let sipPhoneNumber = userdata.userinfo.User_SipPhone;
@@ -3840,6 +3840,7 @@ $( document ).ready(function() {
               userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
             }
             doLoadMainPage();
+            doAutoAcceptCase(0);
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             let eventData = data.caseData;
@@ -3981,7 +3982,7 @@ function doLoadMainPage(){
 			});
 			$(document).on('openhome', (evt, data)=>{
         //$(logWin).empty();
-        doLoadDefualtPage();
+        doLoadDefualtPage(1);
         util.doResetPingCounter();
 			});
       $(document).on('opennewstatuscase', async (evt, data)=>{
@@ -4136,8 +4137,6 @@ function doLoadMainPage(){
 			});
 
 			doUseFullPage();
-			//doLoadDefualtPage();
-      doAutoAcceptCase();
 
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
@@ -4219,7 +4218,7 @@ function doUseFullPage() {
 	$(".mainfull").empty();
 }
 
-function doLoadDefualtPage() {
+function doLoadDefualtPage(autoSelectPage) {
   let homeTitlePage = welcome.doCreateHomeTitlePage();
   $("#TitleContent").empty().append($(homeTitlePage));
   welcome.doSetupCounter().then((loadRes)=>{
@@ -4231,13 +4230,14 @@ function doLoadDefualtPage() {
       }
     });
     */
-
-    if (loadRes.newList.Records.length > 0 ) {
-      $('#NewCaseCmd').click();
-    } else if (loadRes.accList.Records.length > 0) {
-      $('#AcceptedCaseCmd').click();
-    } else {
-      $(".mainfull").empty();
+    if (autoSelectPage == 1) {
+      if (loadRes.newList.Records.length > 0 ) {
+        $('#NewCaseCmd').click();
+      } else if (loadRes.accList.Records.length > 0) {
+        $('#AcceptedCaseCmd').click();
+      } else {
+        $(".mainfull").empty();
+      }
     }
     $('body').loading('stop');
   }).catch(async (err)=>{
@@ -4412,7 +4412,7 @@ function doSetupAutoReadyAfterLogin(){
   }
 }
 
-function doAutoAcceptCase(){
+function doAutoAcceptCase(autoSelectPage){
   const userdata = JSON.parse(localStorage.getItem('userdata'));
   const autoAcc = userdata.userprofiles[0].Profile.activeState.autoAcc;
   $('.case-counter').hide();
@@ -4428,12 +4428,12 @@ function doAutoAcceptCase(){
             await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
           }
         } else {
-          doLoadDefualtPage();
+          doLoadDefualtPage(autoSelectPage);
         }
       }
     });
   } else {
-    doLoadDefualtPage();
+    doLoadDefualtPage(autoSelectPage);
   }
 }
 
