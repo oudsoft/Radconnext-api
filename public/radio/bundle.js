@@ -3824,11 +3824,9 @@ $( document ).ready(function() {
       let queryString = decodeURIComponent(window.location.search);
       let params = new URLSearchParams(queryString);
       let transactionId = params.get('transactionId');
-      console.log(transactionId);
       if ((transactionId) && (transactionId !== '')) {
         let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
         $.get(callURLTokenURL, {}, function(data){
-          console.log(data);
           if ((data) && (data.token)) {
             sessionStorage.setItem('logged', true);
             localStorage.setItem('token', data.token);
@@ -3845,10 +3843,12 @@ $( document ).ready(function() {
             eventData.startDownload = 1;
             $('#OpenCaseCmd').trigger('opencase', [eventData]);
           } else {
-            doLoadLogin();
+            //doLoadLogin();
+            console.log(data);
           }
         }).fail(function(error) {
           console.erroe(error);
+          doLoadLogin();
         });
       } else {
         doLoadLogin();
