@@ -6539,6 +6539,8 @@ module.exports = function ( jq ) {
 			success: function(data){
 				$(evt.currentTarget).val(' DL/Open ');
 				$(evt.currentTarget).css({'backdrop-filter': ''});
+				$(evt.currentTarget).removeClass('action-btn');
+				$(evt.currentTarget).addClass('special-action-btn');
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
 				pom.setAttribute('href', stremLink);
 				pom.setAttribute('download', outputFilename);
@@ -7610,8 +7612,8 @@ module.exports = function ( jq ) {
 			$(downloadCmd).on('click', async (evt)=>{
 				let dwnRes = await onDownloadCmdClick(evt);
 				$(downloadCmd).off('click');
-				$(downloadCmd).removeClass('action-btn');
-				$(downloadCmd).addClass('special-action-btn');
+				//$(downloadCmd).removeClass('action-btn');
+				//$(downloadCmd).addClass('special-action-btn');
 				$(downloadCmd).attr('title', 'Ctrl+click to open with 3rd party program');
 				$(downloadCmd).val(' DL/Open ');
 				$(downloadCmd).on('click', async (evt)=>{
