@@ -3784,7 +3784,6 @@ const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0'
 $( document ).ready(function() {
   const initPage = function() {
     let logined = sessionStorage.getItem('logged');
-    console.log(logined);
     if (logined) {
   		var token = doGetToken();
   		if (token !== 'undefined') {
@@ -3819,40 +3818,41 @@ $( document ).ready(function() {
           doLoadLogin();
         }
   		} else {
-        let queryString = decodeURIComponent(window.location.search);
-        let params = new URLSearchParams(queryString);
-        let transactionId = params.get('transactionId');
-        console.log(transactionId);
-        if ((transactionId) && (transactionId !== '')) {
-          let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
-          $.get(callURLTokenURL, {}, function(data){
-            console.log(data);
-            if ((data) && (data.token)) {
-              localStorage.setItem('token', data.token);
-              localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
-              let taskData = data.Records[0];
-              console.log(taskData);
-              let quickCaseId = taskData.caseId;
-              userdata = data.radioUserData;
-              console.log(userdata);
-              doLoadMainPage();
-              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
-              doSetupAutoReadyAfterLogin();
-              let eventData = data.caseData;
-              eventData.startDownload = 1;
-              $('#OpenCaseCmd').trigger('opencase', [eventData]);
-            } else {
-              doLoadLogin();
-            }
-          }).fail(function(error) {
-            console.erroe(error);
-          });
-        } else {
-          doLoadLogin();
-        }
+        doLoadLogin();
   		}
     } else {
-      //doLoadLogin();
+      let queryString = decodeURIComponent(window.location.search);
+      let params = new URLSearchParams(queryString);
+      let transactionId = params.get('transactionId');
+      console.log(transactionId);
+      if ((transactionId) && (transactionId !== '')) {
+        let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
+        $.get(callURLTokenURL, {}, function(data){
+          console.log(data);
+          if ((data) && (data.token)) {
+            sessionStorage.setItem('logged', true);
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
+            let taskData = data.Records[0];
+            console.log(taskData);
+            let quickCaseId = taskData.caseId;
+            userdata = data.radioUserData;
+            console.log(userdata);
+            doLoadMainPage();
+            wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+            doSetupAutoReadyAfterLogin();
+            let eventData = data.caseData;
+            eventData.startDownload = 1;
+            $('#OpenCaseCmd').trigger('opencase', [eventData]);
+          } else {
+            doLoadLogin();
+          }
+        }).fail(function(error) {
+          console.erroe(error);
+        });
+      } else {
+        doLoadLogin();
+      }
     }
 	};
 
