@@ -41,7 +41,7 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
         try {
           const orderby = [['id', 'ASC']];
           const shopId = req.params.shopId;
-          const menuInclude = [{model: db.menugroups, attributes: ['id', 'GroupName']}];
+          const menuInclude = [{model: db.menugroups, attributes: ['id', 'GroupName', 'GroupPicture']}];
           let whereClause = {shopId: shopId};
           if (req.body.groupId) {
             whereClause.menugroupId = req.body.groupId;
