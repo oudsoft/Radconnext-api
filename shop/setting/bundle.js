@@ -2597,7 +2597,7 @@ module.exports = function ( jq ) {
 		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
 	];
   const menugroupTableFields = [
-		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true}
+		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'center', inputSize: '30', verify: true, showHeader: true}
   ];
 
   const doShowMenuitemItem = function(shopData, workAreaBox, groupId){
@@ -2703,11 +2703,15 @@ module.exports = function ( jq ) {
 					}
 				}
         for (let i=0; i < menugroupTableFields.length; i++) {
-					console.log(item.menugroup);
           let field = $('<td align="' + menugroupTableFields[i].align + '"></td>');
 					if ((item.menugroup.GroupPicture) && (item.menugroup.GroupPicture !== '')) {
+						console.log(item.menugroup);
 						let menuGroupLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
-						$(menuGroupLogoIconBox).append($('<img src="' + item.menugroup.GroupPicture + '"/>').css({"width": "80px", "height": "auto"}));
+						let groupLogoImg = new Image();
+						groupLogoImg.src = item.menugroup.GroupPicture;
+						$(groupLogoImg).attr('title', item.menugroup[menugroupTableFields[i].fieldName]);
+						$(groupLogoImg).css({"width": "80px", "height": "auto"})
+						$(menuGroupLogoIconBox).append($(groupLogoImg));
 						$(field).append($(menuGroupLogoIconBox));
 					}
           $(field).text(item.menugroup[menugroupTableFields[i].fieldName]);
