@@ -2704,9 +2704,11 @@ module.exports = function ( jq ) {
 				}
         for (let i=0; i < menugroupTableFields.length; i++) {
           let field = $('<td align="' + menugroupTableFields[i].align + '"></td>');
-					let menuGroupLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
-					$(menuGroupLogoIconBox).append($('<img src="' + item.menugroup.GroupPicture + '"/>').css({"width": "80px", "height": "auto"}));
-					$(field).append($(menuGroupLogoIconBox));
+					if ((item.menugroup.GroupPicture) && (item.menugroup.GroupPicture !== '')) {
+						let menuGroupLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
+						$(menuGroupLogoIconBox).append($('<img src="' + item.menugroup.GroupPicture + '"/>').css({"width": "80px", "height": "auto"}));
+						$(field).append($(menuGroupLogoIconBox));
+					}
           $(field).text(item.menugroup[menugroupTableFields[i].fieldName]);
           $(itemRow).append($(field));
         }
