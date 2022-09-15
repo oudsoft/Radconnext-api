@@ -2703,6 +2703,7 @@ module.exports = function ( jq ) {
 					}
 				}
         for (let i=0; i < menugroupTableFields.length; i++) {
+					console.log(item.menugroup);
           let field = $('<td align="' + menugroupTableFields[i].align + '"></td>');
 					if ((item.menugroup.GroupPicture) && (item.menugroup.GroupPicture !== '')) {
 						let menuGroupLogoIconBox = $('<div></div>').css({"position": "relative", "width": "fit-content", "border": "2px solid #ddd"});
