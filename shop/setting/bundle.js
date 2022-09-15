@@ -2689,7 +2689,7 @@ module.exports = function ( jq ) {
 						});
 						$(editMenuItemLogoCmd).on('click', (evt)=>{
 							evt.stopPropagation();
-							doStartUploadPicture(evt, menuitemLogoIcon, field, item.id, shopData, workAreaBox);
+							doStartUploadPicture(evt, menuitemLogoIcon, field, item.id, shopData, workAreaBox, groupId);
 						});
 						$(field).append($(menuItemLogoIconBox));
 
@@ -2752,7 +2752,7 @@ module.exports = function ( jq ) {
     });
   }
 
-  const doStartUploadPicture = function(evt, menuitemLogoIcon, imageBox, itemId, shopData, workAreaBox){
+  const doStartUploadPicture = function(evt, menuitemLogoIcon, imageBox, itemId, shopData, workAreaBox, groupId){
     let fileBrowser = $('<input type="file"/>');
     $(fileBrowser).attr("name", 'menuitemlogo');
     $(fileBrowser).attr("multiple", true);
@@ -2762,7 +2762,7 @@ module.exports = function ( jq ) {
       var fileSize = e.currentTarget.files[0].size;
       var fileType = e.currentTarget.files[0].type;
       if (fileSize <= defSize) {
-        doUploadImage(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox);
+        doUploadImage(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox, groupId);
       } else {
         $(imageBox).append($('<span>' + 'File not excess ' + defSize + ' Byte.' + '</span>'));
       }
@@ -2771,14 +2771,14 @@ module.exports = function ( jq ) {
     $(fileBrowser).click();
   }
 
-  const doUploadImage = function(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox){
+  const doUploadImage = function(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox, groupId){
     var uploadUrl = '/api/shop/upload/menuitemlogo';
     $(fileBrowser).simpleUpload(uploadUrl, {
       success: async function(data){
         $(fileBrowser).remove();
         let shopRes = await common.doCallApi('/api/shop/menuitem/change/logo', {data: {MenuPicture: data.link}, id: itemId});
         setTimeout(async() => {
-          await doShowMenuitemItem(shopData, workAreaBox);
+          await doShowMenuitemItem(shopData, workAreaBox, groupId);
         }, 400);
       },
     });
