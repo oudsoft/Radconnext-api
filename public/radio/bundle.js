@@ -6534,7 +6534,7 @@ module.exports = function ( jq ) {
 						let total = event.total;
 						let prog = (loaded / total) * 100;
 						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						$(downloadCmd).val(perc + '%');
+						$(downloadCmd).val('Retrieving ' + perc + '%');
 					}
 				}
 				return xhr;

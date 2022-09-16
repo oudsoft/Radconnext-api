@@ -60,23 +60,32 @@
   	}
 
     const gotoYourPage = function(usertype){
-  		let dicomfilter = undefined;
+      let isMobileDevice = isMobileDeviceCheck();
       console.log(usertype);
       switch (usertype) {
         case 1:
-          window.location.replace('/shop/setting/admin.html');
+          if (isMobileDevice) {
+            window.location.replace('/shop/mobile/index.html');
+          } else {
+            window.location.replace('/shop/setting/admin.html');
+          }
           /* รอแก้ bundle ของ admin */
         break;
         case 2:
-          //window.location.replace('/case/index.html');
+        if (isMobileDevice) {
+          window.location.replace('/shop/mobile/index.html');
+        } else {
           window.location.replace('/shop/setting/admin.html');
+        }
         break;
         case 3:
-  				//window.location.replace('/biller/index.html');
-          window.location.replace('/shop/setting/admin.html');
+          if (isMobileDevice) {
+            window.location.replace('/shop/mobile/index.html');
+          } else {
+            window.location.replace('/shop/setting/admin.html');
+          }
         break;
         case 4:
-          let isMobileDevice = isMobileDeviceCheck();
           if (isMobileDevice) {
             window.location.replace('/shop/mobile/index.html');
           } else {
