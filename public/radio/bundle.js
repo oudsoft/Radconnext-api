@@ -4562,13 +4562,14 @@ module.exports = function ( jq ) {
 	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, 'Radiologist Open accepted case by Web App');
 				if (response.status.code == 200) {
 		      eventData.statusId = newCaseStatus;
-					eventData.startDownload = 0;
+					eventData.startDownload = 1;
 		      $(openCmd).trigger('opencase', [eventData]);
 				} else {
 					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
 				}
 			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9) || (currentCaseRes.current == 14)){
 				eventData.statusId = caseItem.casestatusId;
+				//eventData.startDownload = 1;
 	      $(openCmd).trigger('opencase', [eventData]);
 			} else {
 				$.notify('ขออภัย เคสไม่อยู่ในสถานะที่จะพิมพ์ผลอ่านแล้ว', 'error');
@@ -4603,7 +4604,10 @@ module.exports = function ( jq ) {
 			let caseCMD = doCreateCaseItemCommand(caseItem);
 
       let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
-
+			$(caseRow).css({'cursor': 'pointer'});
+			$(caseRow).on('dblclick', (evt)=>{
+				$(caseCMD).find('#OpenCaseCmd').click();
+			});
   		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
   		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
   		$(caseColumn).appendTo($(caseRow));
@@ -6513,9 +6517,8 @@ module.exports = function ( jq ) {
 	let downloadDicomList = [];
 	let syncTimer = undefined;
 
-	const doDownloadZipBlob = function(evt, link, outputFilename, successCallback){
-		console.log($(evt.currentTarget));
-		$(evt.currentTarget).css({'backdrop-filter': 'blur(10px)'});
+	const doDownloadZipBlob = function(downloadCmd, link, outputFilename, successCallback){
+		$(downloadCmd).css({'backdrop-filter': 'blur(10px)'});
 		let pom = document.createElement('a');
 		$.ajax({
 			url: link,
@@ -6531,16 +6534,16 @@ module.exports = function ( jq ) {
 						let total = event.total;
 						let prog = (loaded / total) * 100;
 						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						$(evt.currentTarget).val(perc + '%');
+						$(downloadCmd).val(perc + '%');
 					}
 				}
 				return xhr;
 			},
 			success: function(data){
-				$(evt.currentTarget).val(' DL/Open ');
-				$(evt.currentTarget).css({'backdrop-filter': ''});
-				$(evt.currentTarget).removeClass('action-btn');
-				$(evt.currentTarget).addClass('special-action-btn');
+				$(downloadCmd).val(' DL/Open ');
+				$(downloadCmd).css({'backdrop-filter': ''});
+				$(downloadCmd).removeClass('action-btn');
+				$(downloadCmd).addClass('special-action-btn');
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
 				pom.setAttribute('href', stremLink);
 				pom.setAttribute('download', outputFilename);
@@ -6561,10 +6564,10 @@ module.exports = function ( jq ) {
 		return downloadDicomList;
 	}
 
-  const onDownloadCmdClick = function(evt) {
+  const onDownloadCmdClick = function(downloadCmd) {
 		return new Promise(async function(resolve, reject) {
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
-	    const downloadCmd = $(evt.currentTarget);
+	    //const downloadCmd = $(evt.currentTarget);
 	    const downloadData = $(downloadCmd).data('downloadData');
 			let dicomzipfilename = downloadData.dicomzipfilename;
 			let dicomzipfilepath = '/img/usr/zip/' + dicomzipfilename;
@@ -6573,14 +6576,14 @@ module.exports = function ( jq ) {
 
 			let existDicomFileRes = await apiconnector.doCallDicomArchiveExist(dicomzipfilename);
 			if (existDicomFileRes.link){
-				doDownloadZipBlob(evt, dicomzipfilepath, dicomzipfilename, ()=>{
+				doDownloadZipBlob(downloadCmd, dicomzipfilepath, dicomzipfilename, ()=>{
 					downloadDicomList.push(dicomzipfilename);
 				});
 				resolve(existDicomFileRes);
 			} else {
 				let existOrthancFileRes = await apiconnector.doCallDicomArchiveExist(orthanczipfilename);
 				if (existOrthancFileRes.link){
-					doDownloadZipBlob(evt, orthanczipfilepath, dicomzipfilename, ()=>{
+					doDownloadZipBlob(downloadCmd, orthanczipfilepath, dicomzipfilename, ()=>{
 						downloadDicomList.push(dicomzipfilename);
 					});
 					resolve(existOrthancFileRes);
@@ -6589,7 +6592,7 @@ module.exports = function ( jq ) {
 					let hospitalId = downloadData.hospitalId;
 					apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 						setTimeout(()=>{
-							doDownloadZipBlob(evt, response.link, dicomzipfilename, ()=>{
+							doDownloadZipBlob(downloadCmd, response.link, dicomzipfilename, ()=>{
 								downloadDicomList.push(dicomzipfilename);
 							});
 							resolve(response);
@@ -7600,7 +7603,7 @@ module.exports = function ( jq ) {
 			$(buttonCmdTable).append($(buttonCmdRow1))/*.append($(buttonCmdRow2)).append($(buttonCmdRow3))*/;
 			$(buttonCmdArea).append($(buttonCmdTable));
 			$(summarySecondAreaMiddle1).append($(buttonCmdArea));
-			let downloadCmd = $('<input type="button" value=" Download " class="action-btn" style="cursor: pointer; width: 110px;"/>');
+			let downloadCmd = $('<input type="button" value=" Download " id="DownloadDicomZipCmd" class="action-btn" style="cursor: pointer; width: 110px;"/>');
 			let patientFullName = selectedCase.case.patient.Patient_NameEN + ' ' + selectedCase.case.patient.Patient_LastNameEN;
 			let patientHN = selectedCase.case.patient.Patient_HN;
 			let downloadData = {caseId: selectedCase.case.id, patientId: selectedCase.case.patient.id, studyID: selectedCase.case.Case_OrthancStudyID, casedate: casedate, casetime: casetime, hospitalId: selectedCase.case.hospitalId, dicomzipfilename: selectedCase.case.Case_DicomZipFilename, userId: selectedCase.case.userId};
@@ -7610,7 +7613,7 @@ module.exports = function ( jq ) {
 			$(downloadCmd).attr('title', 'Download zip file of ' + patientFullName);
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', async (evt)=>{
-				let dwnRes = await onDownloadCmdClick(evt);
+				let dwnRes = await onDownloadCmdClick(downloadCmd);
 				$(downloadCmd).off('click');
 				//$(downloadCmd).removeClass('action-btn');
 				//$(downloadCmd).addClass('special-action-btn');
@@ -7623,7 +7626,7 @@ module.exports = function ( jq ) {
 						onOpenThirdPartyCmdClick(evt);
 					} else {
 						//normal click
-						dwnRes = await onDownloadCmdClick(evt);
+						dwnRes = await onDownloadCmdClick(downloadCmd);
 					}
 				});
 			});
@@ -8017,18 +8020,31 @@ module.exports = function ( jq ) {
 	      let myOpenCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 				let caseSummaryDetail = await doCreateSummaryDetailCase(myOpenCase.result);
 				$(myOpenCaseView).append($(caseSummaryDetail));
-				/*
-	      if (myOpenCase.Records.length > 0) {
-	        let caseOpen = myOpenCase.Records[0];
-	        let caseSummaryDetail = await doCreateSummaryDetailCase(myOpenCase.result);
-	        $(myOpenCaseView).append($(caseSummaryDetail));
-	      } else {
-	        let notFoundMessage = $('<h3>เกิดข้อผิดพลาด ไม่พบรายการเคสที่คุณเลือกในขณะนี้</h3>')
-	        $(myOpenCaseView).append($(notFoundMessage));
-	      }
-				*/
+				if (caseData.startDownload == 1) {
+					let downloadDicomZipCmd = $(caseSummaryDetail).find('#DownloadDicomZipCmd');
+					if (downloadDicomZipCmd) {
+						let dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
+						$(downloadDicomZipCmd).off('click');
+						$(downloadDicomZipCmd).attr('title', 'Ctrl+click to open with 3rd party program');
+						$(downloadDicomZipCmd).val(' DL/Open ');
+						$(downloadDicomZipCmd).on('click', async (evt)=>{
+							if (evt.ctrlKey) {
+								// Ctrl Click
+								onOpenThirdPartyCmdClick();
+							} else {
+								//normal click
+								dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
+							}
+						});
+						//onOpenThirdPartyCmdClick();
+						let newEvt = jQuery.Event("click");
+						newEvt.ctrlKey = true;
+						setTimeout(()=>{
+							$(downloadDicomZipCmd).trigger(newEvt);
+						}, 1500);
+					}
+				}
 	      resolve($(myOpenCaseView));
-	      //$('body').loading('stop');
 			} else if (myOpenCase.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 				//$('body').loading('stop');
@@ -8947,6 +8963,7 @@ module.exports = function ( jq ) {
 								if ((eventData.StudyDescription == '') && (eventData.ProtocolName != '')) {
 									eventData.StudyDescription = eventData.ProtocolName;
 								}
+								eventData.startDownload = 0;
 								console.log(eventData);
 					      $(iconCmd).trigger('opencase', [eventData]);
 							}
