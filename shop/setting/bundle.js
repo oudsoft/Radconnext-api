@@ -2782,14 +2782,19 @@ module.exports = function ( jq ) {
 
   const doUploadImage = function(fileBrowser, menuitemLogoIcon, fileType, itemId, shopData, workAreaBox, groupId){
     var uploadUrl = '/api/shop/upload/menuitemlogo';
+		$('body').loading('start');
     $(fileBrowser).simpleUpload(uploadUrl, {
       success: async function(data){
         $(fileBrowser).remove();
         let shopRes = await common.doCallApi('/api/shop/menuitem/change/logo', {data: {MenuPicture: data.link}, id: itemId});
         setTimeout(async() => {
           await doShowMenuitemItem(shopData, workAreaBox, groupId);
+					$('body').loading('stop');
         }, 400);
       },
+			progress: function(progress){
+				$('body').loading({message: Math.round(progress) + ' %'});
+			}
     });
   }
 
