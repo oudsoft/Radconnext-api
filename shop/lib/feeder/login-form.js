@@ -61,7 +61,6 @@
 
     const gotoYourPage = function(usertype){
       let isMobileDevice = isMobileDeviceCheck();
-      console.log(usertype);
       switch (usertype) {
         case 1:
           if (isMobileDevice) {
@@ -86,12 +85,7 @@
           }
         break;
         case 4:
-          if (isMobileDevice) {
-            window.location.replace('/shop/mobile/index.html');
-          } else {
-            window.location.replace('/shop/setting/admin.html');
-          }
-          //window.location.replace('/shop/mobile/index.html');
+          window.location.replace('/shop/mobile/index.html');
         break;
         case 5:
           //window.location.replace('/refer/index.html');
@@ -100,6 +94,7 @@
           //window.location.replace('/sip/dialcall.html');
         break;
       }
+      sessionStorage.setItem('logged', true);
     }
 
   	const doCheckUserData = function(){
