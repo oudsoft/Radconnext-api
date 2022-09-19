@@ -187,10 +187,28 @@ const doCountPagePdf = function(pdfFile){
   });
 }
 
-const doFindGooditemTableHight = function(shopId, docType, googItems){
+const doCountTextLine = function(paperSize, goodItems){
+  return new Promise(async function(resolve, reject) {
+		let lineLength = 100;
+		if (paperSize == 2){
+			lineLength = 21;
+		}
+		let line = 0;
+		await goodItems.forEach((item, i) => {
+			line += item.MenuName.length / lineLength;
+			if ((item.MenuName.length % lineLength) > 0) {
+				line += 1;
+			}
+		});
+		resolve(line);
+	});
+}
+
+const doFindGooditemTableHight = function(shopId, docType, goodItems){
   return new Promise(async function(resolve, reject) {
     const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
     const reportElements = templates[0].Content;
+		const paperSize = templates[0].PaperSize;
     const gooditemsTable = await reportElements.find((element)=>{
       if (element.elementType == 'table'){
         return element;
@@ -202,10 +220,11 @@ const doFindGooditemTableHight = function(shopId, docType, googItems){
 		let tableHeight = 0;
     let totalHeight = 0;
     const promiseList = new Promise(async function(resolve2, reject2) {
+			let line = await doCountTextLine(paperSize, goodItems);
       for (let i=0; i < gooditemRows.length; i++){
         if (gooditemRows[i].id == 'dataRow') {
 					tableHeight += Number(gooditemRows[i].fields[0].height);
-          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue) * googItems.length;
+          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue) * line;
         } else {
 					tableHeight += Number(gooditemRows[i].fields[0].height);
           totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue);
@@ -267,13 +286,19 @@ const doLoadVariable = function(docType, orderId, docNo){
         customer_tel: ((orders[0].customer.Tel) && (orders[0].customer.Tel != ''))?orders[0].customer.Tel:'-',
         order_no: orderId,
         order_by: orders[0].userinfo.User_NameTH + ' ' + orders[0].userinfo.User_LastNameTH,
-        order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
-
+        //order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
+				order_datetime: formatDateTimeStr(orders[0].createdAt),
         print_no: docs[0].No,
         print_by: docs[0].userinfo.User_NameTH + ' ' + docs[0].userinfo.User_LastNameTH,
+				/*
         print_datetime: doFormateDateTimeThaiZone(docs[0].createdAt),
 				print_date: doFormateDateThaiZone(docs[0].createdAt),
 				print_time: doFormateTimeThaiZone(docs[0].createdAt),
+				*/
+				print_datetime: formatDateTimeStr(docs[0].createdAt),
+				print_date: formatStudyDate(docs[0].createdAt),
+				print_time: formatStudyTime(docs[0].createdAt),
+
 				print_filename: docs[0].Filename,
 				print_status: orders[0].Status,
         /*
