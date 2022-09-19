@@ -2347,8 +2347,8 @@ module.exports = function ( jq ) {
 		menugroups.forEach((group, i) => {
 			let groupImage = $('<img/>').attr('src', group.GroupPicture).css({'width': '120px', 'height': 'auto'});
 			let imageBox = $('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(groupImage));
-			let nameBox = $('<div></div>').css({'width': '100%', 'text-align': 'left'}).append($('<span><b>ชื่อ: </b></span>')).append($('<span></span>').text(group.GroupName));
-			let groupBox = $('<div></div>').css({'display': 'inline-block', 'cursor': 'pointer', 'background-color': '#ddd'}).append($(imageBox)).append($(nameBox));
+			let nameBox = $('<div></div>').css({'width': '100%', 'text-align': 'left'}).append($('<span></span>').text(group.GroupName));
+			let groupBox = $('<div></div>').css({'width': '150px', 'display': 'inline-block', 'cursor': 'pointer', 'background-color': '#ddd', 'margin-left': '10px'}).append($(imageBox)).append($(nameBox));
 			$(groupBox).hover(()=>{
 				$(groupBox).css({'background-color': 'grey', 'color': 'white'});
 			},()=>{
