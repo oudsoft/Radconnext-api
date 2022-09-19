@@ -789,7 +789,7 @@ module.exports = function ( jq ) {
 						let increaseBtnCmd = common.doCreateImageCmd('../../images/plus-sign-icon.png', 'เพิ่มจำนวน');
 						let decreaseBtnCmd = common.doCreateImageCmd('../../images/minus-sign-icon.png', 'ลดจำนวน');
 						let deleteGoodItemCmd = common.doCreateImageCmd('../../images/cross-red-icon.png', 'ลบรายการ');
-						$(increaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '8px'});
+						$(increaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '8px', 'margin-bottom': '-4px'});
 						$(increaseBtnCmd).on('click', async(evt)=>{
 							evt.stopPropagation();
 							let oldQty = Number($(goodItemQtyBox).text());
@@ -823,7 +823,7 @@ module.exports = function ( jq ) {
 							$(totalBox).text(common.doFormatNumber(newTotal));
 						});
 
-						$(decreaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '4px'});
+						$(decreaseBtnCmd).css({'width': '22px', 'height': 'auto', 'margin-left': '4px', 'margin-bottom': '-4px'});
 						$(deleteGoodItemCmd).css({'width': '32px', 'height': 'auto', 'margin-left': '8px'});
 						$(goodItemQtyUnitBox).append($(goodItemQtyBox)).append($(goodItemUnitBox));
 						$(goodItemQtyUnitBox).on('click', (evt)=>{
