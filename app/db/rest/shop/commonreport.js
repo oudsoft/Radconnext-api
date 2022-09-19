@@ -66,6 +66,7 @@ const billFieldOptions = [
 	{name_en: 'baht_word', name_th: 'จำนวนบาทตัวอักษร'}
 ]
 
+const offsetTimeZone = 7;
 const monthTHNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 
 const fmtStr = function (str) {
@@ -75,11 +76,10 @@ const fmtStr = function (str) {
 }
 
 const formatDateTimeStr = function(dt){
-	const offset = 7;
 	let d = new Date(dt);
 	//สำหรับ timezone = Etc/UTC
 	let utc = d.getTime();
-	d = new Date(utc + (3600000 * offset));
+	d = new Date(utc + (3600000 * offsetTimeZone));
 	//สำหรับ timezone = Asia/Bangkok
 	//d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
 	var yy, mm, dd, hh, mn, ss;
@@ -109,7 +109,95 @@ const formatDateTimeStr = function(dt){
 	} else {
 		ss = '' + d.getSeconds();
 	}
-	var td = `${yy}-${mm}-${dd}T${hh}:${mn}:${ss}`;
+	let td = `${yy}-${mm}-${dd}T${hh}:${mn}:${ss}`;
+	return td;
+}
+
+const formatDateTimeDoc =function(dt){
+	let d = new Date(dt);
+	//สำหรับ timezone = Etc/UTC
+	let utc = d.getTime();
+	d = new Date(utc + (3600000 * offsetTimeZone));
+	//สำหรับ timezone = Asia/Bangkok
+	//d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+	let yy, mm, dd, hh, mn, ss;
+	yy = d.getFullYear();
+	if (d.getMonth() + 1 < 10) {
+		mm = '0' + (d.getMonth() + 1);
+	} else {
+		mm = '' + (d.getMonth() + 1);
+	}
+	if (d.getDate() < 10) {
+		dd = '0' + d.getDate();
+	} else {
+		dd = '' + d.getDate();
+	}
+	if (d.getHours() < 10) {
+		hh = '0' + d.getHours();
+	} else {
+		 hh = '' + d.getHours();
+	}
+	if (d.getMinutes() < 10){
+		 mn = '0' + d.getMinutes();
+	} else {
+		mn = '' + d.getMinutes();
+	}
+	if (d.getSeconds() < 10) {
+		 ss = '0' + d.getSeconds();
+	} else {
+		ss = '' + d.getSeconds();
+	}
+	let td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
+	return td;
+}
+
+const formatDateDoc =function(dt){
+	let d = new Date(dt);
+	//สำหรับ timezone = Etc/UTC
+	let utc = d.getTime();
+	d = new Date(utc + (3600000 * offsetTimeZone));
+	//สำหรับ timezone = Asia/Bangkok
+	//d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+	let yy, mm, dd;
+	yy = d.getFullYear();
+	if (d.getMonth() + 1 < 10) {
+		mm = '0' + (d.getMonth() + 1);
+	} else {
+		mm = '' + (d.getMonth() + 1);
+	}
+	if (d.getDate() < 10) {
+		dd = '0' + d.getDate();
+	} else {
+		dd = '' + d.getDate();
+	}
+	let td = `${yy}-${mm}-${dd}`;
+	return td;
+}
+
+const formatTimeDoc =function(dt){
+	let d = new Date(dt);
+	//สำหรับ timezone = Etc/UTC
+	let utc = d.getTime();
+	d = new Date(utc + (3600000 * offsetTimeZone));
+	//สำหรับ timezone = Asia/Bangkok
+	//d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+	let hh, mn, ss;
+	if (d.getHours() < 10) {
+		hh = '0' + d.getHours();
+	} else {
+		 hh = '' + d.getHours();
+	}
+	if (d.getMinutes() < 10){
+		 mn = '0' + d.getMinutes();
+	} else {
+		mn = '' + d.getMinutes();
+	}
+	if (d.getSeconds() < 10) {
+		 ss = '0' + d.getSeconds();
+	} else {
+		ss = '' + d.getSeconds();
+	}
+	let td = `${hh}:${mn}`;
 	return td;
 }
 
@@ -287,7 +375,7 @@ const doLoadVariable = function(docType, orderId, docNo){
         order_no: orderId,
         order_by: orders[0].userinfo.User_NameTH + ' ' + orders[0].userinfo.User_LastNameTH,
         //order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
-				order_datetime: formatDateTimeStr(orders[0].createdAt),
+				order_datetime: formatDateTimeDoc(new Date(orders[0].createdAt)),
         print_no: docs[0].No,
         print_by: docs[0].userinfo.User_NameTH + ' ' + docs[0].userinfo.User_LastNameTH,
 				/*
@@ -295,9 +383,9 @@ const doLoadVariable = function(docType, orderId, docNo){
 				print_date: doFormateDateThaiZone(docs[0].createdAt),
 				print_time: doFormateTimeThaiZone(docs[0].createdAt),
 				*/
-				print_datetime: formatDateTimeStr(docs[0].createdAt),
-				print_date: formatStudyDate(docs[0].createdAt),
-				print_time: formatStudyTime(docs[0].createdAt),
+				print_datetime: formatDateTimeDoc(new Date(docs[0].createdAt)),
+				print_date: formatDateDoc(new Date(docs[0].createdAt)),
+				print_time: formatTimeDoc(new Date(docs[0].createdAt)),
 
 				print_filename: docs[0].Filename,
 				print_status: orders[0].Status,
@@ -436,17 +524,24 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
-						let htmlFilePath = usrPdfPath + '/' + htmlFileName;
-						let pngFileName = fileNames[0] + '.png';
-						let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
-						//let createReportPNGCommnand = fmtStr('convert -density 288 %s -resize 25% %s', reportPdfFilePath, reportPNGFilePath);
-						//let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
-						let createReportPNGCommnand = fmtStr('convert %s %s', reportPdfFilePath, reportPNGFilePath);
-						//log.info('createReportPNGCommnand >>', createReportPNGCommnand);
-						await runcommand(createReportPNGCommnand);
-						reportHtmlLinkPath = '/shop' + reportHtmlLinkPath;
-						let reportPNGLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pngFileName;
-						resolve({reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPNGLinkPath: reportPNGLinkPath, reportPages: pdfPage, qrLink: qrlink});
+						if (paperSize = 1) {
+							let result = {reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage, qrLink: qrlink};
+							resolve(result);
+						} else if (paperSize = 2) {
+							let htmlFilePath = usrPdfPath + '/' + htmlFileName;
+							let pngFileName = fileNames[0] + '.png';
+							let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
+							//let createReportPNGCommnand = fmtStr('convert -density 288 %s -resize 25% %s', reportPdfFilePath, reportPNGFilePath);
+							//let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+							// convert -density 288 /home/Radconnext/shop/img/usr/pdf/00009-2-000000015.pdf /home/Radconnext/shop/img/usr/pdf/00009-2-000000015.png
+							let createReportPNGCommnand = fmtStr('convert  -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+							log.info('createReportPNGCommnand >>', createReportPNGCommnand);
+							await runcommand(createReportPNGCommnand);
+							reportHtmlLinkPath = '/shop' + reportHtmlLinkPath;
+							let reportPNGLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pngFileName;
+							let result = {reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPNGLinkPath: reportPNGLinkPath, reportPages: pdfPage, qrLink: qrlink};
+							resolve(result);
+						}
 					}).catch((cmderr) => {
 						log.error('cmderr: 500 >>', cmderr);
 						reject(cmderr);
