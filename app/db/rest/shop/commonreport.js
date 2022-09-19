@@ -147,9 +147,7 @@ const formatDateTimeDoc =function(dt){
 	} else {
 		ss = '' + d.getSeconds();
 	}
-	//let td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
 	let td = fmtStr('%s-%s-%s %s:%s', yy, mm, dd, hh, mn);
-	log.info('td=>' + td);
 	return td;
 }
 
@@ -172,7 +170,7 @@ const formatDateDoc =function(dt){
 	} else {
 		dd = '' + d.getDate();
 	}
-	let td = `${yy}-${mm}-${dd}`;
+	let td = fmtStr('%s-%s-%s', yy, mm, dd);
 	return td;
 }
 
@@ -199,7 +197,7 @@ const formatTimeDoc =function(dt){
 	} else {
 		ss = '' + d.getSeconds();
 	}
-	let td = `${hh}:${mn}`;
+	let td = fmtStr('%s:%s', hh, mn);
 	return td;
 }
 
