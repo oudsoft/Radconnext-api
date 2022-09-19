@@ -514,7 +514,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 					let creatReportCommand = undefined;
 					if (paperSize == 1){
 						creatReportCommand = fmtStr('wkhtmltopdf -s A4 -T 10 -B 5 -L 10 -R 10 http://localhost:8088/shop%s %s', reportHtmlLinkPath, reportPdfFilePath);
-					} else if (paperSize = 2) {
+					} else if (paperSize == 2) {
 						let paperWidth = 80;
 						let paperHeight = (paperWidth/wrapperWidth) * maxTop;
 						creatReportCommand = fmtStr('wkhtmltopdf --page-width %s --page-height %s -T 10 -B 10 -L 4 -R 4 http://localhost:8088/shop%s %s', paperWidth, paperHeight, reportHtmlLinkPath, reportPdfFilePath);
@@ -524,10 +524,10 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
-						if (paperSize = 1) {
+						if (paperSize == 1) {
 							let result = {reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage, qrLink: qrlink};
 							resolve(result);
-						} else if (paperSize = 2) {
+						} else if (paperSize == 2) {
 							let htmlFilePath = usrPdfPath + '/' + htmlFileName;
 							let pngFileName = fileNames[0] + '.png';
 							let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
