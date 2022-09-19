@@ -147,7 +147,9 @@ const formatDateTimeDoc =function(dt){
 	} else {
 		ss = '' + d.getSeconds();
 	}
-	let td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
+	//let td = `${yy}-${mm}-${dd} ${hh}:${mn}`;
+	let td = fmtStr('%s-%s-%s %s:%s', yy, mm, dd, hh, mn);
+	log.info('td=>' + td);
 	return td;
 }
 
