@@ -2363,7 +2363,7 @@ module.exports = function ( jq ) {
 		let popupOption = {
 			title: 'เลือกกลุ่มสินค้า',
 			msg: $(groupFilterBox),
-			width: '400px',
+			width: '460px',
 			onOk: function(evt) {
 				dlgHandle.closeAlert();
 				successCallback(undefined);
