@@ -13043,7 +13043,7 @@ module.exports = function ( jq ) {
   }
 
 	const doShowGooditemPopup = function(gooditem) {
-		let gooditemImage = $('<img/>').attr('src', gooditem.MenuPicture).css({'width': '120px', 'height': 'auto'});
+		let gooditemImage = $('<img/>').attr('src', gooditem.MenuPicture).css({'width': '280px', 'height': 'auto'});
 		let imageBox = $('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(gooditemImage));
 		let nameBox = $('<div></div>').css({'width': '100%', 'text-align': 'left'}).append($('<span><b>ชื่อ: </b></span>')).append($('<span></span>').text(gooditem.MenuName));
 		let priceBox = $('<div></div>').css({'width': '100%', 'text-align': 'left'}).append($('<span><b>ราคาต่อหน่วย: </b></span>')).append($('<span></span>').text(common.doFormatNumber(gooditem.Price)));
@@ -13069,10 +13069,10 @@ module.exports = function ( jq ) {
 	const doShowGroupFilter = function(menugroups, successCallback) {
 		let groupFilterBox = $('<div></div>').css({'width': '100%'});
 		menugroups.forEach((group, i) => {
-			let groupImage = $('<img/>').attr('src', group.GroupPicture).css({'width': '120px', 'height': 'auto'});
+			let groupImage = $('<img/>').attr('src', group.GroupPicture).css({'width': '220px', 'height': 'auto'});
 			let imageBox = $('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(groupImage));
 			let nameBox = $('<div></div>').css({'width': '100%', 'text-align': 'left'}).append($('<span></span>').text(group.GroupName));
-			let groupBox = $('<div></div>').css({'width': '150px', 'display': 'inline-block', 'cursor': 'pointer', 'background-color': '#ddd', 'margin-left': '10px'}).append($(imageBox)).append($(nameBox));
+			let groupBox = $('<div></div>').css({'width': '150px', 'display': 'inline-block', 'cursor': 'pointer', 'background-color': '#ddd', 'margin': '10px 0 0 10px'}).append($(imageBox)).append($(nameBox));
 			$(groupBox).hover(()=>{
 				$(groupBox).css({'background-color': 'grey', 'color': 'white'});
 			},()=>{
