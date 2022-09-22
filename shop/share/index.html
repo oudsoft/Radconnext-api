@@ -600,5 +600,10 @@
         });
       }
     });
+    el.addEventListener('dblclick', function(e){
+      doOpenSettingForm(evt, (newSettingValue)=>{
+        doStartPlay();
+      });
+    });
   }, 2000);
 </script>
