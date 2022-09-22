@@ -572,27 +572,29 @@
     }, false)
   }
 
-  var el = document.getElementById('SponsorBox')
-  swipedetect(el, function(swipedir){
-    //swipedir contains either "none", "left", "right", "top", or "down"
-    if (swipedir =='left') {
-      doStopSponsorTimer();
-      ++currentPlaySportIndex;
-      if (currentPlaySportIndex >= imageFiles.length) {
-        currentPlaySportIndex = 0;
-      }
-      reCreateImg(currentPlaySportIndex);
-    } else if (swipedir =='right') {
-      doStopSponsorTimer();
-      --currentPlaySportIndex;
-      if (currentPlaySportIndex < 0) {
-        currentPlaySportIndex = imageFiles.length - 1;
-      }
-      reCreateImg(currentPlaySportIndex);
-    } else if (swipedir =='top') {
+  setTimeout(()=>{
+    var el = document.getElementById('SponsorBox')
+    swipedetect(el, function(swipedir){
+      //swipedir contains either "none", "left", "right", "top", or "down"
+      if (swipedir =='left') {
+        doStopSponsorTimer();
+        ++currentPlaySportIndex;
+        if (currentPlaySportIndex >= imageFiles.length) {
+          currentPlaySportIndex = 0;
+        }
+        reCreateImg(currentPlaySportIndex);
+      } else if (swipedir =='right') {
+        doStopSponsorTimer();
+        --currentPlaySportIndex;
+        if (currentPlaySportIndex < 0) {
+          currentPlaySportIndex = imageFiles.length - 1;
+        }
+        reCreateImg(currentPlaySportIndex);
+      } else if (swipedir =='top') {
 
-    } else if (swipedir =='down') {
+      } else if (swipedir =='down') {
 
-    }
-  })
+      }
+    });
+  }, 2000);
 </script>
