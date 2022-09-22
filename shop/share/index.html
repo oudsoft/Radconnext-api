@@ -602,7 +602,7 @@
     });
     el.addEventListener('dblclick', function(evt){
       doOpenSettingForm(evt, (newSettingValue)=>{
-        doStartPlay();
+        reCreateImg(currentPlaySportIndex);
       });
     });
   }, 2000);
