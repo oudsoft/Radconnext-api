@@ -591,9 +591,13 @@
         }
         reCreateImg(currentPlaySportIndex);
       } else if (swipedir =='top') {
-
+        doStopSponsorTimer();
+        doStartPlay();
       } else if (swipedir =='down') {
-
+        doStopSponsorTimer();
+        doOpenSettingForm(evt, (newSettingValue)=>{
+          doStartPlay();
+        });
       }
     });
   }, 2000);
