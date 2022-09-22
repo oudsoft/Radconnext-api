@@ -591,12 +591,12 @@
         }
         reCreateImg(currentPlaySportIndex);
       } else if (swipedir =='top') {
-        doStopSponsorTimer();
-        doStartPlay();
+        //doStopSponsorTimer();
+        reCreateImg(currentPlaySportIndex);
       } else if (swipedir =='down') {
-        doStopSponsorTimer();
+        //doStopSponsorTimer();
         doOpenSettingForm(evt, (newSettingValue)=>{
-          doStartPlay();
+          reCreateImg(currentPlaySportIndex);
         });
       }
     });
