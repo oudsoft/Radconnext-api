@@ -393,7 +393,9 @@ function RadconWebSocketServer (arg, db, log) {
 	this.findShopLocalSocket = function(shopId) {
 		return new Promise(async function(resolve, reject) {
 			let yourSocket = await $this.clients.find((ws) =>{
-				if ((ws.hospitalId == shoplId) && (ws.connectType === 'shop') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+				log.info("shopId=>" + shopId)
+				log.info('ws.hospitalId=> ' + ws.hospitalId);
+				if ((ws.hospitalId == shopId) && (ws.connectType === 'shop') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
 			});
 			resolve(yourSocket);
 		});
@@ -711,7 +713,7 @@ function RadconWebSocketServer (arg, db, log) {
 			await shopSockets.forEach((socket, i) => {
 				socket.send(JSON.stringify(data));
 			});
-			
+
 	    resolve(shopSockets);
 	  });
 	}

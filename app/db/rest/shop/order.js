@@ -102,7 +102,35 @@ const doSearchOrder = function(whereCluase, orderby) {
 */
 
 const doFindItemsDiff = function(o1, o2) {
-
+  return new Promise(function(resolve, reject) {
+    const promiseList = new Promise(async function(resolve2, reject2) {
+      let diffItem = {ChangeItems: [], ChangeQtys: []};
+      await o1.forEach(async (itemO1, i) => {
+        let id = Number(itemO1.id);
+        let qty = Number(itemO1.Qty);
+        let foundItem = await o2.find((itemO2, j) =>{
+          if (Number(itemO2.id) == id) {
+            return itemO2;
+          }
+        });
+        if (foundItem) {
+          if (Number(foundItem.Qty) != qty) {
+            let chngQty = {id: foundItem.id, MenuName: foundItem.MenuName, OldQty: qty, NewQty: foundItem.Qty};
+            diffItem.ChangeQtys.push(chngQty);
+          }
+        } else {
+          let chngQty = {id: itemO1.id, MenuName: itemO1.MenuName, OldQty: 0, NewQty: itemO1.Qty};
+          diffItem.ChangeItems.push(chngQty);
+        }
+      });
+      setTimeout(()=> {
+        resolve2(diffItem);
+      },800);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    });
+  });
 }
 
 //List API
@@ -275,8 +303,10 @@ app.post('/update', (req, res) => {
         updateOrder.BeforeItems = beforeItems[0].Items;
         await db.orders.update(updateOrder, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
-        let updateOrderData = {type: 'shop', shop: {orderupdate: '***'}, shopId: beforeItems[0].ShopId};
-        wss.doControlShopMessage(updateOrderData);
+        let diffItemForward = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
+        let diffItemBackward = await doFindItemsDiff(updateOrder.BeforeItems, updateOrder.Items);
+        let updateOrderData = {type: 'shop', shop: {orderId: req.body.id, forward: diffItemForward, backward: diffItemBackward}, shopId: beforeItems[0].shopId};
+        wss.doControlShopMessage(updateOrderData)
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {

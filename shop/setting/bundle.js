@@ -199,6 +199,49 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doConnectWebsocketMaster = function(username, usertype, shopId, connecttype){
+	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
+	  const port = window.location.port;
+	  const paths = window.location.pathname.split('/');
+	  const rootname = paths[1];
+
+		//let wsUrl = 'wss://radconnext.tech/' + username + '/' + shopId + '?type=' + connecttype;
+		let wsUrl = 'wss://localhost:4443/' + username + '/' + shopId + '?type=' + connecttype;
+	  const wsm = new WebSocket(wsUrl);
+		wsm.onopen = function () {
+			//console.log('Master Websocket is connected to the signaling server')
+		};
+
+		wsm.onclose = function(event) {
+			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+		};
+
+		wsm.onerror = function (err) {
+		   console.log("Master WS Got error", err);
+		};
+
+		//console.log(usertype);
+
+		/*
+		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageHospital.onMessageHospital;
+		} else if (usertype == 4) {
+			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRedio.onMessageRadio;
+		} else if (usertype == 5) {
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRefer.onMessageRefer;
+		}
+		*/
+
+		const wsmMessageShop = require('./websocketmessage.js')($, wsm);
+		wsm.onmessage = wsmMessageShop.onMessageShop;
+
+		return wsm;
+	}
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
@@ -217,11 +260,12 @@ module.exports = function ( jq ) {
 		isExistsResource,
 		doCreateReportDocButtonCmd,
 		doCalOrderTotal,
-		doResetSensitiveWord
+		doResetSensitiveWord,
+		doConnectWebsocketMaster
 	}
 }
 
-},{}],3:[function(require,module,exports){
+},{"./websocketmessage.js":4}],3:[function(require,module,exports){
 const A4Width = 1004;
 const A4Height = 1410;
 const SlipWidth = 374;
@@ -288,6 +332,48 @@ module.exports = {
 }
 
 },{}],4:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm ) {
+	const $ = jq;
+
+  const onMessageShop = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type == 'test') {
+      $.notify(data.message, "info");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+    } else if (data.type == 'shop') {
+      switch(data.shop) {
+				//when somebody wants to call us
+				case "orderupdate":
+					onOrderUpdate(wsm, data.shop);
+				break;
+			}
+    } else {
+			console.log('Nothing Else');
+		}
+  };
+
+  const onOrderUpdate = function(wsm, changeOrder){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		if (!changelogs) {
+			changelogs = [];
+		}
+		changelogs.push(changeOrder);
+		localStorage.setItem('changelogs', JSON.stringify(changelogs))
+  }
+
+  return {
+    onMessageShop
+	}
+}
+
+},{}],5:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -300,6 +386,8 @@ window.$.ajaxSetup({
 
 const common = require('../../home/mod/common-lib.js')($);
 const shopitem = require('./mod/shop-item-mng.js')($);
+
+let wss = undefined;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -354,6 +442,7 @@ $( document ).ready(function() {
       } else {
         doShowShopMng(userdata.shopId);
       }
+      wss = common.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.shopId, 'shop');
     }
 	};
 
@@ -415,7 +504,7 @@ module.exports = {
   doShowShopMng,
 }
 
-},{"../../../../api/shop/lib/sensitive-word.json":1,"../../home/mod/common-lib.js":2,"./mod/shop-item-mng.js":16,"jquery":20}],5:[function(require,module,exports){
+},{"../../../../api/shop/lib/sensitive-word.json":1,"../../home/mod/common-lib.js":2,"./mod/shop-item-mng.js":17,"jquery":21}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -431,7 +520,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],6:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -721,7 +810,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],7:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],8:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -872,7 +961,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],8:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],9:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -1207,7 +1296,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":5,"./order-history.js":13,"./order-mng.js":15}],9:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":6,"./order-history.js":14,"./order-mng.js":16}],10:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2041,7 +2130,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/constant-lib.js":3}],10:[function(require,module,exports){
+},{"../../../home/mod/constant-lib.js":3}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -2384,7 +2473,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2679,7 +2768,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -2927,7 +3016,7 @@ module.exports = function ( jq ) {
 		if (groupId) {
 			$(inputValue).val(groupId);
 		} else {
-			$(inputValue).val(menuitemData);
+			$(inputValue).val(menuitemData.menugroupId);
 		}
 
 		return $(menuitemFormTable);
@@ -3089,7 +3178,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -3262,7 +3351,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -3356,7 +3445,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],15:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],16:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4346,7 +4435,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":5,"./closeorder-dlg.js":6,"./customer-dlg.js":7,"./gooditem-dlg.js":10,"./order-merge-dlg.js":14}],16:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":6,"./closeorder-dlg.js":7,"./customer-dlg.js":8,"./gooditem-dlg.js":11,"./order-merge-dlg.js":15}],17:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4682,7 +4771,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../../../api/shop/lib/sensitive-word.json":1,"../../../home/mod/common-lib.js":2,"./shop-mng.js":17}],17:[function(require,module,exports){
+},{"../../../../../api/shop/lib/sensitive-word.json":1,"../../../home/mod/common-lib.js":2,"./shop-mng.js":18}],18:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -4874,7 +4963,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2,"../main.js":4,"./customer-mng.js":8,"./menugroup-mng.js":11,"./menuitem-mng.js":12,"./order-mng.js":15,"./template-design.js":18,"./user-mng.js":19}],18:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"../main.js":5,"./customer-mng.js":9,"./menugroup-mng.js":12,"./menuitem-mng.js":13,"./order-mng.js":16,"./template-design.js":19,"./user-mng.js":20}],19:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -5439,7 +5528,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2,"../../../home/mod/constant-lib.js":3,"./element-property-lib.js":9}],19:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"../../../home/mod/constant-lib.js":3,"./element-property-lib.js":10}],20:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -5882,7 +5971,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],20:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],21:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -16765,4 +16854,4 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}]},{},[4]);
+},{}]},{},[5]);
