@@ -8030,6 +8030,7 @@ module.exports = function ( jq ) {
 	      let myOpenCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 				let caseSummaryDetail = await doCreateSummaryDetailCase(myOpenCase.result);
 				$(myOpenCaseView).append($(caseSummaryDetail));
+	      resolve($(myOpenCaseView));
 				let casestatusId = caseData.statusId;
 				let dwnRes = undefined;
 				if (caseData.startDownload == 1) {
@@ -8063,7 +8064,6 @@ module.exports = function ( jq ) {
 						reject({error: apiError});
 					}
 				}
-	      resolve($(myOpenCaseView));
 			} else if (myOpenCase.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 			} else {
