@@ -283,6 +283,9 @@ function RadconWebSocketServer (arg, db, log) {
 					case "wrtc":
 						let controlRes = await $this.doControlWrtcMessage(data);
 					break;
+					case "shop":
+						let controlShopRes = await $this.doControlShopMessage(data);
+					break;
 					case "dicombinary":
 						let zipFilename = data.filename;
 						let outputFile = tempDicomDir + '/' + zipFilename;
@@ -382,6 +385,15 @@ function RadconWebSocketServer (arg, db, log) {
 		return new Promise(async function(resolve, reject) {
 			let yourSocket = await $this.clients.find((ws) =>{
 				if ((ws.hospitalId == hospitalId)  && (ws !== fromWs) && (ws.connectType === 'local') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+			});
+			resolve(yourSocket);
+		});
+	}
+
+	this.findShopLocalSocket = function(shopId) {
+		return new Promise(async function(resolve, reject) {
+			let yourSocket = await $this.clients.find((ws) =>{
+				if ((ws.hospitalId == shoplId) && (ws.connectType === 'shop') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
 			});
 			resolve(yourSocket);
 		});
@@ -690,6 +702,17 @@ function RadconWebSocketServer (arg, db, log) {
 	    let sendto = data.sendto;
 	    let sendResult = await $this.sendMessage(data, sendto);
 	    resolve(sendResult);
+	  });
+	}
+
+	this.doControlShopMessage = function(data){
+	  return new Promise(async function(resolve, reject) {
+			let shopSockets = await $this.findShopLocalSocket(data.shopId)
+			await shopSockets.forEach((socket, i) => {
+				socket.send(JSON.stringify(data));
+			});
+			
+	    resolve(shopSockets);
 	  });
 	}
 

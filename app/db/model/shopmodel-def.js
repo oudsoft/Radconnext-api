@@ -41,7 +41,7 @@ const ShopUserInfoDef = {
 	},
 	User_LastNameTH :  {
 		type: Sequelize.STRING(80),
-		allowNull: false    
+		allowNull: false
 	},
 	User_Email :  {
 		type: Sequelize.STRING(60)
@@ -145,6 +145,9 @@ const ShopOrderDef = {
   Status : {
     type: Sequelize.INTEGER, // <- 0=cancel, 1=active, 2=onInvoice, 3=onBill, 4=Acrchive
     defaultValue: 1
+  },
+  BeforeItems : {
+    type: Sequelize.JSONB
   }
 };
 const ShopInvoiceDef = {

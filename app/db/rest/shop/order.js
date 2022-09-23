@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, wss, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -78,6 +78,31 @@ const doSearchOrder = function(whereCluase, orderby) {
       resolve(ob[0]);
     });
   });
+}
+/*
+[
+  {
+    "id": "475",
+    "Qty": "1",
+    "Desc": "",
+    "Unit": "ตัว",
+    "Price": "5980",
+    "shopId": "6",
+    "MenuName": "คอมเพรสเชอร์",
+    "menugroup": {
+      "id": "28",
+      "GroupName": "ระบบแอร์",
+      "GroupPicture": ""
+    },
+    "ItemStatus": "New",
+    "MenuPicture": "",
+    "menugroupId": "28",
+    "QRCodePicture": ""
+  }
+*/
+
+const doFindItemsDiff = function(o1, o2) {
+
 }
 
 //List API
@@ -245,9 +270,13 @@ app.post('/update', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+        let beforeItems = await db.orders.findAll({ attributes: ['Items', 'shopId'], where: {id: req.body.id}});
         let updateOrder = req.body.data;
+        updateOrder.BeforeItems = beforeItems[0].Items;
         await db.orders.update(updateOrder, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
+        let updateOrderData = {type: 'shop', shop: {orderupdate: '***'}, shopId: beforeItems[0].ShopId};
+        wss.doControlShopMessage(updateOrderData);
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {
@@ -282,9 +311,10 @@ app.post('/delete', (req, res) => {
   }
 });
 
-module.exports = ( dbconn, monitor ) => {
+module.exports = ( dbconn, monitor, wsServer ) => {
   db = dbconn;
   log = monitor;
+  wss = wsServer;
   auth = require('./auth.js')(db, log);
   return app;
 }

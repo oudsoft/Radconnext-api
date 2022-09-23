@@ -119,7 +119,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const shopcustomer = require('./db/rest/shop/customer.js')(shopdb, log);
 	const shopmenugroup = require('./db/rest/shop/menugroup.js')(shopdb, log);
 	const shopmenuitem = require('./db/rest/shop/menuitem.js')(shopdb, log);
-	const shoporder = require('./db/rest/shop/order.js')(shopdb, log);
+	const shoporder = require('./db/rest/shop/order.js')(shopdb, log, webSocketServer);
 	const shopinvoice = require('./db/rest/shop/invoice.js')(shopdb, log);
 	const shoppaytype = require('./db/rest/shop/paytype.js')(shopdb, log);
 	const shoppayment = require('./db/rest/shop/payment.js')(shopdb, log);

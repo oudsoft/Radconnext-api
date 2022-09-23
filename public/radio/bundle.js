@@ -4095,7 +4095,6 @@ function doLoadMainPage(){
         });
       });
       $(document).on('opencase', async (evt, caseData)=>{
-        console.log(caseData);
         onOpenCaseTrigger(caseData);
       });
       $(document).on('openprofile', async (evt, data)=>{
@@ -8038,14 +8037,23 @@ module.exports = function ( jq ) {
 					if (downloadDicomZipCmd) {
 						if (casestatusId == 2) {
 							dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
-						} else if ([8, 9, 10, 11, 12, 13, 14].includes(casestatusId)) {
-							let downloadData = $(downloadDicomZipCmd).data('downloadData');
-							let dicomzipfilename = downloadData.dicomzipfilename;
-							let indexOfList = downloadDicomList.findIndex(dicomzipfilename);
-							if (indexOfList >= 0) {
-								let newEvt = jQuery.Event("click");
-								newEvt.ctrlKey = true;
-								$(downloadDicomZipCmd).trigger(newEvt);
+						} else if ([5, 6, 8, 9, 10, 11, 12, 13, 14].includes(casestatusId)) {
+							if (downloadDicomList.length > 0){
+								let downloadData = $(downloadDicomZipCmd).data('downloadData');
+								let dicomzipfilename = downloadData.dicomzipfilename;
+								let foundItem = await downloadDicomList.find((item, i) =>{
+									if (item === dicomzipfilename) {
+										return item;
+									}
+								});
+								if ((foundItem) && (foundItem === dicomzipfilename)) {
+									doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
+									let newEvt = jQuery.Event("click");
+									newEvt.ctrlKey = true;
+									$(downloadDicomZipCmd).trigger(newEvt);
+								} else {
+									dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
+								}
 							} else {
 								dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
 							}
@@ -8068,20 +8076,7 @@ module.exports = function ( jq ) {
 	const doStartAutoDownloadDicom = function(downloadDicomZipCmd){
 		return new Promise(async function(resolve, reject) {
 			let dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
-			$(downloadDicomZipCmd).off('click');
-			$(downloadDicomZipCmd).attr('title', 'Ctrl+click to open with 3rd party program');
-			$(downloadDicomZipCmd).val(' DL/Open ');
-			$(downloadDicomZipCmd).removeClass('action-btn');
-			$(downloadDicomZipCmd).addClass('special-action-btn');
-			$(downloadDicomZipCmd).on('click', async (evt)=>{
-				if (evt.ctrlKey) {
-					// Ctrl Click start open third party dicom view
-					onOpenThirdPartyCmdClick();
-				} else {
-					//normal click normal download
-					dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
-				}
-			});
+			doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
 			//onOpenThirdPartyCmdClick();
 			let newEvt = jQuery.Event("click");
 			newEvt.ctrlKey = true;
@@ -8089,6 +8084,23 @@ module.exports = function ( jq ) {
 				$(downloadDicomZipCmd).trigger(newEvt);
 				resolve(dwnRes);
 			}, 1500);
+		});
+	}
+
+	const doChangeStateDownloadDicomCmd = function(downloadDicomZipCmd){
+		$(downloadDicomZipCmd).off('click');
+		$(downloadDicomZipCmd).attr('title', 'Ctrl+click to open with 3rd party program');
+		$(downloadDicomZipCmd).val(' DL/Open ');
+		$(downloadDicomZipCmd).removeClass('action-btn');
+		$(downloadDicomZipCmd).addClass('special-action-btn');
+		$(downloadDicomZipCmd).on('click', async (evt)=>{
+			if (evt.ctrlKey) {
+				// Ctrl Click start open third party dicom view
+				onOpenThirdPartyCmdClick();
+			} else {
+				//normal click normal download
+				dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
+			}
 		});
 	}
 
@@ -9018,8 +9030,8 @@ module.exports = function ( jq ) {
 		let frag = commandStr.substr((commandStr.length-1), commandStr.length);
 		if ((frag === 'R') && (cmd === 'edit')) {
 			let iconCmd = common.doCreateCaseCmd(cmd, caseItem.case.id, (data)=>{
-				let eventData = common.doCreateOpenCaseData(caseItem);
-				eventData.statusId = caseItem.casestatusId;
+				let eventData = common.doCreateOpenCaseData(caseItem.case);
+				eventData.statusId = caseItem.case.casestatusId;
 				eventData.startDownload = 0;
 				$(iconCmd).trigger('opencase', [eventData]);
 			});
@@ -9278,7 +9290,7 @@ module.exports = function ( jq ) {
       	caseSTAT = caseItem.case.casestatus.CS_Name_EN;
 			}
 
-      let itemRow = $('<div class="case-row" style="display: table-row; width: 100%;"></div>');
+      let itemRow = $('<div class="case-row" style="display: table-row; width: 100%; cursor: pointer;"></div>');
       let itemColumn = $('<div style="display: table-cell; text-align: left; vertical-align: middle;"></div>');
       $(itemColumn).append('<span>'+ casedate + ' : ' + casetime +'</span>');
       $(itemColumn).appendTo($(itemRow));
@@ -9333,8 +9345,8 @@ module.exports = function ( jq ) {
       $(itemColumn).appendTo($(itemRow));
 
 			$(itemRow).on('dblclick', (evt)=>{
-				let eventData = common.doCreateOpenCaseData(caseItem);
-				eventData.statusId = caseItem.casestatusId;
+				let eventData = common.doCreateOpenCaseData(caseItem.case);
+				eventData.statusId = caseItem.case.casestatusId;
 				eventData.startDownload = 1;
 				$(itemRow).trigger('opencase', [eventData]);
 			});
