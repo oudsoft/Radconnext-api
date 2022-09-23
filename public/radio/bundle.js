@@ -8051,7 +8051,9 @@ module.exports = function ( jq ) {
 									doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
 									let newEvt = jQuery.Event("click");
 									newEvt.ctrlKey = true;
-									$(downloadDicomZipCmd).trigger(newEvt);
+									setTimeout(()=>{
+										$(downloadDicomZipCmd).trigger(newEvt);
+									}, 1200);
 								} else {
 									dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
 								}
