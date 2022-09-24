@@ -34,6 +34,8 @@ function RadconWarningTask (socket, db, log) {
       let anotherTasks = await $this.warningTasks.filter((task)=>{
         if (task.caseId != caseId) {
           return task;
+        } else {
+          task.task.stop();
         }
       });
       $this.warningTasks = anotherTasks;

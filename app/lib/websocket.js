@@ -392,9 +392,7 @@ function RadconWebSocketServer (arg, db, log) {
 
 	this.findShopLocalSocket = function(shopId) {
 		return new Promise(async function(resolve, reject) {
-			let yourSocket = await $this.clients.find((ws) =>{
-				log.info("shopId=>" + shopId)
-				log.info('ws.hospitalId=> ' + ws.hospitalId);
+			let yourSocket = await $this.clients.filter((ws) =>{
 				if ((ws.hospitalId == shopId) && (ws.connectType === 'shop') && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
 			});
 			resolve(yourSocket);

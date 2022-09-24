@@ -50,6 +50,7 @@ module.exports = function ( jq ) {
 		localStorage.removeItem('customers');
 		localStorage.removeItem('menugroups');
 		localStorage.removeItem('menuitems');
+		localStorage.removeItem('changelogs');
 		sessionStorage.removeItem('logged');
 	  let url = '/shop/index.html';
 	  window.location.replace(url);
@@ -90,10 +91,18 @@ module.exports = function ( jq ) {
 
 	const doFormatTimeStr = function(d) {
 		var hh, mn, ss;
-		hh = d.getHours();
-		mn = d.getMinutes();
+		if (d.getHours() < 10) {
+			hh = '0' + d.getHours();
+		} else {
+			hh = '' + d.getHours();
+		}
+		if (d.getMinutes() < 10) {
+			mn = '0' + d.getMinutes();
+		} else {
+			mn = '' + d.getMinutes();
+		}
 		ss = d.getSeconds();
-		var td = `${hh}:${mn}:${ss}`;
+		var td = `${hh}.${mn}`;
 		return td;
 	}
 
@@ -341,7 +350,7 @@ module.exports = function ( jq, wsm ) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type == 'test') {
-      $.notify(data.message, "info");
+      $.notify(data.message, "success");
 		} else if (data.type == 'ping') {
 			let modPingCounter = Number(data.counterping) % 10;
 			if (modPingCounter == 0) {
@@ -351,7 +360,10 @@ module.exports = function ( jq, wsm ) {
       switch(data.shop) {
 				//when somebody wants to call us
 				case "orderupdate":
-					onOrderUpdate(wsm, data.shop);
+					if (data.msg) {
+						$.notify(data.msg, "success");
+					}
+					onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
 				break;
 			}
     } else {
@@ -359,13 +371,26 @@ module.exports = function ( jq, wsm ) {
 		}
   };
 
-  const onOrderUpdate = function(wsm, changeOrder){
+  const onOrderUpdate = function(wsm, orderId, status, changeOrder){
 		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
 		if (!changelogs) {
 			changelogs = [];
 		}
-		changelogs.push(changeOrder);
-		localStorage.setItem('changelogs', JSON.stringify(changelogs))
+		changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems});
+		localStorage.setItem('changelogs', JSON.stringify(changelogs));
+		$('.order-box').each(async(i, orderBox)=>{
+			let orderData = $(orderBox).data('orderData');
+			if (orderData.id == orderId) {
+				let newMsgCounts = await changelogs.filter((item, j) =>{
+					if (item.status === 'New') {
+						return item;
+					}
+				});
+				if (newMsgCounts.length > 0) {
+					$(orderBox).find('#NotifyIndicator').text(newMsgCounts.length).show();
+				}
+			}
+		})
   }
 
   return {
@@ -3683,7 +3708,8 @@ module.exports = function ( jq ) {
     $(cancelCmd).on('click', async(evt)=>{
       await doShowOrderList(shopData, workAreaBox, selectDate);
     });
-    let saveNewOrderCmd = $('<input type="button" value=" บันทึก " class="action-btn"/>');
+    let saveNewOrderCmd = $('<input type="button" value=" บันทึก " class="action-btn"/>');;
+		$(saveNewOrderCmdBox).append($(saveNewOrderCmd));
     $(saveNewOrderCmd).on('click', async(evt)=>{
       if (orderObj.customer) {
         let params = undefined;
@@ -3711,7 +3737,24 @@ module.exports = function ( jq ) {
         $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
       }
     });
-    $(saveNewOrderCmdBox).append($(saveNewOrderCmd)).append($(cancelCmd));
+		if (orderObj.id) {
+			let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+			if (changelogs) {
+				let newMsgCounts = await changelogs.filter((item, i) =>{
+					if ((item.orderId == orderObj.id) && (item.status === 'New')) {
+						return item;
+					}
+				});
+				if (newMsgCounts.length > 0) {
+					let viewLogCmd = $('<input type="button" value=" การเปลี่ยนแปลง " class="action-btn"/>').css({'margin-left': '10px'});
+					$(viewLogCmd).on('click', (evt)=>{
+						doPopupOrderChangeLog(orderObj.id);
+					});
+					$(saveNewOrderCmdBox).append($(viewLogCmd));
+				}
+			}
+		}
+    $(saveNewOrderCmdBox).append($(cancelCmd));
 
 		//if (orderObj.Status != 1) {
 		if ([3, 4].includes(orderObj.Status)) {
@@ -3954,19 +3997,31 @@ module.exports = function ( jq ) {
           for (let i=0; i < goodItems.length; i++) {
 						let menuNameFrag = $('<span></span>').text(goodItems[i].MenuName);
 						let priceFrag = $('<span></span>').text(common.doFormatNumber(Number(goodItems[i].Price)));
+						let qtyFrag = $('<span></span>').text(common.doFormatQtyNumber(goodItems[i].Qty));
 						if ([1, 2].includes(orderData.Status)) {
-							$(menuNameFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'})
+							$(menuNameFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(menuNameFrag).on('click', (evt)=>{
 								doEditMenuNameOnTheFly(evt, orderData.gooditems, i, async(newName)=>{
 									orderData.gooditems[i].MenuName = newName;
 									$(menuNameFrag).text(orderData.gooditems[i].MenuName);
 								});
 							});
-							$(priceFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'})
+							$(priceFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(priceFrag).on('click', (evt)=>{
 								doEditPriceOnTheFly(evt, orderData.gooditems, i, async(newPrice)=>{
 									orderData.gooditems[i].Price = newPrice;
 									$(priceFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Price)));
+									subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
+									$(subTotalCell).empty().append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}));
+									total = await doCalOrderTotal(orderData.gooditems);
+				          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+								});
+							});
+							$(qtyFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							$(qtyFrag).on('click', (evt)=>{
+								doEditQtyOnTheFly(evt, orderData.gooditems, i, async(newQty)=>{
+									orderData.gooditems[i].Qty = newQty;
+									$(qtyFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Qty)));
 									subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
 									$(subTotalCell).empty().append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}));
 									total = await doCalOrderTotal(orderData.gooditems);
@@ -3978,7 +4033,7 @@ module.exports = function ( jq ) {
 						let itenNoCell = $('<td align="center">' + (i+1) + '</td>');
             $(goodItemRow).append($(itenNoCell));
             $(goodItemRow).append($('<td align="left"></td>').append($(menuNameFrag)));
-            let goodItemQtyCell = $('<td align="center">' + common.doFormatQtyNumber(goodItems[i].Qty) + '</td>');
+            let goodItemQtyCell = $('<td align="center"></td>').append($(qtyFrag));
             $(goodItemRow).append($(goodItemQtyCell));
             $(goodItemRow).append($('<td align="center">' + goodItems[i].Unit + '</td>'));
             $(goodItemRow).append($('<td align="center"></td>').append($(priceFrag)));
@@ -4108,12 +4163,13 @@ module.exports = function ( jq ) {
             let fmtDate = common.doFormatDateStr(orderDate);
             let fmtTime = common.doFormatTimeStr(orderDate);
             let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
-            let orderBox = $('<div></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'display': 'inline-block', /*'float': 'left', 'clear': 'left',*/ 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
+            let orderBox = $('<div class="order-box"></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'display': 'inline-block', /*'float': 'left', 'clear': 'left',*/ 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
             $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b><span id ="opennerOrderLabel" class="sensitive-word">ผู้รับออร์เดอร์</span> :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
-            $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
-
+            $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ' : ' + fmtTime + '</div>').css({'width': '100%'}));
+						$(orderBox).data('orderData', {id: orders[i].id});
+						$(orderBox).append($('<span id="NotifyIndicator">0</span>').css({'display': 'none', 'position': 'absolute', 'top': '1px', 'right': '1px', 'color': 'white', 'background-color': 'red', 'height': '25px', 'width': '25px', 'line-height': '25px', 'border-radius': '50%', 'text-align': 'center'}));
 						let mergeOrderCmdBox = undefined;
 						let cancelOrderCmdBox = undefined;
 
@@ -4361,6 +4417,114 @@ module.exports = function ( jq ) {
 		}
 		let dlgHandle = $('body').radalert(editDlgOption);
 		return dlgHandle;
+	}
+
+	const doEditQtyOnTheFly = function(event, gooditems, index, successCallback){
+		let editInput = $('<input type="number"/>').val(common.doFormatNumber(Number(gooditems[index].Qty))).css({'width': '100px', 'margin-left': '20px'});
+		$(editInput).on('keyup', (evt)=>{
+			if (evt.keyCode == 13) {
+				$(dlgHandle.okCmd).click();
+			}
+		});
+		let editLabel = $('<label>จำนวน:</label>').attr('for', $(editInput)).css({'width': '100%'})
+		let editDlgOption = {
+			title: 'แก้ไขจำนวน',
+			msg: $('<div></div>').css({'width': '100%', 'height': '70px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput)),
+			width: '220px',
+			onOk: async function(evt) {
+				let newValue = $(editInput).val();
+				if(newValue !== '') {
+					$(editInput).css({'border': ''});
+					let params = {data: {Qty: newValue}, id: gooditems[index].id};
+					let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+					if (menuitemRes.status.code == 200) {
+						$.notify("แก้ไขรายการสินค้าสำเร็จ", "success");
+						dlgHandle.closeAlert();
+						successCallback(newValue);
+					} else if (menuitemRes.status.code == 201) {
+						$.notify("ไม่สามารถแก้ไขรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการสินค้าได้", "error");
+					}
+				} else {
+					$.notify('จำนวนสินค้าต้องไม่ว่าง', 'error');
+					$(editInput).css({'border': '1px solid red'});
+				}
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		return dlgHandle;
+	}
+
+	const doPopupOrderChangeLog = async function(orderId) {
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		let foundItems = await changelogs.filter((item, i) =>{
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				return item;
+			}
+		});
+		if (foundItems.length > 0) {
+			let logBox = $('<div></div>').css({'width': '100%', 'margin-top': '20px'});
+			for (let i=0; i < foundItems.length; i++) {
+				let foundItem = foundItems[i];
+				let diffItems = foundItem.diffItems;
+				if (diffItems.upItems.length > 0) {
+					$(logBox).append($('<p><b>รายการเพิ่มมาใหม่</b></p>'));
+					for (let x=0; x < diffItems.upItems.length; x++) {
+						$(logBox).append($('<p>' + (x+1) + '. ' + diffItems.upItems[x].MenuName + ' จำนวน <b>' + common.doFormatNumber(Number(diffItems.upItems[x].Qty)) + '</b> ' + diffItems.upItems[x].Unit + '</p>'));
+					}
+				}
+				if (diffItems.downItems.length > 0) {
+					$(logBox).append($('<p><b>รายการถูกลดออกไป</b></p>'));
+					for (let y=0; y < diffItems.downItems.length; x++) {
+						$(logBox).append($('<p>' + (y+1) + '. ' + diffItems.downItems[y].MenuName + ' จำนวน <b>' + common.doFormatNumber(Number(diffItems.downItems[y].Qty))  + '</b> ' + diffItems.downItems[y].Unit + '</p>'));
+					}
+				}
+				if (diffItems.qtys.length > 0) {
+					$(logBox).append($('<p><b>รายการคงอยู่แต่เปลี่ยนจำนวน</b></p>'));
+					for (let z=0; z < diffItems.qtys.length; z++) {
+						$(logBox).append($('<p>' + (z+1) + '. ' + diffItems.qtys[z].MenuName + ' จำนวน <b>' + common.doFormatNumber(Number(diffItems.qtys[z].diff)) + '</b> ' + diffItems.qtys[z].Unit + '</p>'));
+					}
+				}
+				$(logBox).append($('<hr/>'));
+			}
+			let logDlgOption = {
+				title: 'รายการแก้ไขออร์เดอร์',
+				msg: $(logBox),
+				width: '520px',
+				onOk: async function(evt) {
+					await doChangeStateLog(orderId);
+					dlgHandle.closeAlert();
+				},
+				onCancel: function(evt){
+					dlgHandle.closeAlert();
+				}
+			}
+			let dlgHandle = $('body').radalert(logDlgOption);
+			$(dlgHandle.cancelCmd).hide();
+			return dlgHandle;
+		} else {
+			return;
+		}
+	}
+
+	const doChangeStateLog = async function(orderId){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		console.log(changelogs);
+		let newChangelogs = [];
+		await changelogs.forEach((item, i) => {
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				item.status = 'Read';
+				newChangelogs.push(item);
+			} else {
+				newChangelogs.push(item);
+			}
+		});
+		console.log(newChangelogs);
+		localStorage.setItem('changelogs', JSON.stringify(newChangelogs));
 	}
 
 	const doShowSummaryOrder = function(evt){

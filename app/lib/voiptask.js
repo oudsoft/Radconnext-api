@@ -37,6 +37,8 @@ function RadconVoipTask (socket, db, log) {
       let anotherTasks = await $this.voipTasks.filter((task)=>{
         if (task.caseId != caseId) {
           return task;
+        } else {
+          task.task.stop();
         }
       });
       $this.voipTasks = anotherTasks;

@@ -60,6 +60,8 @@ function RadconCaseTask (socket, db, log) {
       let anotherTasks = await $this.caseTasks.filter((task)=>{
         if (task.caseId != caseId) {
           return task;
+        } else {
+          task.task.stop();
         }
       });
       $this.caseTasks = anotherTasks;

@@ -499,6 +499,8 @@ const onRejectCaseEvent = function(caseId) {
     const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
 
     await tasks.removeTaskByCaseId(targetCase.id);
+    await warnings.removeTaskByCaseId(targetCase.id);
+    await voips.removeTaskByCaseId(targetCase.id);
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);

@@ -79,53 +79,54 @@ const doSearchOrder = function(whereCluase, orderby) {
     });
   });
 }
-/*
-[
-  {
-    "id": "475",
-    "Qty": "1",
-    "Desc": "",
-    "Unit": "ตัว",
-    "Price": "5980",
-    "shopId": "6",
-    "MenuName": "คอมเพรสเชอร์",
-    "menugroup": {
-      "id": "28",
-      "GroupName": "ระบบแอร์",
-      "GroupPicture": ""
-    },
-    "ItemStatus": "New",
-    "MenuPicture": "",
-    "menugroupId": "28",
-    "QRCodePicture": ""
-  }
-*/
 
-const doFindItemsDiff = function(o1, o2) {
+const doFindItemsDiff = function(newItems, oldItems) {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve2, reject2) {
-      let diffItem = {ChangeItems: [], ChangeQtys: []};
-      await o1.forEach(async (itemO1, i) => {
+      let upItems = [];
+      let downItems = [];
+      let qtys = [];
+      await newItems.forEach(async (itemO1, i) => {
         let id = Number(itemO1.id);
-        let qty = Number(itemO1.Qty);
-        let foundItem = await o2.find((itemO2, j) =>{
+        let upItem = await oldItems.find((itemO2, j) =>{
+          if (Number(itemO2.id) == id) {
+            return itemO2;
+          }
+        });
+        if (!upItem) {
+          upItems.push(itemO1);
+        }
+      });
+      await oldItems.forEach(async (itemO2, i) => {
+        let id = Number(itemO2.id);
+        let downItem = await newItems.find((itemO1, j) =>{
+          if (Number(itemO1.id) == id) {
+            return itemO1;
+          }
+        });
+        if (!downItem) {
+          downItems.push(itemO2);
+        }
+      });
+      await newItems.forEach(async (itemO1, i) => {
+        let id = Number(itemO1.id);
+        let foundItem = await oldItems.find((itemO2, j) =>{
           if (Number(itemO2.id) == id) {
             return itemO2;
           }
         });
         if (foundItem) {
-          if (Number(foundItem.Qty) != qty) {
-            let chngQty = {id: foundItem.id, MenuName: foundItem.MenuName, OldQty: qty, NewQty: foundItem.Qty};
-            diffItem.ChangeQtys.push(chngQty);
+          let diff = Number(itemO1.Qty) - Number(foundItem.Qty);
+          if (diff != 0) {
+            foundItem.diff = diff;
+            qtys.push(foundItem);
           }
-        } else {
-          let chngQty = {id: itemO1.id, MenuName: itemO1.MenuName, OldQty: 0, NewQty: itemO1.Qty};
-          diffItem.ChangeItems.push(chngQty);
         }
       });
+
       setTimeout(()=> {
-        resolve2(diffItem);
-      },800);
+        resolve2({upItems, downItems, qtys});
+      },1800);
     });
     Promise.all([promiseList]).then((ob)=> {
       resolve(ob[0]);
@@ -146,8 +147,12 @@ app.post('/list/by/shop/(:shopId)', (req, res) => {
           const orderDate = req.body.orderDate;
           if (orderDate) {
             let fromDateWithZ = new Date(orderDate);
+            fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7))
             let toDateWithZ = new Date(orderDate);
+            toDateWithZ = new Date(toDateWithZ.getTime() - (3600000 * 7))
+            //log.info('fromDateWithZ=>' + fromDateWithZ);
             toDateWithZ.setDate(toDateWithZ.getDate() + 1);
+            //log.info('toDateWithZ=>' + toDateWithZ);
             whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
           }
 
@@ -279,6 +284,8 @@ app.post('/add', async (req, res) => {
         let adOrder = await db.orders.create(newOrder);
         await db.orders.update({shopId: req.body.shopId, customerId: req.body.customerId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adOrder.id}});
         res.json({Result: "OK", status: {code: 200}, Records: [adOrder]});
+        let newOrderData = {type: 'shop', orderId: adOrder.id, shopId: req.body.shopId, status: 'New', shop: {}, msg: 'มีออร์เดอร์ใหม่'};
+        wss.doControlShopMessage(updateOrderData);
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -303,10 +310,12 @@ app.post('/update', (req, res) => {
         updateOrder.BeforeItems = beforeItems[0].Items;
         await db.orders.update(updateOrder, { where: { id: req.body.id } });
         res.json({Result: "OK", status: {code: 200}});
-        let diffItemForward = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
-        let diffItemBackward = await doFindItemsDiff(updateOrder.BeforeItems, updateOrder.Items);
-        let updateOrderData = {type: 'shop', shop: {orderId: req.body.id, forward: diffItemForward, backward: diffItemBackward}, shopId: beforeItems[0].shopId};
-        wss.doControlShopMessage(updateOrderData)
+        let diffItems = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
+        let updateOrderData = {type: 'shop', orderId: req.body.id, shopId: beforeItems[0].shopId, status: 'New', shop: 'orderupdate', updataData: {diffItems: diffItems}};
+        if ((diffItems.upItems.length > 0) || (diffItems.downItems.length > 0) || (diffItems.qtys.length > 0)) {
+          updateOrderData.msg = 'มีการแก้ไขออร์เดอร์';
+        }
+        wss.doControlShopMessage(updateOrderData);
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {
