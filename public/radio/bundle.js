@@ -7663,7 +7663,7 @@ module.exports = function ( jq ) {
 					let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
 						onOpenThirdPartyCmdClick();
 					});
-					$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+					$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 				} else {
 					let dwnList = doDownloadDicom(downloadData.dicomzipfilename);
 				}
@@ -8074,11 +8074,15 @@ module.exports = function ( jq ) {
 							doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
 							let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + dicomzipfilename + ' ในประวัติการดาวน์โหลด')
 							let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
+								/*
 								let newEvt = jQuery.Event("click");
 								newEvt.ctrlKey = true;
 								$(downloadDicomZipCmd).trigger(newEvt);
+								*/
+								onOpenThirdPartyCmdClick();
 							});
-							$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+							//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+							$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 						} else {
 							let dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
 						}
@@ -8104,14 +8108,17 @@ module.exports = function ( jq ) {
 			//onOpenThirdPartyCmdClick();
 			let downloadData = $(downloadDicomZipCmd).data('downloadData');
 			let dicomzipfilename = downloadData.dicomzipfilename;
-
 			let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + dicomzipfilename + ' ในประวัติการดาวน์โหลด')
 			let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
+				/*
 				let newEvt = jQuery.Event("click");
 				newEvt.ctrlKey = true;
 				$(downloadDicomZipCmd).trigger(newEvt);
+				*/
+				onOpenThirdPartyCmdClick();
 			});
-			$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+			//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+			$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 		});
 	}
 
@@ -8276,7 +8283,7 @@ module.exports = function ( jq ) {
 		return caseResponseId;
 	}
 
- doReportBugOpenCase = function(msgJSON, apiErrorURL) {
+	const doReportBugOpenCase = function(msgJSON, apiErrorURL) {
 		const { getFomateDateTime } = require('../../case/mod/utilmod.js')($);
 		let dt = new Date();
 		let bugDataReport = $('<div></div>');
@@ -8302,16 +8309,19 @@ module.exports = function ( jq ) {
 
 	const doCreateCustomNotify = function(title, msgDiv, callback){
 	  let msgBox = $('<div></div>');
-	  let titleBox = $("<div id='notify-title' style='background-color: white; color: black; font-weight: bold; text-align: center;'></div>");
+	  let titleBox = $("<div style='text-align: center; background-color: white; color: black;'></div>");
 	  $(titleBox).append($('<h4>' + title + '</h4>'));
-	  let bodyBox = $("<div id='notify-body'></div>");
+	  let bodyBox = $("<div></div>");
 		$(bodyBox).append($(msgDiv));
 	  $(bodyBox).append($('<span>คลิกที่ปุ่ม <b>ตกลง</b> เพื่อเปิดภาพและปิดการแจ้งเตือนนี้</span>'));
-	  let footerBox = $("<div id='notify-footer' style='text-align: center;'></div>");
+	  let footerBox = $("<div style='text-align: center; background-color: white; color: black;'></div>");
 	  let updateCmd = $('<input type="button" value="ตกลง" id="SuccessNotifyCmd"/>');
 		$(updateCmd).on('click', (evt)=>{
+			evt.stopPropagation();
+			if (callback) {
+				callback();
+			}
 			$(msgBox).remove();
-			callback();
 		});
 	  $(footerBox).append($(updateCmd));
 	  return $(msgBox).append($(titleBox)).append($(bodyBox)).append($(footerBox))
