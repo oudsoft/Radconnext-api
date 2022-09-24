@@ -8102,6 +8102,9 @@ module.exports = function ( jq ) {
 			let dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
 			doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
 			//onOpenThirdPartyCmdClick();
+			let downloadData = $(downloadDicomZipCmd).data('downloadData');
+			let dicomzipfilename = downloadData.dicomzipfilename;
+
 			let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + dicomzipfilename + ' ในประวัติการดาวน์โหลด')
 			let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
 				let newEvt = jQuery.Event("click");
