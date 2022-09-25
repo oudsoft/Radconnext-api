@@ -6872,15 +6872,15 @@ module.exports = function ( jq ) {
 					caseId: caseId,
 					userId: userId,
 					data: saveData,
-					responseId: caseResponseId,
 					hospitalId: caseHospitalId,
 					pdfFileName: fileName
 				};
 
 				if ((params.caseId) && (Number(params.caseId) > 0)) {
 					if (!caseResponseId){
-						let saveDraftResponseData = {type: 'draft', caseId: caseId};
-						saveDraftRes = await doSaveDraft(saveDraftResponseData);
+						//let saveDraftResponseData = {type: 'draft', caseId: caseId};
+						//saveDraftRes = await doSaveDraft(saveDraftResponseData);
+						let saveResponseRes = await doCallSaveResponse(params);
 						caseResponseId = saveDraftRes.result.responseId;
 						params.responseId = caseResponseId;
 					}

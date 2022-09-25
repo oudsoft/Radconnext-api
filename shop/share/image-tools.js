@@ -57,6 +57,7 @@
     const doCreateImageTools = function(fileURL){
       $('#CropBox').remove();
       $('#CropCanvas').remove();
+      $('#ImageSrcBox').remove();
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
