@@ -18,6 +18,12 @@ module.exports = function ( jq ) {
 
 	const shopSensitives = [6];
 
+	const fmtStr = function (str) {
+	  var args = [].slice.call(arguments, 1);
+	  var i = 0;
+	  return str.replace(/%s/g, () => args[i++]);
+	}
+
   const doCallApi = function(apiUrl, rqParams) {
     return new Promise(function(resolve, reject) {
       $('body').loading('start');
@@ -50,6 +56,7 @@ module.exports = function ( jq ) {
 		localStorage.removeItem('customers');
 		localStorage.removeItem('menugroups');
 		localStorage.removeItem('menuitems');
+		localStorage.removeItem('changelogs');
 		sessionStorage.removeItem('logged');
 	  let url = '/shop/index.html';
 	  window.location.replace(url);
@@ -90,10 +97,18 @@ module.exports = function ( jq ) {
 
 	const doFormatTimeStr = function(d) {
 		var hh, mn, ss;
-		hh = d.getHours();
-		mn = d.getMinutes();
+		if (d.getHours() < 10) {
+			hh = '0' + d.getHours();
+		} else {
+			hh = '' + d.getHours();
+		}
+		if (d.getMinutes() < 10) {
+			mn = '0' + d.getMinutes();
+		} else {
+			mn = '' + d.getMinutes();
+		}
 		ss = d.getSeconds();
-		var td = `${hh}:${mn}:${ss}`;
+		var td = `${hh}.${mn}`;
 		return td;
 	}
 
@@ -199,9 +214,180 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doConnectWebsocketMaster = function(username, usertype, shopId, connecttype){
+	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
+	  const port = window.location.port;
+	  const paths = window.location.pathname.split('/');
+	  const rootname = paths[1];
+
+		//let wsUrl = 'wss://radconnext.tech/' + username + '/' + shopId + '?type=' + connecttype;
+		let wsUrl = 'wss://localhost:4443/' + username + '/' + shopId + '?type=' + connecttype;
+	  const wsm = new WebSocket(wsUrl);
+		wsm.onopen = function () {
+			//console.log('Master Websocket is connected to the signaling server')
+		};
+
+		wsm.onclose = function(event) {
+			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+		};
+
+		wsm.onerror = function (err) {
+		   console.log("Master WS Got error", err);
+		};
+
+		//console.log(usertype);
+
+		/*
+		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageHospital.onMessageHospital;
+		} else if (usertype == 4) {
+			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRedio.onMessageRadio;
+		} else if (usertype == 5) {
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRefer.onMessageRefer;
+		}
+		*/
+
+		const wsmMessageShop = require('./websocketmessage.js')($, wsm);
+		wsm.onmessage = wsmMessageShop.onMessageShop;
+
+		return wsm;
+	}
+
+	const doRenderEvtLogBox = function(foundItems){
+		let logBox = $('<div></div>').css({'width': '100%', 'margin-top': '20px', 'padding': '5px'});
+		for (let i=0; i < foundItems.length; i++) {
+			let evtBox = $('<div></div>').css({'width': '95%', 'padding': '5px', 'border': '2px solid #dddd'});
+			let foundItem = foundItems[i];
+			let d = new Date(foundItem.date);
+			let dd = doFormatDateStr(d);
+			let tt = doFormatTimeStr(d);
+			let diffItems = foundItem.diffItems;
+			if (diffItems.upItems.length > 0) {
+				$(evtBox).append($('<p><b>รายการเพิ่มมาใหม่ [' + dd + ' ' + tt +']</b></p>'));
+				for (let x=0; x < diffItems.upItems.length; x++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (x+1), diffItems.upItems[x].MenuName, doFormatNumber(Number(diffItems.upItems[x].Qty)), diffItems.upItems[x].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'upItems', x);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			if (diffItems.downItems.length > 0) {
+				$(evtBox).append($('<p><b>รายการถูกลดออกไป [' + dd + ' ' + tt +']</b></p>'));
+				for (let y=0; y < diffItems.downItems.length; x++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (y+1), diffItems.downItems[y].MenuName, doFormatNumber(Number(diffItems.downItems[y].Qty)), diffItems.downItems[y].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'downItems', y);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			if (diffItems.qtys.length > 0) {
+				$(evtBox).append($('<p><b>รายการคงอยู่แต่เปลี่ยนจำนวน [' + dd + ' ' + tt +']</b></p>'));
+				for (let z=0; z < diffItems.qtys.length; z++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (z+1), diffItems.qtys[z].MenuName, doFormatNumber(Number(diffItems.qtys[z].diff)), diffItems.qtys[z].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'qtys', z);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			$(logBox).append($(evtBox));
+		}
+		return $(logBox);
+	}
+
+	const doPopupOrderChangeLog = async function(orderId) {
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		let foundItems = await changelogs.filter((item, i) =>{
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				return item;
+			}
+		});
+		let oldItems = await changelogs.filter((item, i) =>{
+			if ((item.orderId == orderId) && (item.status === 'Read')) {
+				return item;
+			}
+		});
+		if (foundItems.length > 0) {
+			let logBox = doRenderEvtLogBox(foundItems);
+			let oldItemsBox = undefined;
+			let readySwitchBox = $('<div id="ReadyState" style="position: relative; display: inline-block; float: right; margin-top: 15px;"></div>');
+			let readyOption = {switchTextOnState: 'ดูทั้งหมด', switchTextOffState: 'ปิดรายการเก่า',
+				onActionCallback: ()=>{
+					oldItemsBox = doRenderEvtLogBox(oldItems);
+					$(oldItemsBox).css({'background-color': '#dddd', 'width': '95%'});
+					$(oldItemsBox).insertAfter(readySwitchBox);
+					readySwitch.onAction();
+				},
+				offActionCallback: ()=>{
+					$(oldItemsBox).remove();
+					readySwitch.offAction();
+				}
+			};
+			let readySwitch = $(readySwitchBox).readystate(readyOption);
+			$(logBox).append($(readySwitchBox));
+
+			let logDlgOption = {
+				title: 'รายการแก้ไขออร์เดอร์',
+				msg: $(logBox),
+				width: '480px',
+				onOk: async function(evt) {
+					await doSetChangeStateLog(orderId);
+					dlgHandle.closeAlert();
+				},
+				onCancel: function(evt){
+					dlgHandle.closeAlert();
+				}
+			}
+			let dlgHandle = $('body').radalert(logDlgOption);
+			$(dlgHandle.cancelCmd).hide();
+			return dlgHandle;
+		} else {
+			return;
+		}
+	}
+
+	const doSetChangeStateLog = async function(orderId){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		let newChangelogs = [];
+		await changelogs.forEach((item, i) => {
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				item.status = 'Read';
+				newChangelogs.push(item);
+			} else {
+				newChangelogs.push(item);
+			}
+		});
+		localStorage.setItem('changelogs', JSON.stringify(newChangelogs));
+	}
+
+	const doRemoveChangeLogAt = function(logIndex, diffType, diffIndex){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		changelogs[logIndex].diffItems[diffType].splice(logIndex, 1);
+		localStorage.setItem('changelogs', JSON.stringify(changelogs));
+	}
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
+		fmtStr,
     doCallApi,
     doGetApi,
 		doUserLogout,
@@ -217,11 +403,71 @@ module.exports = function ( jq ) {
 		isExistsResource,
 		doCreateReportDocButtonCmd,
 		doCalOrderTotal,
-		doResetSensitiveWord
+		doResetSensitiveWord,
+		doConnectWebsocketMaster,
+		doPopupOrderChangeLog
 	}
 }
 
-},{}],3:[function(require,module,exports){
+},{"./websocketmessage.js":3}],3:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm ) {
+	const $ = jq;
+
+  const onMessageShop = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+    } else if (data.type == 'shop') {
+      switch(data.shop) {
+				//when somebody wants to call us
+				case "orderupdate":
+					if (data.msg) {
+						$.notify(data.msg, "success");
+					}
+					onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
+				break;
+			}
+    } else {
+			console.log('Nothing Else');
+		}
+  };
+
+  const onOrderUpdate = function(wsm, orderId, status, changeOrder){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		if (!changelogs) {
+			changelogs = [];
+		}
+		changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems, date: new Date()});
+		localStorage.setItem('changelogs', JSON.stringify(changelogs));
+		$('.order-box').each(async(i, orderBox)=>{
+			let orderData = $(orderBox).data('orderData');
+			if (orderData.id == orderId) {
+				let newMsgCounts = await changelogs.filter((item, j) =>{
+					if (item.status === 'New') {
+						return item;
+					}
+				});
+				if (newMsgCounts.length > 0) {
+					$(orderBox).find('#NotifyIndicator').text(newMsgCounts.length).show();
+				}
+			}
+		})
+  }
+
+  return {
+    onMessageShop
+	}
+}
+
+},{}],4:[function(require,module,exports){
 /* main.js */
 
 window.$ = window.jQuery = require('jquery');
@@ -237,6 +483,8 @@ const common = require('../home/mod/common-lib.js')($);
 const orderMng = require('./mod/order-mng-lib.js')($);
 
 let pageHandle = undefined;
+let wss = undefined;
+
 $( document ).ready(function() {
   const initPage = function() {
     let jqueryUiCssUrl = "../lib/jquery-ui.min.css";
@@ -263,6 +511,7 @@ $( document ).ready(function() {
 
     $('head').append('<link rel="stylesheet" href="../stylesheets/style.css" type="text/css" />');
     $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
+    $('head').append('<link rel="stylesheet" href="../../case/css/scanpart.css" type="text/css" />');
     $('head').append('<link rel="stylesheet" href="' + ionCalendarCssUrl + '" type="text/css" />');
 
     $('head').append('<script src="' + utilityPlugin + '"></script>');
@@ -289,6 +538,7 @@ $( document ).ready(function() {
         await common.doResetSensitiveWord(sensitiveWordJSON);
       });
     }
+    wss = common.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.shopId, 'shop');
   }
 
 	initPage();
@@ -345,7 +595,7 @@ const doCreateUserInfoBox = function(){
   return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userLogoutCmd));
 }
 
-},{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":5,"jquery":7}],4:[function(require,module,exports){
+},{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":6,"jquery":8}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -585,8 +835,28 @@ module.exports = function ( jq ) {
         $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
       }
     });
-    $(saveNewOrderCmdBox).append($(saveNewOrderCmd)).append($(cancelCmd));
-
+    $(saveNewOrderCmdBox).append($(saveNewOrderCmd));
+		if (orderObj.id) {
+			let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+			if (changelogs) {
+				let newMsgCounts = await changelogs.filter((item, i) =>{
+					if ((item.orderId == orderObj.id) && (item.status === 'New')) {
+						return item;
+					}
+				});
+				let viewLogCmd = undefined;
+				if (newMsgCounts.length > 0) {
+					let viewLogCmd = $('<input type="button" value=" การเปลี่ยนแปลง " class="action-btn"/>').css({'margin-left': '10px'});
+					$(viewLogCmd).on('click', (evt)=>{
+						common.doPopupOrderChangeLog(orderObj.id);
+					});
+					$(saveNewOrderCmdBox).append($(viewLogCmd));
+				} else {
+					$(viewLogCmd).remove();
+				}
+			}
+		}
+		$(saveNewOrderCmdBox).append($(cancelCmd));
 		//if (orderObj.Status != 1) {
 		if ([3, 4].includes(orderObj.Status)) {
 			$(editCustomerCmd).hide();
@@ -1063,7 +1333,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":8,"../../setting/admin/mod/customer-dlg.js":9,"../../setting/admin/mod/gooditem-dlg.js":10,"../../setting/admin/mod/menuitem-mng.js":11,"./style-common-lib.js":6}],5:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":9,"../../setting/admin/mod/customer-dlg.js":10,"../../setting/admin/mod/gooditem-dlg.js":11,"../../setting/admin/mod/menuitem-mng.js":12,"./style-common-lib.js":7}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1206,11 +1476,13 @@ module.exports = function ( jq ) {
             let fmtDate = common.doFormatDateStr(orderDate);
             let fmtTime = common.doFormatTimeStr(orderDate);
             let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
-            let orderBox = $('<div></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'display': 'inline-block', /*'float': 'left', 'clear': 'left',*/ 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
+            let orderBox = $('<div class="order-box"></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'display': 'inline-block', /*'float': 'left', 'clear': 'left',*/ 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
             $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b><span id ="opennerOrderLabel" class="sensitive-word">ผู้รับออร์เดอร์</span> :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
             $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ':' + fmtTime + '</div>').css({'width': '100%'}));
+						$(orderBox).data('orderData', {id: orders[i].id});
+						$(orderBox).append($('<span id="NotifyIndicator">0</span>').css({'display': 'none', 'position': 'absolute', 'top': '1px', 'right': '1px', 'color': 'white', 'background-color': 'red', 'height': '25px', 'width': '25px', 'line-height': '25px', 'border-radius': '50%', 'text-align': 'center'}));
 						let mergeOrderCmdBox = undefined;
 						let cancelOrderCmdBox = undefined;
 						if (orders[i].Status == 1) {
@@ -1476,7 +1748,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":8,"../../setting/admin/mod/order-merge-dlg.js":12,"./order-form-lib.js":4,"./style-common-lib.js":6}],6:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":9,"../../setting/admin/mod/order-merge-dlg.js":13,"./order-form-lib.js":5,"./style-common-lib.js":7}],7:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1489,7 +1761,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -12372,7 +12644,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -12662,7 +12934,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],9:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],10:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -12813,7 +13085,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],10:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -13156,7 +13428,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
@@ -13566,7 +13838,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -13660,4 +13932,4 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}]},{},[3]);
+},{"../../../home/mod/common-lib.js":2}]},{},[4]);
