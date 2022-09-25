@@ -8323,7 +8323,11 @@ module.exports = function ( jq ) {
 			}
 			$(msgBox).remove();
 		});
-	  $(footerBox).append($(updateCmd));
+		let cancelCmd = $('<input type="button" value="ยกลิก" id="CancelNotifyCmd"/>');
+		$(cancelCmd).on('click', (evt)=>{
+			$(msgBox).remove();
+		});
+	  $(footerBox).append($(updateCmd)).append($(cancelCmd).css({'margin-left': '10px'}));
 	  return $(msgBox).append($(titleBox)).append($(bodyBox)).append($(footerBox))
 	}
 
