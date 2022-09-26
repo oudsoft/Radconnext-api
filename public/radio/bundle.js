@@ -4000,6 +4000,7 @@ function doLoadMainPage(){
   document.addEventListener("autologout", onAutoLogoutTrigger);
   document.addEventListener("updateuserprofile", onUpdateUserProfileTrigger);
   document.addEventListener("newreportlocalresult", onNewReportLocalTrigger);
+  document.addEventListener("newreportlocalfail", onNewReportLocalFail);
 
   let userdata = JSON.parse(doGetUserData());
 
@@ -4441,6 +4442,25 @@ function onNewReportLocalTrigger(evt){
   let triggerData = evt.detail.data;
   console.log(triggerData);
   $.notify('ส่งผลอ่านของ ' + triggerData.patientFullName + ' เข้า PACS รพ. สำเร็จ', 'success');
+}
+
+function onNewReportLocalFail(evt){
+  let triggerData = evt.detail.data;
+  console.log(triggerData);
+  let msgBox = $('<div></div>');
+  let titleBox = $("<div style='text-align: center; background-color: white; color: black;'></div>");
+  $(titleBox).append($('<h4>แจ้งเตือน</h4>'));
+  let bodyBox = $("<div></div>");
+  $(bodyBox).append($('<p></p>').text('ระบบไม่สามารถส่งผลอ่านของ ' + triggerData.patientFullName + ' เข้า PACS ของโรงพยาบาลได้ในขณะนี้'));
+  //$(bodyBox).append($('<span>คลิกที่ปุ่ม <b>ตกลง</b> เพื่อเปิดภาพและปิดการแจ้งเตือนนี้</span>'));
+  let footerBox = $("<div style='text-align: center; background-color: white; color: black;'></div>");
+  let closeCmd = $('<input type="button" value="Close" id="CancelNotifyCmd"/>');
+  $(closeCmd).on('click', (evt)=>{
+    $(msgBox).remove();
+  });
+  $(footerBox).append($(closeCmd));
+  $(msgBox).append($(titleBox)).append($(bodyBox)).append($(footerBox))
+  $('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 }
 
 function doSetupAutoReadyAfterLogin(){
@@ -7659,7 +7679,7 @@ module.exports = function ( jq ) {
 					}
 				});
 				if ((foundItem) && (foundItem === downloadData.dicomzipfilename)) {
-					let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + downloadData.dicomzipfilename + ' ในประวัติการดาวน์โหลด')
+					let msgDiv = $('<p></p>').text(downloadData.dicomzipfilename + ' completed.')
 					let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
 						onOpenThirdPartyCmdClick();
 					});
@@ -8072,7 +8092,7 @@ module.exports = function ( jq ) {
 						});
 						if ((foundItem) && (foundItem === dicomzipfilename)) {
 							doChangeStateDownloadDicomCmd(downloadDicomZipCmd);
-							let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + dicomzipfilename + ' ในประวัติการดาวน์โหลด')
+							let msgDiv = $('<p></p>').text(dicomzipfilename + ' completed.')
 							let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
 								/*
 								let newEvt = jQuery.Event("click");
@@ -8108,7 +8128,7 @@ module.exports = function ( jq ) {
 			//onOpenThirdPartyCmdClick();
 			let downloadData = $(downloadDicomZipCmd).data('downloadData');
 			let dicomzipfilename = downloadData.dicomzipfilename;
-			let msgDiv = $('<p></p>').text('พบรายการไฟล์ ' + dicomzipfilename + ' ในประวัติการดาวน์โหลด')
+			let msgDiv = $('<p></p>').text(dicomzipfilename + ' completed.');
 			let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
 				/*
 				let newEvt = jQuery.Event("click");
@@ -8313,21 +8333,21 @@ module.exports = function ( jq ) {
 	  $(titleBox).append($('<h4>' + title + '</h4>'));
 	  let bodyBox = $("<div></div>");
 		$(bodyBox).append($(msgDiv));
-	  $(bodyBox).append($('<span>คลิกที่ปุ่ม <b>ตกลง</b> เพื่อเปิดภาพและปิดการแจ้งเตือนนี้</span>'));
+	  //$(bodyBox).append($('<span>คลิกที่ปุ่ม <b>ตกลง</b> เพื่อเปิดภาพและปิดการแจ้งเตือนนี้</span>'));
 	  let footerBox = $("<div style='text-align: center; background-color: white; color: black;'></div>");
-	  let updateCmd = $('<input type="button" value="ตกลง" id="SuccessNotifyCmd"/>');
-		$(updateCmd).on('click', (evt)=>{
+	  let openCmd = $('<input type="button" value="Open" id="SuccessNotifyCmd"/>');
+		$(openCmd).on('click', (evt)=>{
 			evt.stopPropagation();
 			if (callback) {
 				callback();
 			}
 			$(msgBox).remove();
 		});
-		let cancelCmd = $('<input type="button" value="ยกลิก" id="CancelNotifyCmd"/>');
-		$(cancelCmd).on('click', (evt)=>{
+		let closeCmd = $('<input type="button" value="Close" id="CancelNotifyCmd"/>');
+		$(closeCmd).on('click', (evt)=>{
 			$(msgBox).remove();
 		});
-	  $(footerBox).append($(updateCmd)).append($(cancelCmd).css({'margin-left': '10px'}));
+	  $(footerBox).append($(openCmd)).append($(closeCmd).css({'margin-left': '10px'}));
 	  return $(msgBox).append($(titleBox)).append($(bodyBox)).append($(footerBox))
 	}
 
@@ -10425,6 +10445,10 @@ module.exports = function ( jq, wsm) {
 			document.dispatchEvent(event);
 		} else if (data.type == 'newreportlocalresult') {
 			let eventName = 'newreportlocalresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalfail') {
+			let eventName = 'newreportlocalfail';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
 			document.dispatchEvent(event);
 		} else if (data.type == 'wrtc') {

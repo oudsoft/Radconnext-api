@@ -623,7 +623,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           */
           let radioSocket = await websocket.findUserSocket(radioProfile.username);
           if (radioSocket) {
-            let radioNotify = {type: 'notify', message: 'ส่งผลอ่านเข้า PACS รพ. ไม่สำเร็จ'};
+            let radioNotify = {type: 'newreportlocalfail', result: 'Fail, not found local socket', hospitalId: hospitalId, from: radioProfile.username, patientFullName: report.patientFullName, reportLink: newReportRes.reportLink};
             radioSocket.send(JSON.stringify(radioNotify));
           }
           let subject = 'Cuase of API not found local user owner case socket'

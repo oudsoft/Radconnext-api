@@ -52,6 +52,7 @@
       let blob = item.getAsFile();
       let reader = new FileReader();
       reader.onload = function(event) {
+        myCropImageBox.settings.scale = 1.0;
         myCropImageBox.doCreateImageTools(event.target.result)
       };
       reader.readAsDataURL(blob);
