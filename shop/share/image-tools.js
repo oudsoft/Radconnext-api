@@ -586,8 +586,8 @@
             settings.cropHeight = newH;
           }
         }
-        let newFnt = settings.waterMarkFontSize * scale;
-        settings.waterMarkFontSize = newFnt;
+        //let newFnt = settings.waterMarkFontSize * scale;
+        //settings.waterMarkFontSize = newFnt;
       });
       let captureScreenCmd = doCreateCaptureCmd();
       $(cropInputBox).prepend($(fileChooserCmd).css({'display': 'inline-block'}));
