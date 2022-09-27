@@ -272,7 +272,7 @@ module.exports = function ( jq ) {
 					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (x+1), diffItems.upItems[x].MenuName, doFormatNumber(Number(diffItems.upItems[x].Qty)), diffItems.upItems[x].Unit);
 					$(evtBox).append($('<p></p>').html(evtMessageLine));
 					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
-					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
 					$(deleteEvtCmd).on('click', (evt)=>{
 						doRemoveChangeLogAt(i, 'upItems', x);
 						$(evtBox).remove();
@@ -286,7 +286,7 @@ module.exports = function ( jq ) {
 					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (y+1), diffItems.downItems[y].MenuName, doFormatNumber(Number(diffItems.downItems[y].Qty)), diffItems.downItems[y].Unit);
 					$(evtBox).append($('<p></p>').html(evtMessageLine));
 					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
-					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
 					$(deleteEvtCmd).on('click', (evt)=>{
 						doRemoveChangeLogAt(i, 'downItems', y);
 						$(evtBox).remove();
@@ -300,7 +300,7 @@ module.exports = function ( jq ) {
 					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (z+1), diffItems.qtys[z].MenuName, doFormatNumber(Number(diffItems.qtys[z].diff)), diffItems.qtys[z].Unit);
 					$(evtBox).append($('<p></p>').html(evtMessageLine));
 					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
-					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
 					$(deleteEvtCmd).on('click', (evt)=>{
 						doRemoveChangeLogAt(i, 'qtys', z);
 						$(evtBox).remove();
@@ -4145,18 +4145,18 @@ module.exports = function ( jq ) {
           let goodItems = orderData.gooditems;
 					let itenNoCells = [];
           for (let i=0; i < goodItems.length; i++) {
-						let menuNameFrag = $('<span></span>').text(goodItems[i].MenuName);
+						let menuNameFrag = $('<span></span>').text(goodItems[i].MenuName).attr('title', goodItems[i].Desc);
 						let priceFrag = $('<span></span>').text(common.doFormatNumber(Number(goodItems[i].Price)));
 						let qtyFrag = $('<span></span>').text(common.doFormatQtyNumber(goodItems[i].Qty));
 						if ([1, 2].includes(orderData.Status)) {
-							$(menuNameFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							//$(menuNameFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(menuNameFrag).on('click', (evt)=>{
 								doEditMenuNameOnTheFly(evt, orderData.gooditems, i, async(newName)=>{
 									orderData.gooditems[i].MenuName = newName;
 									$(menuNameFrag).text(orderData.gooditems[i].MenuName);
 								});
 							});
-							$(priceFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							//$(priceFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(priceFrag).on('click', (evt)=>{
 								doEditPriceOnTheFly(evt, orderData.gooditems, i, async(newPrice)=>{
 									orderData.gooditems[i].Price = newPrice;
@@ -4167,7 +4167,7 @@ module.exports = function ( jq ) {
 				          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
 								});
 							});
-							$(qtyFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							//$(qtyFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(qtyFrag).on('click', (evt)=>{
 								doEditQtyOnTheFly(evt, orderData.gooditems, i, async(newQty)=>{
 									orderData.gooditems[i].Qty = newQty;
@@ -4177,6 +4177,24 @@ module.exports = function ( jq ) {
 									total = await doCalOrderTotal(orderData.gooditems);
 				          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
 								});
+							});
+							$(menuNameFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px'});
+							$(priceFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px'});
+							$(qtyFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px 10px 2px 10px'});
+							$(menuNameFrag).hover(()=>{
+								$(menuNameFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(menuNameFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
+							});
+							$(priceFrag).hover(()=>{
+								$(priceFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(priceFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
+							});
+							$(qtyFrag).hover(()=>{
+								$(qtyFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(qtyFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
 							});
 						}
             let goodItemRow = $('<tr></tr>');
@@ -4969,7 +4987,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doOpenManageShop = function(shopData, uploadLogoCallback, editShopCallback){
-		shopmng.doShowShopMhg(shopData, uploadLogoCallback, editShopCallback);
+		shopmng.doShowShopMng(shopData, uploadLogoCallback, editShopCallback);
 		if (common.shopSensitives.includes(shopData.id)) {
 	    let sensitiveWordJSON = require('../../../../../api/shop/lib/sensitive-word.json');
 	    localStorage.setItem('sensitiveWordJSON', JSON.stringify(sensitiveWordJSON))
@@ -5066,6 +5084,7 @@ module.exports = function ( jq ) {
     let shopTel = $('<p>โทร. ' + shopData['Shop_Tel'] + '</p>').css({'line-height': '11px'});
     let shopMail = $('<p>อีเมล์ ' + shopData['Shop_Mail'] + '</p>').css({'line-height': '11px'});
     let shopVatNo = $('<p>หมายเลขผู้เสียภาษี ' + shopData['Shop_VatNo'] + '</p>').css({'line-height': '11px'});
+		let shopPPQCNo = $('<p>หมายเลขพร้อมเพย์ <span>' + shopData['Shop_PromptPayNo'] + '</span></p>').css({'line-height': '11px'});
 
     let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '18px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
     let layoutPage = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
@@ -5074,7 +5093,28 @@ module.exports = function ( jq ) {
     let middleCell = $('<td width="70%" align="left" valign="middle"></td>');
     let rightSideCell = $('<td width="*" align="center" valign="middle"></td>');
     $(letfSideCell).append($(shopLogoIconBox));
-    $(middleCell).append($(shopName)).append($(shopAddress)).append($(shopTel)).append($(shopMail)).append($(shopVatNo));
+    $(middleCell).append($(shopName)).append($(shopAddress)).append($(shopTel));
+		if (shopData['Shop_Mail'] !== '') {
+			$(middleCell).append($(shopMail));
+		}
+		if (shopData['Shop_VatNo'] !== '') {
+			$(middleCell).append($(shopVatNo));
+		}
+		if (shopData['Shop_PromptPayNo']) {
+			$(middleCell).append($(shopPPQCNo));
+			let ppqcNo = $(shopPPQCNo).find('span');
+			$(ppqcNo).css({'padding': '2px', 'cursor': 'pointer'});
+			$(ppqcNo).hover(()=>{
+				$(ppqcNo).css({'background-color': 'white', 'color': 'black', 'border': '1px solid black'});
+			},()=>{
+				$(ppqcNo).css({'background-color': 'inherit', 'color': 'inherit', 'border': ''});
+			});
+			$(ppqcNo).on('click', (evt)=>{
+				evt.stopPropagation();
+				doStartTestPPQC(evt, shopData);
+			});
+		}
+
 		if (userdata.usertypeId == 1) {
 			let backCmd = $('<input type="button" value=" Back " class="action-btn"/>');
 	    $(backCmd).on('click', (evt)=>{
@@ -5097,6 +5137,8 @@ module.exports = function ( jq ) {
 					shopData['Shop_Tel'] = newShopData['Shop_Tel'];
 					shopData['Shop_Mail'] = newShopData['Shop_Mail'];
 					shopData['Shop_VatNo'] = newShopData['Shop_VatNo'];
+					shopData['Shop_PromptPayNo'] = newShopData['Shop_PromptPayNo'];
+					shopData['Shop_PromptPayName'] = newShopData['Shop_PromptPayName'];
 				});
 				$('#Shop_BillQuota').attr('readOnly', true);
 			});
@@ -5157,13 +5199,10 @@ module.exports = function ( jq ) {
 		},()=>{
 			$(logoutCmd).css({'border': '3px solid grey'});
 		});
-
-
-
     return $(commandsBox).append($(orderMngCmd)).append($(menuitemMngCmd)).append($(menugroupMngCmd)).append($(customerMngCmd)).append($(userMngCmd)).append($(templateMngCmd)).append($(logoutCmd));
   }
 
-  const doShowShopMhg = function(shopData, uploadLogCallback, editShopCallback){
+  const doShowShopMng = function(shopData, uploadLogCallback, editShopCallback){
     let titlePage = doCreateTitlePage(shopData, uploadLogCallback, editShopCallback);
     $('#App').empty().append($(titlePage));
     let shopCmdControl = doCreateContolShopCmds(shopData);
@@ -5173,6 +5212,55 @@ module.exports = function ( jq ) {
 		let orderMngCmd = $(shopCmdControl).children(":first");
 		$(orderMngCmd).click();
   }
+
+	const doStartTestPPQC = function(evt, shopData){
+		console.log(shopData);
+		let editInput = $('<input type="number"/>').val(common.doFormatNumber(100)).css({'width': '100px', 'margin-left': '20px'});
+		$(editInput).on('keyup', (evt)=>{
+			if (evt.keyCode == 13) {
+				$(dlgHandle.okCmd).click();
+			}
+		});
+		let editLabel = $('<label>จำนวนเงิน(บาท):</label>').attr('for', $(editInput)).css({'width': '100%'});
+		let ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput));
+		let editDlgOption = {
+			title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
+			msg: $(ppQRBox),
+			width: '420px',
+			onOk: async function(evt) {
+				let newValue = $(editInput).val();
+				if(newValue !== '') {
+					$(editInput).css({'border': ''});
+					let params = {
+						Shop_PromptPayNo: shopData.Shop_PromptPayNo,
+						Shop_PromptPayName: shopData.Shop_PromptPayName,
+						netAmount: newValue,
+					};
+					let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
+					if (shopRes.status.code == 200) {
+						$.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
+						$(ppQRBox).empty().append($('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'}));
+						$(dlgHandle.cancelCmd).show();
+						$(dlgHandle.cancelCmd).val(' ตกลง ');
+						$(dlgHandle.okCmd).hide();
+					} else if (shopRes.status.code == 201) {
+						$.notify("ไม่สามารถสร้างพร้อมเพย์คิวอาร์โค้ดได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถสร้างพร้อมเพย์คิวอาร์โค้ดได้", "error");
+					}
+				} else {
+					$.notify('จำนวนเงินต้องไม่ว่าง', 'error');
+					$(editInput).css({'border': '1px solid red'});
+				}
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		$(dlgHandle.cancelCmd).hide();
+		return dlgHandle;
+	}
 
   const doUserMngClickCallBack = async function(evt, shopData){
 		let workingAreaBox = $('#WorkingAreaBox');
@@ -5205,7 +5293,7 @@ module.exports = function ( jq ) {
 	}
 
   return {
-    doShowShopMhg
+    doShowShopMng
 	}
 }
 

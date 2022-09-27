@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, auth, commonReport;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -182,6 +182,12 @@ app.post('/delete', (req, res) => {
   }
 });
 
+app.post('/create/ppqrcode', async (req, res) => {
+  commonReport.doCreatePPQR(req.body).then((result) => {
+    res.json({status: {code: 200}, result: result});
+  })
+});
+
 app.get('/options', (req, res) => {
   doGenOptions().then((result) => {
     res.json(result);
@@ -198,5 +204,6 @@ module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
+  commonReport = require('./commonreport.js')(db, log);
   return app;
 }

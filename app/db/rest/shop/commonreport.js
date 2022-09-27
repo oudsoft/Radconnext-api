@@ -649,6 +649,30 @@ const doCreateReport = function(orderId, docType, shopId){
   });
 }
 
+const doCreatePPQR = function(ppfData){
+  return new Promise(async function(resolve, reject) {
+		let ppfType = undefined;
+		if (ppfData.Shop_PromptPayNo.length == 10) {
+			ppfType = '01';
+		} else if (ppfData.Shop_PromptPayNo.length == 13) {
+			ppfType = '02';
+		}
+		if (ppfType) {
+			let ppNames = ppfData.Shop_PromptPayName.split(' ');
+			let ppData = {
+				ppaytype: ppfType,
+				ppayno: ppfData.Shop_PromptPayNo,
+				netAmount: ppfData.netAmount,
+				fname: ppNames[0],
+				lname: ppNames[1],
+			}
+			qr = await ppQRgen.doCreatePPQRCode(ppData);
+			resolve(qr);
+		} else {
+			reject({error: 'not found PPPtype'})
+		}
+	});
+}
 const doCreatePPQRElelment = function(qrUrl, top, left, width, height){
 	let qrElem = {
 		elementType: "image",
@@ -693,6 +717,7 @@ module.exports = (dbconn, monitor) => {
     billFieldOptions,
     doLoadVariable,
     reportCreator,
-    doCreateReport
+    doCreateReport,
+		doCreatePPQR
   }
 }
