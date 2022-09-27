@@ -6901,7 +6901,7 @@ module.exports = function ( jq ) {
 						//let saveDraftResponseData = {type: 'draft', caseId: caseId};
 						//saveDraftRes = await doSaveDraft(saveDraftResponseData);
 						let saveResponseRes = await doCallSaveResponse(params);
-						caseResponseId = saveDraftRes.result.responseId;
+						caseResponseId = saveResponseRes.result.responseId;
 						params.responseId = caseResponseId;
 					}
 					saveNewResponseData.responseid = caseResponseId;

@@ -12,11 +12,15 @@ registerFont(shopDir + '/font/THSarabunNew.ttf', { family: 'THSarabunNew' });
 
 var log, ppText;
 
+const offsetTimeZone = 7;
+
 const formatCustomerDate = function (fullDataTime) {
-	var Adate = new Date(fullDataTime);
-	var dd = Adate.getDate();
-	var mm = Adate.getMonth()+1; //January is 0!
-	var yyyy = Adate.getFullYear();
+	let d = new Date(fullDataTime);
+	let utc = d.getTime();
+	let adate = new Date(utc + (3600000 * offsetTimeZone));
+	let dd = adate.getDate();
+	let mm = adate.getMonth()+1; //January is 0!
+	let yyyy = adate.getFullYear();
 	if(dd<10) {
 		dd = '0'+dd
 	}
@@ -27,9 +31,11 @@ const formatCustomerDate = function (fullDataTime) {
 }
 
 const formatCustomerTime = function (fullDataTime) {
-	var Adate = new Date(fullDataTime);
-	var hh = Adate.getHours();
-	var mm = Adate.getMinutes();
+	let d = new Date(fullDataTime);
+	let utc = d.getTime();
+	let adate = new Date(utc + (3600000 * offsetTimeZone));
+	let hh = adate.getHours();
+	let mm = adate.getMinutes();
 	if(hh<10) {
 		hh = '0'+hh
 	}
