@@ -797,6 +797,8 @@ const nextCaseStausOnResponseChange = function(nowStatus, responseType, reportTy
       }
     } else if (responseType === 'draft'){
       nextStatus = 9;
+    } else {
+      nextStatus = 9;
     }
   } else if (isEditResponse) {
     nextStatus = 12;
