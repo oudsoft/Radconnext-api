@@ -7678,18 +7678,25 @@ module.exports = function ( jq ) {
 			$(downloadCmd).attr('title', 'Download zip file of ' + patientFullName);
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', async (evt)=>{
-				let foundItem = await common.downloadDicomList.find((item, i) =>{
-					if (item === downloadData.dicomzipfilename) {
-						return item;
-					}
-				});
-				if ((foundItem) && (foundItem === downloadData.dicomzipfilename)) {
-					let msgDiv = $('<p></p>').text(downloadData.dicomzipfilename + ' completed.')
-					let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
-						onOpenThirdPartyCmdClick();
-					});
-					$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
+				if (evt.ctrlKey) {
+					await doStartAutoDownloadDicom(downloadCmd);
 				} else {
+					/*
+					let foundItem = await common.downloadDicomList.find((item, i) =>{
+						if (item === downloadData.dicomzipfilename) {
+							return item;
+						}
+					});
+					if ((foundItem) && (foundItem === downloadData.dicomzipfilename)) {
+						let msgDiv = $('<p></p>').text(downloadData.dicomzipfilename + ' completed.')
+						let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
+							onOpenThirdPartyCmdClick();
+						});
+						$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
+					} else {
+						let dwnList = doDownloadDicom(downloadData.dicomzipfilename);
+					}
+					*/
 					let dwnList = doDownloadDicom(downloadData.dicomzipfilename);
 				}
 			});
@@ -8143,7 +8150,8 @@ module.exports = function ( jq ) {
 				onOpenThirdPartyCmdClick();
 			});
 			//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
-			$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
+			$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}));
+			resolve();
 		});
 	}
 
@@ -8159,7 +8167,10 @@ module.exports = function ( jq ) {
 				onOpenThirdPartyCmdClick();
 			} else {
 				//normal click normal download
-				dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
+				//dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
+				let downloadData = $(downloadDicomZipCmd).data('downloadData');
+				let dicomzipfilename = downloadData.dicomzipfilename;
+				let downloadList = doDownloadDicom(dicomzipfilename);
 			}
 		});
 	}
