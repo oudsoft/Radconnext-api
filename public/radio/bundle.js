@@ -8114,7 +8114,7 @@ module.exports = function ( jq ) {
 								onOpenThirdPartyCmdClick();
 							});
 							//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
-							$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
+							$('body').append($(msgBox).css({'position': 'absolute', 'top': '60px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 						} else {
 							let dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
 						}
@@ -8150,7 +8150,7 @@ module.exports = function ( jq ) {
 				onOpenThirdPartyCmdClick();
 			});
 			//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
-			$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}));
+			$('body').append($(msgBox).css({'position': 'absolute', 'top': '60px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}));
 			resolve();
 		});
 	}
