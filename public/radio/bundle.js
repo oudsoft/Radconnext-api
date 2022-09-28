@@ -3885,7 +3885,7 @@ $( document ).ready(function() {
               userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
             }
             doLoadMainPage();
-            doAutoAcceptCase(0);
+            //doAutoAcceptCase(0);
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             let response = await common.doUpdateCaseStatus(quickCaseId, 8, 'Radiologist Open accepted case by Quick Link');
@@ -3895,7 +3895,7 @@ $( document ).ready(function() {
               onOpenCaseTrigger(eventData);
             } else {
     					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
-    				}              
+    				}
           } else {
             doLoadLogin();
             //console.log(data);
@@ -4371,7 +4371,7 @@ function unlockAction(modalBox) {
         let welcomeMsg = 'Welcome back ' + userdata.username;
         $.notify(welcomeMsg, "success");
         resetScreen();
-        doAutoAcceptCase();
+        doAutoAcceptCase(1);
       } else {
         $.notify("รหัสผ่านของคุณไม่ถูกต้อง", "error");
       }
@@ -4386,7 +4386,7 @@ function unlockAction(modalBox) {
     $(passwordBox).find('#YourPassword').focus();
   } else {
     resetScreen();
-    doAutoAcceptCase();
+    doAutoAcceptCase(1);
   }
 }
 
