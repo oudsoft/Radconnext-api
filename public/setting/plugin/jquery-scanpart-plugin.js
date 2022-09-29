@@ -52,7 +52,7 @@
 
     const doLoadOriginScanpart = function(params){
       return new Promise(function(resolve, reject) {
-  			var loadUrl = settings.loadOriginUrl;
+  			let loadUrl = settings.loadOriginUrl;
   			$.post(loadUrl, params, function(data){
   				resolve(data);
   			}).fail(function(error) {
@@ -63,8 +63,11 @@
 
     const doSaveNewScanpartItem = function(params){
       return new Promise(function(resolve, reject) {
-  			var loadUrl = settings.addScanpartItemUrl;
+        console.log(params);
+  			let addUrl = settings.addScanpartItemUrl;
+        console.log(addUrl);
   			$.post(loadUrl, params, function(data){
+          console.log(data);
   				resolve(data);
   			}).fail(function(error) {
   				reject(error);
