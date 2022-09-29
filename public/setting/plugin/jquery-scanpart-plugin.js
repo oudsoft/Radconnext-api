@@ -558,6 +558,7 @@
         } else {
           $(priceValue).css('border', '');
           let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
+          console.log(addItemData);
           doSaveNewScanpartItem(addItemData).then((addResponse)=>{
             if (addResponse.status.code == 200) {
               alert('บันทึกสำเร็จ');
@@ -565,6 +566,8 @@
               alert('บันทึกขัดข้อง');
             }
             $(modalWrapper).trigger('closenewitemdialog', [eventData]);
+          }).catch(function(err) {
+            console.log(err);
           });
         }
       });
