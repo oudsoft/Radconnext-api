@@ -552,7 +552,7 @@
         } else if (unitValue === '') {
           $(nameValue).css('border', '');
           $(unitValue).css('border', '1px solid red');
-        } else if (Number(priceValue)) {
+        } else if (Number(priceValue) >= 0) {
           $(unitValue).css('border', '');
           $(priceValue).css('border', '1px solid red');
         } else {
