@@ -541,9 +541,13 @@
 
       $(okCmd).on('click', (evt)=>{
         let codeValue = $(codeInput).val();
+        console.log(codeValue);
         let nameValue = $(nameInput).val();
+        console.log(nameValue);
         let unitValue = $(unitInput).val();
+        console.log(unitValue);
         let priceValue = $(priceInput).val();
+        console.log(priceValue);
         if (codeValue === '') {
           $(codeInput).css('border', '1px solid red');
         } else if (nameValue === '') {
