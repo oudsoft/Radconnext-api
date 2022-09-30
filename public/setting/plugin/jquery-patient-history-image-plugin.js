@@ -236,6 +236,7 @@ $.widget( "custom.imagehistory", {
       //uploadUrl = 'https://radconnext.info/api/transfer/archive';
       uploadUrl = '/api/transfer/archive';
     }
+    $('body').loading('start');
     $(fileBrowser).simpleUpload(uploadUrl, {
       success: function(data){
         console.log(data);
@@ -257,8 +258,13 @@ $.widget( "custom.imagehistory", {
             onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
           };
           $( "<div></div>" ).appendTo($(imageListBox)).imageitem( uploadImageProp );
+          $('body').loading('stop');
         }, 400);
       },
+      fail: function(err){
+        console.log(err);
+        $('body').loading('stop');
+      }
     });
   },
   doAppendNewImageData: function(data){
