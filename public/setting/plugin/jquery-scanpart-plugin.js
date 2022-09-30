@@ -541,14 +541,17 @@
 
       $(okCmd).on('click', (evt)=>{
         let codeValue = $(codeInput).val();
-        console.log(codeValue);
         let nameValue = $(nameInput).val();
-        console.log(nameValue);
         let unitValue = $(unitInput).val();
-        console.log(unitValue);
         let priceValue = $(priceInput).val();
-        console.log(priceValue);
+
         if (codeValue === '') {
+          console.log(codeValue);
+          console.log(nameValue);
+          console.log(unitValue);
+          console.log(priceValue);
+          console.log(Number(priceValue) >= 0);
+          console.log(addItemData);          
           $(codeInput).css('border', '1px solid red');
         } else if (nameValue === '') {
           $(codeInput).css('border', '');
@@ -562,7 +565,6 @@
         } else {
           $(priceValue).css('border', '');
           let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
-          console.log(addItemData);
           doSaveNewScanpartItem(addItemData).then((addResponse)=>{
             if (addResponse.status.code == 200) {
               alert('บันทึกสำเร็จ');
