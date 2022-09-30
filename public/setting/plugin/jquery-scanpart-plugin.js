@@ -66,7 +66,7 @@
         console.log(params);
   			let addUrl = settings.addScanpartItemUrl;
         console.log(addUrl);
-  			$.post(loadUrl, params, function(data){
+  			$.post(addUrl, params, function(data){
           console.log(data);
   				resolve(data);
   			}).fail(function(error) {
