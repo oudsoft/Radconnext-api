@@ -232,7 +232,7 @@ $.widget( "custom.imagehistory", {
     let uploadUrl = $this.options.attachFileUploadApiUrl;
     if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
       //uploadUrl = 'https://radconnext.info/api/transfer/archive';
-      uploadUrl = '/transfer/archive';
+      uploadUrl = '/api/transfer/archive';
     }
     $(fileBrowser).simpleUpload(uploadUrl, {
       success: function(data){
