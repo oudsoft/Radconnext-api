@@ -216,7 +216,7 @@ $.widget( "custom.imagehistory", {
           $(imageListBox).append('<div>' + 'File not excess ' + defSize + ' Byte.' + '</div>');
         }
       } else {
-        if (fileSize <= defSize) {
+        if (fileSize <= defSize*100) {
           $(fileBrowser).attr("name", 'patienthistory');
           $this.doUploadImage(fileBrowser, imageListBox, fileType);
         } else {
