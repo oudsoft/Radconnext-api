@@ -550,22 +550,23 @@
           console.log(nameValue);
           console.log(unitValue);
           console.log(priceValue);
+          console.log(Number(priceValue));          
           console.log(Number(priceValue) >= 0);
           let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
           console.log(addItemData);
           $(codeInput).css('border', '1px solid red');
         } else if (nameValue === '') {
           $(codeInput).css('border', '');
-          $(nameValue).css('border', '1px solid red');
+          $(nameInput).css('border', '1px solid red');
         } else if (unitValue === '') {
-          $(nameValue).css('border', '');
-          $(unitValue).css('border', '1px solid red');
+          $(nameInput).css('border', '');
+          $(unitInput).css('border', '1px solid red');
         } else if (Number(priceValue) >= 0) {
-          $(unitValue).css('border', '');
-          $(priceValue).css('border', '1px solid red');
+          $(unitInput).css('border', '');
+          $(priceInput).css('border', '1px solid red');
         } else {
           console.log('true');
-          $(priceValue).css('border', '');
+          $(priceInput).css('border', '');
           let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
           doSaveNewScanpartItem(addItemData).then((addResponse)=>{
             if (addResponse.status.code == 200) {
