@@ -425,6 +425,7 @@
       });
 
       $(okCmd).on('click', async (evt)=>{
+        /*
         if ($this.selectedMainJson.length > 0) {
           let selectedListBox = await doCreateSelectedListBox('');
           eventData = {selectedData: $this.selectedMainJson, selectedBox: selectedListBox};
@@ -433,6 +434,11 @@
         } else {
           $.notify('ต้องเลือก Scan Part อย่างน้อย 1 รายการก่อน', 'warn');
         }
+        */
+        let selectedListBox = await doCreateSelectedListBox('');
+        eventData = {selectedData: $this.selectedMainJson, selectedBox: selectedListBox};
+        settings.successCallback(eventData);
+        $(okCmd).trigger('closedialog', [eventData]);
       });
       return $(modalControlBox)
     }
