@@ -63,11 +63,8 @@
 
     const doSaveNewScanpartItem = function(params){
       return new Promise(function(resolve, reject) {
-        console.log(params);
   			let addUrl = settings.addScanpartItemUrl;
-        console.log(addUrl);
   			$.post(addUrl, params, function(data){
-          console.log(data);
   				resolve(data);
   			}).fail(function(error) {
   				reject(error);
@@ -557,18 +554,8 @@
           $(unitInput).css('border', '');
           $(priceInput).css('border', '1px solid red');
         } else {
-          console.log('true');
-          console.log(codeValue);
-          console.log(nameValue);
-          console.log(unitValue);
-          console.log(priceValue);
-          console.log(parseFloat(priceValue));
-          console.log(parseFloat(priceValue) < 0);
-          let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
-          console.log(addItemData);
-
           $(priceInput).css('border', '');
-          //let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
+          let addItemData = {Code: codeValue, Name: nameValue, Unit: unitValue, Price: priceValue, Common: 'R', RefPoint: '', Modality: 'CT', MajorType: 'etc'};
           doSaveNewScanpartItem(addItemData).then((addResponse)=>{
             if (addResponse.status.code == 200) {
               alert('บันทึกสำเร็จ');
