@@ -228,6 +228,7 @@ $.widget( "custom.imagehistory", {
     $(fileBrowser).click();
   },
   doUploadImage: function(fileBrowser, imageListBox, fileType) {
+    console.log(fileType);
     let $this = this;
     let uploadUrl = $this.options.attachFileUploadApiUrl;
     if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
