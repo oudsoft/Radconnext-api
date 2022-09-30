@@ -364,7 +364,8 @@ function RadconWebSocketServer (arg, db, log) {
 	this.findUserSocket = function(username) {
 		return new Promise(async function(resolve, reject) {
 			let yourSocket = await $this.clients.find((ws) =>{
-				if ((ws.id == username) && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+				//if ((ws.id == username) && ((ws.readyState == 0) || (ws.readyState == 1))) return ws;
+				if (ws.id == username) return ws;
 			});
 			resolve(yourSocket);
 		});
