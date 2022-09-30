@@ -32,7 +32,7 @@ const privateKey = fs.readFileSync(__dirname + '/key.pem', 'utf8');
 const certificate = fs.readFileSync(__dirname + '/key.crt', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
-const ALLOW_ORIGIN = ['http://localhost:3000', 'https://localhost:4443', 'https://radconnext.tech', 'https://radconnext.info'];
+const ALLOW_ORIGIN = ['http://localhost:3000', 'https://localhost:4443', 'https://radconnext.tech', 'https://radconnext.info', 'undefined'];
 
 const controlOrigin = (req, res, next) => {
 	let origin = req.headers.origin;
