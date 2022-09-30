@@ -208,6 +208,7 @@ $.widget( "custom.imagehistory", {
       const defSize = 100000000;
       let fileSize = e.currentTarget.files[0].size;
       let fileType = e.currentTarget.files[0].type;
+      console.log(fileType);
       if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
         if (fileSize <= defSize*100) {
           $(fileBrowser).attr("name", 'archiveupload');
