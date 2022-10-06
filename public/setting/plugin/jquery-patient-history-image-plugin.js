@@ -103,7 +103,11 @@ $.widget( "custom.imageitem", {
           hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
         }
       } else {
-        hsImage.src = this.options.imgUrl;
+        if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
+          hsImage.src = 'https://radconnext.info/images/zip-icon.png';
+        } else {
+          hsImage.src = this.options.imgUrl;
+        }
       }
     } else {
       hsImage.src = this.options.imgUrl;
