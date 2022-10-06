@@ -48,7 +48,7 @@ $.widget( "custom.iconitem", {
   }
 });
 
-const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+const validImageTypes = ['image/gif', 'image/jpeg', 'image/png', 'application/zip', 'application/x-zip-compressed'];
 
 $.widget( "custom.imageitem", {
   options: {
