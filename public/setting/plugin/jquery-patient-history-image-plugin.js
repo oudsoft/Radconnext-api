@@ -90,16 +90,13 @@ $.widget( "custom.imageitem", {
 		$(imgDiv).css({'float': 'left'});
 
 		let hsImage = new Image();
-    console.log(this.options.fileType);
     if (this.options.fileType) {
-      console.log(!validImageTypes.includes(this.options.fileType));
       if (!validImageTypes.includes(this.options.fileType)) {
         if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
           hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
         } else if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
           hsImage.src = 'https://radconnext.info/images/zip-icon.png';
         } else {
-          console.log(this.options.fileType);
           hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
         }
       } else {
