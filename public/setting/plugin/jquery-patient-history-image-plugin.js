@@ -336,6 +336,7 @@ $.widget( "custom.imagehistory", {
       setTimeout(()=>{
         $this.doAppendNewImageData(data);
         let uploadImageProp = {
+          fileType: this.options.fileType,
           imgUrl: data.link,
           onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
         };
