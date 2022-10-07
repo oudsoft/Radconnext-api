@@ -32,6 +32,7 @@ app.post('/select/(:caseId)', async (req, res) => {
   let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: caseId}, order: orderby});
   let userProfiles = [];
   await keepLogs.forEach(async(log, i) => {
+    log.info('keep=>' + JSON.stringify(log))
     if (log.userId != 0) {
       let userProfile = await doLoadUserProfile(log.userId);
       userProfiles.push(userProfile);
