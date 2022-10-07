@@ -31,10 +31,10 @@ app.post('/select/(:caseId)', async (req, res) => {
   let caseId = req.params.caseId;
   let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: caseId}, order: orderby});
   let userProfiles = [];
-  await keepLogs.forEach(async(log, i) => {
-    log.info('keep=>' + JSON.stringify(log))
-    if (log.userId != 0) {
-      let userProfile = await doLoadUserProfile(log.userId);
+  await keepLogs.forEach(async(keep, i) => {
+    log.info('keep=>' + JSON.stringify(keep))
+    if (keep.userId != 0) {
+      let userProfile = await doLoadUserProfile(keep.userId);
       userProfiles.push(userProfile);
     } else {
       userProfiles.push({userId: 0, username: 'system', User_NameEN: 'Radconnext', User_LastNameEN: 'System', User_NameTH: 'Radconnext', User_LastNameTH: 'System'});
