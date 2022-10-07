@@ -514,6 +514,7 @@ app.post('/update', (req, res) => {
         const targetCaseId = req.body.id;
         const updateData = req.body.data;
         const urgenttypeId = req.body.urgenttypeId;
+        const userId = req.body.userId;
         const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN']}];
         const targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
         const targetCase = targetCases[0];
@@ -524,6 +525,7 @@ app.post('/update', (req, res) => {
         if (canUpdate) {
           let nowRadioId = targetCase.Case_RadiologistId;
           let newTaskOption = undefined;
+          let caseState = undefined;
           if (nowCaseStatus == 1) {
             if (nowRadioId == updateData.Case_RadiologistId) {
               // normal update
@@ -531,6 +533,7 @@ app.post('/update', (req, res) => {
               await Case.update(updateData, { where: { id: targetCaseId } });
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
+              caseState = 'none change radio';
             } else {
               // un-normal update
               newTaskOption = true;
@@ -550,6 +553,7 @@ app.post('/update', (req, res) => {
               await Case.update(updateData, { where: { id: targetCaseId } });
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
+              caseState = 'change radio';
             }
           } else if (nowCaseStatus == 2) {
             if (nowRadioId == updateData.Case_RadiologistId) {
@@ -558,6 +562,7 @@ app.post('/update', (req, res) => {
               await Case.update(updateData, { where: { id: targetCaseId } });
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
+              caseState = 'none change radio';
             } else {
               // un-normal update
               newTaskOption = true;
@@ -579,6 +584,7 @@ app.post('/update', (req, res) => {
 
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
+              caseState = 'change radio';
             }
           } else if ((nowCaseStatus == 4) || (nowCaseStatus == 7)) {
             // reset caase
@@ -591,26 +597,18 @@ app.post('/update', (req, res) => {
 
             //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
             res.json({Result: "OK", status: {code: 200}});
+            caseState = 'change on negative case';
           } else {
             // normal update
             newTaskOption = false;
             await Case.update(updateData, { where: { id: targetCaseId } });
             //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
             res.json({Result: "OK", status: {code: 200}});
+            caseState = 'normal change';
           }
+          let newKeepLog = { caseId : targetCaseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'Update Case [' + caseState + '] Success'};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
 
-          /*
-          let patients = await db.patients.findAll({attributes: ['Patient_NameEN', 'Patient_LastNameEN'], where: {id: targetCase.patientId}});
-          let patientNameEN = patients[0].Patient_NameEN;
-          let patientLastNameEN = patients[0].Patient_LastNameEN;
-          let out = await common.doConvertPatientHistoryImage2Dicom(targetCase.Case_OrthancStudyID, targetCase.hospitalId, req.hostname, newHR, targetCase.Case_Modality, patientNameEN, patientLastNameEN, oldHR);
-          log.info('out=> ' + JSON.stringify(out));
-          let reviseHR = {Case_PatientHRLink: out.newHRprop};
-          await Case.update(reviseHR, { where: { id: targetCase.id } });
-          let notifyMsg = 'Your request update case can replace advance dicom zip file success.'
-          let ownerNotify = {type: 'notify', message: notifyMsg};
-          await socket.sendMessage(ownerNotify, ur[0].username);
-          */
         } else {
           res.json({status: {code: 202}, info: 'The current case status out of bound to update.'});
         }

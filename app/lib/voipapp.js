@@ -40,7 +40,8 @@ app.post('/response', async function(req, res) {
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   res.json({status: {code: 200}, ok: 'me'});
   */
-
+  const acceptRemark = 'Radio Accept by VoIP App';
+  const rejectRemark = 'Radio Reject by VoIP App';
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -57,14 +58,14 @@ app.post('/response', async function(req, res) {
     let radioId = targetCases[0].Case_RadiologistId;
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP
-      changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, 'Radio Accept by VoIP App');
+      changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, acceptRemark);
     } else if (voip.responseKEYs[0] == 3) {
       //Reject Case by VoIP
-      changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, 'Radio Reject by VoIP App');
+      changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, rejectRemark);
     } else if (voip.responseKEYs[0] == 4) {
-      changeRes = await doChangeCaseStatusMany(radioId, 2, 'Radio Accept by VoIP App');
+      changeRes = await doChangeCaseStatusMany(radioId, 2, acceptRemark);
     } else if (voip.responseKEYs[0] == 6) {
-      changeRes = await doChangeCaseStatusMany(radioId, 3, 'Radio Reject by VoIP App');
+      changeRes = await doChangeCaseStatusMany(radioId, 3, rejectRemark);
     }
     await Voip.removeTaskByCaseId(caseId);
   }

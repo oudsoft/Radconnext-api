@@ -18,20 +18,20 @@ const casestatusFlowTable = [
     /* acc = accept rej = reject upd = update */
     /* Update หมายถึงการแก้ไขข้อมูลที่เป็นเนื้อหาของเคส */
     /* Renew หมายถึงเปลี่ยนรังสีแพทย์ ซึ่งจะทำให้เคสมีสถานะเป็น new ใหม่อีกครั้ง แต่เป็นรังสีแพทย์คนใหม่(หรือคนเดมก็ได้)*/
-    {now: 1, next: [2, 3, 4, 7], actions: ['accR', 'rejR', 'updH', 'cancelH', 'changeH']},
-    {now: 2, next: [4, 8], actions: ['openR', 'updH']},
-    {now: 3, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
-    {now: 4, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH']},
-    {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR']},
-    {now: 6, next: [12, 14], actions: ['printH', 'editR']},
-    {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH']},
-    {now: 8, next: [4, 9, 5, 13], actions: ['draftR', 'replyR']}, // <- Open
-    {now: 9, next: [9, 5, 13], actions: ['replyR', 'editR']}, // <- Draft
-    {now: 10, next: [11, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR']}, // <- Owner Case View
-    {now: 11, next: [6, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH']},
-    {now: 12, next: [6, 10, 11, 13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH']},
-    {now: 13, next: [6, 10, 11, 12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH']},
-    {now: 14, next: [6, 10, 11, 12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'closeH']}
+    {now: 1, next: [2, 3, 4, 7], actions: ['accR', 'rejR', 'updH', 'cancelH', 'changeH', 'logH']},
+    {now: 2, next: [4, 8], actions: ['openR', 'updH', 'logH']},
+    {now: 3, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH', 'logH']},
+    {now: 4, next: [7], actions: ['cancelH', 'renewH', 'updH', 'changeH', 'logH']},
+    {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR', 'logH']},
+    {now: 6, next: [12, 14], actions: ['printH', 'editR', 'logH']},
+    {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH', 'logH']},
+    {now: 8, next: [4, 9, 5, 13], actions: ['draftR', 'replyR', 'logH']}, // <- Open
+    {now: 9, next: [9, 5, 13], actions: ['replyR', 'editR', 'logH']}, // <- Draft
+    {now: 10, next: [11, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR', 'logH']}, // <- Owner Case View
+    {now: 11, next: [6, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH', 'logH']},
+    {now: 12, next: [6, 10, 11, 13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'logH']},
+    {now: 13, next: [6, 10, 11, 12, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'logH']},
+    {now: 14, next: [6, 10, 11, 12, 13], actions: ['editR', 'viewH', 'printH', 'convertH', 'callzoomH', 'closeH', 'logH']}
 ];
 
 //usertype role on casestatus.
@@ -450,6 +450,9 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+        let systemId = 0;
+        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : 'Call Radio By VoIP', result: callPhoneRes};
+        doCaseChangeStatusKeepLog(newKeepLog);
       }
     });
     let endTime = newTask.triggerAt;
