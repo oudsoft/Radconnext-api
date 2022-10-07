@@ -34,6 +34,7 @@ app.post('/select/(:caseId)', async (req, res) => {
   await keepLogs.forEach(async(keep, i) => {
     log.info('keep=>' + JSON.stringify(keep))
     if (keep.userId != 0) {
+      log.info('keep.userId=>' + JSON.stringify(keep.userId))
       let userProfile = await doLoadUserProfile(keep.userId);
       userProfiles.push(userProfile);
     } else {
