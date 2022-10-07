@@ -180,12 +180,15 @@
     let params = {};
     $.post(openUrl, params).then((response) => {
       let keeplogs = response.Logs;
-      doShowKeepLogs(keeplogs);
+      doShowKeepLogs(response);
     });
   }
 
-  const doShowKeepLogs = function(keeplogs){
+  const doShowKeepLogs = function(logs){
+    console.log(logs);
+    let keeplogs = logs.Logs;
     console.log(keeplogs);
+
     let radAlertInfo = $('<div></div>');
     let logTable = $('<table width="100%" cellpadding="0" cellspacing="0" border="1"></table>');
     $(logTable).append($('<tr style="background-color: grey; color: white;"><td width="20%" align="center"><b>Date Time</b></td><td width="10%" align="center"><b>By</b></td><td width="10%" align="center"><b>From</b></td><td width="10%" align="center"><b>To</b></td><td width="*" align="center"><b>Detail</b></td></tr>'));
