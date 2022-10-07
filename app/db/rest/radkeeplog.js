@@ -11,6 +11,8 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 var db, log, auth;
 
+const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
+
 const doLoadUserProfile = function(userId){
   return new Promise(async (resolve, reject) => {
     let userInclude = [{model: db.userinfoes, attributes: excludeColumn}, {model: db.hospitals, attributes: ['Hos_Name']}];
