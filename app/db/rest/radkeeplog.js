@@ -31,17 +31,25 @@ app.post('/select/(:caseId)', async (req, res) => {
   let caseId = req.params.caseId;
   let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: caseId}, order: orderby});
   let userProfiles = [];
-  await keepLogs.forEach(async(keep, i) => {
-    log.info('keep=>' + JSON.stringify(keep))
-    if (keep.userId != 0) {
-      log.info('keep.userId=>' + JSON.stringify(keep.userId))
-      let userProfile = await doLoadUserProfile(keep.userId);
-      userProfiles.push(userProfile);
-    } else {
-      userProfiles.push({userId: 0, username: 'system', User_NameEN: 'Radconnext', User_LastNameEN: 'System', User_NameTH: 'Radconnext', User_LastNameTH: 'System'});
+  const promiseList = new Promise(async function(resolve, reject) {
+    for (let i=0; i < keepLogs.length; i++){
+      let keep = keepLogs[i];
+      log.info('keep=>' + JSON.stringify(keep))
+      if (keep.userId != 0) {
+        log.info('keep.userId=>' + JSON.stringify(keep.userId))
+        let userProfile = await doLoadUserProfile(keep.userId);
+        userProfiles.push(userProfile);
+      } else {
+        userProfiles.push({userId: 0, username: 'system', User_NameEN: 'Radconnext', User_LastNameEN: 'System', User_NameTH: 'Radconnext', User_LastNameTH: 'System'});
+      }
     }
+    setTimeout(()=> {
+      resolve(userProfiles);
+    },400);
   });
-  res.json({status: {code: 200}, Logs: keepLogs, UserProfiles: userProfiles});
+  Promise.all([promiseList]).then((ob)=> {
+    res.json({status: {code: 200}, Logs: keepLogs, UserProfiles: ob[0]});
+  });
 });
 
 /*
