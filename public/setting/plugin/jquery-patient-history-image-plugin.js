@@ -125,7 +125,8 @@ $.widget( "custom.imageitem", {
       me.options.onRemoveClick(e, imgDiv);
 		});
 		$(imgDiv).append($(removeLink));
-
+    let temps = this.options.imgUrl.split('/');
+    $(imgDiv).attr('title', temps[temps.length-1]);
     this.element.append($(imgDiv));
 
     this.element.trigger('newpatienthistoryimage');
