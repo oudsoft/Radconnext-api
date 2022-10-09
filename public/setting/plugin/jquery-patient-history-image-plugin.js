@@ -111,6 +111,7 @@ $.widget( "custom.imageitem", {
     } else {
       let fileType = undefined;
       let tmps = this.options.imgUrl.split('.');
+      console.log(tmps);
       if ((tmps[1] === 'jpg') || (tmps[1] === 'jpeg') || (tmps[1] === 'png') || (tmps[1] === 'bmp')|| (tmps[1] === 'gif')) {
         fileType = 'image/png';
       } else if (tmps[1] === 'pdf') {
@@ -118,7 +119,7 @@ $.widget( "custom.imageitem", {
       } else if (tmps[1] === 'zip') {
         fileType = 'application/zip';
       }
-
+      console.log(fileType);
       if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
         hsImage.src = 'https://radconnext.info/images/zip-icon.png';
       } else if (fileType.toUpperCase() === 'APPLICATION/PDF') {
