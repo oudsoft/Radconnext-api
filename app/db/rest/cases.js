@@ -516,8 +516,8 @@ app.post('/update', (req, res) => {
         const urgenttypeId = req.body.urgenttypeId;
         const userId = req.body.userId;
         const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN']}];
-        const targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
-        const targetCase = targetCases[0];
+        let targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
+        let targetCase = targetCases[0];
         let nowCaseStatus = targetCase.casestatusId;
         let oldHR = targetCase.Case_PatientHRLink;
         let newHR = updateData.Case_PatientHRLink;
@@ -554,6 +554,32 @@ app.post('/update', (req, res) => {
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
               caseState = 'change radio';
+              targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
+              targetCase = targetCases[0];
+              let newRadioId = targetCase.Case_RadiologistId;
+              let userId = targetCase.userId;
+              radioProfile = await common.doLoadRadioProfile(newRadioId);
+              let userProfile = await common.doLoadUserProfile(userId);
+              let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
+              let lineCaseDetaileMsg = '';
+              let hospitalName = targetCase.hospital.Hos_Name;
+              let patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
+              let patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
+              let studyDescription = targetCase.Case_StudyDescription;
+              let protocolName = targetCase.Case_ProtocolName;
+              let caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription, protocolName};
+
+              if (radioProfile.autoacc == 0) {
+                //Create Task Schedule
+                let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+              } else if (radioProfile.autoacc == 1) {
+                let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
+                let acceptedCaseStatusId = acceptedCaseStatus[0].id;
+                await targetCase.setCasestatus(acceptedCaseStatus[0]);
+                let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+                let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
+              }
             }
           } else if (nowCaseStatus == 2) {
             if (nowRadioId == updateData.Case_RadiologistId) {
