@@ -291,7 +291,7 @@
             lastFilename = localFilename.name;
           }
           let fileName = prompt("ชื่อไฟล์", lastFilename);
-          if (fileName !== '') {
+          if ((fileName) && (fileName !== '')) {
             localStorage.setItem('lastFilename', JSON.stringify({name: fileName}));
             let tempLink = document.createElement('a');
             let downloadFileName = fileName + '.png';
@@ -329,12 +329,20 @@
           }
         });
 
+        let clearCmd = $('<input type="button" value="Clear"/>').css({'margin-left': '10px'});
+        $(clearCmd).on('click', (evt)=>{
+          evt.stopPropagation();
+          $(imageSrc).remove();
+          $(cropBox).remove();
+          $(layoutBox).slideDown('slow');
+        });
+
         let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
         let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#aaaa', 'padding': '4px 0px 4px'});
         let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
         $(cropImageWrapper).css({'font-size': fntSize + 'px'});
         $(cropImageWrapper).append($(cropImage));
-        $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd));
+        $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd)).append($(clearCmd));
         $(cropImageBox).append($(cropImageCmdBox)).append($(cropImageWrapper));
         let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
         $(cropBox).append($(cropImageBox));
@@ -405,6 +413,7 @@
         $(applyCmd).click();
       });
       let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
+      //let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
       let zoomOutCmd = $('<input type="button" value="Zoom-Out"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomOutCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
