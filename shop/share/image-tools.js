@@ -565,13 +565,15 @@
         let wVal = Number(w);
         let hVal = Number(h);
         settings.scale = zVal;
+        console.log(settings.cropWidth);
+        console.log(((1-zVal)*settings.cropWidth));
         settings.cropWidth = settings.cropWidth + ((1-zVal)*settings.cropWidth);
         settings.cropHeight = settings.cropHeight + ((1-zVal)*settings.cropHeight);
         console.log(settings);
         $('#LayoutBox').width(settings.cropWidth);
         $('#LayoutBox').height(settings.cropHeight);
       }, (evt, scale)=>{
-        console.log(scale);
+        //console.log(scale);
         let newW = (imgSrcFullSizeWidth * scale) + 'px';
         $('#ImageSrc').css({'width': '' + newW + '', 'height': 'auto'});
         $('#ImageSrc').parent().css({'border': '1px solid red'});
