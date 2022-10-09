@@ -111,12 +111,13 @@ $.widget( "custom.imageitem", {
     } else {
       let fileType = undefined;
       let tmps = this.options.imgUrl.split('.');
+      let ext = tmps[tmps.length-1];
       console.log(tmps);
-      if ((tmps[1] === 'jpg') || (tmps[1] === 'jpeg') || (tmps[1] === 'png') || (tmps[1] === 'bmp')|| (tmps[1] === 'gif')) {
+      if ((ext === 'jpg') || (ext === 'jpeg') || (ext === 'png') || (ext === 'bmp')|| (ext === 'gif')) {
         fileType = 'image/png';
-      } else if (tmps[1] === 'pdf') {
+      } else if (ext === 'pdf') {
         fileType = 'application/pdf';
-      } else if (tmps[1] === 'zip') {
+      } else if (ext === 'zip') {
         fileType = 'application/zip';
       }
       console.log(fileType);
