@@ -345,7 +345,7 @@ const doCaseExpireAction = function(tasks, caseId, socket, newcaseStatusId, radi
 
     let systemId = 0;
     let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'เคสหมดเวลากำหนด'};
-    doCaseChangeStatusKeepLog(newKeepLog);
+    await doCaseChangeStatusKeepLog(newKeepLog);
 
     await tasks.removeTaskByCaseId(caseId);
     log.info('caseId ' + caseId + ' was expired by schedule.');
@@ -455,7 +455,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
         let systemId = 0;
         let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : 'ระบบเรียกสายไปยังรังสีแพทย์', result: callPhoneRes};
-        doCaseChangeStatusKeepLog(newKeepLog);
+        await doCaseChangeStatusKeepLog(newKeepLog);
       }
     });
     let endTime = newTask.triggerAt;
@@ -1013,7 +1013,7 @@ const doConsultExpireAction = function(whomtask, websocket, consultId, socket, n
     let fromStusId = targetCases[0].casestatusId;
     let systemId = 0;
     let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'Expire by Case Task on System Cron Job.'};
-    doCaseChangeStatusKeepLog(newKeepLog);
+    await doCaseChangeStatusKeepLog(newKeepLog);
     */
     await whomtask.removeTaskByConsultId(consultId);
     log.info('consultId ' + consultId + ' was expired by schedule.');
