@@ -445,6 +445,7 @@
           settings.cropHeight = h / settings.scale;
           $('#WInput').val(settings.cropWidth);
           $('#HInput').val(settings.cropHeight);
+          $('#ZInput').val(settings.scale);
         }
       });
       return $(layoutBox);
@@ -524,6 +525,7 @@
 
         $('#WInput').val(400);
         $('#HInput').val(600);
+        $('#ZInput').val(1);
         $('#ApplyCmd').click();
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -559,12 +561,12 @@
         doOpenFileChooser(evt);
       });
       let cropInputBox = doCreateWHInputBox((evt, w, h, z)=>{
-        settings.cropWidth = Number(w);
-        settings.cropHeight = Number(h);
         settings.scale = Number(z);
+        settings.cropWidth = Number(w) * settings.scale;
+        settings.cropHeight = Number(h) * settings.scale;
         console.log(settings);
-        $('#LayoutBox').width(settings.cropWidth * settings.scale);
-        $('#LayoutBox').height(settings.cropHeight * settings.scale);
+        $('#LayoutBox').width(settings.cropWidth);
+        $('#LayoutBox').height(settings.cropHeight);
       }, (evt, scale)=>{
         console.log(scale);
         let newW = (imgSrcFullSizeWidth * scale) + 'px';
