@@ -65,7 +65,7 @@
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
       let imageSrc = doCreateSourceImage(fileURL);
-      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
+      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'left': '0px', 'top': '0px', 'transform': 'scale('+ settings.scale + ')'});
       $(imageSrc).on('click', (evt)=>{
         let pos = $('#LayoutBox').offset();
         let x = undefined;
