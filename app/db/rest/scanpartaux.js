@@ -76,12 +76,13 @@ app.post('/select', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
+          const orderby = [['id', 'DESC']];
           const studyDesc = req.body.studyDesc;
           const protocolName = req.body.protocolName;
           const hospitalId = req.body.hospitalId;
           const userId = req.body.userId;
           const whereClous = {StudyDesc: studyDesc, ProtocolName: protocolName, userId: userId};
-          const scanPartAuxs = await db.scanpartauxs.findAll({ attributes: excludeColumn, where: whereClous});
+          const scanPartAuxs = await db.scanpartauxs.findAll({ attributes: excludeColumn, where: whereClous, order: orderby});
           res.json({status: {code: 200}, Records: scanPartAuxs});
         } catch(error) {
           log.error(error);

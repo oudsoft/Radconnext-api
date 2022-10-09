@@ -343,10 +343,19 @@ $.widget( "custom.imagehistory", {
       if (window.location.hostname == 'localhost') {
         data.link = 'https://radconnext.info' + data.link;
       }
+      let fileType = undefined;
+      let tmps = data.link.split('.');
+      if ((tmps[1] === 'jpg') || (tmps[1] === 'jpeg') || (tmps[1] === 'png') || (tmps[1] === 'bmp')|| (tmps[1] === 'gif')) {
+        fileType = 'image/png';
+      } else if (tmps[1] === 'pdf') {
+        fileType = 'application/pdf';
+      } else if (tmps[1] === 'zip') {
+        fileType = 'application/zip';
+      }
       setTimeout(()=>{
         $this.doAppendNewImageData(data);
         let uploadImageProp = {
-          fileType: this.options.fileType,
+          fileType: fileType,
           imgUrl: data.link,
           onRemoveClick: function(e, imgDiv){$this.doRemoveImage(e, data.link, imgDiv)}
         };
