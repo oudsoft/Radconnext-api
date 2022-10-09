@@ -580,7 +580,7 @@ app.post('/update', (req, res) => {
                 let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
               } else if (radioProfile.autoacc == 1) {
                 let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-                //let acceptedCaseStatusId = acceptedCaseStatus[0].id;
+                let acceptedCaseStatusId = acceptedCaseStatus[0].id;
                 await targetCase.setCasestatus(acceptedCaseStatus[0]);
                 let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
                 let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
@@ -641,7 +641,7 @@ app.post('/update', (req, res) => {
                 let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
               } else if (radioProfile.autoacc == 1) {
                 let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-                //let acceptedCaseStatusId = acceptedCaseStatus[0].id;
+                let acceptedCaseStatusId = acceptedCaseStatus[0].id;
                 await targetCase.setCasestatus(acceptedCaseStatus[0]);
                 let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
                 let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
@@ -662,7 +662,7 @@ app.post('/update', (req, res) => {
             //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
             res.json({Result: "OK", status: {code: 200}});
             caseState = 'change on negative case';
-            
+
             targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
             targetCase = targetCases[0];
             let newRadioId = targetCase.Case_RadiologistId;
@@ -686,7 +686,7 @@ app.post('/update', (req, res) => {
               let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
             } else if (radioProfile.autoacc == 1) {
               let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-              //let acceptedCaseStatusId = acceptedCaseStatus[0].id;
+              let acceptedCaseStatusId = acceptedCaseStatus[0].id;
               await targetCase.setCasestatus(acceptedCaseStatus[0]);
               let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
               let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
