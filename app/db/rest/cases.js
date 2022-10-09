@@ -578,7 +578,7 @@ app.post('/update', (req, res) => {
                 let acceptedCaseStatusId = acceptedCaseStatus[0].id;
                 await targetCase.setCasestatus(acceptedCaseStatus[0]);
                 let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
-                let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
+                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
               }
             }
           } else if (nowCaseStatus == 2) {
