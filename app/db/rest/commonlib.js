@@ -418,6 +418,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
 
     let caseDateText = uti.doFormateDateTimeChatbot(caseMsgData.caseCreateAt);
     // Chatbot message to Radio
+    log.info('radioProfile=> ' + JSON.stringify(radioProfile));
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       if (baseCaseStatusId == 1 ) {
         let dataOnCaseBot = {
