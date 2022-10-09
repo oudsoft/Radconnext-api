@@ -383,14 +383,17 @@
       let whInputBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'top': '-15px'});;
       let wInput = $('<input type="number" id="WInput"/>').val(settings.cropWidth).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '2px'});
       let hInput = $('<input type="number" id="HInput"/>').val(settings.cropHeight).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '2px'});
+      let zInput = $('<input type="number" id="ZInput"/>').val(settings.scale).css({'position': 'relative', 'display': 'inline-block', 'width': '60px', 'margin-left': '2px'});
       let applyCmd = $('<input type="button" value="Apply" id="ApplyCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(applyCmd).on('click', (evt)=>{
         let w = $(wInput).val();
         let h = $(hInput).val();
-        inputCallback(evt, w, h);
+        let z = $(zInput).val();
+        inputCallback(evt, w, h, z);
       });
       let wLabel = $('<span>X :</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
       let hLabel = $('<span>Y :</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
+      let zLabel = $('<span>Z :</span>').css({'display': 'inline-block', 'width': '20px', 'margin-left': '10px'});
       let zoomInCmd = $('<input type="button" value="Zoom-In"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomInCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
@@ -419,7 +422,13 @@
           $(applyCmd).click();
         }
       });
-      $(whInputBox).append($(wLabel)).append($(wInput)).append($(hLabel)).append($(hInput)).append($(applyCmd));
+      $(zInput).on('keypress',function(evt) {
+        if(evt.which == 13) {
+          $(applyCmd).click();
+        }
+      });
+
+      $(whInputBox).append($(wLabel)).append($(wInput)).append($(hLabel)).append($(hInput)).append($(zLabel)).append($(zInput)).append($(applyCmd));
       return $(whInputBox).append($(zoomInCmd)).append($(zoomValue)).append($(zoomOutCmd)).append($(zoomResetCmd));
     }
 
@@ -549,9 +558,10 @@
       $(fileChooserCmd).on('click', (evt)=>{
         doOpenFileChooser(evt);
       });
-      let cropInputBox = doCreateWHInputBox((evt, w, h)=>{
+      let cropInputBox = doCreateWHInputBox((evt, w, h, z)=>{
         settings.cropWidth = Number(w);
         settings.cropHeight = Number(h);
+        settings.scale = Number(z);
         console.log(settings);
         $('#LayoutBox').width(settings.cropWidth * settings.scale);
         $('#LayoutBox').height(settings.cropHeight * settings.scale);
