@@ -344,7 +344,7 @@ const doCaseExpireAction = function(tasks, caseId, socket, newcaseStatusId, radi
     }
 
     let systemId = 0;
-    let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'Expire by Case Task on System Cron Job.'};
+    let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'เคสหมดเวลากำหนด'};
     doCaseChangeStatusKeepLog(newKeepLog);
 
     await tasks.removeTaskByCaseId(caseId);
@@ -432,6 +432,8 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'แจ้งเตือนรังสีแพทย์ทาง Line Application'};
+        await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else if (baseCaseStatusId == 2 ) {
         // move to statuscontrol at onAcceptCaseEvent
       }
@@ -451,7 +453,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
         let systemId = 0;
-        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : 'Call Radio By VoIP', result: callPhoneRes};
+        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : 'ระบบเรียกสายไปยังรังสีแพทย์', result: callPhoneRes};
         doCaseChangeStatusKeepLog(newKeepLog);
       }
     });

@@ -452,7 +452,7 @@ app.post('/add', (req, res) => {
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
           await adCase.setCasestatus(newcaseStatus[0]);
 
-          let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'Create New Case Success'};
+          let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'สร้างเคส สำเร็จ'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
           //log.info('newCaseData.option=>' + JSON.stringify(req.body.option));
@@ -606,7 +606,7 @@ app.post('/update', (req, res) => {
             res.json({Result: "OK", status: {code: 200}});
             caseState = 'normal change';
           }
-          let newKeepLog = { caseId : targetCaseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'Update Case [' + caseState + '] Success'};
+          let newKeepLog = { caseId : targetCaseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'แก้ไขเคส [' + caseState + '] สำเร็จ'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
         } else {
@@ -1039,11 +1039,14 @@ app.post('/reset/dicom/zipfilename', async (req, res) => {
 
 app.post('/newcase/trigger', async (req, res) => {
   let studyID = req.body.studyID;
-  let casesRes = await db.cases.findAll({attributes: ['id'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
+  let userId = req.body.userId;
+  let casesRes = await db.cases.findAll({attributes: ['id', 'casestatusId'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
   if (casesRes.length > 0) {
     let caseId = casesRes[0].id;
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     res.json({status: {code: 200}, result: actionAfterChange});
+    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRecasesRes[0].casestatusId[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
   } else {
     res.json({status: {code: 200}, result: 'Not Found Case'});
   }
@@ -1051,9 +1054,13 @@ app.post('/newcase/trigger', async (req, res) => {
 
 app.post('/updatecase/trigger', async (req, res) => {
   let caseId = req.body.caseId;
+  let userId = req.body.userId;
   let newTaskOption = req.body.newTaskOption;
   let actionAfterChange = await statusControl.onHospitalUpdateCaseEvent(caseId, newTaskOption);
   res.json({status: {code: 200}, result: actionAfterChange});
+  let casesRes = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
+  let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
+  await common.doCaseChangeStatusKeepLog(newKeepLog);
 });
 
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {

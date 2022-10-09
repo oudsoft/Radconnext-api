@@ -40,8 +40,8 @@ app.post('/response', async function(req, res) {
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   res.json({status: {code: 200}, ok: 'me'});
   */
-  const acceptRemark = 'Radio Accept by VoIP App';
-  const rejectRemark = 'Radio Reject by VoIP App';
+  let acceptRemark = 'Radio Accept by VoIP App';
+  let rejectRemark = 'Radio Reject by VoIP App';
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -56,6 +56,9 @@ app.post('/response', async function(req, res) {
     let action = undefined;
     let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
     let radioId = targetCases[0].Case_RadiologistId;
+    let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radioId}});
+    acceptRemark = 'รังสีแพทย์ ' + userinfos[0].User_NameTH + ' ' + userinfos[0].User_LastNameTH +  'ตอบรับเคสโดย VoIP';
+    rejectRemark = 'รังสีแพทย์ ' + userinfos[0].User_NameTH + ' ' + userinfos[0].User_LastNameTH +  'ปฏิเสธเคสโดย VoIP';
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP
       changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, acceptRemark);

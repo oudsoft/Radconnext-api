@@ -230,10 +230,13 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           break;
           case 'x401':
             /* radio accept new case*/
-            let targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: data}});
+            let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId'], where: {id: data}});
             let nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
               let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'Accept by Line Bot');
+              let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radUser.id}});
+              let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark : 'รังสีแพทย์ ' + userinfos[0].User_NameTH + ' ' + userinfos[0].User_LastNameTH + ' ตอบรับเคสโดย Line Application'};
+              await common.doCaseChangeStatusKeepLog(newKeepLog);
               if (changeRes.change.status == true) {
                 /*
                 action = 'quick';
@@ -254,10 +257,14 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           break;
           case 'x402':
             /* radio not accept new cse*/
-            targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: data}});
+            targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId'], where: {id: data}});
             nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
               let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'Reject by Line Bot');
+              let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radUser.id}});
+              let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 3, remark : 'รังสีแพทย์ ' + userinfos[0].User_NameTH + ' ' + userinfos[0].User_LastNameTH +  'ปฏิเสธเคสโดย Line Application'};
+              await common.doCaseChangeStatusKeepLog(newKeepLog);
+
               if (changeResNotAcc.change.status == true) {
                 /*
                 caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name']}];

@@ -362,6 +362,8 @@ const onNewCaseEvent = function(caseId, options){
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
           */
+          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 2, remark : 'รังสีแพทย์ ' + radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH + ' สถานะ active รับเคสอัติโนมัติ'};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           log.info('== But Radio Lock Screen ==');
           let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
