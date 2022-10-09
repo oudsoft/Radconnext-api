@@ -434,7 +434,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'แจ้งเตือนรังสีแพทย์ทาง Line Application'};
-        await common.doCaseChangeStatusKeepLog(newKeepLog);
+        await doCaseChangeStatusKeepLog(newKeepLog);
       } else if (baseCaseStatusId == 2 ) {
         // move to statuscontrol at onAcceptCaseEvent
       }
