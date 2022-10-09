@@ -561,9 +561,12 @@
         doOpenFileChooser(evt);
       });
       let cropInputBox = doCreateWHInputBox((evt, w, h, z)=>{
-        settings.scale = Number(z);
-        settings.cropWidth = Number(w) * settings.scale;
-        settings.cropHeight = Number(h) * settings.scale;
+        let zVal = Number(z);
+        let wVal = Number(w);
+        let hVal = Number(h);
+        settings.scale = zVal;
+        settings.cropWidth = settings.cropWidth + ((1-zVal)*settings.cropWidth);
+        settings.cropHeight = settings.cropHeight + ((1-zVal)*settings.cropHeight);
         console.log(settings);
         $('#LayoutBox').width(settings.cropWidth);
         $('#LayoutBox').height(settings.cropHeight);
