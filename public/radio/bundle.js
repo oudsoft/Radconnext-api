@@ -1060,12 +1060,10 @@ module.exports = function ( jq ) {
 
   const doDownloadDicom = function(studyID, dicomFilename){
 		$('body').loading('start');
+		/*
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
   	apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
-  		console.log(response);
-  		//let openLink = response.archive.link;
-  		//window.open(openLink, '_blank');
 			var pom = document.createElement('a');
 			pom.setAttribute('href', response.link);
 			pom.setAttribute('download', dicomFilename);
@@ -1074,7 +1072,16 @@ module.exports = function ( jq ) {
   	}).catch((err)=>{
 			console.log(err);
 			$('body').loading('stop');
-		})
+		});
+		*/
+		let downloadURL = 'https://radconnext.info/img/usr/zip/' + dicomFilename;
+		console.log(downloadURL);
+		let pom = document.createElement('a');
+		pom.setAttribute('href', downloadURL);
+		pom.setAttribute('target', '_blank');
+		pom.setAttribute('download', dicomFilename);
+		pom.click();
+		$('body').loading('stop');
   }
 
 	const doDownloadLocalDicom = function(studyID, dicomFilename){
@@ -1483,18 +1490,20 @@ module.exports = function ( jq ) {
 			let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			let headerFieldRow = doCreateHeaderField();
 			$(headerFieldRow).appendTo($(selectedBox));
-			await scanparts.forEach((item, i) => {
-				let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
-				$(itemRow).appendTo($(selectedBox));
-				let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
-				$(itemCell).appendTo($(itemRow));
-			});
+			if ((scanparts) && (scanparts.length > 0)) {
+				await scanparts.forEach((item, i) => {
+					let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					$(itemRow).appendTo($(selectedBox));
+					let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					$(itemCell).appendTo($(itemRow));
+				});
+			}
 			resolve($(selectedBox));
 		});
 	}
@@ -1612,6 +1621,11 @@ module.exports = function ( jq ) {
 			case 'close':
 			$(cmdIcon).attr('src','/images/closed-icon.png');
 			$(cmdIcon).attr('title', 'Edit Result.');
+			break;
+
+			case 'log':
+			$(cmdIcon).attr('src','/images/event-log-icon.png');
+			$(cmdIcon).attr('title', 'Open Case Event Log.');
 			break;
 
 		}
@@ -8150,7 +8164,7 @@ module.exports = function ( jq ) {
 				onOpenThirdPartyCmdClick();
 			});
 			//$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
-			$('body').append($(msgBox).css({'position': 'absolute', 'top': '60px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}));
+			$('body').append($(msgBox).css({'position': 'absolute', 'top': '60px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#2579B8', 'color': 'white', 'padding': '5px'}));
 			resolve();
 		});
 	}
