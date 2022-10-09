@@ -65,7 +65,9 @@
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
       let imageSrc = doCreateSourceImage(fileURL);
-      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'left': '0px', 'top': '0px', 'transform': 'scale('+ settings.scale + ')'});
+      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
+      $(imageSrc).css({'top': '0px'});
+      $('body').css({'width': imgSrcFullSizeWidth + 'px', 'heigth': imgSrcFullSizeHeight + 'px'});
       $(imageSrc).on('click', (evt)=>{
         let pos = $('#LayoutBox').offset();
         let x = undefined;
@@ -375,7 +377,6 @@
         imgSrcFullSizeWidth = srcImg.width;
         imgSrcFullSizeHeight = srcImg.height;
         console.log('loaded!!');
-        $('body').css({'width': imgSrcFullSizeWidth + 'px', 'heigth': imgSrcFullSizeHeight + 'px'});
       }
       return srcImg;
     }
