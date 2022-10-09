@@ -638,7 +638,8 @@ const doSelectCaseById = function(caseId){
         const ownerUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.userId}});
         const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
         const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, username: ownerUser[0].username};
-        casesFormat.push({case: item, Radiologist: radioData, Refferal: referData, Owner: ownerData});
+        const studyTags = await db.dicomtransferlogs.findAll({ attributes: ['StudyTags'], where: {ResourceID: item.Case_OrthancStudyID}});
+        casesFormat.push({case: item, Radiologist: radioData, Refferal: referData, Owner: ownerData, StudyTags: studyTags[0]});
       });
       setTimeout(()=> {
         resolve2(casesFormat);
