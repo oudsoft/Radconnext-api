@@ -109,9 +109,19 @@ $.widget( "custom.imageitem", {
         }
       }
     } else {
-      if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
+      let fileType = undefined;
+      let tmps = this.options.imgUrl.split('.');
+      if ((tmps[1] === 'jpg') || (tmps[1] === 'jpeg') || (tmps[1] === 'png') || (tmps[1] === 'bmp')|| (tmps[1] === 'gif')) {
+        fileType = 'image/png';
+      } else if (tmps[1] === 'pdf') {
+        fileType = 'application/pdf';
+      } else if (tmps[1] === 'zip') {
+        fileType = 'application/zip';
+      }
+
+      if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
         hsImage.src = 'https://radconnext.info/images/zip-icon.png';
-      } else if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
+      } else if (fileType.toUpperCase() === 'APPLICATION/PDF') {
         hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
       } else {
         hsImage.src = this.options.imgUrl;
