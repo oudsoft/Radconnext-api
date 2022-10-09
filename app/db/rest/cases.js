@@ -1045,7 +1045,7 @@ app.post('/newcase/trigger', async (req, res) => {
     let caseId = casesRes[0].id;
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     res.json({status: {code: 200}, result: actionAfterChange});
-    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRecasesRes[0].casestatusId[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
+    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
     await common.doCaseChangeStatusKeepLog(newKeepLog);
   } else {
     res.json({status: {code: 200}, result: 'Not Found Case'});
