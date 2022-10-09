@@ -2,8 +2,8 @@
 (function($) {
   $.fn.imagecrop = function( options ) {
     var settings = $.extend({
-      cropWidth: 200,
-      cropHeight: 200,
+      cropWidth: 400,
+      cropHeight: 620,
       scale: 1.0,
       uploadUrl: '/api/shop/upload/share',
       waterMarkText: 'Double Click',
@@ -16,6 +16,9 @@
 
     let imgSrcFullSizeWidth = 0;
     let imgSrcFullSizeHeight = 0;
+
+    let cropOriginWidth = settings.cropWidth;
+    let cropOriginHeight = settings.cropHeight;
 
     const genUniqueID = function () {
   		function s4() {
@@ -399,6 +402,7 @@
         let curValue = Number(settings.scale);
         settings.scale = curValue - 0.05;
         zoomCallback(evt, settings.scale);
+        $(applyCmd).click();
       });
       let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
       let zoomOutCmd = $('<input type="button" value="Zoom-Out"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
@@ -406,10 +410,17 @@
         let curValue = Number(settings.scale);
         settings.scale = curValue + 0.05;
         zoomCallback(evt, settings.scale);
+        $(applyCmd).click();
       });
       let zoomResetCmd = $('<input type="button" value="Reset" id="ZoomResetCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomResetCmd).on('click', (evt)=>{
         settings.scale = 1.0;
+        settings.cropWidth = cropOriginWidth;
+        settings.cropHeight = cropOriginHeight;
+        $(wInput).val(settings.cropWidth);
+        $(hInput).val(settings.cropHeight);
+        $(zInput).val(settings.scale);
+        $(applyCmd).click();
         zoomCallback(evt, settings.scale);
       });
       $(wInput).on('keypress',function(evt) {
@@ -561,13 +572,7 @@
         doOpenFileChooser(evt);
       });
       let cropInputBox = doCreateWHInputBox((evt, w, h, z)=>{
-        /*
-        console.log(w);
-        console.log(h);
-        console.log(z);
-        */
         let factor = (1 - Number(z));
-        //console.log((factor*Number(w)));
         settings.cropWidth = Number(w) - (factor*Number(w));
         settings.cropHeight = Number(h) - (factor*Number(h));
         console.log(settings);
@@ -606,8 +611,6 @@
             settings.cropHeight = newH;
           }
         }
-        //let newFnt = settings.waterMarkFontSize * scale;
-        //settings.waterMarkFontSize = newFnt;
       });
       let captureScreenCmd = doCreateCaptureCmd();
       $(cropInputBox).prepend($(fileChooserCmd).css({'display': 'inline-block'}));

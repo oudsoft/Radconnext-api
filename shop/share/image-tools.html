@@ -39,7 +39,7 @@
   const cropImageBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'border': '2px solid grey', 'background-color': '#ddd', 'text-align': 'left'});
 
 
-  const cropOption = {cropWidth: 400, cropHeight: 620, scale: 1.0, waterMarkText: 'ท่าศาสาเมืองน่าอยู่', waterMarkFontSize: 42, waterMarkFontColor:'white'};
+  const cropOption = {cropWidth: 1920, cropHeight: 1080, scale: 1.0, waterMarkText: 'ท่าศาสาเมืองน่าอยู่', waterMarkFontSize: 42, waterMarkFontColor:'white'};
   const myCropImageBox = $(cropImageBox).imagecrop(cropOption);
 
   $('body').append($(cropImageBox));
