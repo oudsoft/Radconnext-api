@@ -561,17 +561,20 @@
         doOpenFileChooser(evt);
       });
       let cropInputBox = doCreateWHInputBox((evt, w, h, z)=>{
-        let zVal = Number(z);
-        let wVal = Number(w);
-        let hVal = Number(h);
-        settings.scale = zVal;
-        console.log(settings.cropWidth);
-        console.log(((1-zVal)*settings.cropWidth));
-        settings.cropWidth = settings.cropWidth + ((1-zVal)*settings.cropWidth);
-        settings.cropHeight = settings.cropHeight + ((1-zVal)*settings.cropHeight);
+        /*
+        console.log(w);
+        console.log(h);
+        console.log(z);
+        */
+        let factor = (1 - Number(z));
+        //console.log((factor*Number(w)));
+        settings.cropWidth = Number(w) - (factor*Number(w));
+        settings.cropHeight = Number(h) - (factor*Number(h));
         console.log(settings);
-        $('#LayoutBox').width(settings.cropWidth);
-        $('#LayoutBox').height(settings.cropHeight);
+        $('#WInput').val(settings.cropWidth);
+        $('#HInput').val(settings.cropHeight);
+        $('#LayoutBox').width(settings.cropWidth * settings.scale);
+        $('#LayoutBox').height(settings.cropHeight * settings.scale);
       }, (evt, scale)=>{
         //console.log(scale);
         let newW = (imgSrcFullSizeWidth * scale) + 'px';
