@@ -7343,13 +7343,7 @@ module.exports = function ( jq ) {
 			$(hrBox).append($(hrTable));
 			if ((hrlinks) && (hrlinks.length > 0)){
 	      await hrlinks.forEach((item, i) => {
-					/*
-					let clipIcon = new Image();
-					clipIcon.src = '/images/clip-icon.png';
-					$(clipIcon).css({"position": "relative", "display": "inline-block", "width": "25px", "height": "auto", "margin-top": "2px"});
-					$(hrBox).append($(clipIcon));
-					*/
-					//let patientHRLink = $('<span style="position: relative; display: inline-block; text-decoration: underline; cursor: pointer; color: blue;"></span>');
+					console.log(item);
 					let filePaths = item.link.split('/');
 					let fileNames = filePaths[filePaths.length-1];
 					let fileName = fileNames.split('.');
