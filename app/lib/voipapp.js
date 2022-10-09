@@ -57,7 +57,7 @@ app.post('/response', async function(req, res) {
     let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
     let radioId = targetCases[0].Case_RadiologistId;
     //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radioId}});
-    let userProfile = common.doLoadUserProfile(radioId);
+    let userProfile = common.doLoadRadioProfile(radioId);
     acceptRemark = 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH +  'ตอบรับเคสโดย VoIP';
     rejectRemark = 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH +  'ปฏิเสธเคสโดย VoIP';
     if (voip.responseKEYs[0] == 1){
