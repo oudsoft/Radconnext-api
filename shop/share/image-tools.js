@@ -64,135 +64,176 @@
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
-      let imageSrc = doCreateSourceImage(fileURL);
-      $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair', 'transform': 'scale('+ settings.scale + ')'});
-      $(imageSrc).css({'top': '0px'});
-      $('body').css({'width': imgSrcFullSizeWidth + 'px', 'heigth': imgSrcFullSizeHeight + 'px'});
-      $(imageSrc).on('click', (evt)=>{
-        let pos = $('#LayoutBox').offset();
-        let x = undefined;
-        let y = undefined;
-        if (settings.scale == 1.0) {
-          x = (pos.left - imageSrc.offsetLeft);
-          y = (pos.top - imageSrc.offsetTop);
-        } else{
-          x = (pos.left - imageSrc.offsetLeft) * (imgSrcFullSizeWidth/imageSrc.width);
-          y = (pos.top - imageSrc.offsetTop) * (imgSrcFullSizeHeight/imageSrc.height);
-        }
+      let imageSrc = doCreateSourceImage(fileURL, ()=>{
+        $(imageSrc).css({'position': 'relative', 'cursor': 'crosshair'});
+        $('body').css({'width': imgSrcFullSizeWidth + 'px', 'heigth': imgSrcFullSizeHeight + 'px'});
+        $(imageSrc).on('click', (evt)=>{
+          let pos = $('#LayoutBox').offset();
+          let x = undefined;
+          let y = undefined;
+          if (settings.scale == 1.0) {
+            x = (pos.left - imageSrc.offsetLeft);
+            y = (pos.top - imageSrc.offsetTop);
+          } else{
+            x = (pos.left - imageSrc.offsetLeft) * (imgSrcFullSizeWidth/imageSrc.width);
+            y = (pos.top - imageSrc.offsetTop) * (imgSrcFullSizeHeight/imageSrc.height);
+          }
 
-        let cropCanvas = document.getElementById('CropCanvas');
+          let cropCanvas = document.getElementById('CropCanvas');
 
-        cropCanvas.width = settings.cropWidth;
-        cropCanvas.height = settings.cropHeight;
+          cropCanvas.width = settings.cropWidth;
+          cropCanvas.height = settings.cropHeight;
 
-        let ctx = cropCanvas.getContext('2d');
-        ctx.drawImage(imageSrc, x, y, settings.cropWidth, settings.cropHeight, 0, 0, settings.cropWidth, settings.cropHeight);
-        let dataURL = cropCanvas.toDataURL("image/png", 0.9);
-        let cropImage = doCreateCropImage(dataURL);
+          let ctx = cropCanvas.getContext('2d');
+          ctx.drawImage(imageSrc, x, y, settings.cropWidth, settings.cropHeight, 0, 0, settings.cropWidth, settings.cropHeight);
+          let dataURL = cropCanvas.toDataURL("image/png", 0.9);
+          let cropImage = doCreateCropImage(dataURL);
 
-        let stampTextCmd = $('<input type="button" value="Stamp"/>');
-        $(stampTextCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          let tempCanvas = document.createElement('canvas');
-          tempCanvas.width = cropImage.width;
-          tempCanvas.height = cropImage.height;
-          let tempCtx = tempCanvas.getContext('2d');
-          tempCtx.drawImage(cropImage, 0, 0);
-          //let size = tempCtx.measureText(waterMarkText);
-          let tx = settings.cropWidth - 4;
-          let ty = settings.cropHeight - 4;
-          tempCtx.font = settings.waterMarkFontSize + 'px EkkamaiStandard';
-          //tempCtx.globalAlpha = .50;
-          tempCtx.fillStyle = settings.waterMarkFontColor;
-          tempCtx.translate(tx, ty);
-          tempCtx.rotate(-Math.PI / 2);
-          tempCtx.translate(-tx, -ty);
-          tempCtx.fillText(settings.waterMarkText, tx, ty);
-          let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
-          let tempCropImage = doCreateCropImage(tempDataURL);
-          $(cropImageWrapper).empty().append($(tempCropImage));
-          dataURL = tempDataURL;
-          cropImage = tempCropImage;
-        });
-        let stampTextSettingCmd = $('<input type="button" value="Text Setting"/>').css({'margin-left': '10px'});
-        $(stampTextSettingCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          let eventData = {waterMarkText: settings.waterMarkText, waterMarkFontSize: settings.waterMarkFontSize, waterMarkFontColor: settings.waterMarkFontColor};
-          let eventName = 'updatestamptext'
-          let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: eventData}});
-          document.dispatchEvent(event);
-        });
-
-        let fntSize = settings.waterMarkFontSize;
-        let addTextCmd = $('<input type="button" value="Add Text"/>').css({'margin-left': '10px'});
-        $(addTextCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          let tx = 5;
-          let ty = 50;
-          let tw = 350;
-          let th = 80;
-          let thbt = 2;
-          let thbtVal = thbt + 'px dashed red';
-          let newTextBox = undefined;
-          let newTextWord = 'สวัสดีชาวโลก';
-          const reDrawCropImage = function(text) {
-            newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': thbtVal, 'z-index': '201', 'text-align': 'left', 'left': tx + 'px', 'top': ty + 'px'});
-            $(newTextBox).css({'overflow': 'visible', 'width': tw + 'px', 'height': th + 'px', /*'font-size': fntSize + 'px',*/ 'color': /*settings.waterMarkFontColor*/ 'blue'});
-            $(newTextBox).draggable({containment: "parent"});
-            $(newTextBox).resizable({containment: "parent"});
-            $(newTextBox).draggable('destroy');
-            $(newTextBox).resizable('destroy');
-            $(newTextBox).on('click', (evt)=>{
-              evt.stopPropagation();
-              if (evt.ctrlKey) {
-                let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
-                if (newTextValue !== ''){
-                  newTextWord = newTextValue;
-                  reDrawCropImage(newTextWord);
-                  $(newTextBox).draggable({
-                    containment: "parent",
-                    stop: function(evt) {
-                      onDragEvt(evt);
-                    }
-                  });
-                  $(newTextBox).resizable({
-                    containment: "body",
-                    stop: function(evt) {
-                      onResizeEvt(evt);
-                    }
-                  });
-                }
-              } else {
-                let userConfirm = confirm("Are you sure?");
-                if (userConfirm) {
-                  cropImage = tempCropImage;
-                  $(newTextBox).remove();
-                }
-              }
-            });
+          let stampTextCmd = $('<input type="button" value="Stamp"/>');
+          $(stampTextCmd).on('click', (evt)=>{
+            evt.stopPropagation();
             let tempCanvas = document.createElement('canvas');
             tempCanvas.width = cropImage.width;
             tempCanvas.height = cropImage.height;
             let tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(cropImage, 0, 0);
-            tempCtx.font = fntSize + 'px EkkamaiStandard';
+            //let size = tempCtx.measureText(waterMarkText);
+            let tx = settings.cropWidth - 4;
+            let ty = settings.cropHeight - 4;
+            tempCtx.font = settings.waterMarkFontSize + 'px EkkamaiStandard';
+            //tempCtx.globalAlpha = .50;
             tempCtx.fillStyle = settings.waterMarkFontColor;
-            tempCtx.fillText(text, tx, (ty+fntSize-(thbt*2)));
+            tempCtx.translate(tx, ty);
+            tempCtx.rotate(-Math.PI / 2);
+            tempCtx.translate(-tx, -ty);
+            tempCtx.fillText(settings.waterMarkText, tx, ty);
             let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
             let tempCropImage = doCreateCropImage(tempDataURL);
-            $(cropImageWrapper).empty().append($(tempCropImage)).append($(newTextBox));
+            $(cropImageWrapper).empty().append($(tempCropImage));
             dataURL = tempDataURL;
-          }
-          const calculateFontSize = function (width, height, text){
-            let area = width*height;
-            let contentLength = text.length;
-            return  Math.sqrt(area/contentLength); //this provides the font-size in points.
-          }
-          const onDragEvt = function(evt){
+            cropImage = tempCropImage;
+          });
+          let stampTextSettingCmd = $('<input type="button" value="Text Setting"/>').css({'margin-left': '10px'});
+          $(stampTextSettingCmd).on('click', (evt)=>{
             evt.stopPropagation();
-            tx = evt.target.offsetLeft;
-            ty = evt.target.offsetTop;
-            newText = $(newTextBox).text();
+            let eventData = {waterMarkText: settings.waterMarkText, waterMarkFontSize: settings.waterMarkFontSize, waterMarkFontColor: settings.waterMarkFontColor};
+            let eventName = 'updatestamptext'
+            let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: eventData}});
+            document.dispatchEvent(event);
+          });
+
+          let fntSize = settings.waterMarkFontSize;
+          let addTextCmd = $('<input type="button" value="Add Text"/>').css({'margin-left': '10px'});
+          $(addTextCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            let tx = 5;
+            let ty = 50;
+            let tw = 350;
+            let th = 80;
+            let thbt = 2;
+            let thbtVal = thbt + 'px dashed red';
+            let newTextBox = undefined;
+            let newTextWord = 'สวัสดีชาวโลก';
+            const reDrawCropImage = function(text) {
+              newTextBox = $('<div></div>').text(newTextWord).css({'position': 'absolute', 'cursor': 'pointer', 'border': thbtVal, 'z-index': '201', 'text-align': 'left', 'left': tx + 'px', 'top': ty + 'px'});
+              $(newTextBox).css({'overflow': 'visible', 'width': tw + 'px', 'height': th + 'px', /*'font-size': fntSize + 'px',*/ 'color': /*settings.waterMarkFontColor*/ 'blue'});
+              $(newTextBox).draggable({containment: "parent"});
+              $(newTextBox).resizable({containment: "parent"});
+              $(newTextBox).draggable('destroy');
+              $(newTextBox).resizable('destroy');
+              $(newTextBox).on('click', (evt)=>{
+                evt.stopPropagation();
+                if (evt.ctrlKey) {
+                  let newTextValue = prompt("แก้ไขข้อความ", $(newTextBox).text());
+                  if (newTextValue !== ''){
+                    newTextWord = newTextValue;
+                    reDrawCropImage(newTextWord);
+                    $(newTextBox).draggable({
+                      containment: "parent",
+                      stop: function(evt) {
+                        onDragEvt(evt);
+                      }
+                    });
+                    $(newTextBox).resizable({
+                      containment: "body",
+                      stop: function(evt) {
+                        onResizeEvt(evt);
+                      }
+                    });
+                  }
+                } else {
+                  let userConfirm = confirm("Are you sure?");
+                  if (userConfirm) {
+                    cropImage = tempCropImage;
+                    $(newTextBox).remove();
+                  }
+                }
+              });
+              let tempCanvas = document.createElement('canvas');
+              tempCanvas.width = cropImage.width;
+              tempCanvas.height = cropImage.height;
+              let tempCtx = tempCanvas.getContext('2d');
+              tempCtx.drawImage(cropImage, 0, 0);
+              tempCtx.font = fntSize + 'px EkkamaiStandard';
+              tempCtx.fillStyle = settings.waterMarkFontColor;
+              tempCtx.fillText(text, tx, (ty+fntSize-(thbt*2)));
+              let tempDataURL = tempCanvas.toDataURL("image/png", 0.9);
+              let tempCropImage = doCreateCropImage(tempDataURL);
+              $(cropImageWrapper).empty().append($(tempCropImage)).append($(newTextBox));
+              dataURL = tempDataURL;
+            }
+            const calculateFontSize = function (width, height, text){
+              let area = width*height;
+              let contentLength = text.length;
+              return  Math.sqrt(area/contentLength); //this provides the font-size in points.
+            }
+            const onDragEvt = function(evt){
+              evt.stopPropagation();
+              tx = evt.target.offsetLeft;
+              ty = evt.target.offsetTop;
+              newText = $(newTextBox).text();
+              let newFontSize = calculateFontSize(tw, th, newText);
+              fntSize = newFontSize;
+              $(cropImageWrapper).css({'font-size': fntSize + 'px'});
+              $(cropImageWrapper).append($(newTextBox));
+              reDrawCropImage(newText);
+              $(newTextBox).draggable({
+                containment: "parent",
+                stop: function(evt) {
+                  onDragEvt(evt);
+                }
+              });
+              $(newTextBox).resizable({
+                containment: "body",
+                stop: function(evt) {
+                  onResizeEvt(evt);
+                }
+              });
+            }
+            const onResizeEvt = function(evt){
+              evt.stopPropagation();
+              tw = evt.target.clientWidth;
+              th = evt.target.clientHeight;
+              newText = $(newTextBox).text();
+              let newFontSize = calculateFontSize(tw, th, newText);
+              fntSize = newFontSize;
+              $(cropImageWrapper).css({'font-size': fntSize + 'px'});
+              reDrawCropImage(newText);
+              $(newTextBox).css({'width': 'fit-content'});
+              $(newTextBox).resizable({
+                containment: "body",
+                stop: function(evt) {
+                  onResizeEvt(evt);
+                }
+              });
+              $(newTextBox).draggable({
+                containment: "parent",
+                stop: function(evt) {
+                  onDragEvt(evt);
+                }
+              });
+            }
+            let newText = $(newTextBox).text();
             let newFontSize = calculateFontSize(tw, th, newText);
             fntSize = newFontSize;
             $(cropImageWrapper).css({'font-size': fntSize + 'px'});
@@ -210,173 +251,138 @@
                 onResizeEvt(evt);
               }
             });
-          }
-          const onResizeEvt = function(evt){
+            onDragEvt(evt);
+          });
+
+          let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'});
+          $(editImageCmd).on('click', (evt)=>{
             evt.stopPropagation();
-            tw = evt.target.clientWidth;
-            th = evt.target.clientHeight;
-            newText = $(newTextBox).text();
-            let newFontSize = calculateFontSize(tw, th, newText);
-            fntSize = newFontSize;
-            $(cropImageWrapper).css({'font-size': fntSize + 'px'});
-            reDrawCropImage(newText);
-            $(newTextBox).css({'width': 'fit-content'});
-            $(newTextBox).resizable({
-              containment: "body",
+            let w = settings.cropWidth;
+            let h = settings.cropHeight;
+            var editorbox = $('<div id="EditorBox"></div>');
+            $(editorbox).css({ 'position': 'absolute', 'width': '80%', 'min-height': '650px', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'margin-left': '10%'});
+            $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
+            $('body').append($(editorbox).css({'top': '10px'}));
+            let pluginOption = {
+              canvas: cropCanvas,
+              cWidth: w,
+              cHeight: h,
+              imageInit: dataURL,
+              uploadApiUrl: settings.uploadUrl
+            };
+
+            const myEditor = $(editorbox).imageeditor(pluginOption);
+            $(editorbox).resizable({
+              containment: 'parent',
               stop: function(evt) {
-                onResizeEvt(evt);
+                $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
               }
             });
-            $(newTextBox).draggable({
-              containment: "parent",
-              stop: function(evt) {
-                onDragEvt(evt);
+            $('body').css({'min-height': '1250px'});
+          });
+
+          let downloadCropImageCmd = $('<input type="button" value="Download"/>').css({'margin-left': '10px'});
+          $(downloadCropImageCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            let localFilename = JSON.parse(localStorage.getItem('lastFilename'));
+            let lastFilename = undefined;
+            if (!localFilename) {
+              lastFilename = 'download-01';
+            } else {
+              lastFilename = localFilename.name;
+            }
+            let fileName = prompt("ชื่อไฟล์", lastFilename);
+            if ((fileName) && (fileName !== '')) {
+              localStorage.setItem('lastFilename', JSON.stringify({name: fileName}));
+              let tempLink = document.createElement('a');
+              let downloadFileName = fileName + '.png';
+              tempLink.download = downloadFileName;
+              tempLink.href = dataURL;
+              tempLink.click();
+            }
+          });
+          let uploadCropImageCmd = $('<input type="button" value="Upload"/>').css({'margin-left': '10px'});
+          $(uploadCropImageCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            var base64ImageContent = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+            var blob = base64ToBlob(base64ImageContent, 'image/png');
+            var formData = new FormData();
+            formData.append('picture', blob);
+            $.ajax({
+              url: settings.uploadUrl,
+              type: "POST",
+              cache: false,
+              contentType: false,
+              processData: false,
+              data: formData}).done(function(data){
+                console.log(data);
+                window.open(data.shareLink, '_blank');
               }
-            });
-          }
-          let newText = $(newTextBox).text();
-          let newFontSize = calculateFontSize(tw, th, newText);
-          fntSize = newFontSize;
+            );
+          });
+          let removeCmd = $('<input type="button" value="Remove"/>').css({'margin-left': '10px'});
+          $(removeCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            $(cropBox).remove();
+            if ($(imageSrc).css('display') === 'none') {
+              $(imageSrc).slideDown('slow');
+              $(layoutBox).slideDown('slow');
+            }
+          });
+
+          let clearCmd = $('<input type="button" value="Clear"/>').css({'margin-left': '10px'});
+          $(clearCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            $(imageSrc).remove();
+            $(cropBox).remove();
+            $(layoutBox).slideDown('slow');
+          });
+
+          let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
+          let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#aaaa', 'padding': '4px 0px 4px'});
+          let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
           $(cropImageWrapper).css({'font-size': fntSize + 'px'});
-          $(cropImageWrapper).append($(newTextBox));
-          reDrawCropImage(newText);
-          $(newTextBox).draggable({
-            containment: "parent",
-            stop: function(evt) {
-              onDragEvt(evt);
+          $(cropImageWrapper).append($(cropImage));
+          $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd)).append($(clearCmd));
+          $(cropImageBox).append($(cropImageCmdBox)).append($(cropImageWrapper));
+          let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
+          $(cropBox).append($(cropImageBox));
+          $this.append($(cropBox));
+          $(imageSrc).slideUp('slow');
+          $(layoutBox).slideUp('slow');
+          $(cropBox).on('click', (evt)=>{
+            if ($(imageSrc).css('display') === 'none') {
+              $(imageSrc).slideDown('slow');
+              $(layoutBox).slideDown('slow');
+            } else {
+              $(imageSrc).slideUp('slow');
+              $(layoutBox).slideUp('slow');
             }
           });
-          $(newTextBox).resizable({
-            containment: "body",
-            stop: function(evt) {
-              onResizeEvt(evt);
-            }
-          });
-          onDragEvt(evt);
-        });
-
-        let editImageCmd = $('<input type="button" value="Edit"/>').css({'margin-left': '10px'});
-        $(editImageCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          let w = settings.cropWidth;
-          let h = settings.cropHeight;
-          var editorbox = $('<div id="EditorBox"></div>');
-          $(editorbox).css({ 'position': 'absolute', 'width': '80%', 'min-height': '650px', 'background-color': '#fefefe', 'padding': '5px', 'border': '2px solid #888', 'z-index': '55', 'text-align': 'center', 'margin-left': '10%'});
-          $(editorbox).css({ 'font-family': 'EkkamaiStandard', 'font-size': '18px'});
-          $('body').append($(editorbox).css({'top': '10px'}));
-          let pluginOption = {
-            canvas: cropCanvas,
-            cWidth: w,
-            cHeight: h,
-            imageInit: dataURL,
-            uploadApiUrl: settings.uploadUrl
-          };
-
-          const myEditor = $(editorbox).imageeditor(pluginOption);
-          $(editorbox).resizable({
-            containment: 'parent',
-            stop: function(evt) {
-              $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-            }
-          });
-          $('body').css({'min-height': '1250px'});
-        });
-
-        let downloadCropImageCmd = $('<input type="button" value="Download"/>').css({'margin-left': '10px'});
-        $(downloadCropImageCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          let localFilename = JSON.parse(localStorage.getItem('lastFilename'));
-          let lastFilename = undefined;
-          if (!localFilename) {
-            lastFilename = 'download-01';
-          } else {
-            lastFilename = localFilename.name;
-          }
-          let fileName = prompt("ชื่อไฟล์", lastFilename);
-          if ((fileName) && (fileName !== '')) {
-            localStorage.setItem('lastFilename', JSON.stringify({name: fileName}));
-            let tempLink = document.createElement('a');
-            let downloadFileName = fileName + '.png';
-            tempLink.download = downloadFileName;
-            tempLink.href = dataURL;
-            tempLink.click();
-          }
-        });
-        let uploadCropImageCmd = $('<input type="button" value="Upload"/>').css({'margin-left': '10px'});
-        $(uploadCropImageCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          var base64ImageContent = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-          var blob = base64ToBlob(base64ImageContent, 'image/png');
-          var formData = new FormData();
-          formData.append('picture', blob);
-          $.ajax({
-            url: settings.uploadUrl,
-            type: "POST",
-            cache: false,
-            contentType: false,
-            processData: false,
-            data: formData}).done(function(data){
-              console.log(data);
-              window.open(data.shareLink, '_blank');
-            }
-          );
-        });
-        let removeCmd = $('<input type="button" value="Remove"/>').css({'margin-left': '10px'});
-        $(removeCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          $(cropBox).remove();
-          if ($(imageSrc).css('display') === 'none') {
-            $(imageSrc).slideDown('slow');
-            $(layoutBox).slideDown('slow');
-          }
-        });
-
-        let clearCmd = $('<input type="button" value="Clear"/>').css({'margin-left': '10px'});
-        $(clearCmd).on('click', (evt)=>{
-          evt.stopPropagation();
-          $(imageSrc).remove();
-          $(cropBox).remove();
-          $(layoutBox).slideDown('slow');
-        });
-
-        let cropImageBox = $('<div></div>').css({'width': '100%', 'height': 'auto'});
-        let cropImageCmdBox = $('<div></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#aaaa', 'padding': '4px 0px 4px'});
-        let cropImageWrapper = $('<div id="CropImageWrapper"></div>').css({'position': 'relative', 'width': 'fit-content', 'text-align': 'center', 'left': '0px', 'border': '2px solid green'});
-        $(cropImageWrapper).css({'font-size': fntSize + 'px'});
-        $(cropImageWrapper).append($(cropImage));
-        $(cropImageCmdBox).append($(stampTextCmd)).append($(stampTextSettingCmd)).append($(addTextCmd)).append($(editImageCmd)).append($(downloadCropImageCmd)).append($(uploadCropImageCmd)).append($(removeCmd)).append($(clearCmd));
-        $(cropImageBox).append($(cropImageCmdBox)).append($(cropImageWrapper));
-        let cropBox = $('<div id="CropBox"></div>').css({'width': '100%', 'height': 'auto', 'text-align': 'left'});
-        $(cropBox).append($(cropImageBox));
-        $this.append($(cropBox));
-        $(imageSrc).slideUp('slow');
-        $(layoutBox).slideUp('slow');
-        $(cropBox).on('click', (evt)=>{
-          if ($(imageSrc).css('display') === 'none') {
-            $(imageSrc).slideDown('slow');
-            $(layoutBox).slideDown('slow');
-          } else {
-            $(imageSrc).slideUp('slow');
-            $(layoutBox).slideUp('slow');
-          }
-        });
+        });;
+        let adjustW = imgSrcFullSizeWidth*settings.scale;
+        $(imageSrc).css({'width': adjustW + 'px', 'height': 'auto'});
       });
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
+      //$(imageSrc).css({'transform': 'scale('+ settings.scale + ')', 'top': '0px'});
       //$this.append($(imageSrcBox));
       $('body').append($(imageSrcBox));
       $('body').css({'width': '100%', 'heigth': '100%'});
       return $(imageSrcBox);
     }
 
-    const doCreateSourceImage = function(imageUrl) {
+    const doCreateSourceImage = function(imageUrl, callback) {
       let srcImg = new Image();
       srcImg.id = 'ImageSrc'
       srcImg.src = imageUrl;
       srcImg.onload = function(x) {
         imgSrcFullSizeWidth = srcImg.width;
         imgSrcFullSizeHeight = srcImg.height;
-        console.log('loaded!!');
+        console.log('loaded!!' + JSON.stringify(x));
+        if (callback) {
+          callback();
+        }
       }
       return srcImg;
     }
