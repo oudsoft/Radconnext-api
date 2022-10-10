@@ -420,7 +420,7 @@
         $(applyCmd).click();
       });
       let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
-      let zoomValueInput = $('<input type="number" id="ZoomValueInput"/>').value((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      let zoomValueInput = $('<input type="number" id="ZoomValueInput"/>').val((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
       $(zoomValueInput).on('keypress',function(evt) {
         if(evt.which == 13) {
           let zoomVal = $(zoomValueInput).val();
