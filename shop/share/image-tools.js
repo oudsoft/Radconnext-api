@@ -420,7 +420,16 @@
         $(applyCmd).click();
       });
       let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
-      //let zoomValue = $('<span id="ZoomValue"></span>').text((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'}).append($('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'}));
+      let zoomValueInput = $('<input type="number" id="ZoomValueInput"/>').value((settings.scale * 100).toFixed(2)).css({'display': 'inline-block', 'width': '60px', 'margin-left': '10px'});
+      $(zoomValueInput).on('keypress',function(evt) {
+        if(evt.which == 13) {
+          let zoomVal = $(zoomValueInput).val();
+          settings.scale = Number(zoomVal)/100;
+          zoomCallback(evt, settings.scale);
+          $(applyCmd).click();
+        }
+      });
+      let percentSign = $('<span>%</span>').css({'font-size': '22px', 'margin-left': '5px'});
       let zoomOutCmd = $('<input type="button" value="Zoom-Out"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomOutCmd).on('click', (evt)=>{
         let curValue = Number(settings.scale);
@@ -456,7 +465,7 @@
       });
 
       $(whInputBox).append($(wLabel)).append($(wInput)).append($(hLabel)).append($(hInput)).append($(zLabel)).append($(zInput)).append($(applyCmd));
-      return $(whInputBox).append($(zoomInCmd)).append($(zoomValue)).append($(zoomOutCmd)).append($(zoomResetCmd));
+      return $(whInputBox).append($(zoomInCmd))/*.append($(zoomValue))*/.append($(zoomValueInput)).append($(percentSign)).append($(zoomOutCmd)).append($(zoomResetCmd));
     }
 
     const doCreateLayoutBox = function(){
