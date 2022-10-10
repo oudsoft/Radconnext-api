@@ -449,9 +449,9 @@
         settings.cropHeight = cropOriginHeight;
         $(wInput).val(settings.cropWidth);
         $(hInput).val(settings.cropHeight);
-        $(zInput).val(settings.scale);
+        $(zInput).val(1.0);
         $(applyCmd).click();
-        zoomCallback(evt, settings.scale);
+        //zoomCallback(evt, settings.scale);
       });
       $(wInput).on('keypress',function(evt) {
         if(evt.which == 13) {
