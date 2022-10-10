@@ -454,7 +454,9 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
         let systemId = 0;
-        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : 'ระบบเรียกสายไปยังรังสีแพทย์', result: callPhoneRes};
+        let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+        let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
+        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark, result: callPhoneRes};
         await doCaseChangeStatusKeepLog(newKeepLog);
       }
     });

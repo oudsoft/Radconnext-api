@@ -235,6 +235,7 @@ const doCalTriggerMinut = function(totalMinut, radioProfile){
 const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, casestatusId){
   return new Promise(async function(resolve, reject) {
     if ((radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '') && (radioProfile.radioPhoneNo !== '0999999999')) {
+      let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
       let voiceTransactionId = uti.doCreateTranctionId();
       let voipTriggerParam = undefined;
       let voiceUrgent = undefined;
@@ -253,6 +254,15 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
         let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
         resolve(theVoipTask);
+
+        let now = new Date();
+        let nowTime = now.getTime();
+        let triggerTime = nowTime + (triggerAt * 1000);
+        let trigerDate = new Date(triggerTime);
+        let yymmddhhmnss = uti.doFormateDateTime(trigerDate);
+        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + 'ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
+        await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
         let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
         log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
@@ -263,6 +273,10 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
           let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
           log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
           resolve(callPhoneRes);
+          
+          let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
+          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           resolve();
         }
@@ -304,6 +318,7 @@ const onNewCaseEvent = function(caseId, options){
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+
     let userProfile = await common.doLoadUserProfile(userId);
 
     // Notify to Case Owner Feedback
@@ -341,6 +356,9 @@ const onNewCaseEvent = function(caseId, options){
         if ((triggerMinut) && (triggerMinut > 0)) {
           let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
         }
+      } else {
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
+        await common.doCaseChangeStatusKeepLog(newKeepLog);
       }
     } else if (radioProfile.autoacc == 1) {
       log.info('== When autoacc of Radio Profile is ON ==');
@@ -379,6 +397,9 @@ const onNewCaseEvent = function(caseId, options){
             if ((triggerMinut) && (triggerMinut > 0)) {
               let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
             }
+          } else {
+            let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
+            await common.doCaseChangeStatusKeepLog(newKeepLog);
           }
         }
       } else {
@@ -396,6 +417,9 @@ const onNewCaseEvent = function(caseId, options){
           if ((triggerMinut) && (triggerMinut > 0)) {
             let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
           }
+        } else {
+          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         }
       }
     }
@@ -695,13 +719,6 @@ const onOpenCaseEvent = function(caseId){
     let refreshOpenCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
 
     await socket.sendMessage(refreshOpenCase, radioProfile.username);
-    /*
-    let radioNotify = {type: 'notify', message: 'Open Case - success.'};
-    await socket.sendMessage(radioNotify, radioProfile.username);
-    */
-    /*
-    let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
-    */
 
     let hospitalNotify = {type: 'notify', message: 'Your case was open by radiologist.'};
     await socket.sendMessage(refreshOpenCase , userProfile.username);
@@ -709,6 +726,10 @@ const onOpenCaseEvent = function(caseId){
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสเพื่ออ่านผล'};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }
 
@@ -730,13 +751,6 @@ const onDraftResultCaseEvent = function(caseId){
     let refreshDraftCase = {type: 'refresh', statusId: targetCase.casestatusId, caseId: targetCase.id, thing: 'case'};
 
     await socket.sendMessage(refreshDraftCase, radioProfile.username);
-    /*
-    let radioNotify = {type: 'notify', message: 'Save Draft - success.'};
-    await socket.sendMessage(radioNotify, radioProfile.username);
-    */
-    /*
-    let lineCaseDetaileMsg = uti.fmtStr(common.msgRejCaseHospitalDetailPattern, patientNameEN, targetCase.Case_StudyDescription, targetCase.Case_ProtocolName, targetCase.Case_BodyPart, targetCase.Case_Modality);
-    */
 
     let hospitalNotify = {type: 'notify', message: 'Your case had start draft result by radiologist.'};
     await socket.sendMessage(refreshDraftCase , userProfile.username);
@@ -746,6 +760,10 @@ const onDraftResultCaseEvent = function(caseId){
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 8, to : 9, remark : 'รังสีแพทย์ ' + radioNameTH + ' บันทึกร่างผลอ่าน'};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }
 

@@ -439,7 +439,12 @@
       });
       let zoomResetCmd = $('<input type="button" value="Reset" id="ZoomResetCmd"/>').css({'position': 'relative', 'display': 'inline-block', 'width': '100px', 'margin-left': '10px'});
       $(zoomResetCmd).on('click', (evt)=>{
-        settings.scale = 1.0;
+        let zoomVal = $(zoomValueInput).val();
+        if ((zoomVal > 0) && (zoomVal <= 100)) {
+          settings.scale = Number(zoomVal)/100;
+        } else {
+          settings.scale = 1.0;
+        }
         settings.cropWidth = cropOriginWidth;
         settings.cropHeight = cropOriginHeight;
         $(wInput).val(settings.cropWidth);

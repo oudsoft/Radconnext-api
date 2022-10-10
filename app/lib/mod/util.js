@@ -172,7 +172,13 @@ const doFormateDateTime = function(dateIn){
 	} else {
 		MN = '' + MN;
 	}
-	let result = {YY, MM, DD, HH, MN};
+	let SS = date.getSeconds();
+	if (SS < 10){
+		 SS = '0' + SS;
+	} else {
+		SS = '' + SS;
+	}
+	let result = {YY, MM, DD, HH, MN, SS};
 	log.info('result=> ' + JSON.stringify(result));
 	return result;
 }
