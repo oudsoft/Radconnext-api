@@ -318,6 +318,7 @@ const onNewCaseEvent = function(caseId, options){
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
 
     let userProfile = await common.doLoadUserProfile(userId);
 
@@ -340,7 +341,7 @@ const onNewCaseEvent = function(caseId, options){
 
     //Load Urgent Profile
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.urgenttypeId}});
-    log.info('radioProfile=>' + JSON.stringify(radioProfile));
+    let radioAutoCallMark = 1;
     if ((radioProfile.autoacc == 0) || (!radioProfile.autoacc)) {
       log.info('== When autoacc of Radio Profile is undefined or OFF ==');
       let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
@@ -357,6 +358,7 @@ const onNewCaseEvent = function(caseId, options){
           let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
         }
       } else {
+        radioAutoCallMark = 0;
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       }
@@ -380,7 +382,7 @@ const onNewCaseEvent = function(caseId, options){
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
           */
-          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 2, remark : 'รังสีแพทย์ ' + radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH + ' สถานะ active รับเคสอัติโนมัติ'};
+          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 2, remark : 'รังสีแพทย์ ' + radioNameTH + ' สถานะ active รับเคสอัติโนมัติ'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           log.info('== But Radio Lock Screen ==');
@@ -398,6 +400,7 @@ const onNewCaseEvent = function(caseId, options){
               let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
             }
           } else {
+            radioAutoCallMark = 0;
             let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
             await common.doCaseChangeStatusKeepLog(newKeepLog);
           }
@@ -418,12 +421,18 @@ const onNewCaseEvent = function(caseId, options){
             let theVoipTask = await doAutoPhoneCallRadio(totalMinut, triggerMinut, workingMinut, caseId, hospitalCode, userProfile, radioProfile, newCase.casestatusId);
           }
         } else {
+          radioAutoCallMark = 0;
           let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'ระบบไม่พบการการตั้งค่าโปรไฟล์เพื่อเรียกสายของรังสีแพทย์ ' + radioNameTH};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         }
       }
     }
+
     let actions = await doGetControlStatusAt(newCase.casestatusId);
+    actions.mark = {radioNameTH: radioNameTH, radioAutoCall: radioAutoCallMark};
+
+    resolve(actions);
+
     let yourLocalSocket = await socket.findOrthancLocalSocket(hospitalId);
     if (!yourLocalSocket) {
       let techUsernames = await common.doFindTechHospitalUsername(hospitalId);
@@ -435,7 +444,6 @@ const onNewCaseEvent = function(caseId, options){
       });
     }
 
-    resolve(actions);
   });
 }
 
