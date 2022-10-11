@@ -1057,6 +1057,7 @@ app.post('/newcase/trigger', async (req, res) => {
   let casesRes = await db.cases.findAll({attributes: ['id', 'casestatusId'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
   if (casesRes.length > 0) {
     let caseId = casesRes[0].id;
+    await db.cases.update({updatedAt: new Date()}, {where: {id: caseId}});
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     res.json({status: {code: 200}, result: actionAfterChange});
     let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'เคสใหม่ อัพโหลด สำเร็จ'};
@@ -1070,6 +1071,7 @@ app.post('/updatecase/trigger', async (req, res) => {
   let caseId = req.body.caseId;
   let userId = req.body.userId;
   let isChangeRadio = req.body.isChangeRadio;
+  await db.cases.update({updatedAt: new Date()}, {where: {id: caseId}});
   let targetCases = await db.cases.findAll({attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
   let targetCase = targetCases[0];
   let nowCaseStatus = targetCase.casestatusId;

@@ -300,10 +300,11 @@ const onNewCaseEvent = function(caseId, options){
     const patientNameEN = newCase.patient.Patient_NameEN + ' ' + newCase.patient.Patient_LastNameEN;
     const patientNameTH = newCase.patient.Patient_NameTH + ' ' + newCase.patient.Patient_LastNameTH;
 
-    const caseCreateAt = newCase.createdAt;
-    //let d = new Date(newCase.createdAt);
-    //const caseCreateAt = d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+    //const caseCreateAt = newCase.createdAt;
+    const caseCreateAt = newCase.updatedAt;
+
     log.info('caseCreateAt=>' + caseCreateAt);
+
     let studyDescription = '';
     if ((newCase.Case_StudyDescription) && (newCase.Case_StudyDescription !== '')) {
       studyDescription = newCase.Case_StudyDescription;
@@ -1177,13 +1178,15 @@ const doControlAddNewResponse = function(reqData) {
           if (changeResult.change.status) {
             //log.info('resportType=>' + resportType);
             if (reportType){
-              let newCaseReport = {Remark: remark, Report_Type: reportType, PDF_Filename: reqData.PDF_Filename, Status: 'new'};
+              let reportLog = {action: 'new', by: userId, at: new Date()};
+              let newCaseReport = {Remark: remark, Report_Type: reportType, PDF_Filename: reqData.PDF_Filename, Status: 'new', Log: reportLog};
               let adReport = await db.casereports.create(newCaseReport);
               await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
               resolve({ status: {code: 200}, result: {responseId: adResponse.id}});
             } else {
               //BUG on Save Response
-              let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal'};
+              let reportLog = {action: 'new', by: userId, at: new Date()};
+              let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal', Log: reportLog};
               let adReport = await db.casereports.create(newCaseReport);
               await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
               //let subject = 'WARNING\nAbnormal Flow save New Response Event. Without reportType parameter.';
@@ -1215,7 +1218,8 @@ const doControlAddNewResponse = function(reqData) {
               await db.casereports.update({Report_Type: 'normal', Status: 'update-abnormal'}, {where: {caseresponseId: responseId}});
             }
           } else {
-            let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last'};
+            let reportLog = {action: 'new', by: userId, at: new Date()};
+            let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last', Log: reportLog};
             let adReport = await db.casereports.create(newCaseReport);
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
           }
@@ -1258,7 +1262,8 @@ const doControlAddNewResponse = function(reqData) {
               await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
               */
               if (casereports.length == 0) {
-                let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last'};
+                let reportLog = {action: 'new', by: userId, at: new Date()};
+                let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last', Log: reportLog};
                 let adReport = await db.casereports.create(newCaseReport);
                 await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
               }
@@ -1270,7 +1275,8 @@ const doControlAddNewResponse = function(reqData) {
             }
           } else if (responseType === 'draft'){
             if (casereports.length == 0) {
-              let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last'};
+              let reportLog = {action: 'new', by: userId, at: new Date()};
+              let newCaseReport = {Remark: remark, Report_Type: 'normal', PDF_Filename: reqData.PDF_Filename, Status: 'new-abnormal-last', Log: reportLog};
               let adReport = await db.casereports.create(newCaseReport);
               await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: responseId}, { where: { id: adReport.id } });
             }
