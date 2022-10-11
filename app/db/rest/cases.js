@@ -549,44 +549,18 @@ app.post('/update', (req, res) => {
                 let lineNotifyMsg = notifyMsg;
                 let menuQuickReply = lineApi.createBotMenu(lineNotifyMsg, 'quick', lineApi.radioMainMenu);
                 await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+                let radioProfileNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application';
+                let newKeepLog = { caseId : targetCaseId,	userId : 0, from : nowCaseStatus, to : nowCaseStatus, remark: remark};
+                await common.doCaseChangeStatusKeepLog(newKeepLog);
               }
               await Case.update(updateData, { where: { id: targetCaseId } });
-              let newCaseStatus = await common.doCallCaseStatusByName('New');
-              await targetCase.setCasestatus(newCaseStatus[0]);
 
               //await statusControl.onHospitalUpdateCaseEvent(targetCaseId, newTaskOption);
               res.json({Result: "OK", status: {code: 200}});
               caseState = 'change radio';
-              targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
-              targetCase = targetCases[0];
-              let newRadioId = targetCase.Case_RadiologistId;
-              let userId = targetCase.userId;
-              radioProfile = await common.doLoadRadioProfile(newRadioId);
-              let userProfile = await common.doLoadUserProfile(userId);
-              let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
-              let lineCaseDetaileMsg = '';
-              let hospitalName = targetCase.hospital.Hos_Name;
-              let patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-              let patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
-              let studyDescription = targetCase.Case_StudyDescription;
-              let protocolName = targetCase.Case_ProtocolName;
-              let caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription, protocolName};
-
-              log.info('new radioProfile on update case change radio');
-              log.info(JSON.stringify(radioProfile));
-              if (radioProfile.autoacc == 0) {
-                //Create Task Schedule
-                let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
-                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
-              } else if (radioProfile.autoacc == 1) {
-                let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-                let acceptedCaseStatusId = acceptedCaseStatus[0].id;
-                await targetCase.setCasestatus(acceptedCaseStatus[0]);
-                let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
-                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
-              }
             }
-          } else if (nowCaseStatus == 2) {
+          } else if ((nowCaseStatus == 2) || (nowCaseStatus == 8)) {
             if (nowRadioId == updateData.Case_RadiologistId) {
               // normal update
               newTaskOption = false;
@@ -609,6 +583,10 @@ app.post('/update', (req, res) => {
                 let lineNotifyMsg = notifyMsg;
                 let menuQuickReply = lineApi.createBotMenu(lineNotifyMsg, 'quick', lineApi.radioMainMenu);
                 await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
+                let radioProfileNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application';
+                let newKeepLog = { caseId : targetCaseId,	userId : 0, from : nowCaseStatus, to : nowCaseStatus, remark: remark};
+                await common.doCaseChangeStatusKeepLog(newKeepLog);
               }
 
               await Case.update(updateData, { where: { id: targetCaseId } });
@@ -617,37 +595,8 @@ app.post('/update', (req, res) => {
 
               res.json({Result: "OK", status: {code: 200}});
               caseState = 'change radio';
-
-              targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
-              targetCase = targetCases[0];
-              let newRadioId = targetCase.Case_RadiologistId;
-              let userId = targetCase.userId;
-              radioProfile = await common.doLoadRadioProfile(newRadioId);
-              let userProfile = await common.doLoadUserProfile(userId);
-              let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
-              let lineCaseDetaileMsg = '';
-              let hospitalName = targetCase.hospital.Hos_Name;
-              let patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-              let patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
-              let studyDescription = targetCase.Case_StudyDescription;
-              let protocolName = targetCase.Case_ProtocolName;
-              let caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription, protocolName};
-
-              log.info('new radioProfile on update case change radio');
-              log.info(JSON.stringify(radioProfile));
-              if (radioProfile.autoacc == 0) {
-                //Create Task Schedule
-                let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
-                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
-              } else if (radioProfile.autoacc == 1) {
-                let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-                let acceptedCaseStatusId = acceptedCaseStatus[0].id;
-                await targetCase.setCasestatus(acceptedCaseStatus[0]);
-                let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
-                let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
-              }
             }
-          } else if ((nowCaseStatus == 4) || (nowCaseStatus == 7)) {
+          } else if ((nowCaseStatus == 3) || (nowCaseStatus == 4) || (nowCaseStatus == 7)) {
             // reset caase
             newTaskOption = true;
             updateData.urgenttypeId = urgenttypeId;
@@ -663,34 +612,6 @@ app.post('/update', (req, res) => {
             res.json({Result: "OK", status: {code: 200}});
             caseState = 'change on negative case';
 
-            targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
-            targetCase = targetCases[0];
-            let newRadioId = targetCase.Case_RadiologistId;
-            let userId = targetCase.userId;
-            radioProfile = await common.doLoadRadioProfile(newRadioId);
-            let userProfile = await common.doLoadUserProfile(userId);
-            let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
-            let lineCaseDetaileMsg = '';
-            let hospitalName = targetCase.hospital.Hos_Name;
-            let patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
-            let patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
-            let studyDescription = targetCase.Case_StudyDescription;
-            let protocolName = targetCase.Case_ProtocolName;
-            let caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription, protocolName};
-
-            log.info('new radioProfile on update case change radio');
-            log.info(JSON.stringify(radioProfile));
-            if (radioProfile.autoacc == 0) {
-              //Create Task Schedule
-              let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
-              let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
-            } else if (radioProfile.autoacc == 1) {
-              let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
-              let acceptedCaseStatusId = acceptedCaseStatus[0].id;
-              await targetCase.setCasestatus(acceptedCaseStatus[0]);
-              let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
-              let theTask = await common.doCreateTaskAction(tasks, targetCaseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
-            }
           } else {
             // normal update
             newTaskOption = false;
@@ -1138,7 +1059,7 @@ app.post('/newcase/trigger', async (req, res) => {
     let caseId = casesRes[0].id;
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     res.json({status: {code: 200}, result: actionAfterChange});
-    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
+    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'เคสใหม่ อัพโหลด สำเร็จ'};
     await common.doCaseChangeStatusKeepLog(newKeepLog);
   } else {
     res.json({status: {code: 200}, result: 'Not Found Case'});
@@ -1148,12 +1069,29 @@ app.post('/newcase/trigger', async (req, res) => {
 app.post('/updatecase/trigger', async (req, res) => {
   let caseId = req.body.caseId;
   let userId = req.body.userId;
-  let newTaskOption = req.body.newTaskOption;
-  let actionAfterChange = await statusControl.onHospitalUpdateCaseEvent(caseId, newTaskOption);
-  res.json({status: {code: 200}, result: actionAfterChange});
-  let casesRes = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
-  let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'อัพโหลด สำเร็จ'};
+  let isChangeRadio = req.body.isChangeRadio;
+  let targetCases = await db.cases.findAll({attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
+  let targetCase = targetCases[0];
+  let nowCaseStatus = targetCase.casestatusId;
+  let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'แก้ไขเคส อัพโหลด สำเร็จ'};
   await common.doCaseChangeStatusKeepLog(newKeepLog);
+
+  let actionAfterChange = {};
+  let nowRadioId = targetCase.Case_RadiologistId;
+  if (nowCaseStatus == 1) {
+    if (isChangeRadio) {
+      actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+    }
+  } else if ((nowCaseStatus == 2) || (nowCaseStatus == 8)) {
+    if (isChangeRadio) {
+      actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+    }
+  } else if ((nowCaseStatus == 3) || (nowCaseStatus == 4) || (nowCaseStatus == 7)) {
+    actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+  } else {
+    log.error('Case Update Error')
+  }
+  res.json({status: {code: 200}, result: actionAfterChange});
 });
 
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {

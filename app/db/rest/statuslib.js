@@ -273,7 +273,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
           let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
           log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
           resolve(callPhoneRes);
-          
+
           let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
           let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
@@ -671,6 +671,12 @@ const onCloseCaseEvent = function(caseId){
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+    let remark = 'เจ้าหน้าที ' + userNameTH + ' สั่งปิดเคส'
+    let newKeepLog = { caseId: caseId,	userId: userId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
+
   });
 }
 
@@ -698,6 +704,11 @@ const onCancelCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+    let remark = 'เจ้าหน้าที ' + userNameTH + ' ยกเลิกเคส'
+    let newKeepLog = { caseId: caseId,	userId: userId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }
 
@@ -812,6 +823,11 @@ const onViewResultCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+    let remark = 'เจ้าหน้าที ' + userNameTH + ' ่เปิดผลอ่านเคส'
+    let newKeepLog = { caseId: caseId,	userId: userId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }
 
@@ -860,6 +876,12 @@ const onPrintResultCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+    let remark = 'เจ้าหน้าที ' + userNameTH + ' พิมพ์ผลอ่านเคส'
+    let newKeepLog = { caseId: caseId,	userId: userId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
+
   });
 }
 
@@ -921,6 +943,12 @@ const onEditResultCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
+
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+    let remark = 'รังสีแพทย์ ' + radioNameTH + ' แก้ไขผลอ่านเคส'
+    let newKeepLog = { caseId: caseId,	userId: radioId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
+
   });
 }
 
