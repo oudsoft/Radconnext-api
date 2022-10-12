@@ -12122,7 +12122,7 @@ module.exports = function ( jq ) {
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
 	    const contentRow = '<tr></tr>';
 	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
-	    const lowerHeaderFeilds = ['', 'ที่สแกน', '', 'ส่งอ่านผล', '', 'กำหนดรับผลอ่าน', '', 'รังสีแพทย์ส่งผลอ่าน', '', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
+	    const lowerHeaderFeilds = ['', 'ที่สแกน', '**', 'ส่งอ่านผล', '**', 'กำหนดรับผลอ่าน', '**', 'รังสีแพทย์ส่งผลอ่าน', '**', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
 	      let upperHeaderRow = $(contentRow);
@@ -12131,9 +12131,11 @@ module.exports = function ( jq ) {
 	        let feild = undefined;
 	        if (lowerHeaderFeilds[u] == ''){
 	          feild = $('<td align="center" width="' + cell.width +'%" rowspan="2"><b>' + cell.name + '</b></td>');
+	        } else if (lowerHeaderFeilds[u] == '**') {
+	          feild = $('<td align="center" colspan="2"><b>' + cell.name + '</b></td>');
 	        } else {
-	          feild = $('<td align="center" width="' + cell.width +'%"><b>' + cell.name + '</b></td>');
-	        }
+						feild = $('<td align="center"><b>' + cell.name + '</b></td>');
+					}
 	        $(upperHeaderRow).append($(feild));
 	      };
 
@@ -12230,7 +12232,7 @@ module.exports = function ( jq ) {
 	      }
 
 	      let finalRow = $(contentRow);
-	      $(finalRow).append('<td align="center" colspan="6">ผู้เข้ารับบริการทั้งหมด ' + (itemNo-1) + ' ราย</td>')
+	      $(finalRow).append('<td align="center" colspan="14">ผู้เข้ารับบริการทั้งหมด ' + (itemNo-1) + ' ราย</td>')
 	      $(finalRow).append('<td align="center">รวม</td>');
 	      $(finalRow).append('<td align="right">' + fmtReportNumber(priceTotal) + '</td>');
 	      $(contentTable).append($(finalRow));
