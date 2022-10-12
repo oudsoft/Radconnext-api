@@ -607,8 +607,8 @@ const doSummaryBillReport = function(hospitalId, key) {
           log.info('caseReportRes.Log=>' + JSON.stringify(caseReportRes.Log));
           if (caseReportRes.Log) {
             let viewReportAction = await caseReportRes.Log.find((act)=>{
-              if ((act.action) && (act.action === 'view')) {
-                return act
+              if ((act) && (act.action) && (act.action === 'view')) {
+                return act;
               }
             });
             if (viewReportAction) {
