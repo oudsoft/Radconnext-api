@@ -591,8 +591,8 @@ const doSummaryBillReport = function(hospitalId, key) {
     let casewhereClous = {hospitalId: hospitalId};
     casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
     const orderby = [['createdAt', 'ASC']];
-    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}];
-    const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'Case_ScanPart', 'Case_RadiologistId', 'Case_OrthancStudyID', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
+    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep']}];
+    const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'updatedAt', 'Case_ScanPart', 'Case_RadiologistId', 'Case_OrthancStudyID', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
     let finalSumaryRows = [];
     const promiseList = new Promise(function(resolve2, reject2) {
       caseContents.forEach(async (row, i) => {
@@ -604,6 +604,16 @@ const doSummaryBillReport = function(hospitalId, key) {
         newItem.radio = radioBill;
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
+          let viewReportAction = await caseReportRes.find((act)=>{
+            if (act.action === 'view') {
+              return act
+            }
+          });
+          if (viewReportAction) {
+            newItem.reportView = viewReportAction.at;
+          } else {
+            newItem.reportView = 'none';
+          }
         }
         if (studyTagsRes) {
           newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;
