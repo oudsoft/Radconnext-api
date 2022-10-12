@@ -604,7 +604,7 @@ const doSummaryBillReport = function(hospitalId, key) {
         newItem.radio = radioBill;
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
-          let viewReportAction = await caseReportRes.find((act)=>{
+          let viewReportAction = await caseReportRes.Log.find((act)=>{
             if (act.action === 'view') {
               return act
             }
