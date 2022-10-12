@@ -604,13 +604,18 @@ const doSummaryBillReport = function(hospitalId, key) {
         newItem.radio = radioBill;
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
-          let viewReportAction = await caseReportRes.Log.find((act)=>{
-            if ((act.action) && (act.action === 'view')) {
-              return act
+          log.info('caseReportRes.Log=>' + JSON.stringify(caseReportRes.Log));
+          if (caseReportRes.Log) {
+            let viewReportAction = await caseReportRes.Log.find((act)=>{
+              if ((act.action) && (act.action === 'view')) {
+                return act
+              }
+            });
+            if (viewReportAction) {
+              newItem.reportView = viewReportAction.at;
+            } else {
+              newItem.reportView = 'none';
             }
-          });
-          if (viewReportAction) {
-            newItem.reportView = viewReportAction.at;
           } else {
             newItem.reportView = 'none';
           }
