@@ -12129,9 +12129,10 @@ module.exports = function ( jq ) {
 	      for (let u = 0; u < upperHeaderFeilds.length; u++){
 	        let cell = upperHeaderFeilds[u];
 	        let feild = undefined;
-	        if (lowerHeaderFeilds[u] == ''){
+
+	        if ((lowerHeaderFeilds[u] == '') && ((lowerHeaderFeilds[u+1]) && (lowerHeaderFeilds[u+1] != ''))) {
 	          feild = $('<td align="center" width="' + cell.width +'%" rowspan="2"><b>' + cell.name + '</b></td>');
-	        } else if (lowerHeaderFeilds[u] == '**') {
+	        } else if ((lowerHeaderFeilds[u+1]) && (lowerHeaderFeilds[u+1] == '**')) {
 	          feild = $('<td align="center" colspan="2"><b>' + cell.name + '</b></td>');
 	        } else {
 						feild = $('<td align="center"><b>' + cell.name + '</b></td>');
