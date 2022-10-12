@@ -585,7 +585,7 @@ const doCollectRadioCurrentState = function(radioId, radioUsername, socket) {
 
 const doSummaryBillReport = function(hospitalId, key) {
   return new Promise(async function(resolve, reject) {
-    //{fromDateKeyValue: 2021-04-01 00:00:00, toDateKeyValue: 2021-04-30 23:59:59}
+    //{fromDateKeyValue: '2021-04-01 00:00:00', toDateKeyValue: '2021-04-30 23:59:59'}
     let fromDateWithZ = new Date(key.fromDateKeyValue);
     let toDateWithZ = new Date(key.toDateKeyValue);
     let casewhereClous = {hospitalId: hospitalId};
@@ -604,21 +604,8 @@ const doSummaryBillReport = function(hospitalId, key) {
         newItem.radio = radioBill;
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
-          log.info('caseReportRes.Log=>' + JSON.stringify(caseReportRes.Log));
-          if (caseReportRes.Log) {
-            let viewReportAction = await caseReportRes.Log.find((act)=>{
-              if ((act) && (act.action) && (act.action === 'view')) {
-                return act;
-              }
-            });
-            if (viewReportAction) {
-              newItem.reportView = viewReportAction.at;
-            } else {
-              newItem.reportView = 'none';
-            }
-          } else {
-            newItem.reportView = 'none';
-          }
+          newItem.reportUpdateAt = caseReportRes.updateAt;
+          newItem.reportLog = caseReportRes.Log;
         }
         if (studyTagsRes) {
           newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;

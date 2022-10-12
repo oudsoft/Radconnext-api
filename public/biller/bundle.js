@@ -11130,7 +11130,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallApiByProxy = function (apiname, params) {
+	const doCallApiByProxy = function (proxyUrl, params) {
 		return new Promise(function(resolve, reject) {
 			$.post(proxyUrl, params, function(data){
 				resolve(data);
@@ -11723,17 +11723,27 @@ module.exports = function ( jq ) {
     return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
+
 	const strToDateFmt = function(strToken) {
 		var yy = strToken.substr(0, 4);
 		var mo = strToken.substr(4, 2);
 		var dd = strToken.substr(6, 2);
 		return Number(dd) + '/' + Number(mo) + '/' + (Number(yy) + 543);
 	}
-
 	const strToTimeFmt = function(strToken) {
 		var hh = strToken.substr(0, 2);
 		var mn = strToken.substr(2, 2);
 		return hh + '.' + mn;
+	}
+
+	const strToDateTime = function(strDateToken, strTimeToken) {
+		var yy = strDateToken.substr(0, 4);
+		var mo = strDateToken.substr(4, 2);
+		var dd = strDateToken.substr(6, 2);
+		var hh = strTimeToken.substr(0, 2);
+		var mn = strTimeToken.substr(2, 2);
+		var ss = strTimeToken.substr(4, 2);
+		return yy + '-' + mo + '-' + dd + ' ' + hh + ':' + mn + ':' + ss;
 	}
 
 	const doOpenSelectFile = function(evt, hospitalId){
@@ -11931,6 +11941,7 @@ module.exports = function ( jq ) {
     let billType = undefined;
     let hospitalId = undefined;
     let monthSelected = undefined;
+		let cutoffTimeSelected =undefined;
 
     let cancelHosCmd = $('<input type="button" value=" ยกเลิก " style="margin-left: 10px;"/>');
     $(cancelHosCmd).on('click', (evt)=>{
@@ -11962,10 +11973,15 @@ module.exports = function ( jq ) {
 				$(hosLabelCol).append($('<span style="margin-left: 4px;">&gt;&gt;</span>'));
         $(hosValueCol).append($(hosSelectedLabel));
 
+				let cutoffTimeOption = $('<select></select>');
+				$(cutoffTimeOption).append($('<option value="1">วันเวลาส่งอ่านผล</option>'));
+				$(cutoffTimeOption).append($('<option value="2">วันเวลาสแกน</option>'));
+
         let okCmd = $('<input type="button" value=" ตกลง " style="margin-left: 10px;"/>');
         $(okCmd).on('click', (evt)=>{
           monthSelected = $(monthOption).val();
-          doCreateReportContent(billType, hospitalId, monthSelected);
+					cutoffTimeSelected = $(cutoffTimeOption).val();
+          doCreateReportContent(billType, hospitalId, monthSelected, cutoffTimeSelected);
           $(okCmd).val(' พิมพ์ ');
           $(okCmd).unbind('click');
           $(okCmd).click(function(prntEvt){
@@ -11977,8 +11993,12 @@ module.exports = function ( jq ) {
 					$(exportCmd).insertAfter($(okCmd));
         });
 
-        $(monthLabelCol).append($('<span>เดือนที่ต้องการออกบิล</span>'));
-        $(monthValueCol).append($(monthOption)).append($(okCmd)).append($(cancelMonthCmd));
+        $(monthLabelCol).append($('<span>เดือน</span>'));
+        $(monthValueCol).append($(monthOption).css({'margin-left': '4px'}));
+				$(monthLabelCol).append($('<span>จับเวลาที่</span>').css({'margin-left': '4px'}));
+				$(monthValueCol).append($(cutoffTimeOption).css({'margin-left': '4px'}));
+
+				$(monthValueCol).append($(okCmd)).append($(cancelMonthCmd));
 
 				let priceSettingBox = doCreateSettingPriceChart(hospitalId);
 				$(mainForm).append($(priceSettingBox))
@@ -12094,12 +12114,15 @@ module.exports = function ( jq ) {
 		return $(exportCmd);
 	}
 
-  const doCreateReportContentForm = function(contents){
+  const doCreateReportContentForm = function(contents, cutoffTimeSelected){
 		return new Promise(async function(resolve, reject) {
+			/*
+			cutoffTimeSelected 1=updatedAt, 2=scan
+			*/
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
 	    const contentRow = '<tr></tr>';
-	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
-	    const lowerHeaderFeilds = ['', 'ที่สแกน', '', 'ส่งอ่านผล', '', 'ส่งผลอ่าน', '', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
+	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, , {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
+	    const lowerHeaderFeilds = ['', 'ที่สแกน', '', 'ส่งอ่านผล', '', 'กำหนดรับผลอ่าน', '', 'รังสีแพทย์ส่งผลอ่าน', '', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
 	      let upperHeaderRow = $(contentRow);
@@ -12139,10 +12162,35 @@ module.exports = function ( jq ) {
 						*/
 						let fmtScanDate = strToDateFmt(item.scanDate);
 						let fmtScanTime = strToTimeFmt(item.scanTime);
-						let fmtCaseCreateDate = fmtReportDate(item.createdAt);
-						let fmtCaseCreateTime = fmtReportTime(item.createdAt);
+						let fmtCaseCreateDate = fmtReportDate(item.updatedAt);
+						let fmtCaseCreateTime = fmtReportTime(item.updatedAt);
+
+						let fmtScanDateTime = strToDateTime(item.scanDate, item.scanTime);
+						let scanDateTime = new Date(fmtScanDateTime);
+						let urgentType = JSON.parse(item.urgenttype.UGType_WorkingStep);
+						let urgentShiftTimeVal = (Number(urgentType.dd)* 24*60*60*1000) + (Number(urgentType.hh)*60*60*1000) + (Number(urgentType.mn)*60*1000);
+						let urgentTime = undefined;
+						if (cutoffTimeSelected == 1) {
+							urgentTime = (new Date(item.updatedAt)).getTime() + urgentShiftTimeVal;
+						} else {
+							urgentTime = (new Date(item.updatedAt)).getTime() + urgentShiftTimeVal;
+						}
+						let urgentDate = new Date(urgentTime);
+
+						let fmtCaseUrgentDate = fmtReportDate(urgentDate);
+						let fmtCaseUrgentTime = fmtReportTime(urgentDate);
+
+
 						let fmtReportCreateDate = fmtReportDate(item.reportCreatedAt);
 						let fmtReportCreateTime = fmtReportTime(item.reportCreatedAt);
+
+						let reportAtDateTime = new Date(item.reportCreatedAt);
+
+						let isCutoff = true;
+						if (urgentDate.getTime() < reportAtDateTime.getTime()) {
+							isCutoff = false;
+						}
+
 						let isOutTime = common.doCheckOutTime(item.reportCreatedAt);
 						let fmtPrice = undefined;
 						if (scanParts[j].PR) {
@@ -12158,8 +12206,15 @@ module.exports = function ( jq ) {
 						$(itemRow).append('<td align="left">' + fmtScanTime + '</td>');
 						$(itemRow).append('<td align="left">' + fmtCaseCreateDate + '</td>');
 						$(itemRow).append('<td align="left">' + fmtCaseCreateTime + '</td>');
+						$(itemRow).append('<td align="left">' + fmtCaseUrgentDate + '</td>');
+						$(itemRow).append('<td align="left">' + fmtCaseUrgentTime + '</td>');
 	          $(itemRow).append('<td align="left">' + fmtReportCreateDate + '</td>');
 						$(itemRow).append('<td align="left">' + fmtReportCreateTime + '</td>');
+						if (isCutoff) {
+							$(itemRow).append('<td align="left">ทัน</td>');
+						} else {
+							$(itemRow).append('<td align="left">ไม่ทัน</td>');
+						}
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_HN + '</td>');
 	          $(itemRow).append('<td align="left">' + item.patient.Patient_NameTH + ' ' + item.patient.Patient_LastNameTH + '</td>');
 	          $(itemRow).append('<td align="left">' + scanParts[j].Name + '</td>');
@@ -12187,7 +12242,7 @@ module.exports = function ( jq ) {
 		});
   }
 
-  const doCreateReportContent = function (billType, hospitalId, monthSelected){
+  const doCreateReportContent = function (billType, hospitalId, monthSelected, cutoffTimeSelected){
 		$('body').loading('start');
     let dateFrags = monthSelected.split('-');
     let dateFmt = dateFrags[1] + '-' + dateFrags[0] + '-01';
@@ -12208,7 +12263,7 @@ module.exports = function ( jq ) {
     common.doCallApi(billContentUrl, callParams).then(async (callRes)=>{
       if (callRes.status.code == 200){
 				console.log(callRes.Contents);
-        let reportViewBox = await doCreateReportContentForm(callRes.Contents);
+        let reportViewBox = await doCreateReportContentForm(callRes.Contents, cutoffTimeSelected);
         $(".mainfull").append($(reportViewBox));
 				$('body').loading('stop');
       } else {
@@ -12315,6 +12370,8 @@ module.exports = function ( jq ) {
 	const sizeA4Style = {width: '210mm', height: '297mm'};
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '33', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto',/* 'background-color': 'rgb(0,0,0)',*/ 'background-color': 'rgba(0,0,0,0.4)'};
 	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '70px auto', 'padding': '0px', 'border': '2px solid #888', 'width': '620px', 'height': '500px'/*, 'font-family': 'THSarabunNew', 'font-size': '24px'*/ };
+
+	let downloadDicomList = [];
 
   const doCallApi = function(url, rqParams) {
 		return new Promise(function(resolve, reject) {
@@ -12679,6 +12736,7 @@ module.exports = function ( jq ) {
 		localStorage.removeItem('userdata');
 		localStorage.removeItem('masternotify');
 		//localStorage.removeItem('dicomfilter');
+		sessionStorage.removeItem('logged');
 	  let url = '/index.html';
 	  window.location.replace(url);
 	}
@@ -12702,12 +12760,10 @@ module.exports = function ( jq ) {
 
   const doDownloadDicom = function(studyID, dicomFilename){
 		$('body').loading('start');
+		/*
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
   	apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
-  		console.log(response);
-  		//let openLink = response.archive.link;
-  		//window.open(openLink, '_blank');
 			var pom = document.createElement('a');
 			pom.setAttribute('href', response.link);
 			pom.setAttribute('download', dicomFilename);
@@ -12716,7 +12772,16 @@ module.exports = function ( jq ) {
   	}).catch((err)=>{
 			console.log(err);
 			$('body').loading('stop');
-		})
+		});
+		*/
+		let downloadURL = 'https://radconnext.info/img/usr/zip/' + dicomFilename;
+		console.log(downloadURL);
+		let pom = document.createElement('a');
+		pom.setAttribute('href', downloadURL);
+		pom.setAttribute('target', '_blank');
+		pom.setAttribute('download', dicomFilename);
+		pom.click();
+		$('body').loading('stop');
   }
 
 	const doDownloadLocalDicom = function(studyID, dicomFilename){
@@ -13049,7 +13114,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let hospitalId = userdata.hospitalId;
-			let userId = userdata.userId;
+			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
 			let apiUrl = '/api/scanpartaux/select';
 			try {
@@ -13125,18 +13190,20 @@ module.exports = function ( jq ) {
 			let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			let headerFieldRow = doCreateHeaderField();
 			$(headerFieldRow).appendTo($(selectedBox));
-			await scanparts.forEach((item, i) => {
-				let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
-				$(itemRow).appendTo($(selectedBox));
-				let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
-				$(itemCell).appendTo($(itemRow));
-				itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
-				$(itemCell).appendTo($(itemRow));
-			});
+			if ((scanparts) && (scanparts.length > 0)) {
+				await scanparts.forEach((item, i) => {
+					let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					$(itemRow).appendTo($(selectedBox));
+					let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					$(itemCell).appendTo($(itemRow));
+					itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					$(itemCell).appendTo($(itemRow));
+				});
+			}
 			resolve($(selectedBox));
 		});
 	}
@@ -13256,6 +13323,11 @@ module.exports = function ( jq ) {
 			$(cmdIcon).attr('title', 'Edit Result.');
 			break;
 
+			case 'log':
+			$(cmdIcon).attr('src','/images/event-log-icon.png');
+			$(cmdIcon).attr('title', 'Open Case Event Log.');
+			break;
+
 		}
 		$(cmdIcon).on('click', (evt)=>{
 			clickCallbak(data);
@@ -13336,12 +13408,12 @@ module.exports = function ( jq ) {
 
 	const onSimpleEditorPaste = function(evt){
 		let pathElems = evt.originalEvent.path;
-		let simpleEditor = pathElems.find((path)=>{
+		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
 				return path;
 			}
 		});
-		if (simpleEditor) {
+		if (simpleEditorPath) {
 			evt.stopPropagation();
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
@@ -13353,6 +13425,7 @@ module.exports = function ( jq ) {
 			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
 			let oldContent = $(simpleEditor).val();
 			if ((htmlFormat) && (htmlFormat !== '')) {
+				htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
 				document.execCommand('insertHTML', false, htmlFormat);
 				let newContent = oldContent + htmlFormat;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -13360,6 +13433,7 @@ module.exports = function ( jq ) {
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
 			} else {
 				if ((textPastedData) && (textPastedData !== '')) {
+					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
 					document.execCommand('insertText', false, textPastedData);
 					let newContent = oldContent + textPastedData;
 					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -13369,6 +13443,24 @@ module.exports = function ( jq ) {
 			}
 			//console.log(localStorage.getItem('draftbackup'));
 		}
+	}
+
+	const doExtractHTMLFromAnotherSource = function(anotherText){
+		let startPointText = '<!--StartFragment-->';
+		let endPointText = '<!--EndFragment-->';
+		let tempToken = anotherText.replace('\n', '');
+		let startPosition = tempToken.indexOf(startPointText);
+		if (startPosition >= 0) {
+			let endPosition = tempToken.indexOf(endPointText);
+			tempToken = tempToken.slice((startPosition+20), (endPosition));
+		}
+		/*
+		tempToken = tempToken.split(startPointText).join('<div>');
+		tempToken = tempToken.split(endPointText).join('</div>');
+		*/
+		tempToken = tempToken.replace(startPointText, '<div>');
+		tempToken = tempToken.replace(endPointText, '</div>');
+		return tempToken;
 	}
 
 	const doCallLoadStudyTags = function(hospitalId, studyId){
@@ -13424,6 +13516,46 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doCreateOpenCaseData = function(caseItem){
+		let openCaseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
+		openCaseData.Modality = caseItem.Case_Modality;
+		openCaseData.StudyDescription = caseItem.Case_StudyDescription;
+		openCaseData.ProtocolName = caseItem.Case_ProtocolName;
+		if ((openCaseData.StudyDescription == '') && (openCaseData.ProtocolName != '')) {
+			openCaseData.StudyDescription = openCaseData.ProtocolName;
+		}
+		return openCaseData;
+	}
+
+	const doAddNotifyCustomStyle = function(){
+    $.notify.addStyle('myshopman', {
+      html: "<div class='superblue'><span data-notify-html/></div>",
+      classes: {
+        base: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "#184175",
+          "padding": "10px"
+        },
+        green: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "green",
+          "padding": "10px"
+        },
+        red: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "red",
+          "padding": "10px"
+        }
+      }
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -13443,6 +13575,7 @@ module.exports = function ( jq ) {
 		sizeA4Style,
 		quickReplyDialogStyle,
 		quickReplyContentStyle,
+		downloadDicomList,
 		/* Function share */
 		doCallApi,
 		doGetApi,
@@ -13495,7 +13628,9 @@ module.exports = function ( jq ) {
 		doCallLoadStudyTags,
 		doReStructureDicom,
 		doCheckOutTime,
-		doCallPriceChart
+		doCallPriceChart,
+		doCreateOpenCaseData,
+		doAddNotifyCustomStyle
 	}
 }
 
@@ -14142,7 +14277,7 @@ module.exports = function ( jq ) {
 	  const port = window.location.port;
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
-
+		/*
 		let wsProtocol = 'ws://';
 		if (protocol == 'https:') {
 			wsProtocol = 'wss://';
@@ -14152,7 +14287,9 @@ module.exports = function ( jq ) {
 		if (hostname == 'localhost') {
 			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
 		}
+		*/
 
+		let wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -14221,6 +14358,16 @@ module.exports = function ( jq ) {
 			wsm.send(JSON.stringify(data.data));
 		} else if (data.type == 'run') {
 			wsm.send(JSON.stringify(data.data));
+		} else if (data.type == 'newdicom') {
+			let eventName = 'triggernewdicom'
+			let triggerData = {dicom : data.dicom, result: data.result};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updatedicom') {
+			let eventName = 'triggerupdatedicom'
+			let triggerData = {dicom : data.dicom, result: data.result};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
 		}
 	}
 
@@ -14422,16 +14569,17 @@ module.exports = function ( jq, wsm ) {
 				document.dispatchEvent(event);
 			}
 		//} else if (data.type == 'refreshconsult') {
-		} else if (data.type == 'newdicom') {
-			let eventName = 'triggernewdicom'
-			let triggerData = {dicom : data.dicom};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
-			document.dispatchEvent(event);
 		} else if (data.type == 'casemisstake') {
 			let eventName = 'triggercasemisstake'
 			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreport') {
+			let eventName = 'triggernewreport'
+			let triggerData = data;
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+			console.log(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -14508,6 +14656,10 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'clientreconnect') {
 			let eventName = 'clientreconnecttrigger';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'rezip') {
+			let eventName = 'triggerrezip';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {studyID: data.studyID, dicomZipFilename: data.dicomZipFilename}}});
 			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
@@ -15216,6 +15368,14 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalresult') {
+			let eventName = 'newreportlocalresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalfail') {
+			let eventName = 'newreportlocalfail';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
 		} else if (data.type == 'wrtc') {
 			switch(data.wrtc) {
 				//when somebody wants to call us
@@ -15231,7 +15391,7 @@ module.exports = function ( jq, wsm) {
 				break;
 				case "interchange":
 					wrtcCommon.wsHandleInterchange(wsm, data.interchange);
-				break;				
+				break;
 				case "leave":
 					wrtcCommon.wsHandleLeave(wsm, data.leave);
 				break;

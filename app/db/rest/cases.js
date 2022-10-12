@@ -519,6 +519,7 @@ app.post('/update', (req, res) => {
         let targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
         let targetCase = targetCases[0];
         let nowCaseStatus = targetCase.casestatusId;
+        let nowUrgenttypeId = targetCase.urgenttypeId;
         let oldHR = targetCase.Case_PatientHRLink;
         let newHR = updateData.Case_PatientHRLink;
         let canUpdate = ((uti.contains.call(common.casestatusCanUpdate, nowCaseStatus)));
@@ -621,6 +622,7 @@ app.post('/update', (req, res) => {
             caseState = 'normal change';
           }
           let newKeepLog = { caseId : targetCaseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'แก้ไขเคส [' + caseState + '] สำเร็จ'};
+          newKeepLog.oldUrgenttypeId = nowUrgenttypeId;
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
         } else {
