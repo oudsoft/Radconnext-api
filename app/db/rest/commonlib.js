@@ -312,7 +312,7 @@ const doLoadRadioProfile = function(radioId){
 
 const doLoadCaseReport = function(caseId){
   return new Promise(async (resolve, reject) => {
-    const reportCases = await db.casereports.findAll({ attributes: ['createdAt'], where: {caseId: caseId}});
+    const reportCases = await db.casereports.findAll({ attributes: ['createdAt', 'updatedAt', 'Log'], where: {caseId: caseId}});
     if (reportCases[0]) {
       resolve(reportCases[0]);
     } else {
