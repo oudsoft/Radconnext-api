@@ -11995,7 +11995,7 @@ module.exports = function ( jq ) {
 
         $(monthLabelCol).append($('<span>เดือน</span>'));
         $(monthValueCol).append($(monthOption).css({'margin-left': '4px'}));
-				$(monthLabelCol).append($('<span>จับเวลาที่</span>').css({'margin-left': '4px'}));
+				$(monthValueCol).append($('<span>จับเวลาที่</span>').css({'margin-left': '4px'}));
 				$(monthValueCol).append($(cutoffTimeOption).css({'margin-left': '4px'}));
 
 				$(monthValueCol).append($(okCmd)).append($(cancelMonthCmd));
@@ -12121,7 +12121,7 @@ module.exports = function ( jq ) {
 			*/
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
 	    const contentRow = '<tr></tr>';
-	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, , {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
+	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
 	    const lowerHeaderFeilds = ['', 'ที่สแกน', '', 'ส่งอ่านผล', '', 'กำหนดรับผลอ่าน', '', 'รังสีแพทย์ส่งผลอ่าน', '', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
