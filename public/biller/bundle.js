@@ -12120,23 +12120,24 @@ module.exports = function ( jq ) {
 			cutoffTimeSelected 1=updatedAt, 2=scan
 			*/
 	    const reportViewBox = $('<div id="ReportViewBox" style="position: relative; width: 100%; padding: 5p; margin-top: 8px;"></div>');
+			/*
 	    const contentRow = '<tr></tr>';
 	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
 	    const lowerHeaderFeilds = ['', 'ที่สแกน', '**', 'ส่งอ่านผล', '**', 'กำหนดรับผลอ่าน', '**', 'รังสีแพทย์ส่งผลอ่าน', '**', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
+			*/
+			
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
+				/*
 	      let upperHeaderRow = $(contentRow);
 	      for (let u = 0; u < upperHeaderFeilds.length; u++){
 	        let cell = upperHeaderFeilds[u];
 	        let feild = undefined;
-
-	        if ((lowerHeaderFeilds[u] == '') && ((lowerHeaderFeilds[u+1]) && (lowerHeaderFeilds[u+1] != ''))) {
+	        if (lowerHeaderFeilds[u] == ''){
 	          feild = $('<td align="center" width="' + cell.width +'%" rowspan="2"><b>' + cell.name + '</b></td>');
-	        } else if ((lowerHeaderFeilds[u+1]) && (lowerHeaderFeilds[u+1] == '**')) {
-	          feild = $('<td align="center" colspan="2"><b>' + cell.name + '</b></td>');
-	        } else {
-						feild = $('<td align="center"><b>' + cell.name + '</b></td>');
-					}
+	        } else if (lowerHeaderFeilds[u] == '**') {
+	          feild = $('<td align="center" colspan="2"></td>');
+	        }
 	        $(upperHeaderRow).append($(feild));
 	      };
 
@@ -12150,6 +12151,9 @@ module.exports = function ( jq ) {
 
 	      $(contentTable).append($(upperHeaderRow));
 	      $(contentTable).append($(lowerHeaderRow));
+				*/
+
+				contentTable = doRenderHeaderTableRow(contentTable);
 
 	      let itemNo = 1;
 	      let priceTotal = 0;
@@ -12158,7 +12162,7 @@ module.exports = function ( jq ) {
 	        let item = contents[i];
 	        let scanParts = item.Case_ScanPart;
 	        for (let j=0; j < scanParts.length; j++){
-	          let itemRow = $(contentRow);
+	          let itemRow = $('<tr></tr>');
 						/*
 	          let fmtDate = fmtReportDate(item.createdAt);
 						let isOutTime = common.doCheckOutTime(item.createdAt);
@@ -12283,6 +12287,42 @@ module.exports = function ( jq ) {
     let reportOptionForm = doCreateReportOptionForm();
     $(".mainfull").empty().append($(pageLogoBox))/*.append($(priceSettingBox))*/.append($(reportOptionForm));
   }
+
+	const doRenderHeaderTableRow = function(table) {
+		let firstHeaderRow = '<tr></tr>';
+		let secondHeaderRow = '<tr></tr>';
+		$(firstHeaderRow).append($('<td align="center" rowspan="2"><b>ลำดับที่</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" colspan="2"><b>วันที่สแกนท</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" colspan="2"><b>วันที่ส่งอ่านผล</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" colspan="2"><b>กำหนดรับผลอ่านวันที่</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" colspan="2"><b>วันที่รังสีแพทย์ส่งผลอ่าน</b></td>'));
+		$(firstHeaderRow).append($('<td align="center"><b>ทัน</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" rowspan="2"><b>HN</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" rowspan="2"><b>ชื่อ-สกุล</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" rowspan="2"><b>รายการ</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" rowspan="2"><b>รังสีแพทย์</b></td>'));
+		$(firstHeaderRow).append($('<td align="center"><b>รหัส</b></td>'));
+		$(firstHeaderRow).append($('<td align="center"><b>ราคาที่</b></td>'));
+
+		$(secondHeaderRow).append($('<td align="center" width="5%"><b></b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="6%"><b>วันที</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="4%"><b>เวลา</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="6%"><b>วันที</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="4%"><b>เวลา</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="6%"><b>วันที</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="4%"><b>เวลา</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="6%"><b>วันที</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="4%"><b>เวลา</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="5%"><b>ไม่ทัน</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="6%"><b></b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="14%"><b></b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="15%"><b></b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="14%"><b></b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="4%"><b>กรมบัญชีกลาง</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" width="*"><b>เรียกเก็บ</b></td>'));
+
+		return $(table).append($(firstHeaderRow)).append($(secondHeaderRow));
+	}
 
   return {
     doOpenCreateBillForm
