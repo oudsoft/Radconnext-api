@@ -12125,7 +12125,7 @@ module.exports = function ( jq ) {
 	    const upperHeaderFeilds = [{name: 'ลำดับที่', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'วันเดือนปี', width: 6}, {name: 'เวลา', width: 5}, {name: 'ทัน', width: 5}, {name: 'HN', width: 8}, {name: 'ชื่อ-สกุล', width: 15}, {name: 'รายการ', width: 15}, {name: 'รังสีแพทย์', width: 12}, {name: 'รหัส', width: 8}, {name: 'ราคาที่', width: 10}];
 	    const lowerHeaderFeilds = ['', 'ที่สแกน', '**', 'ส่งอ่านผล', '**', 'กำหนดรับผลอ่าน', '**', 'รังสีแพทย์ส่งผลอ่าน', '**', 'ไม่ทัน', '', '', '', '', 'กรมบัญชีกลาง', 'เรียกเก็บ'];
 			*/
-			
+
 	    if (contents.length > 0){
 	      let contentTable = $('<table id ="ContentTable" width="100%" cellpadding="5" cellspacing="0" border="1px solid black"></table>');
 				/*
@@ -12236,7 +12236,7 @@ module.exports = function ( jq ) {
 	        }
 	      }
 
-	      let finalRow = $(contentRow);
+	      let finalRow = $('<tr></tr>');
 	      $(finalRow).append('<td align="center" colspan="14">ผู้เข้ารับบริการทั้งหมด ' + (itemNo-1) + ' ราย</td>')
 	      $(finalRow).append('<td align="center">รวม</td>');
 	      $(finalRow).append('<td align="right">' + fmtReportNumber(priceTotal) + '</td>');
