@@ -395,6 +395,9 @@ const RadCaseDef = {
 			},
 			Case_DicomZipFilename : {  // <- advance tempolary zip file
 				type: Sequelize.STRING
+			},
+			Case_UploadedAt : {
+				type: Sequelize.DATE
 			}
 		};
 
