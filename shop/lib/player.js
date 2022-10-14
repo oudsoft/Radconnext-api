@@ -75,7 +75,9 @@
         if (xElem) {
           requestFullScreen(xElem).then((wh) => {
             fullScreenMode = true;
-            $('#ImagePreview').css({'height': '100%', 'width': 'auto'})
+            let imgView = $(playerViewBox).find('.imgbox');
+            $(imgView).css({'height': '100%', 'width': 'auto'})
+            //$('#ImagePreview').css({'height': '100%', 'width': 'auto'})
   		    });
         } else {
           console.log('Error: not found your img elem. at Cmd.');

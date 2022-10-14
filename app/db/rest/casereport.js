@@ -109,7 +109,7 @@ app.post('/appendlog/(:caseId)', (req, res) => {
           const caserep = await Report.findAll({attributes: ['Log'], where: {caseId: caseId}});
 					//log.info('caserep log=>' + JSON.stringify(caserep));
 					let currentLog = undefined;
-					if ((caserep.length > 0) && (caserep[0]) && (caserep[0].Log)) {
+					if ((caserep.length > 0) && (caserep[0].Log) && (caserep[0].Log.length > 0)) {
 						currentLog = caserep[0].Log;
 						currentLog.push(appendLog);
 					} else {

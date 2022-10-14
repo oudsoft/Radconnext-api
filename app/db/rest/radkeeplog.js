@@ -34,7 +34,7 @@ app.post('/select/(:caseId)', async (req, res) => {
   const promiseList = new Promise(async function(resolve, reject) {
     for (let i=0; i < keepLogs.length; i++){
       let keep = keepLogs[i];
-      if (keep.userId != 0) {
+      if ((keep.userId) && (keep.userId != 0)) {
         let userProfile = await doLoadUserProfile(keep.userId);
         userProfiles.push(userProfile);
       } else {

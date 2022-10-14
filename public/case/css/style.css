@@ -241,3 +241,7 @@
   background: #eee;
   color: #000;
 }
+
+.hr-patient-cell {
+	display: none;
+}
