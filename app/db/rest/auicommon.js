@@ -231,7 +231,7 @@ app.post('/radio/submitresult', (req, res) => {
 
           let responseType = 'normal';
           let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
-          let remark = 'Radio Submit Result Success.';
+          let remark = 'รังสีแพทย์ส่งผลอ่าน (Submit) สำเร็จ';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});
           log.info('==' + remark + '==');

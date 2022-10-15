@@ -1056,6 +1056,9 @@ app.post('/reset/dicom/zipfilename', async (req, res) => {
 app.post('/newcase/trigger', async (req, res) => {
   let studyID = req.body.studyID;
   let userId = req.body.userId;
+  if (!userId) {
+    userId = 0;
+  }
   let casesRes = await db.cases.findAll({attributes: ['id', 'casestatusId'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
   if (casesRes.length > 0) {
     let caseId = casesRes[0].id;
@@ -1072,6 +1075,9 @@ app.post('/newcase/trigger', async (req, res) => {
 app.post('/updatecase/trigger', async (req, res) => {
   let caseId = req.body.caseId;
   let userId = req.body.userId;
+  if (!userId) {
+    userId = 0;
+  }
   let isChangeRadio = req.body.isChangeRadio;
   await db.cases.update({Case_UploadedAt: new Date()}, {where: {id: caseId}});
   let targetCases = await db.cases.findAll({attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});

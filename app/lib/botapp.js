@@ -233,7 +233,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
             let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId'], where: {id: data}});
             let nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
-              let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'Accept by Line Bot');
+              let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'ตอบรับเคส ทาง Line Application');
               //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LastNameTH'], where: {userId: radUser.id}});
               console.log('radUser.id=>' + radUser.id);
               let userProfile = await common.doLoadRadioProfile(radUser.id);
@@ -263,7 +263,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
             targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId'], where: {id: data}});
             nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
-              let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'Reject by Line Bot');
+              let changeResNotAcc = await statusControl.doChangeCaseStatus(1, 3, data, radUser.id, 'ปฏิเสธเคส ทาง Line Application');
               //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LastNameTH'], where: {userId: radUser.id}});
               let userProfile = await common.doLoadRadioProfile(radUser.id);
               let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 3, remark : 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH +  'ปฏิเสธเคสโดย Line Application'};

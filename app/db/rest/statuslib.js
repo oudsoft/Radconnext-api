@@ -260,7 +260,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let triggerTime = nowTime + (triggerAt * 1000);
         let trigerDate = new Date(triggerTime);
         let yymmddhhmnss = uti.doFormateDateTime(trigerDate);
-        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + 'ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
@@ -1159,7 +1159,7 @@ const doControlAddNewResponse = function(reqData) {
     let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
     log.info('nextStatus=>' + JSON.stringify(nextStatus));
     if (nextStatus) {
-      let remark = 'Radio Save new normal Response success.';
+      let remark = 'รังสีแพทย์บันทึกผลอ่าน (Save) เข้าระบบสำเร็จ';
       let newResponseStatus = [8];
       let editResponseStatus = [5, 6, 9, 10, 11, 12, 13, 14];
       let isNewResponse = uti.contains.call(newResponseStatus, nowStatusId);
