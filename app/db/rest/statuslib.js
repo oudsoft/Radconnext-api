@@ -258,7 +258,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let shiftMinut = (dd * 1440) + (hh * 60) + mn;
         let d = new Date();
         let utc = d.getTime();
-        d = new Date(utc + (3600000 * offset) + (shiftMinut * 100));
+        d = new Date(utc + (3600000 * offset) + (shiftMinut * 1000));
 
         let yymmddhhmnss = uti.doFormateDateTime(d);
         let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN) + uti.fmtStr('(เหลือเวลา %s นาที)', shiftMinut);

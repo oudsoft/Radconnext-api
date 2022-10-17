@@ -359,7 +359,7 @@ app.post('/item/status/update', (req, res) => {
         let orderId = req.body.orderId;
         let goodId = req.body.goodId;
         let newStatus = req.body.newStatus;
-        let whereClous = {id: orderId, Items: {id: goodId}};
+        let whereClous = {id: orderId, Items: {id: {[db.Op.eq]: goodId}}};
         await db.orders.update({Items: {ItemStatus: newStatus}}, { where: whereClous});
         let resultItems = await db.orders.findAll({ attributes: ['Items'], where: whereClous});
         res.json({Result: "OK", status: {code: 200}, result: resultItems});
