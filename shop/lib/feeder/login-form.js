@@ -88,7 +88,7 @@
           window.location.replace('/shop/mobile/index.html');
         break;
         case 5:
-          //window.location.replace('/refer/index.html');
+          window.location.replace('/shop/mobile/index.html');
         break;
         case 8:
           //window.location.replace('/sip/dialcall.html');

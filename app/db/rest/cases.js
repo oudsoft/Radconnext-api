@@ -1062,11 +1062,11 @@ app.post('/newcase/trigger', async (req, res) => {
   let casesRes = await db.cases.findAll({attributes: ['id', 'casestatusId'], where: {Case_OrthancStudyID: studyID}, order: [['id', 'DESC']], limit: 1});
   if (casesRes.length > 0) {
     let caseId = casesRes[0].id;
+    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'เคสใหม่ อัพโหลด สำเร็จ'};
+    await common.doCaseChangeStatusKeepLog(newKeepLog);
     await db.cases.update({Case_UploadedAt: new Date()}, {where: {id: caseId}});
     let actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     res.json({status: {code: 200}, result: actionAfterChange});
-    let newKeepLog = { caseId : caseId,	userId : userId, from : casesRes[0].casestatusId, to : casesRes[0].casestatusId, remark : 'เคสใหม่ อัพโหลด สำเร็จ'};
-    await common.doCaseChangeStatusKeepLog(newKeepLog);
   } else {
     res.json({status: {code: 200}, result: 'Not Found Case'});
   }

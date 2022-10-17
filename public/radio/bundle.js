@@ -3902,7 +3902,8 @@ $( document ).ready(function() {
             //doAutoAcceptCase(0);
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
-            let response = await common.doUpdateCaseStatus(quickCaseId, 8, 'Radiologist Open accepted case by Quick Link');
+            let remark = 'รังสีแพทบ์ ' + userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH + ' เข้าอ่านผลทาง Quick Link';
+            let response = await common.doUpdateCaseStatus(quickCaseId, 8, remark);
             if (response.status.code == 200) {
               let eventData = data.caseData;
               eventData.startDownload = 1;

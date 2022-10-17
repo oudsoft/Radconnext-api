@@ -4781,7 +4781,7 @@ module.exports = function ( jq ) {
 							$(updateShopLogoCmd).on('click', (evt)=>{
 								doStartUploadPicture(evt, field, item.id);
 							});
-							$(field).append($(updateShopLogoCmd));
+							$(field).append($(updateShopLogoCmd).css({'float': 'left'}));
 							$(itemRow).append($(field));
 						}
 					}

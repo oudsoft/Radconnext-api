@@ -254,13 +254,14 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
         let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
         resolve(theVoipTask);
+        const offset = 7;
+        let shiftMinut = (dd * 1440) + (hh * 60) + mn;
+        let d = new Date();
+        let utc = d.getTime();
+        d = new Date(utc + (3600000 * offset) + (shiftMinut * 100));
 
-        let now = new Date();
-        let nowTime = now.getTime();
-        let triggerTime = nowTime + (triggerAt * 1000);
-        let trigerDate = new Date(triggerTime);
-        let yymmddhhmnss = uti.doFormateDateTime(trigerDate);
-        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+        let yymmddhhmnss = uti.doFormateDateTime(d);
+        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN) + uti.fmtStr('(เหลือเวลา %s นาที)', shiftMinut);
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
@@ -748,7 +749,7 @@ const onOpenCaseEvent = function(caseId){
     resolve(actions);
 
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-    let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสเพื่ออ่านผล'};
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ'};
     await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }

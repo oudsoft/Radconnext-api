@@ -350,6 +350,32 @@ app.post('/delete', (req, res) => {
   }
 });
 
+//update gooditem status API
+app.post('/item/status/update', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let orderId = req.body.orderId;
+        let goodId = req.body.goodId;
+        let newStatus = req.body.newStatus;
+        let whereClous = {id: orderId, Items: {id: goodId}};
+        await db.orders.update({Items: {ItemStatus: newStatus}}, { where: whereClous});
+        let resultItems = await db.orders.findAll({ attributes: ['Items'], where: whereClous});
+        res.json({Result: "OK", status: {code: 200}, result: resultItems});
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 module.exports = ( dbconn, monitor, wsServer ) => {
   db = dbconn;
   log = monitor;
