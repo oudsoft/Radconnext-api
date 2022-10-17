@@ -439,7 +439,11 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-        let yymmddhhmnss = uti.doFormateDateTime(endTime);
+
+        let utc = d.getTime(endTime);
+        d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+
+        let yymmddhhmnss = uti.doFormateDateTime(d);
         let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
         let remark = 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + yymmddhhmnText + ' (เหลื่อเวลา ' + shiftMinut + ' นาที)'
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
