@@ -1905,6 +1905,8 @@ module.exports = function ( jq ) {
 
 	const doCreateOrderList = function(shopId, workAreaBox, orderDate, orderStatuses, itemStatus) {
     return new Promise(async function(resolve, reject) {
+			console.log(orderStatuses);
+			console.log(itemStatus);
       let orderReqParams = {};
       if (orderDate) {
         orderReqParams = {orderDate: orderDate};
@@ -1919,7 +1921,11 @@ module.exports = function ( jq ) {
 			let	promiseList = new Promise(async function(resolve2, reject2){
 				let cookItems = [];
 				for (let i=0; i < orders.length; i++) {
+					console.log(orderStatuses.includes(orders[i].Status));
 					for (let j=0; j < orders[i].Items.length; j ++) {
+						console.log(orders[i].Items[j]);
+						console.log(orders[i].Items[j].ItemStatus);
+						console.log(orders[i].Items[j].ItemStatus === itemStatus);
 						if ((orderStatuses.includes(orders[i].Status)) && (orders[i].Items[j].ItemStatus === itemStatus)) {
 							let cookItem = {item: {index: j, goodId: orders[i].Items[j].id, name: orders[i].Items[j].MenuName, desc: orders[i].Items[j].Desc, qty: orders[i].Items[j].Qty, price: orders[i].Items[j].Price, unit: orders[i].Items[j].Unit, picture: orders[i].Items[j].MenuPicture, status: orders[i].Items[j].ItemStatus}};
 							cookItem.orderId = orders[i].id;

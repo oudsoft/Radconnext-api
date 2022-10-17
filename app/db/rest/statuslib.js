@@ -81,8 +81,10 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           //system access or admin access
           const caseStatusChange = { casestatusId: next, Case_DESC: remark};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
-          let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-          await common.doCaseChangeStatusKeepLog(newKeepLog);
+          if (remark) {
+            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+            await common.doCaseChangeStatusKeepLog(newKeepLog);
+          }
           let actions = await doActionAfterChange(from, next, caseId);
           resolve({change: {status: true}, actions: actions});
         } else if (accessBy == 2) {
@@ -90,9 +92,11 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           if (targetCases[0].userId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
+            if (remark) {
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            await common.doCaseChangeStatusKeepLog(newKeepLog);
-            let actions = await doActionAfterChange(from, next, caseId);
+              await common.doCaseChangeStatusKeepLog(newKeepLog);
+              let actions = await doActionAfterChange(from, next, caseId);
+            }
             resolve({change: {status: true}, actions: actions});
           } else {
             resolve({change: {status: false}});
@@ -104,8 +108,10 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           //if (targetCases[0].Case_RadiologistId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
-            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            await common.doCaseChangeStatusKeepLog(newKeepLog);
+            if (remark) {
+              let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+              await common.doCaseChangeStatusKeepLog(newKeepLog);
+            }
             let controlAction = await doActionAfterChange(from, next, caseId);
             let actions = controlAction.actions;
             if ((from == 1) && (next == 2)) {
@@ -122,8 +128,10 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           if (targetCases[0].Case_RefferalId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
-            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            await common.doCaseChangeStatusKeepLog(newKeepLog);
+            if (remark) {
+              let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+              await common.doCaseChangeStatusKeepLog(newKeepLog);
+            }
             let actions = await doActionAfterChange(from, next, caseId);
             resolve({change: {status: true}, actions: actions});
           } else {
