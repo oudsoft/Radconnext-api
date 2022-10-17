@@ -230,15 +230,30 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           break;
           case 'x401':
             /* radio accept new case*/
-            let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId'], where: {id: data}});
+            let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId', 'urgenttypeId'], where: {id: data}});
+            let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].urgenttypeId}});
             let nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
               //let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id, 'ตอบรับเคส ทาง Line Application');
               //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LastNameTH'], where: {userId: radUser.id}});
-              console.log('radUser.id=>' + radUser.id);
+              //console.log('radUser.id=>' + radUser.id);
               let userProfile = await common.doLoadRadioProfile(radUser.id);
               log.info('userProfile=>' + JSON.stringify(userProfile));
-              let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark : 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH + ' ตอบรับเคสโดย Line Application'};
+              let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+              let dd = Number(triggerParam.dd);
+              let hh = Number(triggerParam.hh);
+              let mn = Number(triggerParam.mn);
+
+              const offset = 7;
+              let shiftMinut = (dd * 1440) + (hh * 60) + mn;
+              let d = new Date();
+              let utc = d.getTime();
+              d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+              let yymmddhhmnss = uti.doFormateDateTime(d);
+              let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+              let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+              let remark = uti.fmtStr('รังสีแพทย์ % ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน % (เหลือเวลา % นาที)', radioNameTH, yymmddhhmnText, shiftMinut);
+              let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark: remark};
               await common.doCaseChangeStatusKeepLog(newKeepLog);
               if (changeRes.change.status == true) {
                 /*

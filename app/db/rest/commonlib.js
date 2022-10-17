@@ -312,7 +312,7 @@ const doLoadRadioProfile = function(radioId){
 
 const doLoadCaseReport = function(caseId){
   return new Promise(async (resolve, reject) => {
-    const reportCases = await db.casereports.findAll({ attributes: ['createdAt', 'updatedAt', 'Log'], where: {caseId: caseId}});
+    const reportCases = await db.casereports.findAll({ attributes: ['createdAt', 'updatedAt', 'PDF_Filename', 'Log'], where: {caseId: caseId}});
     if (reportCases[0]) {
       resolve(reportCases[0]);
     } else {
@@ -412,6 +412,11 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
       }
     });
 
+    let dd = Number(triggerParam.dd) * 24 * 60;
+    let hh = Number(triggerParam.hh) * 60;
+    let mn = Number(triggerParam.mn);
+    let shiftMinut = dd + hh + mn;
+
     let endTime = newTask.triggerAt;
 
     let endDateText = uti.doFormateDateTimeChatbot(endTime);
@@ -433,7 +438,8 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
-        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'แจ้งเตือนรังสีแพทย์ทาง Line Application'};
+        let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + endDateText + ' (' + shiftMinut + ' นาที)'};
         await doCaseChangeStatusKeepLog(newKeepLog);
       } else if (baseCaseStatusId == 2 ) {
         // move to statuscontrol at onAcceptCaseEvent
@@ -605,6 +611,7 @@ const doSummaryBillReport = function(hospitalId, key) {
         if (caseReportRes) {
           newItem.reportCreatedAt = caseReportRes.createdAt;
           newItem.reportUpdateAt = caseReportRes.updateAt;
+          newItem.reportLink = caseReportRes.PDF_Filename;
           newItem.reportLog = caseReportRes.Log;
         }
         if (studyTagsRes) {

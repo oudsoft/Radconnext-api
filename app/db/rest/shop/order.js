@@ -359,9 +359,16 @@ app.post('/item/status/update', (req, res) => {
         let orderId = req.body.orderId;
         let goodId = req.body.goodId;
         let newStatus = req.body.newStatus;
-        let whereClous = {id: orderId, Items: {id: {[db.Op.eq]: goodId}}};
-        await db.orders.update({Items: {ItemStatus: newStatus}}, { where: whereClous});
+        let whereClous = {id: orderId};
         let resultItems = await db.orders.findAll({ attributes: ['Items'], where: whereClous});
+        await resultItems.forEach((item, i) => {
+          if (item.id == goodId){
+            item.ItemStatus = newStatus;
+          }
+        });
+
+        await db.orders.update({Items: resultItems}, { where: whereClous});
+
         res.json({Result: "OK", status: {code: 200}, result: resultItems});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

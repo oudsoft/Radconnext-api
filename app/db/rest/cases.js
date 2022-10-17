@@ -551,7 +551,7 @@ app.post('/update', (req, res) => {
                 let menuQuickReply = lineApi.createBotMenu(lineNotifyMsg, 'quick', lineApi.radioMainMenu);
                 await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
                 let radioProfileNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application';
+                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application แล้ว';
                 let newKeepLog = { caseId : targetCaseId,	userId : 0, from : nowCaseStatus, to : nowCaseStatus, remark: remark};
                 await common.doCaseChangeStatusKeepLog(newKeepLog);
               }
@@ -585,7 +585,7 @@ app.post('/update', (req, res) => {
                 let menuQuickReply = lineApi.createBotMenu(lineNotifyMsg, 'quick', lineApi.radioMainMenu);
                 await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
                 let radioProfileNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application';
+                let remark = 'ระบบแจ้งยกเลิกเคสไปยังรังสีแพทย์ ' + radioProfileNameTH + ' ทาง Line Application แล้ว';
                 let newKeepLog = { caseId : targetCaseId,	userId : 0, from : nowCaseStatus, to : nowCaseStatus, remark: remark};
                 await common.doCaseChangeStatusKeepLog(newKeepLog);
               }

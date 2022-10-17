@@ -11965,15 +11965,15 @@ module.exports = function ( jq ) {
     });
 
 		let showHrPatientLinkOptionCmd = $('<input type="checkbox" id="ShowHrPatientLinkOption" value="0" style="transform: scale(1.5)">').css({'margin-left': '10px'});
-		let showHrPatientLinkOptionLabel = $('<label for="ShowHrPatientLinkOption">แสดงภาพประวัติ</label>').css({'margin-left': '5px'});
+		let showHrPatientLinkOptionLabel = $('<label for="ShowHrPatientLinkOption">แสดงภาพประวัติ/ผลอ่าน</label>').css({'margin-left': '5px'});
 
 		$(showHrPatientLinkOptionCmd).on('click', (evt)=>{
 			let value = $(showHrPatientLinkOptionCmd).prop('checked');
 			if (value == 1) {
-				$(showHrPatientLinkOptionLabel).text('ซ่อนภาพประวัติ');
+				$(showHrPatientLinkOptionLabel).text('ซ่อนภาพประวัติ/ผลอ่าน');
 				$('.hr-patient-cell').show();
 			} else {
-				$(showHrPatientLinkOptionLabel).text('แสดงภาพประวัติ');
+				$(showHrPatientLinkOptionLabel).text('แสดงภาพประวัติ/ผลอ่าน');
 				$('.hr-patient-cell').hide();
 			}
 		});
@@ -12148,6 +12148,7 @@ module.exports = function ( jq ) {
 	      for (let i=0; i < contents.length; i++){
 
 	        let item = contents[i];
+					//console.log(item);
 	        let scanParts = item.Case_ScanPart;
 	        for (let j=0; j < scanParts.length; j++){
 	          let itemRow = $('<tr></tr>');
@@ -12225,7 +12226,7 @@ module.exports = function ( jq ) {
 							await item.Case_PatientHRLink.forEach((hr, i) => {
 								let type = hr.link.substring(hr.link.length-3);
 								if ((type==='jpg') || (type === 'png') || (type === 'pdf')) {
-									let hrIcon = $('<img src="/images/image-icon.png" width="22px" height="auto"/>');
+									let hrIcon = $('<img src="/images/image-icon.png" width="22px" height="auto"/>').css({'position': 'relative', 'display': 'inline-block'});
 									$(hrIcon).css({'cursor': 'pointer'});
 									$(hrIcon).on('click', (evt)=>{
 										window.open(hr.link, '_blank');
@@ -12236,6 +12237,14 @@ module.exports = function ( jq ) {
 						} else {
 							$(hrPatientLinkCell).text('ไม่มีภาพประวัติแนบ');
 						}
+
+						let pdfIcon = $('<img src="/images/pdf-icon.png" width="22px" height="auto"/>').css({'position': 'relative', 'display': 'inline-block', 'margin-left': '5px'});
+						$(pdfIcon).css({'cursor': 'pointer'});
+						$(pdfIcon).on('click', (evt)=>{
+							window.open(item.reportLink, '_blank');
+						});
+						$(hrPatientLinkCell).append($(pdfIcon));
+
 						$(itemRow).append($(hrPatientLinkCell));
 						if (isOutTime) {
 							$(itemRow).css({'background-color': 'grey', 'color': 'white'});
@@ -12312,7 +12321,7 @@ module.exports = function ( jq ) {
 		$(firstHeaderRow).append($('<td align="center" rowspan="2" width="14%"><b>รังสีแพทย์</b></td>'));
 		$(firstHeaderRow).append($('<td align="center"><b>รหัส</b></td>'));
 		$(firstHeaderRow).append($('<td align="center"><b>ราคาที่</b></td>'));
-		$(firstHeaderRow).append($('<td align="center" rowspan="2" class="hr-patient-cell" width="*"><b>ภาพประวัติ</b></td>'));
+		$(firstHeaderRow).append($('<td align="center" class="hr-patient-cell"><b>ภาพประวัติ</b></td>'));
 		$(table).append($(firstHeaderRow));
 
 		let secondHeaderRow = $('<tr></tr>');
@@ -12331,6 +12340,7 @@ module.exports = function ( jq ) {
 		//$(secondHeaderRow).append($('<td align="center" width="14%"><b></b></td>'));
 		$(secondHeaderRow).append($('<td align="center" width="8%"><b>กรมบัญชีกลาง</b></td>'));
 		$(secondHeaderRow).append($('<td align="center" width="6%"><b>เรียกเก็บ</b></td>'));
+		$(secondHeaderRow).append($('<td align="center" class="hr-patient-cell" width="*"><b>ผลอ่าน</b></td>'));
 
 		$(table).append($(secondHeaderRow));
 		return $(table);

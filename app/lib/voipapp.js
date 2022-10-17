@@ -40,8 +40,6 @@ app.post('/response', async function(req, res) {
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   res.json({status: {code: 200}, ok: 'me'});
   */
-  let acceptRemark = 'Radio Accept by VoIP App';
-  let rejectRemark = 'Radio Reject by VoIP App';
   let changeRes = {};
   let yourResponse = req.body;
   log.info('yourResponse=> ' + JSON.stringify(yourResponse));
@@ -54,12 +52,27 @@ app.post('/response', async function(req, res) {
   if ((voip) && (voip.caseId)){
     voip.responseKEYs.push(key);
     let action = undefined;
-    let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId'], where: {id: caseId}});
+    let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId', 'urgenttypeId'], where: {id: caseId}});
+    let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].urgenttypeId}});
     let radioId = targetCases[0].Case_RadiologistId;
     //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radioId}});
     let userProfile = await common.doLoadRadioProfile(radioId);
-    acceptRemark = 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH +  'ตอบรับเคสโดย VoIP';
-    rejectRemark = 'รังสีแพทย์ ' + userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH +  'ปฏิเสธเคสโดย VoIP';
+    let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+
+    let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+    let dd = Number(triggerParam.dd);
+    let hh = Number(triggerParam.hh);
+    let mn = Number(triggerParam.mn);
+
+    const offset = 7;
+    let shiftMinut = (dd * 1440) + (hh * 60) + mn;
+    let d = new Date();
+    let utc = d.getTime();
+    d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+    let yymmddhhmnss = uti.doFormateDateTime(d);
+    let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+    let acceptRemark = uti.fmtStr('รังสีแพทย์ % ตอบรับเคสผ่านทาง VoIP กำหนดส่งผลอ่าน ภายใน % (เหลือเวลา % นาที)', radioNameTH, yymmddhhmnText, shiftMinut);
+    let rejectRemark = 'รังสีแพทย์ ' + radioNameTH +  'ปฏิเสธเคสโดย VoIP';
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP
       changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, acceptRemark);

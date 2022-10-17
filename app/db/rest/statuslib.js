@@ -259,9 +259,8 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let d = new Date();
         let utc = d.getTime();
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
-
         let yymmddhhmnss = uti.doFormateDateTime(d);
-        let remark = 'ระบบตั้งค่าเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN) + uti.fmtStr('(เหลือเวลา %s นาที)', shiftMinut);
+        let remark = 'โปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ตั้งค่าให้เรียกสาย VOIP ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN) + uti.fmtStr(' (เหลือเวลา %s นาที)', shiftMinut);
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
@@ -275,7 +274,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
           log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
           resolve(callPhoneRes);
 
-          let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
+          let remark = 'ระบบทำการเรียกสาย VOIP ตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' แล้ว';
           let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
