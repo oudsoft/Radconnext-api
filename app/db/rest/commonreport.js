@@ -156,7 +156,7 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 					const reportPdfFilePath = usrPdfPath + '/' + pdfFileName;
 					const reportPdfLinkPath = process.env.USRPDF_PATH + '/' + pdfFileName;
 
-					const creatReportCommand = uti.fmtStr('wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
+					const creatReportCommand = uti.fmtStr('xvfb-run wkhtmltopdf -s A4 http://localhost:8080%s %s', reportHtmlLinkPath, reportPdfFilePath);
 
 					log.info('Create pdf report file with command => ' + creatReportCommand);
 					uti.runcommand(creatReportCommand).then(async (cmdout) => {
@@ -217,7 +217,7 @@ const doAppendBlankPageToHtmlFile = function(htmlFileName, pages){
         let reportPdfLinkPath = process.env.USRPDF_PATH + '/' + pdfFileName;
         let reportHtmlLinkPath = process.env.USRPDF_PATH + '/' + htmlFileName;
 
-        let creatReportCommand = uti.fmtStr('wkhtmltopdf -s A4 http://localhost:8080/%s %s', reportHtmlLinkPath, reportPdfFilePath);
+        let creatReportCommand = uti.fmtStr('xvfb-run wkhtmltopdf -s A4 http://localhost:8080/%s %s', reportHtmlLinkPath, reportPdfFilePath);
 
         log.info('Re-Create pdf report file with command => ' + creatReportCommand);
         uti.runcommand(creatReportCommand).then(async (cmdout) => {

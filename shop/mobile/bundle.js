@@ -1804,7 +1804,6 @@ module.exports = function ( jq ) {
   }
 
   const onNewOrderShowEvt = async function(evt, newOrderSheetBox, shopId, workAreaBox, orderDate) {
-    //console.log($(newOrderSheetBox));
     $(newOrderSheetBox).empty().append($('<h2>รายการใหม่</h2>'));
 		$('#OrderListBox').remove();
 		let selectDate = orderDate;
@@ -1921,11 +1920,7 @@ module.exports = function ( jq ) {
 			let	promiseList = new Promise(async function(resolve2, reject2){
 				let cookItems = [];
 				for (let i=0; i < orders.length; i++) {
-					console.log(orderStatuses.includes(orders[i].Status));
 					for (let j=0; j < orders[i].Items.length; j ++) {
-						console.log(orders[i].Items[j]);
-						console.log(orders[i].Items[j].ItemStatus);
-						console.log(orders[i].Items[j].ItemStatus === itemStatus);
 						if ((orderStatuses.includes(orders[i].Status)) && (orders[i].Items[j].ItemStatus === itemStatus)) {
 							let cookItem = {item: {index: j, goodId: orders[i].Items[j].id, name: orders[i].Items[j].MenuName, desc: orders[i].Items[j].Desc, qty: orders[i].Items[j].Qty, price: orders[i].Items[j].Price, unit: orders[i].Items[j].Unit, picture: orders[i].Items[j].MenuPicture, status: orders[i].Items[j].ItemStatus}};
 							cookItem.orderId = orders[i].id;
@@ -2017,7 +2012,7 @@ module.exports = function ( jq ) {
 			}
 		}
 		let cookPropBox = $('body').radalert(cookPropOption);
-		$(cookPropBox.cancelCmd).hide();
+		$(cookPropBox.okCmd).hide();
 		let cookPropTable = doRenderCookPropertyTable(cookData);
 		let accrejCmdTable = doRenderAccRejCmd(cookData, cookPropBox, onAccCmdClickEvt, onRejCmdClickEvt);
 		$(propTable).append($(cookPropTable)).append($(accrejCmdTable));
@@ -2027,9 +2022,14 @@ module.exports = function ( jq ) {
 		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Acc'};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		console.log(menuitemRes);
+		$(tabSheetBoxHandle).find('#NewOrderTab').click();
 	}
 
 	const onRejCmdClickEvt = async function(evt, cookData) {
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Rej'};
+    let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
+		console.log(menuitemRes);
+		$(tabSheetBoxHandle).find('#NewOrderTab').click();
 
 	}
 
