@@ -678,9 +678,18 @@ const doReSubmitReport = function(caseId, hostname){
       const hosReports = await db.hospitalreports.findAll({ attributes: ['AutoConvert'], where: {hospitalId: hospitalId}});
       const autoConvert = hosReports[0].AutoConvert;
       if (autoConvert == 1){
-        let pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;;
-        let seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
-        let sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
+        let pdfDicomSeriesIds = undefined;
+        if (casereports[0].PDF_DicomSeriesIds) {
+          pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;
+        }
+        let seriesInstanceUIDs = undefined;
+        if (casereports[0].SeriesInstanceUIDs) {
+          seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
+        }
+        let sopInstanceUIDs = undefined;
+        if (casereports[0].SOPInstanceUIDs) {
+          sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
+        }
         //let dicom = {seriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, sopInstanceUIDs: sopInstanceUIDs};
         let publicDir = path.normalize(__dirname + '/../../../public');
         let reportPdfFilePath = publicDir + '/img/usr/pdf/' + pdfFileName;
