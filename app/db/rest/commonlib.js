@@ -439,7 +439,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-
+        const offset = 7;
         let utc = d.getTime(endTime);
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
 
