@@ -1808,8 +1808,8 @@ module.exports = function ( jq ) {
 		$('#OrderListBox').remove();
 		let selectDate = orderDate;
 		let newStatuses = [1, 2];
-		let newItemStatus = 'New';
-		let orderListBox = await doCreateOrderList(shopId, newOrderSheetBox, selectDate, newStatuses, newItemStatus);
+		let newItemStatuses = ['New', 'Rej'];
+		let orderListBox = await doCreateOrderList(shopId, newOrderSheetBox, selectDate, newStatuses, newItemStatuses);
 		$(newOrderSheetBox).append($(orderListBox));
   }
 
@@ -1818,8 +1818,8 @@ module.exports = function ( jq ) {
 		$('#OrderListBox').remove();
 		let selectDate = orderDate;
 		let newStatuses = [1, 2];
-		let accItemStatus = 'Acc';
-		let orderListBox = await doCreateOrderList(shopId, accOrderSheetBox, selectDate, newStatuses, accItemStatus);
+		let accItemStatuses = ['Acc'];
+		let orderListBox = await doCreateOrderList(shopId, accOrderSheetBox, selectDate, newStatuses, accItemStatuses);
 		$(accOrderSheetBox).append($(orderListBox));
   }
 
@@ -1828,8 +1828,8 @@ module.exports = function ( jq ) {
 		$('#OrderListBox').remove();
 		let selectDate = orderDate;
 		let newStatuses = [1, 2];
-		let sucItemStatus = 'Suc';
-		let orderListBox = await doCreateOrderList(shopId, sucOrderSheetBox, selectDate, newStatuses, sucItemStatus);
+		let sucItemStatuses = ['Suc'];
+		let orderListBox = await doCreateOrderList(shopId, sucOrderSheetBox, selectDate, newStatuses, sucItemStatuses);
 		$(sucOrderSheetBox).append($(orderListBox));
   }
 
@@ -1868,18 +1868,18 @@ module.exports = function ( jq ) {
 					let activeId = $(activeSheet).get(0).id;
 					if (activeId === 'NewOrderSheet') {
 						let newStatuses = [1, 2];
-						let newItemStatus = 'New';
-						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, newStatuses, newItemStatus);
+						let newItemStatuses = ['New', 'Rej'];
+						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, newStatuses, newItemStatuses);
 						$(activeSheet).empty().append($(orderListBox));
 					} else if (activeId === 'AccOrderSheet') {
 						let newStatuses = [1, 2];
-						let accItemStatus = 'Acc';
-						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, newStatuses, accItemStatus);
+						let accItemStatuses = ['Acc'];
+						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, newStatuses, accItemStatuses);
 						$(activeSheet).empty().append($(orderListBox));
 					} else if (activeId === 'SucOrderSheet') {
 						let allStatuses = [1, 2, 3, 4];
-						let sucItemStatus = 'Suc';
-						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, allStatuses, sucItemStatus);
+						let sucItemStatuses = ['Suc'];
+						let orderListBox = await doCreateOrderList(shopId, activeSheet, selectDate, allStatuses, sucItemStatuses);
 					}
         }
         let calendar = doCreateCalendar(common.calendarOptions);
@@ -1902,10 +1902,10 @@ module.exports = function ( jq ) {
     return $(calendareBox).ionCalendar(calendarOptions);
   }
 
-	const doCreateOrderList = function(shopId, workAreaBox, orderDate, orderStatuses, itemStatus) {
+	const doCreateOrderList = function(shopId, workAreaBox, orderDate, orderStatuses, itemStatuses) {
     return new Promise(async function(resolve, reject) {
 			console.log(orderStatuses);
-			console.log(itemStatus);
+			console.log(itemStatuses);
       let orderReqParams = {};
       if (orderDate) {
         orderReqParams = {orderDate: orderDate};
@@ -1921,7 +1921,7 @@ module.exports = function ( jq ) {
 				let cookItems = [];
 				for (let i=0; i < orders.length; i++) {
 					for (let j=0; j < orders[i].Items.length; j ++) {
-						if ((orderStatuses.includes(orders[i].Status)) && (orders[i].Items[j].ItemStatus === itemStatus)) {
+						if ((orderStatuses.includes(orders[i].Status)) && (itemStatuses.includes(orders[i].Items[j].ItemStatus))) {
 							let cookItem = {item: {index: j, goodId: orders[i].Items[j].id, name: orders[i].Items[j].MenuName, desc: orders[i].Items[j].Desc, qty: orders[i].Items[j].Qty, price: orders[i].Items[j].Price, unit: orders[i].Items[j].Unit, picture: orders[i].Items[j].MenuPicture, status: orders[i].Items[j].ItemStatus}};
 							cookItem.orderId = orders[i].id;
 							cookItem.index = i;
@@ -1940,6 +1940,7 @@ module.exports = function ( jq ) {
       });
       Promise.all([promiseList]).then((ob)=>{
 				let orderFilters = ob[0];
+				console.log(orderFilters);
 				if ((orderFilters) && (orderFilters.length > 0)) {
 					for (let k=0; k < orderFilters.length; k++) {
 						let cookItemBox = doRenderOrderListItem(orderFilters[k], onCookItemClickEvt);
@@ -1985,7 +1986,7 @@ module.exports = function ( jq ) {
 				$(cookBox).css({'background-color': 'yellow', 'color': 'black'});
 			} else if (cookData.item.status == 'Rej') {
 				$(cookBox).css({'background-color': 'red', 'color': 'white'});
-				$(cookBox).find('#QtyBox').css({'border': '1px solid white'});
+				$(itemQtyBox).css({'border': '1px solid white'});
 			}
 		} else if (cookData.status == 2) {
 			$(cookBox).css({'background-color': 'orange', 'color': 'black'});

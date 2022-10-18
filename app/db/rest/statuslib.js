@@ -93,10 +93,10 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             if (remark) {
-            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+              let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
               await common.doCaseChangeStatusKeepLog(newKeepLog);
-              let actions = await doActionAfterChange(from, next, caseId);
             }
+            let actions = await doActionAfterChange(from, next, caseId);
             resolve({change: {status: true}, actions: actions});
           } else {
             resolve({change: {status: false}});
