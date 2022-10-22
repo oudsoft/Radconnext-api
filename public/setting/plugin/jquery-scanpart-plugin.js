@@ -31,9 +31,12 @@
     var inputKeyHandle = undefined;
 
     const init = function() {
-      var iconCmd = $('<input type="button" value="เพิ่ม/ลด/แก้ไข Scan Part"/>');
-      $(iconCmd).attr('src', settings.iconCmdUrl);
-      $(iconCmd).css({'cursor': 'pointer'});
+      //var iconCmd = $('<input type="button" value="เพิ่ม/ลด/แก้ไข Scan Part"/>');
+      let iconCmd = $('<img/>')
+      //$(iconCmd).attr('src', settings.iconCmdUrl);
+      $(iconCmd).attr('src', '/images/plus-sign-green-icon.png');
+      $(iconCmd).attr('title', 'เพิ่ม/ลด/แก้ไข Scan Part');
+      $(iconCmd).css({'cursor': 'pointer', 'width': '35px', 'height': 'auto'});
       $(iconCmd).on('click', (evt)=>{
         doShowDialog();
       });
@@ -346,8 +349,14 @@
               $(itemCell).appendTo($(itemRow));
               itemCell = $('<div style="display: table-cell; padding: 4px;">' + formatNumberWithCommas(item.Price) + '</div>');
               $(itemCell).appendTo($(itemRow));
-              let removeCmd = $('<div style="display: table-cell;" class="remove-item">X</div>');
-              $(removeCmd).appendTo($(itemRow));
+              //let removeCmd = $('<div style="display: table-cell;" class="remove-item">X</div>');
+              itemCell = $('<div style="display: table-cell; padding: 4px;"></div>');
+              $(itemCell).appendTo($(itemRow));
+              let removeCmd = $('<img/>')
+              $(removeCmd).attr('src', '/images/minus-sign-red-icon.png');
+              $(removeCmd).attr('title', 'ลบ Scan Part');
+              $(removeCmd).css({'cursor': 'pointer', 'width': '35px', 'height': 'auto'});
+              $(removeCmd).appendTo($(itemCell));
               $(removeCmd).on('click', (evt)=>{
                 let eventData = {code: item.Code, searchKey: key};
                 $(itemRow).trigger('removeitem', [eventData]);

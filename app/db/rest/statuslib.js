@@ -269,7 +269,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
         let yymmddhhmnss = uti.doFormateDateTime(d);
         let remark = 'โปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ตั้งค่าให้เรียกสาย VOIP ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN) + uti.fmtStr(' (เหลือเวลา %s นาที)', shiftMinut);
-        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark, triggerAt: yymmddhhmnss};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
         let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});

@@ -10,13 +10,18 @@ const app = express();
 
 var db, log, auth, lineApi, uti, statusControl, common, socket, Task, Warning, Voip;
 
-const doChangeCaseStatusMany = function(radioId, newStatusId, remark){
+const doChangeCaseStatusMany = function(radioId, newStatusId, remark, triggerAt){
   return new Promise(async function(resolve, reject) {
     let allTargetCases = await db.cases.findAll({ attributes: ['id'], where: {casestatusId: 1, Case_RadiologistId: radioId}});
     let changeReses = [];
     const promiseList = new Promise(async function(resolve2, reject2) {
       await allTargetCases.forEach(async (item, i) => {
-        let changeCaseRes = await statusControl.doChangeCaseStatus(1, newStatusId, item.id, radioId, remark);
+        let changeCaseRes = await statusControl.doChangeCaseStatus(1, newStatusId, item.id, radioId);
+        let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : newStatusId, remark : remark};
+        if (triggerAt) {
+          newKeepLog.triggerAt = triggerAt;
+        }
+        await common.doCaseChangeStatusKeepLog(newKeepLog);
         changeReses.push(changeCaseRes);
       });
       setTimeout(()=>{
@@ -75,12 +80,16 @@ app.post('/response', async function(req, res) {
     let rejectRemark = 'รังสีแพทย์ ' + radioNameTH +  'ปฏิเสธเคสโดย VOIP';
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP
-      changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId, acceptRemark);
+      changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId);
+      let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : 2, remark : acceptRemark, triggerAt: yymmddhhmnss};
+      await common.doCaseChangeStatusKeepLog(newKeepLog);
     } else if (voip.responseKEYs[0] == 3) {
       //Reject Case by VoIP
-      changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId, rejectRemark);
+      changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId);
+      let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : 3, remark : rejectRemark};
+      await common.doCaseChangeStatusKeepLog(newKeepLog);
     } else if (voip.responseKEYs[0] == 4) {
-      changeRes = await doChangeCaseStatusMany(radioId, 2, acceptRemark);
+      changeRes = await doChangeCaseStatusMany(radioId, 2, acceptRemark, yymmddhhmnss);
     } else if (voip.responseKEYs[0] == 6) {
       changeRes = await doChangeCaseStatusMany(radioId, 3, rejectRemark);
     }
