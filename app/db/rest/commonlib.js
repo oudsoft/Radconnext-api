@@ -344,7 +344,7 @@ const doCaseExpireAction = function(tasks, caseId, socket, newcaseStatusId, radi
     }
 
     let systemId = 0;
-    let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'เคสหมดเวลากำหนด'};
+    let newKeepLog = { caseId : caseId,	userId : systemId, from : fromStusId, to : newcaseStatusId, remark : 'เคสหมดเวลาที่กำหนดกำหนดไว้'};
     await doCaseChangeStatusKeepLog(newKeepLog);
 
     await tasks.removeTaskByCaseId(caseId);
