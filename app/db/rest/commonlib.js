@@ -567,7 +567,7 @@ const doSaveScanpartAux = function(scanpartAuxData, userId){
 
 const doCaseChangeStatusKeepLog = function(data) {
   return new Promise(async function(resolve, reject) {
-    let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark};
+    let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark, triggerAt: data.triggerAt};
     let adLog = await db.radkeeplogs.create(newKeepLog);
     resolve(adLog);
   });
