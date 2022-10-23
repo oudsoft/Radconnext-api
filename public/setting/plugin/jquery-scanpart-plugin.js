@@ -326,6 +326,8 @@
       $(fieldCell).appendTo($(headerFieldRow));
       fieldCell = $('<div id="PriceHeaderField" style="display: table-cell; padding: 4px;">ราคา</div>');
       $(fieldCell).appendTo($(headerFieldRow));
+      fieldCell = $('<div id="CmdHeaderField" style="display: table-cell; padding: 4px;"></div>');
+      $(fieldCell).appendTo($(headerFieldRow));
       return $(headerFieldRow);
     }
 
