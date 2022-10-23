@@ -523,6 +523,9 @@ const RadKeepLogDef = {
 			},
 			remark : {
 				type: Sequelize.TEXT
+			},
+			triggerAt : {
+				type: Sequelize.JSON
 			}
 		};
 

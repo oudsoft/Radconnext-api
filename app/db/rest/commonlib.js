@@ -440,13 +440,14 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
         const offset = 7;
-        let utc = d.getTime(endTime);
+        let d = new Date();
+        let utc = d.getTime();
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
 
         let yymmddhhmnss = uti.doFormateDateTime(d);
         let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
-        let remark = 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + yymmddhhmnText + ' (เหลื่อเวลา ' + shiftMinut + ' นาที)'
-        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark};
+        let remark = 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + yymmddhhmnText;
+        let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark, triggerAt: yymmddhhmnss};
         await doCaseChangeStatusKeepLog(newKeepLog);
       } else if (baseCaseStatusId == 2 ) {
         // move to statuscontrol at onAcceptCaseEvent

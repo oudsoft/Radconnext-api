@@ -343,7 +343,7 @@
             if (item) {
               let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
               $(itemRow).appendTo($(selectedBox));
-              let itemCell = $('<div style="display: table-cell; padding: 4px;">' + (i+1) + '.</div>');
+              let itemCell = $('<div style="display: table-cell; padding: 4px; text-align: center;">' + (i+1) + '.</div>');
               $(itemCell).appendTo($(itemRow));
               itemCell = $('<div style="display: table-cell; padding: 4px;">' + item.Code + '</div>');
               $(itemCell).appendTo($(itemRow));
@@ -357,7 +357,7 @@
               let removeCmd = $('<img/>')
               $(removeCmd).attr('src', '/images/minus-sign-red-icon.png');
               $(removeCmd).attr('title', 'ลบ Scan Part');
-              $(removeCmd).css({'cursor': 'pointer', 'width': '35px', 'height': 'auto'});
+              $(removeCmd).css({'cursor': 'pointer', 'width': '25px', 'height': 'auto'});
               $(removeCmd).appendTo($(itemCell));
               $(removeCmd).on('click', (evt)=>{
                 let eventData = {code: item.Code, searchKey: key};

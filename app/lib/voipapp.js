@@ -76,7 +76,7 @@ app.post('/response', async function(req, res) {
     d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
     let yymmddhhmnss = uti.doFormateDateTime(d);
     let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
-    let acceptRemark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง VOIP กำหนดส่งผลอ่าน ภายใน %s (เหลือเวลา %s นาที)', radioNameTH, yymmddhhmnText, shiftMinut);
+    let acceptRemark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง VOIP กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
     let rejectRemark = 'รังสีแพทย์ ' + radioNameTH +  'ปฏิเสธเคสโดย VOIP';
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP

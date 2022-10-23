@@ -252,7 +252,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
               let yymmddhhmnss = uti.doFormateDateTime(d);
               let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
               let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
-              let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน %s (เหลือเวลา %s นาที)', radioNameTH, yymmddhhmnText, shiftMinut);
+              let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
               let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
               await common.doCaseChangeStatusKeepLog(newKeepLog);
               if (changeRes.change.status == true) {
