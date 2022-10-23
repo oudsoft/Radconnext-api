@@ -34,10 +34,11 @@ function RadconVoipTask (socket, db, log) {
 
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
-      let anotherTasks = await $this.voipTasks.filter((task)=>{
+      let anotherTasks = await $this.voipTasks.filter(async(task)=>{
         if (task.caseId != caseId) {
           return task;
         } else {
+          await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
           task.task.stop();
         }
       });

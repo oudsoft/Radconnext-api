@@ -17,7 +17,7 @@ const doChangeCaseStatusMany = function(radioId, newStatusId, remark, triggerAt)
     const promiseList = new Promise(async function(resolve2, reject2) {
       await allTargetCases.forEach(async (item, i) => {
         let changeCaseRes = await statusControl.doChangeCaseStatus(1, newStatusId, item.id, radioId);
-        let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : newStatusId, remark : remark};
+        let newKeepLog = { caseId : item.id,	userId : radioId, from : 1, to : newStatusId, remark : remark};
         if (triggerAt) {
           newKeepLog.triggerAt = triggerAt;
         }
