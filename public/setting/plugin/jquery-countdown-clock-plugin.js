@@ -18,7 +18,7 @@
     var flasher = null;
     var isHide = false;
     var isDanger = false;
-    var clockWrapper = $("<div id='ClockWrapper'></div>");
+    var clockWrapper = $("<span id='ClockWrapper'></span>");
     var clockHHFrag = $("<span></span>");
     var clockCoFrag = $("<span> : </span>");
     var clockMNFrag = $("<span></span>");
@@ -99,7 +99,7 @@
     // Greenify the collection based on the settings variable.
     $(clockHHFrag).empty().append(numToDigit(settings.countToHH));
     $(clockMNFrag).empty().append(numToDigit(settings.countToMN));
-    $(clockWrapper).append($(clockHHFrag)).append($(clockCoFrag)).append($(clockMNFrag));
+    $(clockWrapper).append($('<span>(เหลือเวลา </span>')).append($(clockHHFrag)).append($(clockCoFrag)).append($(clockMNFrag)).append($('<span>)</span>'));
     startClock();
     return this.append($(clockWrapper));
 
