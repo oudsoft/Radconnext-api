@@ -1245,7 +1245,7 @@ module.exports = function ( jq ) {
 		$(printShortCutCmd).on('click', async(evt)=>{
 			let pngReportLink = link + '/' + shareCode + '.png';
 			console.log(pngReportLink);
-			let newWin = window.open(pngReportLink, '_blank');
+			let newWin = window.open(pngReportLink, '_blank', "resizable=1");
 			await common.delay(500);
 			newWin.print();
 		}).css({'display': 'inline-block', 'width': '120px', 'float': 'right', 'margin-right': '5px'});
