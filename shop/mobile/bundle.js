@@ -1246,6 +1246,7 @@ module.exports = function ( jq ) {
 			let pngReportLink = link + '/' + shareCode + '.png';
 			console.log(pngReportLink);
 			let newWin = window.open(pngReportLink, '_blank', "resizable=1");
+			console.log(newWin.document);
 			await common.delay(500);
 			newWin.print();
 		}).css({'display': 'inline-block', 'width': '120px', 'float': 'right', 'margin-right': '5px'});
