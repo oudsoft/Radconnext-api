@@ -567,6 +567,7 @@ const doSaveScanpartAux = function(scanpartAuxData, userId){
 
 const doCaseChangeStatusKeepLog = function(data) {
   return new Promise(async function(resolve, reject) {
+    log.info('keeplog data => ' + JSON.stringify(data));
     if ((data.from == 1) && (data.to == 2)){
       await db.radkeeplogs.update({triggerAt: undefined}, {where: {caseId: data.caseId, from: data.from, to: data.from}});
     }
