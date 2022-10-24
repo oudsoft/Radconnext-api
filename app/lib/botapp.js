@@ -250,7 +250,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
               let utc = d.getTime();
               d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
               let yymmddhhmnss = uti.doFormateDateTime(d);
-              let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+              let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
               let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
               let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
               let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};

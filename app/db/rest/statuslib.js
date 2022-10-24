@@ -268,7 +268,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let utc = d.getTime();
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
         let yymmddhhmnss = uti.doFormateDateTime(d);
-        let remark = 'โปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ตั้งค่าให้เรียกสาย VOIP ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+        let remark = 'โปรไฟล์ของรังสีแพทย์ ' + radioNameTH + ' ตั้งค่าให้เรียกสาย VOIP ในเวลา ' + uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark, triggerAt: yymmddhhmnss};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {

@@ -445,7 +445,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
 
         let yymmddhhmnss = uti.doFormateDateTime(d);
-        let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN);
+        let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
         let remark = 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + yymmddhhmnText;
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark, triggerAt: yymmddhhmnss};
         await doCaseChangeStatusKeepLog(newKeepLog);
