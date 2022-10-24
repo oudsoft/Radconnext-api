@@ -285,7 +285,7 @@ app.post('/add', async (req, res) => {
         await db.orders.update({shopId: req.body.shopId, customerId: req.body.customerId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adOrder.id}});
         res.json({Result: "OK", status: {code: 200}, Records: [adOrder]});
         let newOrderData = {type: 'shop', orderId: adOrder.id, shopId: req.body.shopId, status: 'New', shop: {}, msg: 'มีออร์เดอร์ใหม่'};
-        wss.doControlShopMessage(updateOrderData);
+        wss.doControlShopMessage(newOrderData);
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
