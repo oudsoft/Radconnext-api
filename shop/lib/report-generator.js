@@ -333,7 +333,7 @@ function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth, rsDime
   } else if (paperSize == 2) {
     w = imageWidth * 0.5;
     x = (SlipWidth/2) - (w/2);
-    y = (Number(rsDimension.top) + Number(rsDimension.height.template)) + 40;
+    y = (Number(rsDimension.top) + Number(rsDimension.height.template)) + 10;
   }
   element.x = x;
   element.y = y;
