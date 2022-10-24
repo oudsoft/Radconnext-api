@@ -35,7 +35,10 @@
     function clockTriggerCount(){
       if (!isDanger) {
         counter = window.setTimeout(()=>{
-          settings.countToMN = settings.countToMN - 1;
+          settings.countToMN = Number(settings.countToMN) - 1;
+          if (settings.countToMN < 0) {
+            settings.countToMN = 59;
+          }
           if (settings.countToHH == 0) {
             if (settings.countToMN == 0) {
               //Trigger Alarm
