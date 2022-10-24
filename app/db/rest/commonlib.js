@@ -491,7 +491,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
       */
 
-      process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
+      process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
       let urgentCode = urgentType;
       let voiceTransactionId = uti.doCreateTranctionId();
@@ -569,10 +569,7 @@ const doSaveScanpartAux = function(scanpartAuxData, userId){
 
 const doCaseChangeStatusKeepLog = function(data) {
   return new Promise(async function(resolve, reject) {
-    log.info('keeplog data => ' + JSON.stringify(data));
-    log.info('condition=> ' + ((data.from === 1) && (data.to === 2)));
     if ((data.from === 1) && (data.to === 2)){
-      log.info('condition result => yes');
       await db.radkeeplogs.update({triggerAt: null}, {where: {caseId: data.caseId, from: data.from, to: data.from}});
     }
     if ((data.from === 2) && (data.to === 8)){

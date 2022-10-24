@@ -534,7 +534,7 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 							//let createReportPNGCommnand = fmtStr('convert -density 288 %s -resize 25% %s', reportPdfFilePath, reportPNGFilePath);
 							//let createReportPNGCommnand = fmtStr('convert -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
 							// convert -density 288 /home/Radconnext/shop/img/usr/pdf/00009-2-000000015.pdf /home/Radconnext/shop/img/usr/pdf/00009-2-000000015.png
-							let createReportPNGCommnand = fmtStr('convert  -density 288 %s %s', reportPdfFilePath, reportPNGFilePath);
+							let createReportPNGCommnand = fmtStr('convert -density 288 -resize 45% %s %s', reportPdfFilePath, reportPNGFilePath);
 							log.info('createReportPNGCommnand >>', createReportPNGCommnand);
 							await runcommand(createReportPNGCommnand);
 							reportHtmlLinkPath = '/shop' + reportHtmlLinkPath;

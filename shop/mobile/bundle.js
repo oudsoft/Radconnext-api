@@ -496,9 +496,9 @@ $( document ).ready(function() {
     let momentWithLocalesPlugin = "../lib/moment-with-locales.min.js";
     let ionCalendarPlugin = "../lib/ion.calendar.min.js";
     let ionCalendarCssUrl = "../stylesheets/ion.calendar.css";
-    let printjs = '../lib/print/print.min.js';
     let utilityPlugin = "../lib/plugin/jquery-radutil-plugin.js";
     let html5QRCodeUrl = "../lib/html5-qrcode.min.js";
+    //let printjs = '../lib/print/print.min.js';
 
     $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
   	$('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -509,7 +509,7 @@ $( document ).ready(function() {
 
     $('head').append('<script src="' + momentWithLocalesPlugin + '"></script>');
     $('head').append('<script src="' + ionCalendarPlugin + '"></script>');
-    $('head').append('<script src="' + printjs + '"></script>');
+    //$('head').append('<script src="' + printjs + '"></script>');
 
     $('head').append('<link rel="stylesheet" href="../stylesheets/style.css" type="text/css" />');
     $('head').append('<link rel="stylesheet" href="../lib/print/print.min.css" type="text/css" />');
@@ -1245,10 +1245,11 @@ module.exports = function ( jq ) {
 		$(printShortCutCmd).on('click', async(evt)=>{
 			let pngReportLink = link + '/' + shareCode + '.png';
 			console.log(pngReportLink);
-			let newWin = window.open(pngReportLink, '_blank', "resizable=1");
+			/*
+			let newWin = window.open(pngReportLink, '_blank');
 			console.log(newWin.document);
-			await common.delay(500);
-			newWin.print();
+			*/
+			openNewWin(pngReportLink);
 		}).css({'display': 'inline-block', 'width': '120px', 'float': 'right', 'margin-right': '5px'});
 		let toggleReportBoxCmd = common.doCreateTextCmd(' เสร็จ ', 'green', 'white', 'green', 'black');
 		$(toggleReportBoxCmd).on('click', (evt)=>{
@@ -1341,6 +1342,25 @@ module.exports = function ( jq ) {
 		let dlgHandle = $('body').radalert(editDlgOption);
 		return dlgHandle;
 	}
+
+
+	const openNewWin = function(imgUrl){
+		let win = window.open('','_blank','menubar=0,location=0,toolbar=0,personalbar=0,status=0,scrollbars=1,resizable=1,width=200,height=200');
+		let ttl = 'My Shop Print Document';
+		let doc = win.document;
+		doc.write('<html xmlns="http://www.w3.org/1999/xhtml"><head><title>"' + ttl + '"</title>');
+		doc.write('<script language="JavaScript">');
+		doc.write('var NS = (navigator.appName=="Netscape")?true:false;');
+		doc.write('function FitPic(){iWidth =(NS)?window.innerWidth:document.body.clientWidth;iHeight = (NS)?window.innerHeight:document.body.clientHeight;iWidth = document.images[0].width - iWidth;iHeight = document.images[0].height - iHeight;window.resizeBy(iWidth, iHeight);}</');
+		doc.write('script></head><body marginheight=0 marginwidth=0 scroll="auto" leftmargin=0 topmargin=0 onload=FitPic();> <center>');
+		doc.write('<img src="' + imgUrl + '"></center></body></html>');
+		doc.close();
+		win.focus();
+		common.delay(500).then(()=>{
+			win.print();
+		})
+	}
+
 
   return {
     setupPageHandle,
