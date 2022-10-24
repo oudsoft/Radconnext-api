@@ -1243,9 +1243,9 @@ module.exports = function ( jq ) {
 
 		let printShortCutCmd = common.doCreateTextCmd(' พิมพ์์ ', 'green', 'white', 'green', 'black');
 		$(printShortCutCmd).on('click', (evt)=>{
-			console.log(pdfURL);
-			//printJS(pdfURL);
-			let newWin = window.open(pdfURL, '_blank');
+			let pngReportLink = link + '/' + shareCode + '.png';
+			console.log(pngReportLink);
+			let newWin = window.open(pngReportLink, '_blank');
 			newWin.print();
 		}).css({'display': 'inline-block', 'width': '120px', 'float': 'right', 'margin-right': '5px'});
 		let toggleReportBoxCmd = common.doCreateTextCmd(' เสร็จ ', 'green', 'white', 'green', 'black');
