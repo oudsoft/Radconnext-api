@@ -491,7 +491,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
       */
 
-      process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
       let urgentCode = urgentType;
       let voiceTransactionId = uti.doCreateTranctionId();
