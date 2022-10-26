@@ -661,7 +661,19 @@ module.exports = function ( jq ) {
       $(customerContent).append($('<h2>ข้อมูลลูกค้า</h2>'));
     }
     if ((orderData) && (orderData.gooditems)) {
-      orderObj.gooditems = orderData.gooditems;
+			if (orderData.BeforeItems) {
+				await orderData.gooditems.forEach(async(srcItem, i) => {
+					let foundItem = await orderData.BeforeItems.find((destItem) => {
+						if (destItem.id === srcItem.id) {
+							return destItem;
+						}
+					});
+					srcItem.ItemStatus = foundItem.ItemStatus;
+				});
+				orderObj.gooditems = orderData.gooditems;
+			} else {
+				orderObj.gooditems = orderData.gooditems;
+			}
     } else {
       orderObj.gooditems = [];
     }
@@ -742,29 +754,33 @@ module.exports = function ( jq ) {
 			callCreateCloseOrderCmd = common.doCreateTextCmd(' คิดเงิน ', '#F5500E', 'white', '#5D6D7E', '#FF5733');
 			$(callCreateCloseOrderCmd).on('click', async (evt)=>{
 				if (orderObj.customer) {
-					let params = undefined;
-					let orderRes = undefined;
-					if ((orderData) && (orderData.id)) {
-						params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
-						orderRes = await common.doCallApi('/api/shop/order/update', params);
-						if (orderRes.status.code == 200) {
-							$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
-							doShowCloseOrderForm();
+					if ((orderObj.gooditems) && (orderObj.gooditems.length > 0)) {
+						let params = undefined;
+						let orderRes = undefined;
+						if ((orderData) && (orderData.id)) {
+							params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
+							orderRes = await common.doCallApi('/api/shop/order/update', params);
+							if (orderRes.status.code == 200) {
+								$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
+								doShowCloseOrderForm();
+							} else {
+								$.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+							}
 						} else {
-							$.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+							params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopId, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
+		          orderRes = await common.doCallApi('/api/shop/order/add', params);
+		          if (orderRes.status.code == 200) {
+		            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+								orderObj.id = orderRes.Records[0].id;
+								orderData = orderRes.Records[0];
+								doShowCloseOrderForm();
+		          } else {
+		            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+		          }
 						}
 					} else {
-						params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopId, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
-	          orderRes = await common.doCallApi('/api/shop/order/add', params);
-	          if (orderRes.status.code == 200) {
-	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
-							orderObj.id = orderRes.Records[0].id;
-							orderData = orderRes.Records[0];
-							doShowCloseOrderForm();
-	          } else {
-	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
-	          }
-					}
+		        $.notify("ยังไม่พบรายการสินค้าเพื่อคิดเงิน โปรดใส่รายการสินค้า", "error");
+		      }
 				} else {
 	        $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
 	      }
@@ -1858,7 +1874,7 @@ module.exports = function ( jq ) {
     $(sucOrderSheetBox).empty().append($('<h2>รายการส่ง</h2>'));
 		$('#OrderListBox').remove();
 		let selectDate = orderDate;
-		let newStatuses = [1, 2];
+		let newStatuses = [1, 2, 3, 4];
 		let sucItemStatuses = ['Suc'];
 		let orderListBox = await doCreateOrderList(shopId, sucOrderSheetBox, selectDate, newStatuses, sucItemStatuses);
 		$(sucOrderSheetBox).append($(orderListBox));
@@ -1952,7 +1968,9 @@ module.exports = function ( jq ) {
 				let cookItems = [];
 				for (let i=0; i < orders.length; i++) {
 					for (let j=0; j < orders[i].Items.length; j ++) {
-						if ((orderStatuses.includes(orders[i].Status)) && (itemStatuses.includes(orders[i].Items[j].ItemStatus))) {
+						console.log((orderStatuses.includes(Number(orders[i].Status))));
+						console.log((itemStatuses.includes(orders[i].Items[j].ItemStatus)));
+						if ((orderStatuses.includes(Number(orders[i].Status))) && (itemStatuses.includes(orders[i].Items[j].ItemStatus))) {
 							let cookItem = {item: {index: j, goodId: orders[i].Items[j].id, name: orders[i].Items[j].MenuName, desc: orders[i].Items[j].Desc, qty: orders[i].Items[j].Qty, price: orders[i].Items[j].Price, unit: orders[i].Items[j].Unit, picture: orders[i].Items[j].MenuPicture, status: orders[i].Items[j].ItemStatus}};
 							cookItem.orderId = orders[i].id;
 							cookItem.index = i;
@@ -1987,7 +2005,6 @@ module.exports = function ( jq ) {
 					$(orderListBox).append($(notFoundOrderDatbox));
 	        resolve($(orderListBox));
 	      }
-
       });
 		});
 	}
@@ -2044,10 +2061,27 @@ module.exports = function ( jq ) {
 			}
 		}
 		let cookPropBox = $('body').radalert(cookPropOption);
-		$(cookPropBox.okCmd).hide();
 		let cookPropTable = doRenderCookPropertyTable(cookData);
-		let accrejCmdTable = doRenderAccRejCmd(cookData, cookPropBox, onAccCmdClickEvt, onRejCmdClickEvt);
-		$(propTable).append($(cookPropTable)).append($(accrejCmdTable));
+		if (cookData.item.status == 'New') {
+			$(cookPropBox.okCmd).hide();
+			$(cookPropBox.cancelCmd).show();
+			let accrejCmdTable = doRenderAccRejCmd(cookData, cookPropBox, onAccCmdClickEvt, onRejCmdClickEvt);
+			$(propTable).append($(cookPropTable)).append($(accrejCmdTable));
+		} else if (cookData.item.status == 'Rej') {
+			$(cookPropBox.okCmd).hide();
+			$(cookPropBox.cancelCmd).show();
+			let resetCmdTable = doRenderResetCmd(cookData, cookPropBox, onResetCmdClickEvt);
+			$(propTable).append($(cookPropTable)).append($(resetCmdTable));
+		} else if (cookData.item.status == 'Acc') {
+			$(cookPropBox.okCmd).hide();
+			$(cookPropBox.cancelCmd).show();
+			let deliretCmdTable = doRenderDeliRetCmd(cookData, cookPropBox, onDeliCmdClickEvt, onRetCmdClickEvt);
+			$(propTable).append($(cookPropTable)).append($(deliretCmdTable));
+		} else {
+			$(cookPropBox.okCmd).show();
+			$(cookPropBox.cancelCmd).hide();
+			$(propTable).append($(cookPropTable));
+		}
 	}
 
 	const onAccCmdClickEvt = async function(evt, cookData) {
@@ -2062,7 +2096,27 @@ module.exports = function ( jq ) {
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		console.log(menuitemRes);
 		$(tabSheetBoxHandle).find('#NewOrderTab').click();
+	}
 
+	const onResetCmdClickEvt = async function(evt, cookData) {
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New'};
+    let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
+		console.log(menuitemRes);
+		$(tabSheetBoxHandle).find('#NewOrderTab').click();
+	}
+
+	const onDeliCmdClickEvt = async function(evt, cookData) {
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Suc'};
+    let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
+		console.log(menuitemRes);
+		$(tabSheetBoxHandle).find('#SucOrderTab').click();
+	}
+
+	const onRetCmdClickEvt = async function(evt, cookData) {
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New'};
+    let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
+		console.log(menuitemRes);
+		$(tabSheetBoxHandle).find('#NewOrderTab').click();
 	}
 
 	const doRenderCookPropertyTable = function(cookData) {
@@ -2104,6 +2158,50 @@ module.exports = function ( jq ) {
 		});
 		$(leftCell).append($(rejCmd));
 		$(rightCell).append($(accCmd));
+		$(firstRow).append($(leftCell).attr({'width': '50%', 'align': 'center'})).append($(rightCell).attr({'width': '*', 'align': 'center'}));
+		return $(tableActionCmd).append($(firstRow));
+	}
+
+	const doRenderDeliRetCmd = function(cookData, dialogHandle, deliCallback, retCallback) {
+		let tableActionCmd = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+		let firstRow = $('<tr></tr>');
+		let leftCell = $('<td></td>');
+		let rightCell = $('<td></td>');
+		let deliCmd = $('<input type="button" value=" ส่งมอบ "/>');
+		$(deliCmd).on('click', (evt)=>{
+			dialogHandle.closeAlert();
+			deliCallback(evt, cookData);
+		});
+		let retCmd = $('<input type="button" value=" ส่งกลับ "/>');
+		$(retCmd).on('click', (evt)=>{
+			dialogHandle.closeAlert();
+			retCallback(evt, cookData);
+		});
+		$(leftCell).append($(retCmd));
+		$(rightCell).append($(deliCmd));
+		$(firstRow).append($(leftCell).attr({'width': '50%', 'align': 'center'})).append($(rightCell).attr({'width': '*', 'align': 'center'}));
+		return $(tableActionCmd).append($(firstRow));
+	}
+
+	const doRenderResetCmd = function(cookData, dialogHandle, resetCallback){
+		let tableActionCmd = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+		let firstRow = $('<tr></tr>');
+		let leftCell = $('<td></td>');
+		let rightCell = $('<td></td>');
+		let resetCmd = $('<input type="button" value=" ดึงกลับ "/>');
+		$(resetCmd).on('click', (evt)=>{
+			dialogHandle.closeAlert();
+			resetCallback(evt, cookData);
+		});
+		/*
+		let retCmd = $('<input type="button" value=" ส่งกลับ "/>');
+		$(retCmd).on('click', (evt)=>{
+			dialogHandle.closeAlert();
+			retCallback(evt, cookData);
+		});
+		*/
+		$(leftCell).append($('<span></span>'));
+		$(rightCell).append($(resetCmd));
 		$(firstRow).append($(leftCell).attr({'width': '50%', 'align': 'center'})).append($(rightCell).attr({'width': '*', 'align': 'center'}));
 		return $(tableActionCmd).append($(firstRow));
 	}
