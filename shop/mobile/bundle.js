@@ -1150,9 +1150,10 @@ module.exports = function ( jq ) {
 			      	let menugroups = menugroupRes.Options;
 			      	localStorage.setItem('menugroups', JSON.stringify(menugroups));
 							let gooditemForm = doCreateGoodItemProperyForm(orderData.gooditems[i], async (newData)=>{
-								orderData.gooditems[i].Price = newData.Price;
-								orderData.gooditems[i].Qty = newData.Qty;
+								orderData.gooditems[i].Price = Number(newData.Price);
+								orderData.gooditems[i].Qty = Number(newData.Qty);
 								subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
+								$(goodItemQtyBox).text(common.doFormatQtyNumber(newData.Qty));
 								$(goodItemSubTotalText).text(common.doFormatNumber(subTotal));
 								total = await doCalOrderTotal(orderData.gooditems);
 								$(totalBox).text(common.doFormatNumber(total));
