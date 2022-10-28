@@ -14136,6 +14136,7 @@ module.exports = function ( jq ) {
 			let labelField = $('<td width="40%" align="left">จำนวน <span style="color: red;">*</span></td>').css({'padding': '5px'});
 			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
 			let inputValue = $('<input type="number" id="Qty" size="10"/>');
+			$(inputValue).val(menuitemData.Qty);
 			$(inputField).append($(inputValue));
 			$(fieldRow).append($(labelField));
 			$(fieldRow).append($(inputField));
