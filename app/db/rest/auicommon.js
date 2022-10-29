@@ -135,6 +135,7 @@ app.post('/radio/saveresult', (req, res) => {
                 /*
                   UI Pdf Preview Dialog Box Blank.
                 */
+                /*
                 let subject = 'Cuase of UI Pdf Preview Dialog Box Blank happen.'
                 let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, hospitalId, pdfFileName, responseId);
                 msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
@@ -143,6 +144,7 @@ app.post('/radio/saveresult', (req, res) => {
                 let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
                 msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการบันทึกผลอ่านรังสีแพทย์ CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
                 await common.sendNotifyChatBotToAdmin(msgHtml);
+                */
               }
       				res.json(newReportRes);
 
@@ -282,9 +284,11 @@ app.get('/test/submitresult', async (req, res) => {
 app.get('/test/send/admin', async (req, res) => {
   let subject = 'test';
   let msgHtml = uti.fmtStr('<p>%s</p>', 'My Test Send.');
+  /*
   let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
   msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการบันทึกผลอ่านรังสีแพทย์ CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', 1, process.env.EMAIL_ADMIN_ADDRESS);
   let sendBotRes = await common.sendNotifyChatBotToAdmin(msgHtml);
+  */
   res.json({status: {code: 200}, result: {mail: sendEmailRes, bot: sendBotRes}});
 });
 

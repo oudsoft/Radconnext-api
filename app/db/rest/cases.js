@@ -267,31 +267,6 @@ app.post('/status/(:caseId)', async (req, res) => {
 
         let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark)
         res.json({status: {code: 200}, actions: changeResult.change.actiohs});
-        /*
-        if (changeResult.change.status == true) {
-          if((currentStatus==1) && (reqCaseStatusId==2)) {
-            let radioProfile = await common.doLoadRadioProfile(userId);
-            if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-              let action = 'quick';
-              let actionReturnText = await common.doCreateTriggerChatBotMessage(caseId, changeResult.triggerDate);
-              let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
-              await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
-            }
-          } else if((currentStatus==1) && (reqCaseStatusId==3)) {
-            let radioProfile = await common.doLoadRadioProfile(userId);
-            if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-              let action = 'quick';
-              let patientNameEN = targetCases[0].patient.Patient_NameEN + ' ' + targetCases[0].patient.Patient_LastNameEN;
-              let actionReturnTextFmt = 'ปฏิเสธเคส\nชื่อ %s แล้ว\n แล้ว';
-              let actionReturnText = uti.fmtStr(actionReturnTextFmt, patientNameEN);
-              let menuQuickReply = lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu);
-              await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
-            }
-          }
-        } else {
-          res.json({status: {code: 203}, actions: []});
-        }
-        */
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
