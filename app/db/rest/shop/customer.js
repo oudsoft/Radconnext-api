@@ -94,11 +94,12 @@ app.post('/add', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
+        let shopId = req.body.shopId;
         let newCustomer = req.body.data;
         let adCustomer = await db.customers.create(newCustomer);
-        await db.customers.update({shopId: req.body.shopId},{where: {id: adCustomer.id}});
-        const customers = await db.customers.findAll({ attributes: excludeColumn, where: {id: adCustomer.id}});
-        res.json({Result: "OK", status: {code: 200}, Record: customers[0]});
+        await db.customers.update({shopId: shopId},{where: {id: adCustomer.id}});
+        const customers = await db.customers.findAll({ attributes: excludeColumn, where: {shopId: shopId}});
+        res.json({Result: "OK", status: {code: 200}, Records: customers, Record: adCustomer});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
