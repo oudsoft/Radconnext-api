@@ -44,6 +44,7 @@ app.post('/response', async function(req, res) {
   let forwardRes = await uti.runcommand(forwardCmd);
   log.info('forwardRes => ' + JSON.stringify(forwardRes));
   res.json({status: {code: 200}, ok: 'me'});
+  curl -X POST -k -H 'Content-Type: application/json' https://radconnext.info/api/voipapp/response -d '{\"inc_id\": \"4422\", \"response_key\": \"1\", \"transactionId\": \"20221030\"}'
   */
   let changeRes = {};
   let yourResponse = req.body;
@@ -52,6 +53,8 @@ app.post('/response', async function(req, res) {
   log.info('yourCaseId => ' + caseId);
   let key = req.body.response_key;
   log.info('yourKey => ' + key);
+  let voipTasks = Voip.getTasks();
+  log.info('voipTasks => ' + JSON.stringify(voipTasks));
   let voip = await Voip.selectTaskByCaseId(caseId);
   log.info('yourVoip => ' + JSON.stringify(voip));
   if ((voip) && (voip.caseId)){
