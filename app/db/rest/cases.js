@@ -310,11 +310,14 @@ app.post('/status/shortcut/(:caseId)', async (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         const caseId = req.params.caseId;
+        const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId'], where: {id: caseId}});
+        const from = targetCases[0].casestatusId;
         const reqCaseStatusId = req.body.casestatusId;
         const remark = req.body.caseDescription;
         const caseStatusChange = { casestatusId: reqCaseStatusId, Case_DESC: remark};
         await Case.update(caseStatusChange, { where: { id: caseId } });
-        res.json({status: {code: 200}});
+        let actions = await statusControl.doActionAfterChange(from, reqCaseStatusId, caseId);
+        res.json({status: {code: 200}, result: actions});
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
