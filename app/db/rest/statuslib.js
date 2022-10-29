@@ -503,7 +503,6 @@ const onAcceptCaseEvent = function(caseId) {
       //log.info('all case tasks === ' + JSON.stringify(tsks));
       let newTransactionId = tskCase.transactionId;
       let triggerDateText = uti.doFormateDateTimeChatbot(triggerDate);
-      //let newQuickLink = 'https://radconnext.info/api/tasks/find/transaction/' + newTransactionId;
       let newQuickLink = 'https://radconnext.info/radio/?transactionId=' + newTransactionId;
       lineCaseMsg = uti.fmtStr('รับเคส\nชื่อ %s แล้ว\nกำหนดเวลาส่งผล %s\nเข้าอ่านผลได้โดยคลิกที่ลิงค์\n%s', patientNameEN, triggerDateText, newQuickLink);
       let menuQuickReply = lineApi.createBotMenu(lineCaseMsg, action, lineApi.radioMainMenu);

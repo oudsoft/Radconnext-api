@@ -77,7 +77,7 @@ app.post('/response', async function(req, res) {
     let yymmddhhmnss = uti.doFormateDateTime(d);
     let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
     let acceptRemark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง VOIP กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
-    let rejectRemark = 'รังสีแพทย์ ' + radioNameTH +  'ปฏิเสธเคสโดย VOIP';
+    let rejectRemark = 'รังสีแพทย์ ' + radioNameTH + ' ปฏิเสธเคสโดย VOIP';
     if (voip.responseKEYs[0] == 1){
       //Accept Case by VoIP
       changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId);
