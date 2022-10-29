@@ -53,7 +53,7 @@ app.post('/response', async function(req, res) {
   log.info('yourCaseId => ' + caseId);
   let key = req.body.response_key;
   log.info('yourKey => ' + key);
-  let voipTasks = Voip.getTasks();
+  let voipTasks = await Voip.getTasks();
   log.info('voipTasks => ' + JSON.stringify(voipTasks));
   let voip = await Voip.selectTaskByCaseId(caseId);
   log.info('yourVoip => ' + JSON.stringify(voip));
