@@ -808,14 +808,14 @@ const onViewResultCaseEvent = function(caseId) {
     const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
     let updateStatus = 'view';
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
-    let newReportLog = reportLogs[0];
+    let newReportLog = [];
     if (reportLogs.length > 0){
       newReportLog = reportLogs[0].Log;
       newReportLog.push(appendLog);
     } else {
       newReportLog = [appendLog];
     }
-    await db.casereports.update({Status: updateStatus, Log: reportLog}, { where: { caseId: targetCase.id } });
+    await db.casereports.update({Status: updateStatus, Log: newReportLog}, { where: { caseId: targetCase.id } });
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
@@ -861,14 +861,14 @@ const onPrintResultCaseEvent = function(caseId) {
     const reportLogs = await db.casereports.findAll({attributes: ['Log'], where: {caseId: targetCase.id}});
     let updateStatus = 'print';
     let appendLog = {status: updateStatus, by: radioId, at: new Date()};
-    let newReportLog = reportLogs[0];
+    let newReportLog = [];
     if (reportLogs.length > 0){
       newReportLog = reportLogs[0].Log;
       newReportLog.push(appendLog);
     } else {
       newReportLog = [appendLog];
     }
-    await db.casereports.update({Status: updateStatus, Log: reportLog}, { where: { caseId: targetCase.id } });
+    await db.casereports.update({Status: updateStatus, Log: newReportLog}, { where: { caseId: targetCase.id } });
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
