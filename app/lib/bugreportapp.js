@@ -43,11 +43,14 @@ const sendBugReportByEmail = function(email, bugreport){
 app.post('/report/email', function(req, res) {
   let email = req.body.email;
   let bugreport = req.body.bugreport;
+  /*
   sendBugReportByEmail(email, bugreport).then((sendRes)=>{
     res.status(200).send({status: {code: 200}, response: sendRes});
   }).catch((err)=>{
     res.status(500).send({status: {code: 500},error: err});
   });
+  */
+  res.status(200).send({status: {code: 200}});
 });
 
 module.exports = ( dbconn, monitor, webSocket ) => {

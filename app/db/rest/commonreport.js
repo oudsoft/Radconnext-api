@@ -520,6 +520,7 @@ const doCreateNewReport = function(caseId, responseId, userId, hospitalId, pdfFi
       let cuaseErrorText = 'The caseresponseId is undefined!';
       log.error('CreateNewReport ERROR=> ' + cuaseErrorText);
       let createNewReportEroor = new Error(cuaseErrorText);
+      /*
       let subject = 'The caseresponseId is undefined!'
       let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p>', caseId, userId, hospitalId, pdfFileName);
       msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(createNewReportEroor));
@@ -528,6 +529,7 @@ const doCreateNewReport = function(caseId, responseId, userId, hospitalId, pdfFi
       let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
       msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการสร้างผลอ่าน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
       await common.sendNotifyChatBotToAdmin(msgHtml);
+      */
       reject(createNewReportEroor);
     }
   });
@@ -629,12 +631,14 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
             }
             radioSocket.send(JSON.stringify(radioNotify));
           }
+          /*
           let subject = 'Cuase of API not found local user owner case socket'
           let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfReportFileName, responseId);
           msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
           let caseData = await db.cases.findAll({ where: {id: caseId}});
           msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
           let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+          */
           msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการส่งผลอ่านทาง Web Socket ของผู้ใช้งาน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
           await common.sendNotifyChatBotToAdmin(msgHtml);
           resolve({status: {code: 200}, submit: 'done', cuase: 'but, not found local user owner case socket.'});

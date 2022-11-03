@@ -1314,7 +1314,7 @@ const doReportCaseChangeStatusBug = function(subject, caseId, userId, reportType
     msgHtml += uti.fmtStr('<h2>responseId %s</h2>', responseId);
     msgHtml += uti.fmtStr('<p>Event at %s</p>', reportAt);
     msgHtml += '<p>Please No-Reply This Email.</p>';
-    let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
+    //let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
     resolve(sendEmailRes);
   });
 }
