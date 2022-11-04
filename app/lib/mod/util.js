@@ -269,6 +269,34 @@ const formatStudyDate = function(studydateStr){
 		return studydateStr;
 	}
 }
+
+const formatBirthDateThai = function(birthdateStr){
+	if (birthdateStr.length >= 8) {
+		var yy = birthdateStr.substr(0, 4);
+		var mo = birthdateStr.substr(4, 2);
+		var dd = birthdateStr.substr(6, 2);
+		return Number(dd) + '/' + (Number(mo)+1) + '/' + Number(yy) + 543;
+	} else {
+		return birthdateStr;
+	}
+}
+
+const formatAgeThai = function(ageStr){
+	let agel = agedateStr.length;
+	if (agel >= 8) {
+		var u = ageStr.substr((agel-1), 1);
+		if (u === 'Y') {
+			return ageStr.substr(0, (agel-2)) + ' ปี';
+		} else if (u === 'M') {
+			return ageStr.substr(0, (agel-2)) + ' ด.';
+		} else if (u === 'D') {
+			return ageStr.substr(0, (agel-2)) + ' ว.';
+		}
+	} else {
+		return agedateStr;
+	}
+}
+
 const formatStudyTime = function(studytimeStr){
 	if (studytimeStr.length >= 4) {
 		var hh = studytimeStr.substr(0, 2);
@@ -456,8 +484,10 @@ module.exports = (dbconn, monitor) => {
 		doFormateDateTime,
 		formatDateTimeStr,
 		doCreateTranctionId,
+		formatBirthDateThai,
 		formatStudyDate,
 		formatStudyTime,
+		formatAgeThai,
 		contains,
 		genUniqueID,
 		preciseMathDotRound,

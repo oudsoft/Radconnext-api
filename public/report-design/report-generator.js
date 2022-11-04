@@ -96,6 +96,9 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
           case 'accessionNo':
             item.title = variable.accessionNo;
           break;
+          case 'scan_part':
+            item.title = variable.scanpart;
+          break;
         }
         item.field = field;
       }
