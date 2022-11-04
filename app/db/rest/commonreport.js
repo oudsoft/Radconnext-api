@@ -45,7 +45,7 @@ const doLoadVariable = function(caseId, responseId, userId){
         PatientFullNameENTH = PatientFullNameTH;
       }
       //log.info('cases[0].createdAt=>' + cases[0].createdAt);
-      let scanDateText = uti.doFormateDateTimeThaiZone(cases[0].createdAt);
+      let scanDateText = uti.doFormateDateThaiZone(cases[0].createdAt);
       //log.info('scanDateText=>' + scanDateText);
       let reportDateTimeText = uti.doFormateDateTimeThaiZone(caseRes[0].updatedAt);
       let patientBirthDate = uti.formatBirthDateThai(cases[0].patient.Patient_Birthday);
@@ -158,6 +158,11 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 		scriptElement.textContent = scriptsContent;
 		_window.document.head.appendChild(scriptElement);
 
+    let stylesheetFile = publicDir + '/report-design/report.css'
+    let stylesheetsContent = fs.readFileSync( stylesheetFile, 'utf8');
+    let stylesheetElement = _window.document.createElement('style');
+    _window.document.head.appendChild(stylesheetElement);
+    
 		/* ************************************************************************* */
 		/* Run page **************************************************************** */
 		_window.document.addEventListener('DOMContentLoaded', () => {

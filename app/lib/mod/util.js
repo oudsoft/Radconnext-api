@@ -283,8 +283,9 @@ const formatBirthDateThai = function(birthdateStr){
 
 const formatAgeThai = function(ageStr){
 	let agel = ageStr.length;
-	if (agel >= 8) {
+	if (agel >= 0) {
 		var u = ageStr.substr((agel-1), 1);
+		log.info('unit=>' + u)
 		if (u === 'Y') {
 			return ageStr.substr(0, (agel-2)) + ' ปี';
 		} else if (u === 'M') {
@@ -428,9 +429,20 @@ const doFormateDateTimeThaiZone = function(unFormatDateTime){
 	let datetime = fmtDate.split('T');
 	let dateSegment = datetime[0].split('-');
 	dateSegment = dateSegment.join('');
-	let date = formatStudyDate(dateSegment);
+	let date = formatBirthDateThai(dateSegment);
 	let time = formatStudyTime(datetime[1].split(':').join(''));
 	return fmtStr('%s %s', date, time);
+}
+
+const doFormateDateThaiZone = function(unFormatDateTime){
+	//log.info('unFormatDateTime=>' + unFormatDateTime);
+	let fmtDate = formatDateTimeStr(unFormatDateTime);
+	//log.info('fmtDate=>' + fmtDate);
+	let datetime = fmtDate.split('T');
+	let dateSegment = datetime[0].split('-');
+	dateSegment = dateSegment.join('');
+	let date = formatBirthDateThai(dateSegment);
+	return fmtStr('%s', date);
 }
 
 const doCalUrgentVoiceCall = function(mn){
@@ -496,6 +508,7 @@ module.exports = (dbconn, monitor) => {
 		trimAsteriskKey,
 		doFormateDateTimeChatbot,
 		doFormateDateTimeThaiZone,
+		doFormateDateThaiZone,
 		doCalUrgentVoiceCall,
 		voipRequest
   }
