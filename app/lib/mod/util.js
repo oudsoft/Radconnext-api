@@ -282,7 +282,7 @@ const formatBirthDateThai = function(birthdateStr){
 }
 
 const formatAgeThai = function(ageStr){
-	let agel = agedateStr.length;
+	let agel = agedStr.length;
 	if (agel >= 8) {
 		var u = ageStr.substr((agel-1), 1);
 		if (u === 'Y') {
@@ -293,7 +293,7 @@ const formatAgeThai = function(ageStr){
 			return ageStr.substr(0, (agel-2)) + ' ว.';
 		}
 	} else {
-		return agedateStr;
+		return ageStr;
 	}
 }
 
