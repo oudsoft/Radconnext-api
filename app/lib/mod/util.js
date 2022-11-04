@@ -293,9 +293,9 @@ const formatAgeThai = function(ageStr){
 	var ageTime = today.getTime() - birthDate.getTime();
 	ageTime = new Date(ageTime);
 	if (ageYear > 0) {
-		return ageYear + ' ปี' + (ageTime.getMonth() +1) + ' ด.';
+		return ageYear + ' ปี ' + (ageTime.getMonth() +1) + ' ด.';
 	} else {
-		return (ageTime.getMonth() +1) + ' ด.' + ageTime.getDate() + ' ว.';
+		return (ageTime.getMonth() +1) + ' ด. ' + ageTime.getDate() + ' ว.';
 	}
 }
 
