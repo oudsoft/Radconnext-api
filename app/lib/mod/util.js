@@ -287,11 +287,11 @@ const formatAgeThai = function(ageStr){
 		var u = ageStr.substr((agel-1), 1);
 		log.info('unit=>' + u)
 		if (u === 'Y') {
-			return ageStr.substr(0, (agel-2)) + ' ปี';
+			return ageStr.substr(0, (agel-1)) + ' ปี';
 		} else if (u === 'M') {
-			return ageStr.substr(0, (agel-2)) + ' ด.';
+			return ageStr.substr(0, (agel-1)) + ' ด.';
 		} else if (u === 'D') {
-			return ageStr.substr(0, (agel-2)) + ' ว.';
+			return ageStr.substr(0, (agel-1)) + ' ว.';
 		}
 	} else {
 		return ageStr;
