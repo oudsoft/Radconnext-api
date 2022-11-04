@@ -81,8 +81,10 @@
   font-family: 'Trirong';
   font-size: 14px;
 }
+
+b {font-weight: 1000;}
+
 /*
-b {font-size: 18px; font-weight: bold;}
 strong {font-size: 18px; font-weight: bold;}
 p {line-height: 28px}
 */
