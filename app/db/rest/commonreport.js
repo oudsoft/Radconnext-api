@@ -82,7 +82,7 @@ const doLoadVariable = function(caseId, responseId, userId){
         patient_hn: cases[0].patient.Patient_HN,
         patient_gender: cases[0].patient.Patient_Sex,
         patient_age: patientAge,
-        Patient_birthdate: patientBirthDate,
+        patient_birthdate: patientBirthDate,
         patient_rights: cases[0].cliameright.CR_Name,
         patient_dept: cases[0].Case_Department,
         patient_doctor: refes[0].userinfo.User_NameTH + ' ' + refes[0].userinfo.User_LastNameTH,
