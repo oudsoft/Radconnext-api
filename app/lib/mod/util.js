@@ -282,19 +282,20 @@ const formatBirthDateThai = function(birthdateStr){
 }
 
 const formatAgeThai = function(ageStr){
-	let agel = ageStr.length;
-	if (agel >= 0) {
-		var u = ageStr.substr((agel-1), 1);
-		log.info('unit=>' + u)
-		if (u === 'Y') {
-			return ageStr.substr(0, (agel-1)) + ' ปี';
-		} else if (u === 'M') {
-			return ageStr.substr(0, (agel-1)) + ' ด.';
-		} else if (u === 'D') {
-			return ageStr.substr(0, (agel-1)) + ' ว.';
-		}
+	var dob = ageStr;
+	var yy = dob.substr(0, 4);
+	var mo = dob.substr(4, 2);
+	var dd = dob.substr(6, 2);
+	var dobf = yy + '-' + mo + '-' + dd;
+	var today = new Date();
+	var birthDate = new Date(dobf);
+	var ageYear = today.getFullYear() - birthDate.getFullYear();
+	var ageTime = today.getTime() - birthDate.getTime();
+	ageTime = new Date(ageTime);
+	if (ageYear > 0) {
+		return ageYear + ' ปี' + (ageTime.getMonth() +1) + ' ด.';
 	} else {
-		return ageStr;
+		return (ageTime.getMonth() +1) + ' ด.' + ageTime.getDate() + ' ว.';
 	}
 }
 
