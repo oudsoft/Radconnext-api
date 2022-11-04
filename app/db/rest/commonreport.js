@@ -50,7 +50,7 @@ const doLoadVariable = function(caseId, responseId, userId){
       let reportDateTimeText = uti.doFormateDateTimeThaiZone(caseRes[0].updatedAt);
       let patientBirthDate = uti.formatBirthDateThai(cases[0].patient.Patient_Birthday);
       let patientAge = uti.formatAgeThai(cases[0].patient.Patient_Birthday);
-      log.info('Case_ScanPart => ' + JSON.stringify(cases[0].Case_ScanPart));
+      //log.info('Case_ScanPart => ' + JSON.stringify(cases[0].Case_ScanPart));
       let scanparts = [];
       if (typeof cases[0].Case_ScanPart.length === 'string') {
         let tmps = [];
@@ -64,16 +64,16 @@ const doLoadVariable = function(caseId, responseId, userId){
       } else {
         scanparts = cases[0].Case_ScanPart;
       }
-      log.info('scanparts => ' + JSON.stringify(scanparts));
+      //log.info('scanparts => ' + JSON.stringify(scanparts));
       let scanpartText = '';
       await scanparts.forEach((item, i) => {
         if (i == 0) {
-          scanpartText = '1.' + item.Name;
+          scanpartText = '1. ' + item.Name;
         } else {
           scanpartText = scanpartText + ' ' + (i+1) + '. ' + item.Name;
         }
       });
-      log.info('scanpartText => ' + scanpartText);
+      //log.info('scanpartText => ' + scanpartText);
       const variable = {
         hospital_name: cases[0].hospital.Hos_Name,
         patient_name: PatientFullNameEN,

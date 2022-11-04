@@ -74,10 +74,11 @@
 #report-wrapper {
   position: relative;
   width: 1004px;
-  font-family: Tahoma, Verdana, Segoe, sans-serif;
   /*
+  font-family: Tahoma, Verdana, Segoe, sans-serif;
+  */
   font-family: THSarabunNewBold;
-   */
+
   font-size: 14px;
 }
 /*
