@@ -50,12 +50,27 @@ const doLoadVariable = function(caseId, responseId, userId){
       let reportDateTimeText = uti.doFormateDateTimeThaiZone(caseRes[0].updatedAt);
       let patientBirthDate = uti.formatBirthDateThai(cases[0].patient.Patient_Birthday);
       let patientAge = uti.formatAgeThai(cases[0].patient.Patient_Age);
-      let scanpart = '';
-      await cases[0].Case_ScanPart.forEach((item, i) => {
+      log.info('Case_ScanPart => ' + JSON.stringify(cases[0].Case_ScanPart));
+      let scanpartText = '';
+      let scanparts = [];
+      if (typeof cases[0].Case_ScanPart.length === 'string') {
+        let tmps = [];
+        let scpl = Number(scanparts.length);
+        for (let i=0; i < scpl; i++){
+          if (scanparts[i].Code) {
+            tmps.push(scanparts[i]);
+          }
+        }
+        scanparts = tmps;
+      } else {
+        scanparts = cases[0].Case_ScanPart.length;
+      }
+
+      await scanparts.forEach((item, i) => {
         if (i == 0) {
-          scanpart = '1.' + item.Name;
+          scanpartText = '1.' + item.Name;
         } else {
-          scanpart = scanpart + ' ' + (i+1) + '. ' + item.Name;
+          scanpartText = scanpartText + ' ' + (i+1) + '. ' + item.Name;
         }
       });
 
@@ -77,7 +92,7 @@ const doLoadVariable = function(caseId, responseId, userId){
         report_by: rades[0].userinfo.User_NameTH + ' ' + rades[0].userinfo.User_LastNameTH,
         result: caseRes[0].Response_HTML,
         rsH: caseRes[0].Response_A4Height,
-        scanpart: scanpart,
+        scanpart: scanpartText,
         report_datetime: reportDateTimeText
       }
       resolve(variable);
