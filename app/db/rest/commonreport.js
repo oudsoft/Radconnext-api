@@ -161,9 +161,9 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
     let stylesheetFile = publicDir + '/report-design/report.css'
     let stylesheetsContent = fs.readFileSync( stylesheetFile, 'utf8');
     let stylesheetElement = _window.document.createElement('style');
-    */
     _window.document.head.appendChild(stylesheetElement);
-
+    */
+    
 		/* ************************************************************************* */
 		/* Run page **************************************************************** */
 		_window.document.addEventListener('DOMContentLoaded', () => {
