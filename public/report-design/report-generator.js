@@ -63,6 +63,9 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
           case 'patient_age':
             item.title = variable.patient_age;
           break;
+          case 'patient_birthdate':
+            item.title = variable.patient_birthdate;
+          break;
           case 'patient_rights':
             item.title = variable.patient_rights;
           break;
