@@ -78,11 +78,14 @@
   font-family: Tahoma, Verdana, Segoe, sans-serif;
   font-family: THSarabunNewBold, 'Trirong';
   */
-  font-family: Verdana;
+  font-family: THSarabunNew;
   font-size: 14px;
 }
 
-b {font-weight: 1000;}
+b {
+  font-family: THSarabunNewBold;
+  font-weight: 1000;
+}
 
 /*
 strong {font-size: 18px; font-weight: bold;}
