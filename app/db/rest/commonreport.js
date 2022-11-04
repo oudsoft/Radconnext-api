@@ -54,10 +54,10 @@ const doLoadVariable = function(caseId, responseId, userId){
       let scanparts = [];
       if (typeof cases[0].Case_ScanPart.length === 'string') {
         let tmps = [];
-        let scpl = Number(scanparts.length);
+        let scpl = Number(cases[0].Case_ScanPart.length);
         for (let i=0; i < scpl; i++){
-          if (scanparts[i].Code) {
-            tmps.push(scanparts[i]);
+          if (cases[0].Case_ScanPart[i].Code) {
+            tmps.push(cases[0].Case_ScanPart[i]);
           }
         }
         scanparts = tmps;
