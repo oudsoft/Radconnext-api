@@ -1,0 +1,6 @@
+@font-face { font-family: THSarabunNew; src: url("../font/THSarabunNew.ttf");}
+@font-face { font-family: THSarabunNewBold; src: url("../font/THSarabunNew Bold.ttf");}
+
+#report-wrapper {
+  font-family: THSarabunNewBold;
+}

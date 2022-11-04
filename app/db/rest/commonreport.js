@@ -157,13 +157,11 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 		let scriptElement = _window.document.createElement('script');
 		scriptElement.textContent = scriptsContent;
 		_window.document.head.appendChild(scriptElement);
-    /*
-    let stylesheetFile = publicDir + '/report-design/report.css'
+    let stylesheetFile = publicDir + '/report-design/render.css'
     let stylesheetsContent = fs.readFileSync( stylesheetFile, 'utf8');
     let stylesheetElement = _window.document.createElement('style');
     _window.document.head.appendChild(stylesheetElement);
-    */
-    
+
 		/* ************************************************************************* */
 		/* Run page **************************************************************** */
 		_window.document.addEventListener('DOMContentLoaded', () => {
@@ -178,7 +176,8 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 			_window.doMergeContent(elements, variable, qrlink, caseId, rsH, async (reportHTML, reportPages) =>{
 				/******/
 				var writerStream = fs.createWriteStream(usrPdfPath + '/' + htmlFileName);
-				var reportContent = '<!DOCTYPE html>\n<html>\n<head>\n<link href="../../../report-design/report.css" rel="stylesheet">\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
+				var reportContent = '<!DOCTYPE html>\n<html>\n<head>\n</head>\n<body>\n<div id="report-wrapper">\n' + reportHTML + '\n</div>\n</body>\n</html>';
+        //<link href="../../../report-design/report.css" rel="stylesheet">\n
 				writerStream.write(reportContent,'UTF8');
 				writerStream.end();
 				writerStream.on('finish', function() {
