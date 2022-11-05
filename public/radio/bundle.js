@@ -2813,12 +2813,22 @@ module.exports = function ( jq ) {
 	}
 
 	const formatFullDateStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		return `${dtStrings[0]}`;;
 	}
 
 	const formatTimeHHMNStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		let ts = dtStrings[1].split(':');
 		return `${ts[0]}:${ts[1]}`;;
 	}
@@ -4758,7 +4768,7 @@ module.exports = function ( jq ) {
   const doCreateCaseItemRow = function(caseItem, caseTask) {
     return new Promise(async function(resolve, reject) {
 			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
-			let casedatetime = caseDate.split('T');
+			let casedatetime = caseDate.split(' ');
 			let casedateSegment = casedatetime[0].split('-');
 			casedateSegment = casedateSegment.join('');
 			let casedate = util.formatStudyDate(casedateSegment);
@@ -5876,13 +5886,9 @@ module.exports = function ( jq ) {
 			if ((caseTask) && (caseTask.triggerAt)){
 				let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 				let casedatetime = caseDate.split(' ');
-				console.log(casedatetime);
 				let casedateSegment = casedatetime[0].split('-');
-				console.log(casedateSegment);
 				casedateSegment = casedateSegment.join('');
-				console.log(casedateSegment);
 				let casedate = util.formatStudyDate(casedateSegment);
-				console.log(casedate);
 				let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
 
 				let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
@@ -5976,7 +5982,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let consultTask = await common.doCallApi('/api/consult/tasks/select/'+ consultItem.id, {});
 			let consultDate = util.formatDateTimeStr(consultItem.createdAt);
-			let consultdatetime = consultDate.split('T');
+			let consultdatetime = consultDate.split(' ');
 			let consultdateSegment = consultdatetime[0].split('-');
 			consultdateSegment = consultdateSegment.join('');
 			let consultdate = util.formatStudyDate(consultdateSegment);
@@ -6554,7 +6560,7 @@ module.exports = function ( jq ) {
 	const doCreateSearchConsultItemRow = function(consultItem){
 		return new Promise(async function(resolve, reject) {
 			let consultDate = util.formatDateTimeStr(consultItem.createdAt);
-			let consultdatetime = consultDate.split('T');
+			let consultdatetime = consultDate.split(' ');
 			let consultdateSegment = consultdatetime[0].split('-');
 			consultdateSegment = consultdateSegment.join('');
 			let consultdate = util.formatStudyDate(consultdateSegment);
@@ -7593,7 +7599,7 @@ module.exports = function ( jq ) {
 					let backward = backwards[i];
 					let caseCreateAt = util.formatDateTimeStr(backward.createdAt);
 					//console.log(caseCreateAt);
-					let casedatetime = caseCreateAt.split('T');
+					let casedatetime = caseCreateAt.split(' ');
 					let casedateSegment = casedatetime[0].split('-');
 					casedateSegment = casedateSegment.join('');
 					let casedate = casedateSegment;
@@ -7679,7 +7685,7 @@ module.exports = function ( jq ) {
 		$(summaryFirstLine).append($('<span style="margin-left: 4px; color: black;">' + selectedCase.case.hospital.Hos_Name + '</span>'));
 
 		let caseCreateAt = util.formatDateTimeStr(selectedCase.case.createdAt);
-		let casedatetime = caseCreateAt.split('T');
+		let casedatetime = caseCreateAt.split(' ');
 		let casedateSegment = casedatetime[0].split('-');
 		casedateSegment = casedateSegment.join('');
 		let casedate = casedateSegment;
@@ -7850,7 +7856,7 @@ module.exports = function ( jq ) {
 			caseId = selectedCase.case.id;
 
 			let caseCreateAt = util.formatDateTimeStr(selectedCase.case.createdAt);
-			let casedatetime = caseCreateAt.split('T');
+			let casedatetime = caseCreateAt.split(' ');
 			let casedateSegment = casedatetime[0].split('-');
 			casedateSegment = casedateSegment.join('');
 			let casedate = casedateSegment;
@@ -9460,7 +9466,7 @@ module.exports = function ( jq ) {
   function doCreateCaseItemRow(caseItem) {
     return new Promise(async function(resolve, reject) {
       let caseDate = util.formatDateTimeStr(caseItem.case.createdAt);
-			let casedatetime = caseDate.split('T');
+			let casedatetime = caseDate.split(' ');
       let casedateSegment = casedatetime[0].split('-');
       casedateSegment = casedateSegment.join('');
       let casedate = util.formatStudyDate(casedateSegment);
