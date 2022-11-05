@@ -5876,9 +5876,13 @@ module.exports = function ( jq ) {
 			if ((caseTask) && (caseTask.triggerAt)){
 				let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 				let casedatetime = caseDate.split('T');
+				console.log(casedatetime);
 				let casedateSegment = casedatetime[0].split('-');
+				console.log(casedateSegment);
 				casedateSegment = casedateSegment.join('');
+				console.log(casedateSegment);
 				let casedate = util.formatStudyDate(casedateSegment);
+				console.log(casedate);
 				let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
 
 				let patientName = caseItem.patient.Patient_NameEN + ' ' + caseItem.patient.Patient_LastNameEN;
