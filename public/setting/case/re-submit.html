@@ -317,9 +317,9 @@
           if (typeof cases[i].Case_ScanPart.length === 'string') {
             let tmps = [];
             let scpl = Number(cases[i].Case_ScanPart.length);
-            for (let i=0; i < scpl; i++){
-              if (cases[i].Case_ScanPart[i].Code) {
-                tmps.push(cases[i].Case_ScanPart[i]);
+            for (let x=0; x < scpl; x++){
+              if (cases[i].Case_ScanPart[x].Code) {
+                tmps.push(cases[i].Case_ScanPart[x]);
               }
             }
             scanparts = tmps;
