@@ -4323,14 +4323,15 @@ function doLoadMainPage(){
             let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
             $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
               console.log(callRes);
+              let apiUri = undefined;
               if (callRes.Record.length > 0) {
                 let responseId = callRes.Record[0].id;
                 opencase.setCaseResponseId(responseId);
                 let params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId};
-                let apiUri = '/api/caseresponse/update';
+                apiUri = '/api/caseresponse/update';
               } else {
                 let params = {caseId: caseId, userId: userId, data: saveData};
-                let apiUri = '/api/caseresponse/add';
+                apiUri = '/api/caseresponse/add';
               }
               $.post(apiUri, params, function(saveRes){
                 console.log(saveRes);
