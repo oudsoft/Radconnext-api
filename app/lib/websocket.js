@@ -73,7 +73,7 @@ function RadconWebSocketServer (arg, db, log) {
 			log.info('allClient after one connect=> ' + JSON.stringify(allClient));
 
 			let unSendMes = await $this.unSendDatas.filter((item)=>{
-				if (ws.id === item.sendTo) {
+				if ((ws.id === item.sendTo) && (ws.hospitalId === item.hospitalId)) {
 					return item;
 				}
 			});
@@ -82,7 +82,7 @@ function RadconWebSocketServer (arg, db, log) {
 					await $this.selfSendMessage(ws, item.callData, item.sendTo);
 				});
 				let unSendOthers = await $this.unSendDatas.filter((item)=>{
-					if (ws.id !== item.sendTo) {
+					if ((ws.id === item.sendTo) && (ws.hospitalId === item.hospitalId)) {
 						return item;
 					}
 				});
