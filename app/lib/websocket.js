@@ -546,10 +546,10 @@ function RadconWebSocketServer (arg, db, log) {
 	this.doControlZoomCall = function(data, ws) {
 		return new Promise(async function(resolve, reject) {
 			let sendTo = data.sendTo;
-			let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender};
+			let callData = {type: 'callzoom', openurl: data.openurl, password: data.password, topic: data.topic, sender: data.sender, hospitalId: data.hospitalId};
 			let canSendCallZomm = await $this.selfSendMessage(ws, callData, sendTo);
 			if (!canSendCallZomm) {
-				$this.unSendDatas.push({sendTo: sendTo, callData: callData});
+				$this.unSendDatas.push({sendTo: sendTo, callData: callData, hospitalId: data.hospitalId});
 			} else {
 				let radioCaseUserLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {userId: data.radioId}});
 				let radioLineUserId = radioCaseUserLines[0].UserId;

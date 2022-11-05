@@ -4321,7 +4321,15 @@ function doLoadMainPage(){
       			let params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId};
 
             $.post(apiUri, params, function(saveRes){
-              opencase.setCaseResponseId(saveRes.result.responseId);
+              if ((saveRes.result) && (saveRes.result.responseId)) {
+                opencase.setCaseResponseId(saveRes.result.responseId);
+              } else {
+                $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
+                  if (callRes.Record.length > 0) {
+                    opencase.setCaseResponseId(callRes.Record[0].id);
+                  }
+                });
+              }
               opencase.setBackupDraftCounter(backupDraftCounter+1);
       			}).fail(function(error) {
       				console.log('1st Paste Backup Error', error);
@@ -4784,8 +4792,10 @@ module.exports = function ( jq ) {
       caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
 			if (caseItem.casestatusId != 9) {
 	      if ((caseTask) && (caseTask.triggerAt)){
+					let now = new Date();
 	        let caseTriggerAt = new Date(caseTask.triggerAt);
-	        let diffTime = Math.abs(caseTriggerAt - new Date());
+	        //let diffTime = Math.abs(caseTriggerAt - new Date());
+					let diffTime = caseTriggerAt.getTime() - now.getTime();
 	        let hh = parseInt(diffTime/(1000*60*60));
 	        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
 	        let clockCountdownDiv = $('<div></div>').css({'width': '100%', 'text-align': 'center'});
@@ -7006,16 +7016,9 @@ module.exports = function ( jq ) {
 				};
 
 				if ((params.caseId) && (Number(params.caseId) > 0)) {
-					if (!caseResponseId){
-						//let saveDraftResponseData = {type: 'draft', caseId: caseId};
-						//saveDraftRes = await doSaveDraft(saveDraftResponseData);
-						let saveResponseRes = await doCallSaveResponse(params);
-						caseResponseId = saveResponseRes.result.responseId;
+					if (caseResponseId){
 						params.responseId = caseResponseId;
 					}
-					saveNewResponseData.responseid = caseResponseId;
-					saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
-
 					//doCreateResultManagementDialog(saveNewResponseData);
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
@@ -7023,6 +7026,9 @@ module.exports = function ( jq ) {
 
 					let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
 					$.post(saveResponseApiURL, params, function(saveResponseRes){
+						caseResponseId = saveResponseRes.result.responseId;
+						saveNewResponseData.responseid = caseResponseId;
+						saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
 						doCreateResultManagementDialog(saveNewResponseData);
 					}).catch((err) => {
 						console.log(err);
