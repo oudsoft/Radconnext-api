@@ -4310,45 +4310,43 @@ function doLoadMainPage(){
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
         let backupDraftCounter = opencase.getBackupDraftCounter();
+        console.log(backupDraftCounter);
         if (backupDraftCounter == 0){
-          let apiUri = undefined;
-          let responseId = opencase.getCaseResponseId();
-    			if (responseId){
-    				apiUri = '/api/caseresponse/update';
-    			} else {
-    				apiUri = '/api/caseresponse/add';
-    			}
-
           let type = 'draft';
-    			let caseId = data.caseId
+          let caseId = data.caseId
+          console.log(caseId);
           let responseHTML = data.content;
           if (responseHTML) {
-      			let responseText = toAsciidoc(responseHTML);
-      			let userdata = JSON.parse(localStorage.getItem('userdata'));
-      			let userId = userdata.id;
-
-      			let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
-      			let params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId};
-
-            $.post(apiUri, params, function(saveRes){
-              if ((saveRes.result) && (saveRes.result.responseId)) {
-                opencase.setCaseResponseId(saveRes.result.responseId);
+            let responseText = toAsciidoc(responseHTML);
+            let userdata = JSON.parse(localStorage.getItem('userdata'));
+            let userId = userdata.id;
+            let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
+            $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
+              console.log(callRes);
+              if (callRes.Record.length > 0) {
+                let responseId = callRes.Record[0].id;
+                opencase.setCaseResponseId(responseId);
+                let params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId};
+                let apiUri = '/api/caseresponse/update';
               } else {
-                $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
-                  if (callRes.Record.length > 0) {
-                    opencase.setCaseResponseId(callRes.Record[0].id);
-                  }
-                });
+                let params = {caseId: caseId, userId: userId, data: saveData};
+                let apiUri = '/api/caseresponse/add';
               }
-              opencase.setBackupDraftCounter(backupDraftCounter+1);
-      			}).fail(function(error) {
-      				console.log('1st Paste Backup Error', error);
-      			});
+              $.post(apiUri, params, function(saveRes){
+                console.log(saveRes);
+                if ((saveRes.result) && (saveRes.result.responseId)) {
+                  opencase.setCaseResponseId(saveRes.result.responseId);
+                } else {
+
+                }
+                opencase.setBackupDraftCounter(backupDraftCounter+1);
+              }).fail(function(error) {
+                console.log('1st Paste Backup Error', error);
+              });
+            });
           }
         }
       });
-
-      $('body').loading('stop');
     });
   });
 }

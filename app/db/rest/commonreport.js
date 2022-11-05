@@ -515,12 +515,15 @@ const risParamCreator = function(caseId, radioId) {
     const caseStatusId = cases[0].casestatusId;
 		//log.info('case=> ' + JSON.stringify(cases));
     let responseText = undefined;
-    if (caseStatusId == 12) {
-      responseText = '------------\n' + cases[0].caseresponses[0].Response_Text;
+    if ((cases[0].caseresponses) && (cases[0].caseresponses.length > 0)) {
+      if (caseStatusId == 12) {
+        responseText = '------------\n' + cases[0].caseresponses[0].Response_Text;
+      } else {
+        responseText = cases[0].caseresponses[0].Response_Text;
+      }
     } else {
-      responseText = cases[0].caseresponses[0].Response_Text;
+      responseText = '------------\n';
     }
-
 		let risParams = {
 			Hn: cases[0].patient.Patient_HN,
 			AccessionNo: cases[0].Case_ACC,
