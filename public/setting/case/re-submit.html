@@ -337,7 +337,7 @@
           });
 
           $(itemRow).append($('<td align="left">' + casedate + ' : ' + casetime + '</td>'));
-          $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + ' (' + scanpartText + ')</td>'));
+          $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + ' => (' + scanpartText + ')</td>'));
           let radioCol = $('<td align="center"></td>');
           let radioIdCell = $('<span class="tooltiptext">' + cases[i].Case_RadiologistId + '</span>');
           $(radioIdCell).on('mouseover', (evt)=>{
