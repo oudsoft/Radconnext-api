@@ -275,7 +275,7 @@ const formatBirthDateThai = function(birthdateStr){
 		var yy = birthdateStr.substr(0, 4);
 		var mo = birthdateStr.substr(4, 2);
 		var dd = birthdateStr.substr(6, 2);
-		return Number(dd) + '/' + (Number(mo)+1) + '/' + (Number(yy) + 543);
+		return Number(dd) + '/' + Number(mo) + '/' + (Number(yy) + 543);
 	} else {
 		return birthdateStr;
 	}
