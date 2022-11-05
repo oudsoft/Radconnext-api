@@ -293,7 +293,7 @@
   const doShowCaseList = function(cases){
     return new Promise(async function(resolve, reject) {
       let caseTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
-      let headerRow = $('<tr><td width="5%" align="center">#</td><td width="5%" align="center">Case ID</td><td width="15%" align="center">Created At</td><td width="20%" align="center">Patient Name</td><td width="5%" align="center">Radio ID</td><td width="5%" align="center">Status ID</td><td width="5%" align="center">User ID</td><td width="5%" align="center">Refer ID</td><td width="*" align="center">CMD</td></tr>');
+      let headerRow = $('<tr><td width="5%" align="center">#</td><td width="5%" align="center">Case ID</td><td width="15%" align="center">Created At</td><td width="30%" align="center">Patient Name => (Scan Part)</td><td width="5%" align="center">Radio ID</td><td width="5%" align="center">Status ID</td><td width="5%" align="center">User ID</td><td width="5%" align="center">Refer ID</td><td width="*" align="center">CMD</td></tr>');
       $(headerRow).css({'background-color': 'grey', 'color': 'white'});
       $(caseTable).append($(headerRow));
       let promiseList = new Promise(async function(resolve2, reject2) {
