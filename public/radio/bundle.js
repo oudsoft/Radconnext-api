@@ -5875,7 +5875,7 @@ module.exports = function ( jq ) {
       //let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
 			if ((caseTask) && (caseTask.triggerAt)){
 				let caseDate = util.formatDateTimeStr(caseItem.createdAt);
-				let casedatetime = caseDate.split('T');
+				let casedatetime = caseDate.split(' ');
 				console.log(casedatetime);
 				let casedateSegment = casedatetime[0].split('-');
 				console.log(casedateSegment);
