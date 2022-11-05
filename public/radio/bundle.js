@@ -1035,7 +1035,8 @@ module.exports = function ( jq ) {
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
 		localStorage.removeItem('masternotify');
-		//localStorage.removeItem('dicomfilter');
+		//localStorage.removeItem('caseoptions');
+		//localStorage.removeItem('rememberwantsavescanpart');
 		sessionStorage.removeItem('logged');
 	  let url = '/index.html';
 	  window.location.replace(url);
@@ -1111,11 +1112,21 @@ module.exports = function ( jq ) {
 
 	const doCountImageLocalDicom = function(studyID){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
 			const dicomUrl = '/api/orthanc/study/count/instances';
-			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
-			resolve(dicomStudiesRes.result);
-			$('body').loading('stop');
+			const rqParams = {StudyID: studyID};
+			$.post(dicomUrl, rqParams, function(response){
+				resolve(response.result);
+			});
+		});
+	}
+
+	const doSeekingAttachFile = function(patientNameEN){
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/attach/file';
+			const rqParams = {PatientNameEN: patientNameEN};
+			$.post(dicomUrl, rqParams, function(response){
+				resolve(response);
+			});
 		});
 	}
 
@@ -1169,7 +1180,7 @@ module.exports = function ( jq ) {
 		rqParams.Patient_NameEN = patientNameEN;
 		rqParams.Patient_LastNameEN = patientLastNameEN;
 		rqParams.Patient_CitizenID = newCaseData.patientCitizenID;
-		rqParams.Patient_Birthday = '';
+		rqParams.Patient_Birthday = newCaseData.patientBirthDate;
 		rqParams.Patient_Age = newCaseData.patientAge;
 		rqParams.Patient_Sex = newCaseData.patientSex;
 		rqParams.Patient_Tel = '';
@@ -1416,10 +1427,15 @@ module.exports = function ( jq ) {
 			let hospitalId = userdata.hospitalId;
 			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
-			let apiUrl = '/api/scanpartaux/select';
+			let apiUrl = 'https://radconnext.info/api/scanpartaux/select';
 			try {
+				/*
 				let response = await doCallApi(apiUrl, rqParams);
 				resolve(response);
+				*/
+				$.post(apiUrl, rqParams, function(response){
+					resolve(response);
+				});
 			} catch(e) {
 	      reject(e);
     	}
@@ -1475,33 +1491,61 @@ module.exports = function ( jq ) {
 	const doRenderScanpartSelectedBox = function(scanparts) {
 		return new Promise(async function(resolve, reject) {
 			const doCreateHeaderField = function() {
-	      let headerFieldRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: ' + headBackgroundColor + '; color: white;"></div>');
-				let fieldCell = $('<div style="display: table-cell; padding: 2px;">ลำดับที่</div>');
+	      //let headerFieldRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: ' + headBackgroundColor + '; color: white;"></div>');
+				let headerFieldRow = $('<tr></tr>').css({'background-color': headBackgroundColor, 'color': 'white'})
+				//let fieldCell = $('<div style="display: table-cell; padding: 2px; text-align: center;">ลำดับที่</div>');
+				let fieldCell = $('<td></td>').attr({'width': '10%', 'align': 'left'}).text('ลำดับที่').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">รหัส</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px;">รหัส</div>');
+				fieldCell = $('<td></td>').attr({'width': '20%', 'align': 'left'}).text('รหัส').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ชื่อ</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px;">ชื่อ</div>');
+				fieldCell = $('<td></td>').attr({'width': '40%', 'align': 'left'}).text('ชื่อ').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ราคา</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">ราคา</div>');
+				fieldCell = $('<td></td>').attr({'width': '20%', 'align': 'left'}).text('ราคา').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
+				//fieldCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+				fieldCell = $('<td></td>').attr({'width': '*', 'align': 'left'});
+				$(fieldCell).appendTo($(headerFieldRow));
 	      return $(headerFieldRow);
 	    };
 
-			let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			//let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			let selectedBox = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+
 			let headerFieldRow = doCreateHeaderField();
 			$(headerFieldRow).appendTo($(selectedBox));
 			if ((scanparts) && (scanparts.length > 0)) {
 				await scanparts.forEach((item, i) => {
-					let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					//let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					let itemRow = $('<tr></tr>').css({'background-color': '#ccc'})
 					$(itemRow).appendTo($(selectedBox));
-					let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
+					//let itemCell = $('<div style="display: table-cell; padding: 2px; text-align: center;">' + (i+1) + '</div>');
+					let itemCell = $('<td></td>').attr({'align': 'left'}).text((i+1)).css({'padding-left': '10px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(item.Code).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(item.Name).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(formatNumberWithCommas(item.Price)).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
+
+					let removeCmd = $('<img/>')
+					$(removeCmd).attr('src', '/images/minus-sign-red-icon.png');
+					$(removeCmd).attr('title', 'ลบ Scan Part');
+					$(removeCmd).css({'cursor': 'pointer', 'width': '25px', 'height': 'auto'});
+					$(removeCmd).on('click', (evt)=>{
+						scanparts.splice(i, 1);
+						$(itemRow).remove();
+					});
+					//itemCell = $('<div style="display: table-cell; padding: 2px;"></div>').css({'text-align': 'right', 'vertical-align': 'middle'});
+					itemCell = $('<td></td>').attr({'align': 'center', 'valign': 'middle'});
+					$(itemCell).append($(removeCmd));
+					$(itemRow).append($(itemCell))
 				});
 			}
 			resolve($(selectedBox));
@@ -1890,6 +1934,7 @@ module.exports = function ( jq ) {
 		doDownloadLocalDicom,
 		doDeleteLocalDicom,
 		doCountImageLocalDicom,
+		doSeekingAttachFile,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
@@ -2695,9 +2740,9 @@ module.exports = function ( jq ) {
 	}
 
 	const formatDateTimeStr = function(dt){
-	  d = new Date(dt);
+	  let d = new Date(dt);
 		d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
-		var yy, mm, dd, hh, mn, ss;
+		let yy, mm, dd, hh, mn, ss;
 	  yy = d.getFullYear();
 	  if (d.getMonth() + 1 < 10) {
 	    mm = '0' + (d.getMonth() + 1);
@@ -2724,7 +2769,41 @@ module.exports = function ( jq ) {
 	  } else {
 	    ss = '' + d.getSeconds();
 	  }
-		var td = `${yy}-${mm}-${dd}T${hh}:${mn}:${ss}`;
+		let td = `${yy}-${mm}-${dd} ${hh}:${mn}:${ss}`;
+		return td;
+	}
+
+	const formatDateTimeDDMMYYYYJSON = function(dt){
+	  let d = new Date(dt);
+		d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+		let yy, mm, dd, hh, mn, ss;
+	  yy = d.getFullYear();
+	  if (d.getMonth() + 1 < 10) {
+	    mm = '0' + (d.getMonth() + 1);
+	  } else {
+	    mm = '' + (d.getMonth() + 1);
+	  }
+	  if (d.getDate() < 10) {
+	    dd = '0' + d.getDate();
+	  } else {
+	    dd = '' + d.getDate();
+	  }
+	  if (d.getHours() < 10) {
+	    hh = '0' + d.getHours();
+	  } else {
+		   hh = '' + d.getHours();
+	  }
+	  if (d.getMinutes() < 10){
+		   mn = '0' + d.getMinutes();
+	  } else {
+	    mn = '' + d.getMinutes();
+	  }
+	  if (d.getSeconds() < 10) {
+		   ss = '0' + d.getSeconds();
+	  } else {
+	    ss = '' + d.getSeconds();
+	  }
+		let td = {YY: yy, MM: mm, DD: dd, HH: hh, MN: mn, SS: ss};
 		return td;
 	}
 
@@ -3015,6 +3094,12 @@ module.exports = function ( jq ) {
 	});
 	*/
 
+	const fmtStr = function (str) {
+	  var args = [].slice.call(arguments, 1);
+	  var i = 0;
+	  return str.replace(/%s/g, () => args[i++]);
+	}
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -3033,6 +3118,7 @@ module.exports = function ( jq ) {
 		getDatetimeValue,
 		formatDateDev,
 		formatDateTimeStr,
+		formatDateTimeDDMMYYYYJSON,
 		formatStartTimeStr,
 		formatFullDateStr,
 		formatTimeHHMNStr,
@@ -3052,6 +3138,7 @@ module.exports = function ( jq ) {
 		doCreateDownloadXLSX,
 		doShowLogWindow,
 		//dicomZipSyncWorker,
+		fmtStr,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -5805,8 +5892,10 @@ module.exports = function ( jq ) {
 
 	      caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
 	      //if ((caseTask) && (caseTask.triggerAt)){
+					let now = new Date();
 	        let caseTriggerAt = new Date(caseTask.triggerAt);
-	        let diffTime = Math.abs(caseTriggerAt - new Date());
+	        //let diffTime = Math.abs(caseTriggerAt - new Date());
+					let diffTime = caseTriggerAt.getTime() - now.getTime();
 	        let hh = parseInt(diffTime/(1000*60*60));
 	        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
 	        let clockCountdownDiv = $('<div></div>').css({'width': '100%', 'text-align': 'center'});;
