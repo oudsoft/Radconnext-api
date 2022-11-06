@@ -127,7 +127,8 @@ app.post('/callradio', async function(req, res) {
 });
 
 app.get('/task/list', async function(req, res) {
-  res.json({status: {code: 200}, tasks: Voip.getTasks()});
+  let tasks = await Voip.getTasks();
+  res.json({status: {code: 200}, tasks: tasks});
 });
 
 app.get('/get/deposition', async function(req, res) {

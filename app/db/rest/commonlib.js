@@ -467,7 +467,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
-        let callReqResult = JSON.parse(callPhoneRes.body);
+        let callReqResult = JSON.parse(callPhoneRes.res.body);
         newTask.callFile = callReqResult.callFile;
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
