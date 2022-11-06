@@ -106,7 +106,7 @@ function RadconVoipTask (socket, db, log) {
     });
   }
 
-  this.doAppendNewKEY = function(key){
+  this.doAppendNewKEY = function(caseId, key){
     return new Promise(async function(resolve, reject) {
       let myTask = await $this.selectTaskByCaseId(caseId);
       if ((myTask) && (myTask.caseId)){

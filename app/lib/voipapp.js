@@ -126,8 +126,15 @@ app.post('/callradio', async function(req, res) {
   res.json({status: {code: 200}, ok: 'nano'});
 });
 
-app.get('/voip/task/list', async function(req, res) {
+app.get('/task/list', async function(req, res) {
   res.json({status: {code: 200}, tasks: Voip.getTasks()});
+});
+
+app.get('/get/deposition', async function(req, res) {
+  let transactionId = req.query.transactionId;
+  let msisdn = req.query.msisdn;
+  let result = await common.doRequestCallDeposition(transactionId, msisdn);
+  res.json({status: {code: 200}, result: result});
 });
 
 module.exports = ( taskCase, warningTask, voipTask, dbconn, monitor, webSocket ) => {

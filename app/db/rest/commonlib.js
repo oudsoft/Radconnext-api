@@ -467,6 +467,9 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+        let callReqResult = JSON.parse(callPhoneRes.body);
+        newTask.callFile = callReqResult.callFile;
+        //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
@@ -490,8 +493,6 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       let totalMinute = dayMn + hourMn + minuteMn;
       let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
       */
-
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
       let urgentCode = urgentType;
       let voiceTransactionId = uti.doCreateTranctionId();
@@ -518,6 +519,26 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
     } else {
       resolve();
     }
+  });
+}
+
+const doRequestCallDeposition = function(transactionId, msisdn, outgoingCallFile){
+  return new Promise(async function(resolve, reject) {
+    const callDataFmt = 'transactionid=%s&msisdn=%s'
+    const reqCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?%s';
+    let callData = uti.fmtStr(callDataFmt, transactionId, msisdn);
+    let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
+    let rqParams = {
+      method: 'GET',
+      uri: reqCallURL,
+      body: callData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+    let callRes = await uti.voipRequest(rqParams);
+    //log.info('voiceRes=> ' + JSON.stringify(voiceRes));
+    resolve(callRes);
   });
 }
 
@@ -1200,6 +1221,7 @@ module.exports = (dbconn, monitor) => {
     doCreateTaskAction,
     doCreateTaskVoip,
     doRequestPhoneCalling,
+    doRequestCallDeposition,
     doCreateTaskWarning,
     doSaveScanpartAux,
     doCaseChangeStatusKeepLog,

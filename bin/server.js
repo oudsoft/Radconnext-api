@@ -25,6 +25,8 @@ const mainApp = express();
 mainApp.use(express.json({limit: '900mb', extended: true, parameterLimit: 50000}));
 mainApp.use(bodyParser.urlencoded({ limit: '900mb', extended: true, parameterLimit: 50000 }));
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 const debug = require('debug')('config:server');
 const http = require('http');
 const https = require('https');
