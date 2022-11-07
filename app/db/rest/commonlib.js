@@ -525,8 +525,8 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
         if ((radioUserProfiles.length > 0) && (radioUserProfiles[0].Profile)) {
           let updateUserProfile = radioUserProfiles[0].Profile;
           updateUserProfile.phoneRetry = phoneRetryOptions;
-          let updateUserProfile = {Profile: updateUserProfile};
-          await db.userprofiles.update(updateUserProfile, { where: {userId: radioProfile.userId} });
+          let newUpdateUserProfile = {Profile: updateUserProfile};
+          await db.userprofiles.update(newUpdateUserProfile, { where: {userId: radioProfile.userId} });
         } else {
           let newUserProfile = {Profile: defaultRadioProfileV2, userId: radioProfile.userId};
           newUserProfile.Profile.phoneRetry = phoneRetryOptions;
