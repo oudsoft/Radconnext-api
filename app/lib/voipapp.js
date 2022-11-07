@@ -105,15 +105,16 @@ app.post('/response', async function(req, res) {
 
 app.post('/callradio', async function(req, res) {
   log.info('call params => ' + JSON.stringify(req.body));
-  const caseId = '1000';
+  let caseId = req.body.caseId;
   let hospitalCode = req.body.hospitalCode;
   let urgentCode = req.body.urgentCode;
   let msisdn = req.body.msisdn;
   let voiceTransactionId = uti.doCreateTranctionId();
-
-  const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
-  let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
-  let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
+  let retrytime = req.body.retrytime;
+  let retrysecond = req.body.retrysecond;
+  const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s&retrytime=%s&retrysecond=%s'';
+  let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
+  let voiceData = 'caseid=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode + '&retrytime=' + retrytime + '&retrysecond=' + retrysecond;
   let rqParams = {
     method: 'GET',
     uri: voiceCallURL,
@@ -125,7 +126,7 @@ app.post('/callradio', async function(req, res) {
   let voiceRes = await uti.voipRequest(rqParams)
 
   log.info('voiceRes => ' + JSON.stringify(voiceRes));
-  res.json({status: {code: 200}, ok: 'nano'});
+  res.json({status: {code: 200}, result: voiceRes});
 });
 
 app.get('/task/list', async function(req, res) {
