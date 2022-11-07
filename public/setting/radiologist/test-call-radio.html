@@ -115,7 +115,7 @@
               params = {transactionId, msisdn};
               callUrl = '/api/voipapp/calldeposition';
               $.post(callUrl, params).then((posres) => {
-                $('body').append($('<div></div>').text(posres.res.body));
+                $('body').append($('<div></div>').text(posres.result.res.body));
               });
             });
           });
