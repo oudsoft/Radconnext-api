@@ -133,7 +133,7 @@ app.post('/calldeposition', async function(req, res) {
   let transactionId = req.body.transactionId;
   let msisdn = req.body.msisdn;
   const voiceCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?transactionid=%s&msisdn=%s';
-  let voiceCallURL = uti.fmtStr(voiceCallURLFmt, transactionId, msisdn);
+  let reqCallURL = uti.fmtStr(voiceCallURLFmt, transactionId, msisdn);
   let callData = 'transactionid='+ transactionId + '&msisdn=' + msisdn;
   let rqParams = {
     method: 'GET',
