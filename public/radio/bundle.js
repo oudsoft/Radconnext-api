@@ -8549,7 +8549,7 @@ module.exports = function ( jq ) {
     let activeRow = $('<tr></tr>');
     let lockRow = $('<tr></tr>');
     let offlineRow = $('<tr></tr>');
-		let phoneRetryOptionRow = $('<tr></tr>');
+		let phoneRetryOptionRow = $('<tr id="PhoneRetryOptionRow"></tr>');
     let commandRow = $('<tr></tr>');
 
     let activeNameCell = $('<td><b>Active</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
@@ -8657,31 +8657,37 @@ module.exports = function ( jq ) {
 	const manSelectActiveHandle = function(evt){
 		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).hide();
+		doControlPhoneRetryOption();
 	}
 
 	const autoSelectActiveHandle = function(evt){
 		let phoneCallOptionBox = $('#ActiveControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).show();
+		doControlPhoneRetryOption();
 	}
 
 	const manSelectLockHandle = function(evt){
 		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).hide();
+		doControlPhoneRetryOption();
 	}
 
 	const autoSelectLockHandle = function(evt){
 		let phoneCallOptionBox = $('#LockControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).show();
+		doControlPhoneRetryOption();
 	}
 
 	const manSelectOfflineHandle = function(evt){
 		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).hide();
+		doControlPhoneRetryOption();
 	}
 
 	const autoSelectOfflineHandle = function(evt){
 		let phoneCallOptionBox = $('#OfflineControl').find('#PhoneCallOptionBox');
 		$(phoneCallOptionBox).show();
+		doControlPhoneRetryOption();
 	}
 
 	const changePasswordCmdClick = function(evt){
@@ -8696,6 +8702,22 @@ module.exports = function ( jq ) {
 	const switchLabelStyle = {'position': 'relative', 'top': '10px', 'margin-left': '5px'};
 	const radioLabelStyle = {'position': 'relative', 'top': '-1px', 'margin-left': '15px'};
 	const radioBtnStyle = {'transform': 'scale(2.5)'};
+
+	const doControlPhoneRetryOption = function(){
+		let allState = doCheckAllManAutoCallOption();
+		if ((allState.activeState == 1) && (allState.lockState ==1) && (allState.offlineState ==1)) {
+			$('#PhoneRetryOptionRow').hide();
+		} else {
+			$('#PhoneRetryOptionRow').show();
+		}
+	}
+
+	const doCheckAllManAutoCallOption = function() {
+		let activeState = $('#ActiveControl').find('input[name="ManAutoActiveGroup"]:checked').val();
+		let lockState = $('#LockControl').find('input[name="ManAutoLockGroup"]:checked').val();
+		let offlineState = $('#OfflineControl').find('input[name="ManAutoOfflineGroup"]:checked').val();
+		return {activeState, lockState, offlineState};
+	}
 
 	const doCreateManAutoRadioBox = function(groupName, manCallback, autoCallback){
 		let wrapperBox = $('<div id="ManAutoOptionBox" style="position: relative; display: inline-block; margin-left: 30px; top: 10px;"></div>');
@@ -8910,10 +8932,10 @@ module.exports = function ( jq ) {
 
 		let retrysecondSelect = $('<select id="RetrysecondSelect"></select>').css({'margin-left': '20px', 'display': 'none'});
 		$(retrysecondSelect).append($('<option value="60">ภายใน 1 นาที</option>'));
-		$(retrysecondSelect).append($('<option value="120">ภายใน 2 นาที</option>'));
 		$(retrysecondSelect).append($('<option value="180">ภายใน 3 นาที</option>'));
-		$(retrysecondSelect).append($('<option value="240">ภายใน 4 นาที</option>'));
 		$(retrysecondSelect).append($('<option value="300">ภายใน 5 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="600">ภายใน 10 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="900">ภายใน 15 นาที</option>'));
 
 		$(retrytimeSelect).on('change', (evt)=>{
 			let retrytimeValue = $(retrytimeSelect).val();
@@ -8962,7 +8984,7 @@ module.exports = function ( jq ) {
 
 				let phoneCallActiveBox = doCreatePhoneCallActiveContolSwitch(myProfile.Profile.activeState.phoneCall, myProfile.Profile.activeState.phoneCallOptions);
 				let manAutoOptionAciveBox = $(phoneCallActiveBox).find('#ManAutoOptionBox');
-				console.log(myProfile.Profile.activeState.phoneCall);
+				//console.log(myProfile.Profile.activeState.phoneCall);
 				if (myProfile.Profile.activeState.phoneCall == 0){
 					$(manAutoOptionAciveBox).hide();
 				} else if (myProfile.Profile.activeState.phoneCall == 1){
@@ -9045,7 +9067,6 @@ module.exports = function ( jq ) {
     $(backCmd).appendTo($(cmdBar));
     $(backCmd).on('click', (evt)=>{$('#AcceptedCaseCmd').click()});
     $(saveCmd).on('click', (evt)=>{
-
 			let activeWebNotify = pageHandle.find('#ActiveControl').find('#WebNotifySwitchBox').find('input[type=checkbox]').prop('checked');
 			let activeLineNotify = pageHandle.find('#ActiveControl').find('#LineBotNotifySwitchBox').find('input[type=checkbox]').prop('checked');
 			let activePhoneCall = pageHandle.find('#ActiveControl').find('#PhoneCallSwitchBox').find('input[type=checkbox]').prop('checked');

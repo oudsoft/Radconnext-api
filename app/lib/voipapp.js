@@ -132,7 +132,7 @@ app.post('/callradio', async function(req, res) {
 app.post('/calldeposition', async function(req, res) {
   let transactionId = req.body.transactionId;
   let msisdn = req.body.msisdn;
-  const voiceCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?transactionid=%s&msisdn=%s';
+  let voiceCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?transactionid=%s&msisdn=%s';
   let reqCallURL = uti.fmtStr(voiceCallURLFmt, transactionId, msisdn);
   let callData = 'transactionid='+ transactionId + '&msisdn=' + msisdn;
   let rqParams = {
@@ -149,8 +149,10 @@ app.post('/calldeposition', async function(req, res) {
 
 app.post('/calldeletecallfile', async function(req, res) {
   let callFile = req.body.callFile;
+  let reqCallURLFmt = 'https://202.28.68.6/callradio/deletecallfile.php?callFile=%s';
+  let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
+  log.info('reqCallDeleteFileURL=>' + reqCallURL)
   let callData = 'callFile=' + callFile;
-  const reqCallURL = 'https://202.28.68.6/callradio/deletecallfile.php?' + callData;
   let rqParams = {
     method: 'GET',
     uri: reqCallURL,
