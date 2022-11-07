@@ -105,8 +105,19 @@
           let callUrl = '/api/voipapp/callradio';
           $.post(callUrl, params).then((response) => {
             console.log(response);
-            $('#Msisdn').val('');
-            $('#CaseList').empty().text(JSON.stringify(response));
+            let voipRes = JSON.parse(response.res.body);
+            $('#CaseList').empty().text(JSON.stringify(voipRes));
+            let transactionId = voipRes.transactionid;
+            let callDepositionCmd = $('<input type="button" value=" Deposition "/>');
+            $('body').append($(callDepositionCmd));
+
+            $(callDepositionCmd).on('click', (evt)=>{
+              params = {transactionId, msisdn};
+              callUrl = '/api/voipapp/calldeposition';
+              $.post(callUrl, params).then((posres) => {
+                $('body').append($('<div></div>').text(posres.res.body));
+              });
+            });
           });
         } else {
           $('#Msisdn').css('border', '1px solid red');

@@ -129,6 +129,24 @@ app.post('/callradio', async function(req, res) {
   res.json({status: {code: 200}, result: voiceRes});
 });
 
+app.post('/calldeposition', async function(req, res) {
+  let transactionId = req.body.transactionId;
+  let msisdn = req.body.msisdn;
+  const voiceCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?transactionid=%s&msisdn=%s';
+  let voiceCallURL = uti.fmtStr(voiceCallURLFmt, transactionId, msisdn);
+  let callData = 'transactionid='+ transactionId + '&msisdn=' + msisdn;
+  let rqParams = {
+    method: 'GET',
+    uri: reqCallURL,
+    body: callData,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+  let callRes = await uti.voipRequest(rqParams);
+  res.json({status: {code: 200}, result: callRes});
+});
+
 app.get('/task/list', async function(req, res) {
   let tasks = await Voip.getTasks();
   res.json({status: {code: 200}, tasks: tasks});
