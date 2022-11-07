@@ -147,6 +147,22 @@ app.post('/calldeposition', async function(req, res) {
   res.json({status: {code: 200}, result: callRes});
 });
 
+app.post('/calldeletecallfile', async function(req, res) {
+  let callFile = req.body.callFile;
+  let callData = 'callFile=' + callFile;
+  const reqCallURL = 'https://202.28.68.6/callradio/deletecallfile.php?' + callData;
+  let rqParams = {
+    method: 'GET',
+    uri: reqCallURL,
+    body: callData,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+  let callRes = await uti.voipRequest(rqParams);
+  res.json({status: {code: 200}, result: callRes});
+});
+
 app.get('/task/list', async function(req, res) {
   let tasks = await Voip.getTasks();
   res.json({status: {code: 200}, tasks: tasks});

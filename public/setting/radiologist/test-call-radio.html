@@ -118,6 +118,19 @@
                 $('body').append($('<div></div>').text(posres.result.res.body));
               });
             });
+
+            let callFile = voipRes.callFile;
+            let callDeleteCallFileCmd = $('<input type="button" value=" Cancel Calling "/>');
+            $('body').append($(callDeleteCallFileCmd).css({'margin-left': '20px'}));
+
+            $(callDeleteCallFileCmd).on('click', (evt)=>{
+              params = {callFile};
+              callUrl = '/api/voipapp/calldeletecallfile';
+              $.post(callUrl, params).then((posres) => {
+                $('body').append($('<div></div>').text(posres.result.res.body));
+              });
+            });
+
           });
         } else {
           $('#Msisdn').css('border', '1px solid red');
