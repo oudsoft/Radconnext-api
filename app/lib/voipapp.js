@@ -22,6 +22,7 @@ const doChangeCaseStatusMany = function(radioId, newStatusId, remark, triggerAt)
           newKeepLog.triggerAt = triggerAt;
         }
         await common.doCaseChangeStatusKeepLog(newKeepLog);
+        await Voip.removeTaskByCaseId(item.id);
         changeReses.push(changeCaseRes);
       });
       setTimeout(()=>{
@@ -86,17 +87,18 @@ app.post('/response', async function(req, res) {
       changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, radioId);
       let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : 2, remark : acceptRemark, triggerAt: yymmddhhmnss};
       await common.doCaseChangeStatusKeepLog(newKeepLog);
+      await Voip.removeTaskByCaseId(caseId);
     } else if (voip.responseKEYs[0] == 3) {
       //Reject Case by VoIP
       changeRes = await statusControl.doChangeCaseStatus(1, 3, caseId, radioId);
       let newKeepLog = { caseId : caseId,	userId : targetCases[0].Case_RadiologistId, from : 1, to : 3, remark : rejectRemark};
       await common.doCaseChangeStatusKeepLog(newKeepLog);
+      await Voip.removeTaskByCaseId(caseId);
     } else if (voip.responseKEYs[0] == 4) {
       changeRes = await doChangeCaseStatusMany(radioId, 2, acceptRemark, yymmddhhmnss);
     } else if (voip.responseKEYs[0] == 6) {
       changeRes = await doChangeCaseStatusMany(radioId, 3, rejectRemark);
     }
-    await Voip.removeTaskByCaseId(caseId);
   }
   res.json({status: {code: 200}, voip: {response: {key: key}}, change: {result: changeRes}});
 });

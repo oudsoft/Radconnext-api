@@ -4310,11 +4310,11 @@ function doLoadMainPage(){
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
         let backupDraftCounter = opencase.getBackupDraftCounter();
-        console.log(backupDraftCounter);
+        //console.log(backupDraftCounter);
         if (backupDraftCounter == 0){
           let type = 'draft';
           let caseId = data.caseId
-          console.log(caseId);
+          //console.log(caseId);
           let responseHTML = data.content;
           if (responseHTML) {
             let responseText = toAsciidoc(responseHTML);
@@ -4322,7 +4322,7 @@ function doLoadMainPage(){
             let userId = userdata.id;
             let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
             $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
-              console.log(callRes);
+              //console.log(callRes);
               let apiUri = undefined;
               let params = undefined;
               if (callRes.Record.length > 0) {
@@ -4335,11 +4335,9 @@ function doLoadMainPage(){
                 apiUri = '/api/caseresponse/add';
               }
               $.post(apiUri, params, function(saveRes){
-                console.log(saveRes);
+                //console.log(saveRes);
                 if ((saveRes.result) && (saveRes.result.responseId)) {
                   opencase.setCaseResponseId(saveRes.result.responseId);
-                } else {
-
                 }
                 opencase.setBackupDraftCounter(backupDraftCounter+1);
               }).fail(function(error) {
@@ -8549,6 +8547,7 @@ module.exports = function ( jq ) {
     let activeRow = $('<tr></tr>');
     let lockRow = $('<tr></tr>');
     let offlineRow = $('<tr></tr>');
+		let phoneRetryOptionRow = $('<tr></tr>');
     let commandRow = $('<tr></tr>');
 
     let activeNameCell = $('<td><b>Active</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
@@ -8560,6 +8559,9 @@ module.exports = function ( jq ) {
     let offlineNameCell = $('<td><b>Offline</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
     let offlineControlCell = $('<td id="OfflineControl"></td>');
 
+		let phoneRetryOptionNameCell = $('<td><b>Phone Calling</b></td>').css({'padding': '5px', 'vertical-align': 'middle'});
+    let phoneRetryOptionControlCell = $('<td id="PhoneRetryOptionControl"></td>');
+
     let commandCell = $('<td colspan="2" id="ProfilePageCmd" align="center"></td>');
 
     $(headerRow).append($('<td class="header-cell" width="15%">สถานะ</td>'));
@@ -8568,8 +8570,9 @@ module.exports = function ( jq ) {
     $(activeRow).append($(activeNameCell)).append($(activeControlCell));
     $(lockRow).append($(lockNameCell)).append($(lockControlCell));
     $(offlineRow).append($(offlineNameCell)).append($(offlineControlCell));
+		$(phoneRetryOptionRow).append($(phoneRetryOptionNameCell)).append($(phoneRetryOptionControlCell));
     $(commandRow).append($(commandCell));
-    return $(blankTable).append(headerRow).append($(activeRow)).append($(lockRow)).append($(offlineRow)).append($(commandRow));
+    return $(blankTable).append(headerRow).append($(activeRow)).append($(lockRow)).append($(offlineRow)).append($(phoneRetryOptionRow)).append($(commandRow));
   }
 
 	const onActionCommonHandle = function(evt) {
@@ -8888,6 +8891,45 @@ module.exports = function ( jq ) {
 		return $(wrapperBox).append($(controlElem));
 	}
 
+	const doCreatePhoneRetryOptionControlBox = function(phoneRetry){
+		let wrapperBox = $('<div id="PhoneRetryOptionControlBox" style="position: relative; display: block; top: 10px; padding: 10px;"></div>');
+		let phoneRetryOptionTable = $('<table cellspacing="0" cellpadding="0" border="0" width="100%"></table>');
+		let noActionControlCaseStatusSelect = $('<select id="NoActionControlCaseStatusSelect"></select>');
+		$(noActionControlCaseStatusSelect).append($('<option value="3">ปฏิเสธเคส</option>'));
+		$(noActionControlCaseStatusSelect).append($('<option value="0">ไม่ปฏิเสธเคส</option>'));
+		$(noActionControlCaseStatusSelect).val(phoneRetry.noactioncasestatus);
+		let retrytimeSelect = $('<select id="RetrytimeSelect"></select>');
+		$(retrytimeSelect).append($('<option value="0">ไม่โทรซ้ำ</option>'));
+		$(retrytimeSelect).append($('<option value="1">โทรซ้ำ 1 ครั้ง</option>'));
+		$(retrytimeSelect).append($('<option value="2">โทรซ้ำ 2 ครั้ง</option>'));
+		$(retrytimeSelect).append($('<option value="3">โทรซ้ำ 3 ครั้ง</option>'));
+		$(retrytimeSelect).append($('<option value="4">โทรซ้ำ 4 ครั้ง</option>'));
+		$(retrytimeSelect).append($('<option value="5">โทรซ้ำ 5 ครั้ง</option>'));
+
+		let retrysecondSelect = $('<select id="RetrysecondSelect"></select>').css({'margin-left': '10px', 'display': 'none'});
+		$(retrysecondSelect).append($('<option value="60">ภายใน 1 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="120">ภายใน 2 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="180">ภายใน 3 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="240">ภายใน 4 นาที</option>'));
+		$(retrysecondSelect).append($('<option value="300">ภายใน 5 นาที</option>'));
+
+		$(retrytimeSelect).on('change', (evt)=>{
+			let retrytimeValue = $(retrytimeSelect).val();
+			if (retrytimeValue == 0) {
+				$(retrysecondSelect).hide();
+			} else {
+				$(retrysecondSelect).show();
+			}
+		});
+		$(retrysecondSelect).val(phoneRetry.retrysecond);
+		$(retrytimeSelect).val(phoneRetry.retrytime).change();
+
+		let noactionRow = $('<tr></tr>').append($('<td align="left" width="30%">การทำงานเมื่อกดตัดสาย</td>')).append($('<td align="left" width="*"></td>').append($(noActionControlCaseStatusSelect)));
+		let retryRow = $('<tr></tr>').append($('<td align="left">การจัดการกรณ๊ไม่ได้รับสาย</td>')).append($('<td align="left"></td>').append($(retrytimeSelect)).append($(retrysecondSelect)));
+		$(phoneRetryOptionTable).append($(noactionRow)).append($(retryRow));
+		return $(wrapperBox).append($(phoneRetryOptionTable));
+	}
+
   const doCreateProfilePage = function(){
     return new Promise(async function(resolve, reject) {
       $('body').loading('start');
@@ -8965,6 +9007,17 @@ module.exports = function ( jq ) {
 				let autoLogoutControlBox = doCreateAutoLogoutControlBox(myProfile.Profile.offlineState.autoLogout);
 				profileTable.find('#OfflineControl').append($(autoLogoutControlBox));
 
+				let phoneRetry = myProfile.Profile.phoneRetry;
+				if (!phoneRetry){
+					phoneRetry = {
+						retrytime: 2, //0, 1, 2 ,3 ,4, 5
+						retrysecond: 180, //60, 120, 180, 240
+						noactioncasestatus: 3 // ถ้าไม่รับสาย หรือ ปฏิเสธสาย จะให้เคสมีสถานะใด 3=reject
+					}
+				}
+				let phoneRetryOptionControlBox = doCreatePhoneRetryOptionControlBox(phoneRetry)
+				profileTable.find('#PhoneRetryOptionControl').append($(phoneRetryOptionControlBox));
+
 				let cmdBar = doCreatePageCmd(myProfilePage, (ob)=>{doCallSaveMyProfile(ob);});
 				profileTable.find('#ProfilePageCmd').append($(cmdBar));
 
@@ -9021,6 +9074,19 @@ module.exports = function ( jq ) {
 			let offlinePhoneCall24HU = pageHandle.find('#OfflineControl').find('#PhoneCallOptionBox').find('#Option24HRUInput').val();
 			let offlineAutoLogoutMinut = pageHandle.find('#OfflineControl').find('#AutoLogoutControlBox').find('#AutoLogoutMinuteInput').val();
 
+
+
+			let noactioncasestatus = pageHandle.find('#PhoneRetryOptionControlBox').find('#NoActionControlCaseStatusSelect').val();
+			let retrytime = pageHandle.find('#PhoneRetryOptionControlBox').find('#RetrytimeSelect').val();
+			let retrysecond = pageHandle.find('#PhoneRetryOptionControlBox').find('#RetrysecondSelect').val();
+
+			let phoneRetryOptions = {
+				retrytime: retrytime? retrytime:2,
+				retrysecond: retrysecond? retrysecond:180,
+				noactioncasestatus: noactioncasestatus? noactioncasestatus:3
+			}
+			console.log(phoneRetryOptions);
+
 			let verifyProfile1 = ((lockAutoLockScreenMinut > -1) && (lockAutoLockScreenMinut < 61));
 			let verifyProfile2 = ((offlineAutoLogoutMinut <= 0) || ((offlineAutoLogoutMinut > 0) && (offlineAutoLogoutMinut > lockAutoLockScreenMinut)));
 
@@ -9074,7 +9140,8 @@ module.exports = function ( jq ) {
 								}
 							},
 							autoLogout: offlineAutoLogoutMinut
-						}
+						},
+						phoneRetry: phoneRetryOptions
 					};
 					console.log(profileValue);
 					saveCallBack(profileValue);

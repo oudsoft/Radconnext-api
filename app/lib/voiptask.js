@@ -3,6 +3,7 @@
 function RadconVoipTask (socket, db, log) {
   const $this = this;
   const cron = require('node-cron');
+  const uti = require('./mod/util.js')(db, log);
 
 	this.voipTasks = [];
 
@@ -38,6 +39,10 @@ function RadconVoipTask (socket, db, log) {
         if (task.caseId != caseId) {
           return task;
         } else {
+          //doCall rwquest remove callFile from VOIP Server
+          if ((task.callFile) && ((task.callFile) !== '')) {
+            await $this.doCallDeleteCallFile(task.callFile);
+          }
           await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
           task.task.stop();
         }
@@ -126,6 +131,27 @@ function RadconVoipTask (socket, db, log) {
       resolve(key);
     });
   }
+
+  this.doCallDeleteCallFile = function(callFile) {
+    return new Promise(async function(resolve, reject) {
+      const callDataFmt = 'callFile=%s'
+      const reqCallURLFmt = 'https://202.28.68.6/callradio/deletecallfile.php?%s';
+      let callData = uti.fmtStr(callDataFmt, callFile);
+      let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
+      let rqParams = {
+        method: 'GET',
+        uri: reqCallURL,
+        body: callData,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+      let callRes = await uti.voipRequest(rqParams);
+      //log.info('voiceRes=> ' + JSON.stringify(voiceRes));
+      resolve(callRes);
+    });
+  }
+
 }
 
 module.exports = ( websocket, db, monitor ) => {

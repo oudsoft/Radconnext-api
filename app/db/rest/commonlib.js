@@ -91,6 +91,12 @@ const defaultRadioProfile = {
   }
 };
 
+const phoneRetryOptions = {
+  retrytime: 2, //0, 1, 2 ,3 ,4, 5
+  retrysecond: 180, //60, 120, 180, 240
+  noactioncasestatus: 3 // ถ้าไม่รับสาย หรือ ปฏิเสธสาย จะให้เคสมีสถานะใด 3=reject
+};
+
 const defaultRadioProfileV2 = {
   readyState: 1,
   readyBy: 'user',
@@ -138,7 +144,8 @@ const defaultRadioProfileV2 = {
         case24HU: 0
       }
     }
-  }
+  },
+  phoneRetry: phoneRetryOptions
 };
 
 const msgNewCaseRadioDetailFormat = 'เคสใหม่\nจากโรงพยาบาล %s\nผู้ป่วยชื่อ %s\nStudyDescription %s\nProtocolName %s\nBodyPart %s\nModality %s\n';
@@ -285,13 +292,13 @@ const doLoadRadioProfile = function(radioId){
           lockState: radioUserProfiles[0].Profile.lockState.phoneCallOptions,
           offlineState: radioUserProfiles[0].Profile.offlineState.phoneCallOptions
         }
-        let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, autoacc: radioAutoAcc, linenotify: radioLineNotify, User_NameTH: radioUsers[0].userinfo.User_NameTH, User_LastNameTH: radioUsers[0].userinfo.User_LastNameTH, radioAutoCall: radioAutoCall, radioPhoneNo: radioUsers[0].userinfo.User_Phone, radioPhoneCallOptions: radioPhoneCallOptions};
+        let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, autoacc: radioAutoAcc, linenotify: radioLineNotify, User_NameTH: radioUsers[0].userinfo.User_NameTH, User_LastNameTH: radioUsers[0].userinfo.User_LastNameTH, radioAutoCall: radioAutoCall, radioPhoneNo: radioUsers[0].userinfo.User_Phone, radioPhoneCallOptions: radioPhoneCallOptions, phoneRetry: radioUserProfiles[0].Profile.phoneRetry};
         if ((radioUserLines) && (radioUserLines.length > 0)) {
           radioProfile.lineUserId = radioUserLines[0].UserId;
         }
         resolve(radioProfile);
       } else {
-        let newUserProfile = {Profile: defaultRadioProfile, userId: radioId};
+        let newUserProfile = {Profile: defaultRadioProfileV2, userId: radioId};
         let adUserProfile = await db.userprofiles.create(newUserProfile);
         let radioLineNotify = newUserProfile.Profile.activeState.lineNotify;
         let radioAutoAcc = newUserProfile.Profile.activeState.autoAcc;
@@ -301,7 +308,7 @@ const doLoadRadioProfile = function(radioId){
           lockState: newUserProfile.Profile.lockState.phoneCallOptions,
           offlineState: newUserProfile.Profile.offlineState.phoneCallOptions
         }
-        let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, autoacc: radioAutoAcc, linenotify: radioLineNotify, User_NameTH: radioUsers[0].userinfo.User_NameTH, User_LastNameTH: radioUsers[0].userinfo.User_LastNameTH, radioAutoCall: radioAutoCall, radioPhoneNo: radioUsers[0].userinfo.User_Phone, radioPhoneCallOptions: radioPhoneCallOptions};
+        let radioProfile = {userId: radioId, username: radioUsers[0].username, User_NameEN: radioUsers[0].userinfo.User_NameEN, User_LastNameEN: radioUsers[0].userinfo.User_LastNameEN, autoacc: radioAutoAcc, linenotify: radioLineNotify, User_NameTH: radioUsers[0].userinfo.User_NameTH, User_LastNameTH: radioUsers[0].userinfo.User_LastNameTH, radioAutoCall: radioAutoCall, radioPhoneNo: radioUsers[0].userinfo.User_Phone, radioPhoneCallOptions: radioPhoneCallOptions, phoneRetry: phoneRetryOptions};
         resolve(radioProfile);
       }
     } else {
@@ -464,17 +471,41 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
-      //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
         let callPhoneRes = await doRequestPhoneCalling(caseId, radioProfile, triggerParam, caseData.hospitalCode, caseData.urgentType);
         log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
         let callReqResult = JSON.parse(callPhoneRes.res.body);
         newTask.callFile = callReqResult.callFile;
+        newTask.transactionId = callReqResult.transactionid;
+        newTask.msisdn = callReqResult.msisdn;
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
         let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark, result: callPhoneRes};
         await doCaseChangeStatusKeepLog(newKeepLog);
+        if (radioProfile.phoneRetry.noactioncasestatus == 3) {
+          let callDelay = undefined;
+          if (radioProfile.phoneRetry) {
+            callDelay = (Number(radioProfile.phoneRetry.retrytime) * Number(radioProfile.phoneRetry.retrysecond)) * 1000;
+          } else {
+            radioProfile.phoneRetry = phoneRetryOptions;
+            // update newRadioProfile
+            callDelay = (Number(radioProfile.phoneRetry.retrytime) * Number(radioProfile.phoneRetry.retrysecond)) * 1000;
+          }
+
+          setTimeout(async()=>{
+            let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
+            if (callDeposRes !== 'ANSWERED') {
+              //setstatuscase to reject
+              radioProfile.phoneRetry.noactioncasestatus
+              await tasks.removeTaskByCaseId(caseId);
+            } else {
+              await tasks.removeTaskByCaseId(caseId);
+            }
+          }, callDelay)
+        } else {
+          await tasks.removeTaskByCaseId(caseId);
+        }
       }
     });
     let endTime = newTask.triggerAt;
@@ -486,22 +517,32 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
 const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospitalCode, urgentType){
   return new Promise(async function(resolve, reject) {
     if ((radioProfile.radioAutoCall == 1) && (radioProfile.radioPhoneNo) && (radioProfile.radioPhoneNo !== '')) {
-      /*
-      let dayMn = Number(triggerParam.dd) * 24 * 60;
-      let hourMn = Number(triggerParam.hh) * 60;
-      let minuteMn = Number(triggerParam.mn);
-      let totalMinute = dayMn + hourMn + minuteMn;
-      let urgentCode = uti.doCalUrgentVoiceCall(totalMinute);
-      */
-
       let urgentCode = urgentType;
+      if (!radioProfile.phoneRetry) {
+        radioProfile.phoneRetry = phoneRetryOptions;
+        // update newRadioProfile
+        let radioUserProfiles = await db.userprofiles.findAll({ attributes: ['Profile'], where: {userId: radioProfile.userId}});
+        if ((radioUserProfiles.length > 0) && (radioUserProfiles[0].Profile)) {
+          let updateUserProfile = radioUserProfiles[0].Profile;
+          updateUserProfile.phoneRetry = phoneRetryOptions;
+          let updateUserProfile = {Profile: updateUserProfile};
+          await db.userprofiles.update(updateUserProfile, { where: {userId: radioProfile.userId} });
+        } else {
+          let newUserProfile = {Profile: defaultRadioProfileV2, userId: radioProfile.userId};
+          newUserProfile.Profile.phoneRetry = phoneRetryOptions;
+          let adUserProfile = await db.userprofiles.create(newUserProfile);
+        }
+      }
+      let retrytime = radioProfile.phoneRetry.retrytime;
+      let retrysecond = radioProfile.phoneRetry.retrysecond;
       let voiceTransactionId = uti.doCreateTranctionId();
       let msisdn = radioProfile.radioPhoneNo;
-      log.info('urgentCode=>' + urgentCode);
       if (urgentCode){
-        const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s';
-        let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn);
-        let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
+        const voiceDataFmt = 'transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s&retrytime=%s&retrysecond=%s'
+        const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?%s';
+        let voiceData = uti.fmtStr(voiceDataFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
+        let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceDataFmt);
+        //let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
         let rqParams = {
           method: 'GET',
           uri: voiceCallURL,

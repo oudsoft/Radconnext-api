@@ -20,7 +20,8 @@ app.get('/default', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          res.json({status: {code: 200}, default: common.defaultRadioProfileV2});
+          let defaultValue = common.defaultRadioProfileV2;
+          res.json({status: {code: 200}, default: defaultValue});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
