@@ -112,7 +112,7 @@ app.post('/callradio', async function(req, res) {
   let voiceTransactionId = uti.doCreateTranctionId();
   let retrytime = req.body.retrytime;
   let retrysecond = req.body.retrysecond;
-  const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s&retrytime=%s&retrysecond=%s'';
+  const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s&retrytime=%s&retrysecond=%s';
   let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
   let voiceData = 'caseid=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode + '&retrytime=' + retrytime + '&retrysecond=' + retrysecond;
   let rqParams = {
