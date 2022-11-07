@@ -4540,7 +4540,9 @@ function onUnLockScreenTrigger(evt){
 }
 
 function onAutoLogoutTrigger(evt){
-  doLoadLogin();
+  //doLoadLogin();
+  let myWsm = doGetWsm();
+  common.doUserLogout(myWsm);
 }
 
 function onUpdateUserProfileTrigger(evt){
