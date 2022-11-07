@@ -540,7 +540,8 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
       if (urgentCode){
         const voiceDataFmt = 'transactionid=%s&caseid=%s&urgentcode=%s&hospitalcode=%s&msisdn=%s&retrytime=%s&retrysecond=%s'
         const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?%s';
-        let voiceData = uti.fmtStr(voiceDataFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
+        let voiceData = 'transactionid=' + voiceTransactionId + '&caseid=' + caseId + '&urgentcode=' + urgentCode + '&hospitalcode=' + hospitalCode + '&msisdn=' + msisdn + '&retrytime=' + retrytime + '&retrysecond=' + retrysecond;
+        //let voiceData = uti.fmtStr(voiceDataFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
         let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceDataFmt);
         //let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
         let rqParams = {
@@ -567,7 +568,8 @@ const doRequestCallDeposition = function(transactionId, msisdn, outgoingCallFile
   return new Promise(async function(resolve, reject) {
     const callDataFmt = 'transactionid=%s&msisdn=%s'
     const reqCallURLFmt = 'https://202.28.68.6/callradio/get_last_diposition.php?%s';
-    let callData = uti.fmtStr(callDataFmt, transactionId, msisdn);
+    //let callData = uti.fmtStr(callDataFmt, transactionId, msisdn);
+    let callData = 'transactionid=' + transactionId + '&msisdn=' + msisdn;
     let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
     let rqParams = {
       method: 'GET',

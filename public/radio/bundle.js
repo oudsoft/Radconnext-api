@@ -8906,7 +8906,7 @@ module.exports = function ( jq ) {
 		$(retrytimeSelect).append($('<option value="4">โทรซ้ำ 4 ครั้ง</option>'));
 		$(retrytimeSelect).append($('<option value="5">โทรซ้ำ 5 ครั้ง</option>'));
 
-		let retrysecondSelect = $('<select id="RetrysecondSelect"></select>').css({'margin-left': '10px', 'display': 'none'});
+		let retrysecondSelect = $('<select id="RetrysecondSelect"></select>').css({'margin-left': '20px', 'display': 'none'});
 		$(retrysecondSelect).append($('<option value="60">ภายใน 1 นาที</option>'));
 		$(retrysecondSelect).append($('<option value="120">ภายใน 2 นาที</option>'));
 		$(retrysecondSelect).append($('<option value="180">ภายใน 3 นาที</option>'));
@@ -8924,8 +8924,8 @@ module.exports = function ( jq ) {
 		$(retrysecondSelect).val(phoneRetry.retrysecond);
 		$(retrytimeSelect).val(phoneRetry.retrytime).change();
 
-		let noactionRow = $('<tr></tr>').append($('<td align="left" width="30%">การทำงานเมื่อกดตัดสาย</td>')).append($('<td align="left" width="*"></td>').append($(noActionControlCaseStatusSelect)));
-		let retryRow = $('<tr></tr>').append($('<td align="left">การจัดการกรณ๊ไม่ได้รับสาย</td>')).append($('<td align="left"></td>').append($(retrytimeSelect)).append($(retrysecondSelect)));
+		let noactionRow = $('<tr></tr>').css({'height': '50px'}).append($('<td align="left" width="30%">การทำงานเมื่อกดตัดสาย</td>')).append($('<td align="left" width="*"></td>').append($(noActionControlCaseStatusSelect)));
+		let retryRow = $('<tr></tr>').css({'height': '50px'}).append($('<td align="left">การจัดการกรณ๊ไม่ได้รับสาย</td>')).append($('<td align="left"></td>').append($(retrytimeSelect)).append($(retrysecondSelect)));
 		$(phoneRetryOptionTable).append($(noactionRow)).append($(retryRow));
 		return $(wrapperBox).append($(phoneRetryOptionTable));
 	}
@@ -9085,7 +9085,7 @@ module.exports = function ( jq ) {
 				retrysecond: retrysecond? retrysecond:180,
 				noactioncasestatus: noactioncasestatus? noactioncasestatus:3
 			}
-			console.log(phoneRetryOptions);
+			//console.log(phoneRetryOptions);
 
 			let verifyProfile1 = ((lockAutoLockScreenMinut > -1) && (lockAutoLockScreenMinut < 61));
 			let verifyProfile2 = ((offlineAutoLogoutMinut <= 0) || ((offlineAutoLogoutMinut > 0) && (offlineAutoLogoutMinut > lockAutoLockScreenMinut)));

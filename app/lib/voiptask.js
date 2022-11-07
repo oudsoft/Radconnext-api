@@ -137,6 +137,7 @@ function RadconVoipTask (socket, db, log) {
       const callDataFmt = 'callFile=%s'
       const reqCallURLFmt = 'https://202.28.68.6/callradio/deletecallfile.php?%s';
       let callData = uti.fmtStr(callDataFmt, callFile);
+      let callData = 'callFile=' + callFile;
       let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
       let rqParams = {
         method: 'GET',
