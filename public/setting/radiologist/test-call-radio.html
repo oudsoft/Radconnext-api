@@ -105,7 +105,7 @@
           let callUrl = '/api/voipapp/callradio';
           $.post(callUrl, params).then((response) => {
             console.log(response);
-            let voipRes = JSON.parse(response.res.body);
+            let voipRes = JSON.parse(response.result.res.body);
             $('#CaseList').empty().text(JSON.stringify(voipRes));
             let transactionId = voipRes.transactionid;
             let callDepositionCmd = $('<input type="button" value=" Deposition "/>');
