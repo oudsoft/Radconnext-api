@@ -251,8 +251,14 @@ app.post('/select/(:caseId)', (req, res) => {
 //change status
 app.post('/status/(:caseId)', async (req, res) => {
   log.info('headers=> ' + JSON.stringify(req.headers));
-  log.info(Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString())
   let token = req.headers.authorization;
+  if (token.indexOf('Basic')) {
+    let up = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
+    let ups = up.split(':');
+    log.info('ups=>' + JSON.stringify(ups))
+    token = auth.doEncodeToken(ups[0]);
+    log.info('newtoken=>' + token);
+  }
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
