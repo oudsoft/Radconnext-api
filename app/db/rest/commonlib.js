@@ -492,9 +492,10 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             // update newRadioProfile
             callDelay = (Number(radioProfile.phoneRetry.retrytime) * Number(radioProfile.phoneRetry.retrysecond)) * 1000;
           }
-
+          log.info('callDepositionDelay=>' + callDelay);
           setTimeout(async()=>{
             let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
+            log.info('callDeposRes=>' + JSON.stringify(callDeposRes));
             if (callDeposRes !== 'ANSWERED') {
               //setstatuscase to reject
               //radioProfile.phoneRetry.noactioncasestatus
