@@ -497,7 +497,12 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
             if (callDeposRes !== 'ANSWERED') {
               //setstatuscase to reject
-              radioProfile.phoneRetry.noactioncasestatus
+              //radioProfile.phoneRetry.noactioncasestatus
+              let setCaseStatusCmdFmt = 'curl -X POST --user %s https://radconnext.info/api/cases/status/%s -d \'{casestatusId: 3, caseDescription: "%s"}\'';
+              let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
+              let rejectRemark = uti.fmtStr('รังสีแพทย์ % ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
+              let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
+              await uti.runCommand(setCaseStatusCmd);
               await tasks.removeTaskByCaseId(caseId);
             } else {
               await tasks.removeTaskByCaseId(caseId);
