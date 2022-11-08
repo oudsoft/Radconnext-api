@@ -250,6 +250,7 @@ app.post('/select/(:caseId)', (req, res) => {
 
 //change status
 app.post('/status/(:caseId)', async (req, res) => {
+  log.info('headers=> ' + JSON.stringify(req.headers));
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
