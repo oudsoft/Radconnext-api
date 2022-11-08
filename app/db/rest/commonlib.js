@@ -547,7 +547,7 @@ const doRequestPhoneCalling = function(caseId, radioProfile, triggerParam, hospi
         const voiceCallURLFmt = 'https://202.28.68.6/callradio/callradio.php?%s';
         let voiceData = 'transactionid=' + voiceTransactionId + '&caseid=' + caseId + '&urgentcode=' + urgentCode + '&hospitalcode=' + hospitalCode + '&msisdn=' + msisdn + '&retrytime=' + retrytime + '&retrysecond=' + retrysecond;
         //let voiceData = uti.fmtStr(voiceDataFmt, voiceTransactionId, caseId, urgentCode, hospitalCode, msisdn, retrytime, retrysecond);
-        let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceDataFmt);
+        let voiceCallURL = uti.fmtStr(voiceCallURLFmt, voiceData);
         //let voiceData = 'inc_id=' + caseId + '&transaction_id=' + voiceTransactionId +'&phone_number=' + msisdn + '&hosp_code=' + hospitalCode + '&urgent_type=' + urgentCode;
         let rqParams = {
           method: 'GET',
