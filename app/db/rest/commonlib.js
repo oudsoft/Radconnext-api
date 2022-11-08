@@ -496,10 +496,11 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
           setTimeout(async()=>{
             let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
             log.info('callDeposRes=>' + JSON.stringify(callDeposRes));
-            if (callDeposRes !== 'ANSWERED') {
+            let deposResult = JSON.parse(callDeposRes.res.body);
+            if (deposResult.deposition !== 'ANSWERED') {
               //setstatuscase to reject
               //radioProfile.phoneRetry.noactioncasestatus
-              let setCaseStatusCmdFmt = 'curl -X POST --user %s https://radconnext.info/api/cases/status/%s -d \'{casestatusId: 3, caseDescription: "%s"}\'';
+              let setCaseStatusCmdFmt = 'curl -X POST --user %s https://radconnext.info/api/cases/status/%s -d \'{casestatusId: "3", caseDescription: "%s"}\'';
               let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
               let rejectRemark = uti.fmtStr('รังสีแพทย์ %s ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
               let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
