@@ -254,15 +254,15 @@ app.post('/status/(:caseId)', async (req, res) => {
   if (token.indexOf('Basic') >= 0) {
     let up = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
     let ups = up.split(':');
-    log.info('ups=>' + JSON.stringify(ups))
+    //log.info('ups=>' + JSON.stringify(ups))
     token = auth.doEncodeToken(ups[0]);
-    log.info('newtoken=>' + token);
+    //log.info('newtoken=>' + token);
   }
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         const caseId = req.params.caseId;
-        log.info('req.body =>' + JSON.stringify(req.body));
+        //log.info('req.body =>' + JSON.stringify(req.body));
         const reqCaseStatusId = req.body.casestatusId;
         const remark = req.body.caseDescription;
         //attributes = 'casestatusId'
