@@ -262,6 +262,7 @@ app.post('/status/(:caseId)', async (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         const caseId = req.params.caseId;
+        log.info('req.body =>' + JSON.stringify(req.body));
         const reqCaseStatusId = req.body.casestatusId;
         const remark = req.body.caseDescription;
         //attributes = 'casestatusId'
