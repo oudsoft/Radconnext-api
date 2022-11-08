@@ -1333,6 +1333,7 @@ module.exports = (dbconn, monitor, casetask, warningtask, voiptask, websocket) =
     doFilerStatusChange,
     doCanChange,
     doChangeCaseStatus,
+    doActionAfterChange,
     doCalTriggerMinut,
     doAutoPhoneCallRadio,
     onNewCaseEvent,
