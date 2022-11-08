@@ -502,7 +502,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
               let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
               let rejectRemark = uti.fmtStr('รังสีแพทย์ % ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
               let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
-              await uti.runCommand(setCaseStatusCmd);
+              await uti.runcommand(setCaseStatusCmd);
               await tasks.removeTaskByCaseId(caseId);
             } else {
               await tasks.removeTaskByCaseId(caseId);
