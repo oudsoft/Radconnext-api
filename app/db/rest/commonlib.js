@@ -500,7 +500,8 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             if (deposResult.deposition !== 'ANSWERED') {
               let setCaseStatusCmdFmt = 'curl -X POST --user %s -H "Content-Type: application/json" https://radconnext.info/api/cases/status/%s -d \'{"casestatusId": 3, "caseDescription": "%s"}\'';
               let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
-              let rejectRemark = uti.fmtStr('รังสีแพทย์ %s ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
+              let rejectRemark = uti.fmtStr('รังสีแพทย์ %s กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส', radioNameTH);
+              //รังสีแพทย์ กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส
               let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
               let changeCaseStatusReply = await uti.runcommand(setCaseStatusCmd);
               log.info('changeCaseStatusReply=>' + JSON.stringify(changeCaseStatusReply));
