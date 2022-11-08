@@ -252,7 +252,7 @@ app.post('/select/(:caseId)', (req, res) => {
 app.post('/status/(:caseId)', async (req, res) => {
   log.info('headers=> ' + JSON.stringify(req.headers));
   let token = req.headers.authorization;
-  if (token.indexOf('Basic')) {
+  if (token.indexOf('Basic') >= 0) {
     let up = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
     let ups = up.split(':');
     log.info('ups=>' + JSON.stringify(ups))
