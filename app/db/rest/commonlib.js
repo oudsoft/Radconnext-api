@@ -500,9 +500,10 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
               //radioProfile.phoneRetry.noactioncasestatus
               let setCaseStatusCmdFmt = 'curl -X POST --user %s https://radconnext.info/api/cases/status/%s -d \'{casestatusId: 3, caseDescription: "%s"}\'';
               let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
-              let rejectRemark = uti.fmtStr('รังสีแพทย์ % ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
+              let rejectRemark = uti.fmtStr('รังสีแพทย์ %s ปฏิเสธเคส จากการตั้งค่าเมื่อไม่รับสายเรียกจาก VOIP', radioNameTH);
               let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
-              await uti.runcommand(setCaseStatusCmd);
+              let changeCaseStatusReply = await uti.runcommand(setCaseStatusCmd);
+              log.info('changeCaseStatusReply=>' + JSON.stringify(changeCaseStatusReply));
               await tasks.removeTaskByCaseId(caseId);
             } else {
               await tasks.removeTaskByCaseId(caseId);

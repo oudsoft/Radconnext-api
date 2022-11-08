@@ -68,14 +68,14 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
   return new Promise(async function(resolve, reject) {
     const targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'Case_RefferalId', 'userId', 'casestatusId'], where: {id: caseId}});
     const nowCaseStatus = targetCases[0].casestatusId;
-    //log.info('from=>' + from);
-    //log.info('next=>' + next);
-    //log.info('now=>' + nowCaseStatus);
+    log.info('statuslib/doChangeCaseStatus from=>' + from);
+    log.info('statuslib/doChangeCaseStatus next=>' + next);
+    log.info('statuslib/doChangeCaseStatus now=>' + nowCaseStatus);
     let isCando = await doCanChange(from, next, nowCaseStatus);
-    //log.info('isCando=>' + isCando);
+    log.info('statuslib/doChangeCaseStatus isCando=>' + isCando);
     if (isCando) {
       let accessBy = await doGetAccessBy(from, next);
-      //log.info('accessBy=>' + accessBy);
+      log.info('statuslib/doChangeCaseStatus accessBy=>' + accessBy);
       if (accessBy) {
         if (accessBy == 0) {
           //system access or admin access
