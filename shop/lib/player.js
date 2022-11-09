@@ -71,7 +71,8 @@
       $(fullScreenCmd).attr('src', settings.iconRootPath+ '/images/fullscreen-icon.png');
       $(fullScreenCmd).css({'position': 'relative', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
       $(fullScreenCmd).on('click', (evt)=>{
-        let xElem = document.getElementById('ImgBox');
+        //let xElem = document.getElementById('ImgBox');
+        let xElem = $(playerViewBox).find('#ImgBox');;
         if (xElem) {
           requestFullScreen(xElem).then((wh) => {
             fullScreenMode = true;
