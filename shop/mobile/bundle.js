@@ -70,7 +70,7 @@ module.exports = function ( jq ) {
     return Number(num).toLocaleString('en', options);
   }
 
-	function doFormatQtyNumber(num){
+	const doFormatQtyNumber = function(num){
 	  if ((Number(num) === num) && (num % 1 !== 0)) {
 	    return doFormatNumber(num);
 	  } else {
@@ -594,11 +594,65 @@ const doCreateUserInfoBox = function(){
     });
   });
   let userInfo = $('<div></div>').text(userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH).css({'position': 'relative', 'margin-top': '-15px', 'padding': '2px', 'font-size': '14px'});
+  let userPPQRTestCmd = $('<div>สร้างพร้อมเพย์คิวอาร์โค้ด</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '0px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
+  $(userPPQRTestCmd).on('click', (evt)=>{
+    evt.stopPropagation();
+    $(pageHandle.toggleMenuCmd).click();
+    doStartTestPPQC(evt, userdata.shop);
+  });
   let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '0px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userLogoutCmd).on('click', (evt)=>{
     common.doUserLogout();
   });
-  return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userLogoutCmd));
+  return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userPPQRTestCmd)).append($(userLogoutCmd));
+}
+
+const doStartTestPPQC = function(evt, shopData){
+  let editInput = $('<input type="number"/>').val(common.doFormatNumber(100)).css({'width': '100px', 'margin-left': '20px'});
+  $(editInput).on('keyup', (evt)=>{
+    if (evt.keyCode == 13) {
+      $(dlgHandle.okCmd).click();
+    }
+  });
+  let editLabel = $('<label>จำนวนเงิน(บาท):</label>').attr('for', $(editInput)).css({'width': '100%'});
+  let ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput));
+  let editDlgOption = {
+    title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
+    msg: $(ppQRBox),
+    width: '420px',
+    onOk: async function(evt) {
+      let newValue = $(editInput).val();
+      if(newValue !== '') {
+        $(editInput).css({'border': ''});
+        let params = {
+          Shop_PromptPayNo: shopData.Shop_PromptPayNo,
+          Shop_PromptPayName: shopData.Shop_PromptPayName,
+          netAmount: newValue,
+        };
+        let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
+        if (shopRes.status.code == 200) {
+          $.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
+          $(ppQRBox).empty().append($('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'}));
+          $(dlgHandle.cancelCmd).show();
+          $(dlgHandle.cancelCmd).val(' ตกลง ');
+          $(dlgHandle.okCmd).hide();
+        } else if (shopRes.status.code == 201) {
+          $.notify("ไม่สามารถสร้างพร้อมเพย์คิวอาร์โค้ดได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+        } else {
+          $.notify("เกิดข้อผิดพลาด ไม่สามารถสร้างพร้อมเพย์คิวอาร์โค้ดได้", "error");
+        }
+      } else {
+        $.notify('จำนวนเงินต้องไม่ว่าง', 'error');
+        $(editInput).css({'border': '1px solid red'});
+      }
+    },
+    onCancel: function(evt){
+      dlgHandle.closeAlert();
+    }
+  }
+  let dlgHandle = $('body').radalert(editDlgOption);
+  $(dlgHandle.cancelCmd).hide();
+  return dlgHandle;
 }
 
 },{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){
