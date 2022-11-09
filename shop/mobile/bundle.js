@@ -600,7 +600,7 @@ const doCreateUserInfoBox = function(){
     $(pageHandle.toggleMenuCmd).click();
     doStartTestPPQC(evt, userdata.shop);
   });
-  let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '0px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
+  let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '10px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userLogoutCmd).on('click', (evt)=>{
     common.doUserLogout();
   });
