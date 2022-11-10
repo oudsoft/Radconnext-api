@@ -2891,7 +2891,7 @@ module.exports = function ( jq ) {
 		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 			wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
 		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
 		}
 	}
 
@@ -2899,7 +2899,7 @@ module.exports = function ( jq ) {
 		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 			wsm.send(JSON.stringify({type: 'set', what: 'screenstate', value: state}));
 		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
 		}
 	}
 

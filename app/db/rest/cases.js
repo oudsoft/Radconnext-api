@@ -273,7 +273,9 @@ app.post('/status/(:caseId)', async (req, res) => {
         //const userId = targetCases[0].userId;
         const userId = ur[0].id;
 
-        let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark)
+        console.log(currentStatus, reqCaseStatusId, caseId, userId, remark);
+        let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
+        console.log(changeResult)
         res.json({status: {code: 200}, actions: changeResult.change.actiohs});
       } else {
         log.info('Can not found user from token.');
@@ -289,10 +291,8 @@ app.post('/status/(:caseId)', async (req, res) => {
 //short-cut change status
 app.post('/status/shortcut/(:caseId)', async (req, res) => {
   let token = req.headers.authorization;
-  log.info('token = >' + token);
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
-      log.info('ur = >' + JSON.stringify(ur));
       if (ur.length > 0){
         const caseId = req.params.caseId;
         const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId'], where: {id: caseId}});
@@ -300,7 +300,6 @@ app.post('/status/shortcut/(:caseId)', async (req, res) => {
         const reqCaseStatusId = req.body.casestatusId;
         const remark = req.body.caseDescription;
         const caseStatusChange = { casestatusId: reqCaseStatusId, Case_DESC: remark};
-        log.info('caseStatusChange = >' + JSON.stringify(caseStatusChange));
         await Case.update(caseStatusChange, { where: { id: caseId } });
         let actions = await statusControl.doActionAfterChange(from, reqCaseStatusId, caseId);
         res.json({status: {code: 200}, result: actions});
