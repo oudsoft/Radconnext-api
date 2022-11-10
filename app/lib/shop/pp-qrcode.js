@@ -101,7 +101,7 @@ const doCreatePPQRCode = function(ppData) {
 			const stream = imageCanvas.createPNGStream();
 			stream.pipe(out);
 			out.on('finish', () =>  {
-				resolve({qrLink: '/shop' + imageLink, qrPath: imagePath});
+				resolve({qrLink: '/shop' + imageLink, qrPath: imagePath, qrFileName: imageFileName});
 			});
     });
   });

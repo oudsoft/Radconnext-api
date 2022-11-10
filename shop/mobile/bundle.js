@@ -631,9 +631,12 @@ const doStartTestPPQC = function(evt, shopData){
         };
         let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
         if (shopRes.status.code == 200) {
-          console.log(shopRes.result);
           $.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
-          $(ppQRBox).empty().append($('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'}));
+          let ppqrImage = $('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'});
+          $(ppqrImage).on('click', (evt)=>{
+            window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
+          });
+          $(ppQRBox).empty().append($(ppqrImage));
           $(dlgHandle.cancelCmd).show();
           $(dlgHandle.cancelCmd).val(' ตกลง ');
           $(dlgHandle.okCmd).hide();
