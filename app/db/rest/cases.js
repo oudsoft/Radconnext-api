@@ -289,8 +289,10 @@ app.post('/status/(:caseId)', async (req, res) => {
 //short-cut change status
 app.post('/status/shortcut/(:caseId)', async (req, res) => {
   let token = req.headers.authorization;
+  log.info('token = >' + token);
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
+      log.info('ur = >' + JSON.stringify(ur));
       if (ur.length > 0){
         const caseId = req.params.caseId;
         const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId'], where: {id: caseId}});
