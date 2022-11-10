@@ -594,7 +594,7 @@ const doCreateUserInfoBox = function(){
     });
   });
   let userInfo = $('<div></div>').text(userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH).css({'position': 'relative', 'margin-top': '-15px', 'padding': '2px', 'font-size': '14px'});
-  let userPPQRTestCmd = $('<div>สร้างพร้อมเพย์คิวอาร์โค้ด</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '0px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
+  let userPPQRTestCmd = $('<div>สร้างพร้อมเพย์คิวอาร์โค้ด</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '10px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userPPQRTestCmd).on('click', (evt)=>{
     evt.stopPropagation();
     $(pageHandle.toggleMenuCmd).click();
@@ -619,7 +619,7 @@ const doStartTestPPQC = function(evt, shopData){
   let editDlgOption = {
     title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
     msg: $(ppQRBox),
-    width: '400px',
+    width: '380px',
     onOk: async function(evt) {
       let newValue = $(editInput).val();
       if(newValue !== '') {
