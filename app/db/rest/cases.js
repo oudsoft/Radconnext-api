@@ -273,9 +273,9 @@ app.post('/status/(:caseId)', async (req, res) => {
         //const userId = targetCases[0].userId;
         const userId = ur[0].id;
 
-        console.log(currentStatus, reqCaseStatusId, caseId, userId, remark);
+        //console.log(currentStatus, reqCaseStatusId, caseId, userId, remark);
         let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
-        console.log(changeResult)
+        //console.log(changeResult)
         res.json({status: {code: 200}, actions: changeResult.change.actiohs});
       } else {
         log.info('Can not found user from token.');

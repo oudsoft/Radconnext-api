@@ -89,7 +89,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           resolve({change: {status: true}, actions: actions});
         } else if (accessBy == 2) {
           //technicial access
-          if (targetCases[0].userId == userId) {
+          //if (targetCases[0].userId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             if (remark) {
@@ -98,9 +98,9 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
             }
             let actions = await doActionAfterChange(from, next, caseId);
             resolve({change: {status: true}, actions: actions});
-          } else {
-            resolve({change: {status: false}});
-          }
+          //} else {
+            //resolve({change: {status: false}});
+          //}
         } else if (accessBy == 4) {
           //radio access
           log.info('targetCases[0].Case_RadiologistId=>' + targetCases[0].Case_RadiologistId);
