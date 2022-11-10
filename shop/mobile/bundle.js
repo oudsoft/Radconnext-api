@@ -631,6 +631,7 @@ const doStartTestPPQC = function(evt, shopData){
         };
         let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
         if (shopRes.status.code == 200) {
+          console.log(shopRes.result);
           $.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
           $(ppQRBox).empty().append($('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'}));
           $(dlgHandle.cancelCmd).show();
