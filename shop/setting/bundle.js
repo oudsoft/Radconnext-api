@@ -70,7 +70,7 @@ module.exports = function ( jq ) {
     return Number(num).toLocaleString('en', options);
   }
 
-	function doFormatQtyNumber(num){
+	const doFormatQtyNumber = function(num){
 	  if ((Number(num) === num) && (num % 1 !== 0)) {
 	    return doFormatNumber(num);
 	  } else {
@@ -1092,10 +1092,10 @@ module.exports = function ( jq ) {
         let customerRes = await common.doCallApi('/api/shop/customer/add', params);
         if (customerRes.status.code == 200) {
           $.notify("เพิ่มรายการลูกค้าสำเร็จ", "success");
-          let customers = JSON.parse(localStorage.getItem('customers'));
-          customers.push(newCustomerData);
+					let newCustomer = customerRes.Record;
+					let customers = customerRes.Records;
           localStorage.setItem('customers', JSON.stringify(customers));
-          successCallback(customers);
+          successCallback(newCustomer);
         } else if (customerRes.status.code == 201) {
           $.notify("ไม่สามารถเพิ่มรายการลูกค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
         } else {
@@ -3163,7 +3163,19 @@ module.exports = function ( jq ) {
   			$(menuitemFormTable).append($(fieldRow));
       }
 		}
-    let fieldRow = $('<tr></tr>');
+		if (menuitemData.Qty) {
+    	let fieldRow = $('<tr></tr>');
+			let labelField = $('<td width="40%" align="left">จำนวน <span style="color: red;">*</span></td>').css({'padding': '5px'});
+			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+			let inputValue = $('<input type="number" id="Qty" size="10"/>');
+			$(inputValue).val(menuitemData.Qty);
+			$(inputField).append($(inputValue));
+			$(fieldRow).append($(labelField));
+			$(fieldRow).append($(inputField));
+			$(menuitemFormTable).append($(fieldRow));
+		}
+
+		let fieldRow = $('<tr></tr>');
 		let labelField = $('<td width="40%" align="left">กลุ่มเมนู <span style="color: red;">*</span></td>').css({'padding': '5px'});
 		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
 		let inputValue = $('<select id="GroupId"></select>');
@@ -3207,6 +3219,7 @@ module.exports = function ( jq ) {
 				}
 			}
 		}
+		menuitemDataForm.Qty = $('#Qty').val();
     menuitemDataForm.menugroupId = $('#GroupId').val();
 		return menuitemDataForm;
   }
@@ -5230,7 +5243,6 @@ module.exports = function ( jq ) {
   }
 
 	const doStartTestPPQC = function(evt, shopData){
-		console.log(shopData);
 		let editInput = $('<input type="number"/>').val(common.doFormatNumber(100)).css({'width': '100px', 'margin-left': '20px'});
 		$(editInput).on('keyup', (evt)=>{
 			if (evt.keyCode == 13) {
@@ -5255,7 +5267,12 @@ module.exports = function ( jq ) {
 					let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
 					if (shopRes.status.code == 200) {
 						$.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
-						$(ppQRBox).empty().append($('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'}));
+						let ppqrImage = $('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'});
+						$(ppqrImage).on('click', (evt)=>{
+							evt.stopPropagation();
+							window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
+						});
+						$(ppQRBox).empty().append($(ppqrImage));
 						$(dlgHandle.cancelCmd).show();
 						$(dlgHandle.cancelCmd).val(' ตกลง ');
 						$(dlgHandle.okCmd).hide();

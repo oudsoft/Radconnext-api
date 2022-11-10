@@ -634,6 +634,7 @@ const doStartTestPPQC = function(evt, shopData){
           $.notify("สร้างพร้อมเพย์คิวอาร์โค้ดสำเร็จ", "success");
           let ppqrImage = $('<img/>').attr('src', shopRes.result.qrLink).css({'width': '410px', 'height': 'auto'});
           $(ppqrImage).on('click', (evt)=>{
+            evt.stopPropagation();
             window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
           });
           $(ppQRBox).empty().append($(ppqrImage));
@@ -1651,7 +1652,7 @@ module.exports = function ( jq ) {
 							let textCmdCallback = async function(evt){
 								let docParams = {orderId: orders[i].id, shopId: shopId};
 								let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
-								console.log(docRes);
+								//console.log(docRes);
 								if (docRes.status.code == 200) {
 									let report = docRes.result;
 									let reportBox = orderForm.doCreateReportBox(report, 'ใบแจ้งหนี้');
