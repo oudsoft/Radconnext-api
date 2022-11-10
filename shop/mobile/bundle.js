@@ -619,7 +619,7 @@ const doStartTestPPQC = function(evt, shopData){
   let editDlgOption = {
     title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
     msg: $(ppQRBox),
-    width: '420px',
+    width: '400px',
     onOk: async function(evt) {
       let newValue = $(editInput).val();
       if(newValue !== '') {
