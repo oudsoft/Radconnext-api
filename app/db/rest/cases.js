@@ -298,6 +298,7 @@ app.post('/status/shortcut/(:caseId)', async (req, res) => {
         const reqCaseStatusId = req.body.casestatusId;
         const remark = req.body.caseDescription;
         const caseStatusChange = { casestatusId: reqCaseStatusId, Case_DESC: remark};
+        log.info('caseStatusChange = >' + JSON.stringify(caseStatusChange));
         await Case.update(caseStatusChange, { where: { id: caseId } });
         let actions = await statusControl.doActionAfterChange(from, reqCaseStatusId, caseId);
         res.json({status: {code: 200}, result: actions});

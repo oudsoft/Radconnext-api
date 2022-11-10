@@ -7035,11 +7035,23 @@ module.exports = function ( jq ) {
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
 
 					let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
-					$.post(saveResponseApiURL, params, function(saveResponseRes){
-						caseResponseId = saveResponseRes.result.responseId;
-						saveNewResponseData.responseid = caseResponseId;
-						saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
-						doCreateResultManagementDialog(saveNewResponseData);
+					$.post(saveResponseApiURL, params, async function(saveResponseRes){
+						if ((saveResponseRes.result) && (saveResponseRes.result.responseId)) {
+							caseResponseId = saveResponseRes.result.responseId;
+							saveNewResponseData.responseid = caseResponseId;
+							saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
+							doCreateResultManagementDialog(saveNewResponseData);
+						} else {
+							let callRes = await doCallDraftRespons(caseId);
+							if (callRes.Record.length > 0) {
+								caseResponseId = callRes.Record[0].id;
+								saveNewResponseData.responseid = caseResponseId;
+								saveNewResponseData.reportPdfLinkPath = '/img/usr/pdf/' + fileName;
+								doCreateResultManagementDialog(saveNewResponseData);
+							} else {
+								console.log({error: 'not found case responseId'});
+							}
+						}
 					}).catch((err) => {
 						console.log(err);
 						$.notify("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ โปรดแจ้งผู้ดูแลระบบ", "error");
