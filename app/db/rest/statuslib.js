@@ -1167,8 +1167,8 @@ const doControlAddNewResponse = function(reqData) {
     log.info('nextStatus=>' + JSON.stringify(nextStatus));
     if (nextStatus) {
       let remark = 'รังสีแพทย์บันทึกผลอ่าน (Save) เข้าระบบสำเร็จ';
-      let newResponseStatus = [8];
-      let editResponseStatus = [5, 6, 9, 10, 11, 12, 13, 14];
+      let newResponseStatus = [2, 8];
+      let editResponseStatus = [2, 5, 6, 8, 9, 10, 11, 12, 13, 14];
       let isNewResponse = uti.contains.call(newResponseStatus, nowStatusId);
       log.info('isNewResponse=>' + isNewResponse);
       let isEditResponse = uti.contains.call(editResponseStatus, nowStatusId);
