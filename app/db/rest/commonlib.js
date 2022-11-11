@@ -648,6 +648,7 @@ const doCaseChangeStatusKeepLog = function(data) {
     }
 
     let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark, triggerAt: data.triggerAt};
+    log.info('newKeepLog=> ' + JSON.stringify(newKeepLog))
     let adLog = await db.radkeeplogs.create(newKeepLog);
     resolve(adLog);
   });
