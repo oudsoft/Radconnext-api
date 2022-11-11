@@ -41,10 +41,16 @@ function RadconVoipTask (socket, db, log) {
         } else {
           //doCall rwquest remove callFile from VOIP Server
           if ((task.callFile) && ((task.callFile) !== '')) {
-            await $this.doCallDeleteCallFile(task.callFile);
+            let callDeleteCallFileRes = await $this.doCallDeleteCallFile(task.callFile);
           }
-          await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
+          let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+          let currentCaseStatusId = nowcaseStatus[0].casestatusId;
+          let systemId = 0;
+          let remark = 'ระบบทำการยกเลิกสายเรียกของรังสีแพทย์ ' + task.radioNameTH;
+          let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
+          await db.radkeeplogs.create(newKeepLog);
           task.task.stop();
+          return;
         }
       });
       $this.voipTasks = anotherTasks;

@@ -255,19 +255,13 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
               let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
               let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
               await common.doCaseChangeStatusKeepLog(newKeepLog);
+              await Voip.removeTaskByCaseId(targetCases[0].id);              
               if (changeRes.change.status == true) {
                 /*
                 action = 'quick';
                 let actionReturnText = await common.doCreateTriggerChatBotMessage(data, changeRes.triggerDate);
                 await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
                 */
-                let VoipTask = await Voip.selectTaskByCaseId(targetCases[0].id);
-                if (VoipTask) {
-                  let callFile = VoipTask.callFile;
-                  if (callFile) {
-                    await Voip.doCallDeleteCallFile(callFile);
-                  }
-                }
               } else {
                 action = 'quick';
                 actionReturnText = 'ไม่สามารถดำเนินการตอบรับเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';

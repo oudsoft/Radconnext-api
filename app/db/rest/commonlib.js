@@ -480,8 +480,9 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+        newTask.radioNameTH = radioNameTH;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
-        let newKeepLog = { caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark, result: callPhoneRes};
+        let newKeepLog = {caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark};
         await doCaseChangeStatusKeepLog(newKeepLog);
         if (radioProfile.phoneRetry.noactioncasestatus == 3) {
           let callDelay = undefined;
@@ -494,18 +495,24 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
           }
           log.info('callDepositionDelay=>' + callDelay);
           setTimeout(async()=>{
-            let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
-            log.info('callDeposRes=>' + JSON.stringify(callDeposRes));
-            let deposResult = JSON.parse(callDeposRes.res.body);
-            if (deposResult.deposition !== 'ANSWERED') {
-              let setCaseStatusCmdFmt = 'curl -X POST --user %s -H "Content-Type: application/json" https://radconnext.info/api/cases/status/%s -d \'{"casestatusId": 3, "caseDescription": "%s"}\'';
-              let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
-              let rejectRemark = uti.fmtStr('รังสีแพทย์ %s กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส', radioNameTH);
-              //รังสีแพทย์ กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส
-              let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
-              let changeCaseStatusReply = await uti.runcommand(setCaseStatusCmd);
-              log.info('changeCaseStatusReply=>' + JSON.stringify(changeCaseStatusReply));
-              await tasks.removeTaskByCaseId(caseId);
+            nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+            log.info('VoIp Task nowcaseStatus After Call => ' + JSON.stringify(nowcaseStatus));
+            if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+              let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
+              log.info('callDeposRes=>' + JSON.stringify(callDeposRes));
+              let deposResult = JSON.parse(callDeposRes.res.body);
+              if (deposResult.deposition !== 'ANSWERED') {
+                let setCaseStatusCmdFmt = 'curl -X POST --user %s -H "Content-Type: application/json" https://radconnext.info/api/cases/status/%s -d \'{"casestatusId": 3, "caseDescription": "%s"}\'';
+                let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
+                let rejectRemark = uti.fmtStr('รังสีแพทย์ %s กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส', radioNameTH);
+                //รังสีแพทย์ กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส
+                let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
+                let changeCaseStatusReply = await uti.runcommand(setCaseStatusCmd);
+                log.info('changeCaseStatusReply=>' + JSON.stringify(changeCaseStatusReply));
+                await tasks.removeTaskByCaseId(caseId);
+              } else {
+                await tasks.removeTaskByCaseId(caseId);
+              }
             } else {
               await tasks.removeTaskByCaseId(caseId);
             }
