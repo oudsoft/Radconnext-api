@@ -648,7 +648,7 @@ const doCaseChangeStatusKeepLog = function(data) {
     }
 
     let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark};
-    log.info('newKeepLog=> ' + JSON.stringify(newKeepLog))
+    //log.info('newKeepLog=> ' + JSON.stringify(newKeepLog))
     if (data.triggerAt) {
       newKeepLog.triggerAt = data.triggerAt;
     }

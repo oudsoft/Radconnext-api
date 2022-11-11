@@ -261,6 +261,13 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
                 let actionReturnText = await common.doCreateTriggerChatBotMessage(data, changeRes.triggerDate);
                 await replyAction(replyToken, lineApi.createBotMenu(actionReturnText, action, lineApi.radioMainMenu));
                 */
+                let VoipTask = await Voip.selectTaskByCaseId(targetCases[0].id);
+                if (VoipTask) {
+                  let callFile = VoipTask.callFile;
+                  if (callFile) {
+                    await Voip.doCallDeleteCallFile(callFile);
+                  }
+                }
               } else {
                 action = 'quick';
                 actionReturnText = 'ไม่สามารถดำเนินการตอบรับเคสได้\n\nโปรดใช้งานอย่างอื่นจากเมนู';
