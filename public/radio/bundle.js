@@ -2888,13 +2888,13 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounter = function(){
-    if (wsm) {
-  		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
-  			wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
-  		} else {
-  			//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
-  		}
-    }
+		if (wsm) {
+			if ((wsm.readyState == 0) || (wsm.readyState == 1)){
+				wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+			} else {
+				//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			}
+		}
 	}
 
 	const doSetScreenState = function(state){
@@ -3518,7 +3518,7 @@ const remoteConnOnTrackEvent = function(event) {
       remoteMergedStream = remoteStream;
     } else if (userJoinOption.joinMode == 'face') {
       let streams = [remoteStream, userMediaStream];
-      remoteMergedStream = doMixStream(streams);
+      remoteMergedStream = doMixStream(streams);      
     }
     myVideo.srcObject = remoteMergedStream;
     $('#CommandBox').find('#ShareWebRCTCmd').show();
@@ -4753,7 +4753,9 @@ module.exports = function ( jq ) {
 			if (currentCaseRes.current == 2){
 			//if (caseItem.casestatusId == 2) {
 				let newCaseStatus = 8;
-	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, 'Radiologist Open accepted case by Web App');
+				let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสเพื่ออ่านผลสำเร็จ'
+	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, actionRemark);
 				if (response.status.code == 200) {
 		      eventData.statusId = newCaseStatus;
 					eventData.startDownload = 0;

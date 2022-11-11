@@ -1215,7 +1215,7 @@ const doControlAddNewResponse = function(reqData) {
           //log.info('editResponse=>' + JSON.stringify(editResponse));
           log.info('reportType=>' + reportType);
           let editResponseRes = await db.caseresponses.update(editResponse, { where: { id: responseId } });
-          remark = 'Radio Save update ' + reportType + ' Response success.';
+          remark = 'รังสีแพทย์ บันทึกร่างผลอ่าน สำเร็จ';
           let changeResult = await doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           let casereports = await db.casereports.findAll({attributes: ['id'], where: {caseresponseId: responseId}});
           if (casereports.length > 0) {
