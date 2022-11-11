@@ -4244,9 +4244,11 @@ function doLoadMainPage(){
           util.doResetPingCounter();
           $('body').loading('stop');
         });
+        util.doResetPingCounter();
       });
       $(document).on('opencase', async (evt, caseData)=>{
         onOpenCaseTrigger(caseData);
+        util.doResetPingCounter();
       });
       $(document).on('openprofile', async (evt, data)=>{
         let profileTitlePage = profile.doCreateProfileTitlePage();
@@ -4254,6 +4256,7 @@ function doLoadMainPage(){
         profile.doCreateProfilePage().then((profilePage)=>{
           $(".mainfull").empty().append($(profilePage));
           common.doScrollTopPage();
+          util.doResetPingCounter();
         }).catch(async (err)=>{
           if (err.error.code == 210){
             let rememberme = localStorage.getItem('rememberme');
@@ -4277,6 +4280,7 @@ function doLoadMainPage(){
         template.doCreateTemplatePage().then((templatePage)=>{
           $(".mainfull").empty().append($(templatePage));
           common.doScrollTopPage();
+          util.doResetPingCounter();
         }).catch(async (err)=>{
           if (err.error.code == 210){
             let rememberme = localStorage.getItem('rememberme');
@@ -4287,6 +4291,7 @@ function doLoadMainPage(){
               template.doCreateTemplatePage().then((templatePage)=>{
                 $(".mainfull").empty().append($(templatePage));
                 common.doScrollTopPage();
+                util.doResetPingCounter();
               });
             } else {
               common.doUserLogout(wsm);
@@ -4303,9 +4308,11 @@ function doLoadMainPage(){
 
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
+        util.doResetPingCounter();
       });
       $('#quickreply').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
+        util.doResetPingCounter();
       });
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
@@ -4400,6 +4407,7 @@ function doLoadDefualtPage(autoSelectPage) {
       }
     });
     */
+    util.doResetPingCounter();
     if (autoSelectPage == 1) {
       if (loadRes.newList.Records.length > 0 ) {
         $('#NewCaseCmd').click();
@@ -6739,11 +6747,13 @@ module.exports = function ( jq ) {
 				pom.setAttribute('download', outputFilename);
 				pom.click();
 				successCallback();
+				util.doResetPingCounter();
 			}
   	});
 	}
 
 	const doDownloadDicom = function(caseDicomZipFilename) {
+		util.doResetPingCounter();
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		pom.setAttribute('target', "_blank");
@@ -7961,6 +7971,7 @@ module.exports = function ( jq ) {
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 					keypressCount = 0;
+					util.doResetPingCounter();
 				} else {
 					keypressCount += 1;
 				}
