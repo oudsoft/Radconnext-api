@@ -647,8 +647,11 @@ const doCaseChangeStatusKeepLog = function(data) {
       await db.radkeeplogs.update({triggerAt: null}, {where: {caseId: data.caseId, from: data.from, to: data.from}});
     }
 
-    let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark, triggerAt: data.triggerAt};
+    let newKeepLog = { caseId : data.caseId,	userId : data.userId, from : data.from, to : data.to, remark : data.remark};
     log.info('newKeepLog=> ' + JSON.stringify(newKeepLog))
+    if (data.triggerAt) {
+      newKeepLog.triggerAt = data.triggerAt;
+    }
     let adLog = await db.radkeeplogs.create(newKeepLog);
     resolve(adLog);
   });
