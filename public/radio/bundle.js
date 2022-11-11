@@ -7043,7 +7043,7 @@ module.exports = function ( jq ) {
 					//let saveResponseRes = doCallSaveResult(params);
 					//->ตรงนี้คืออะไร
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
-
+					params.reporttype = 'normal';
 					let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
 					$.post(saveResponseApiURL, params, async function(saveResponseRes){
 						if ((saveResponseRes.result) && (saveResponseRes.result.responseId)) {
