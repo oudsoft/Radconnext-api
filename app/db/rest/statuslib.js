@@ -470,7 +470,8 @@ const onAcceptCaseEvent = function(caseId) {
     const studyDescription = targetCase.Case_StudyDescription;
     const caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription};
     await tasks.removeTaskByCaseId(targetCase.id);
-
+    await voips.removeTaskByCaseId(targetCase.id);
+    
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
