@@ -157,10 +157,10 @@ lineusers.belongsTo(users);
 
 const risinterfaces = sequelize.define('risinterfaces', Def. RadRisInterfaceDef);
 
-const sumass = sequelize.define('sumass', Def.RadSUMasDef);
+const sumases = sequelize.define('sumases', Def.RadSUMasDef);
 
 const scanpartrefs = sequelize.define('scanpartrefs', Def. RadScanPartRefDef);
-scanpartrefs.belongsTo(sumass);
+scanpartrefs.belongsTo(sumases);
 
 const scanpartauxs = sequelize.define('scanpartauxs', Def. RadScanPartAuxDef);
 scanpartauxs.belongsTo(users);
@@ -204,7 +204,7 @@ module.exports =  {
   casereports,
   lineusers,
   risinterfaces,
-  sumass,
+  sumases,
   scanpartrefs,
   scanpartauxs,
   pricecharts,
