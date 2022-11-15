@@ -129,6 +129,21 @@ const RadOrthancDef = {
 			}
 		};
 
+const RadSUMasDef = {
+			UGType_Name : {
+				type: Sequelize.STRING(80)
+			},
+			MajorType : {
+				type: Sequelize.STRING(30)
+			},
+			UGType_AcceptStep: {
+				type: Sequelize.JSON
+			},
+			UGType_WorkingStep: {
+				type: Sequelize.JSON
+			}
+		};
+
 //Hos_ID
 const RadUrgentTypeDef = {
 			UGType : {
@@ -600,6 +615,7 @@ module.exports = {
 	RadUserProfileDef,
 	RadHospitalDef,
 	RadOrthancDef,
+	RadSUMasDef,
 	RadUrgentTypeDef,
 	RadGeneralStatusDef,
 	RadCliameRightsDef,

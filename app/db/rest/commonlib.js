@@ -208,9 +208,10 @@ const doGenNewCaseOptions = function(hospitalId) {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
       const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
+      const sumasInclude = [{model: db.sumas, attributes: excludeColumn}];
       const clmes = await db.cliamerights.findAll({ attributes: ['id', 'CR_Name'] });
       const urges = await db.urgenttypes.findAll({ attributes: ['id', 'UGType_Name'], where: {hospitalId: hospitalId, UGType: 'standard'} });
-      //const radusers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId, usertypeId: 4}});
+      const sumaps = await db.scanpartrefs.findAll({ attributes: excludeColumn, include: sumasInclude, order: [['id', 'ASC']] });
       const refusers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId, usertypeId: 5}});
       let cliames = [];
       clmes.forEach((clm, i) => {
@@ -222,23 +223,13 @@ const doGenNewCaseOptions = function(hospitalId) {
         let tempUrg = {Value: urg.id, DisplayText: urg.UGType_Name};
         urgents.push(tempUrg);
       });
-      /*
-      let rades = [];
-      radusers.forEach((user, i) => {
-        let tempRdl = {Value: user.id, DisplayText: user.userinfo.User_NameTH + ' ' + user.userinfo.User_LastNameTH};
-        rades.push(tempRdl);
-      });
-      */
       let refes = [];
       refusers.forEach((user, i) => {
         let tempRef = {Value: user.id, DisplayText: user.userinfo.User_NameTH + ' ' + user.userinfo.User_LastNameTH};
         refes.push(tempRef);
       });
-      /*
-      let rades = await doSearchRadioForHospital(hospitalId);
-      */
       setTimeout(()=> {
-        resolve({Result: "OK", Options: {cliames, urgents, /* rades,*/ refes}});
+        resolve({Result: "OK", Options: {cliames, urgents, sumaps, refes}});
       },400);
     });
     Promise.all([promiseList]).then((ob)=> {
