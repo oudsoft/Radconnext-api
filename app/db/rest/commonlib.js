@@ -208,7 +208,7 @@ const doGenNewCaseOptions = function(hospitalId) {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
       const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
-      const sumasInclude = [{model: db.sumas, attributes: excludeColumn}];
+      const sumasInclude = [{model: db.sumass, attributes: excludeColumn}];
       const clmes = await db.cliamerights.findAll({ attributes: ['id', 'CR_Name'] });
       const urges = await db.urgenttypes.findAll({ attributes: ['id', 'UGType_Name'], where: {hospitalId: hospitalId, UGType: 'standard'} });
       const sumaps = await db.scanpartrefs.findAll({ attributes: excludeColumn, include: sumasInclude, order: [['id', 'ASC']] });
