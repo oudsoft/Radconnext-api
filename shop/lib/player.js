@@ -72,13 +72,17 @@
       $(fullScreenCmd).css({'position': 'relative', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '10px', 'margin-left': '10px'});
       $(fullScreenCmd).on('click', (evt)=>{
         //let xElem = document.getElementById('ImgBox');
-        let xElem = $(playerViewBox).find('#ImgBox');;
+        let zElem = $this.find('#ImgBox');
+        //console.log(zElem);
+        let xElem = $(zElem)[0];
         if (xElem) {
           requestFullScreen(xElem).then((wh) => {
             fullScreenMode = true;
-            let imgView = $(playerViewBox).find('.imgbox');
+            xElem.style.width = window.screen.width;
+            xElem.style.height = window.screen.height;
+            let imgView = $(zElem).find('img');
+            //console.log(imgView);
             $(imgView).css({'height': '100%', 'width': 'auto'})
-            //$('#ImagePreview').css({'height': '100%', 'width': 'auto'})
   		    });
         } else {
           console.log('Error: not found your img elem. at Cmd.');
@@ -647,7 +651,8 @@
         fullScreenMode = false;
         console.log(fullScreenMode);
       } else {
-        let xElem = document.getElementById('ImgBox');
+        let zElem = $(playerViewBox).find('#ImgBox');
+        let xElem = $(zElem)[0];
         if (xElem) {
           requestFullScreen(xElem).then((wh) => {
             fullScreenMode = true;

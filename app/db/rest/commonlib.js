@@ -211,7 +211,8 @@ const doGenNewCaseOptions = function(hospitalId) {
       const sumasInclude = [{model: db.sumases, attributes: excludeColumn}];
       const clmes = await db.cliamerights.findAll({ attributes: ['id', 'CR_Name'] });
       const urges = await db.urgenttypes.findAll({ attributes: ['id', 'UGType_Name'], where: {hospitalId: hospitalId, UGType: 'standard'} });
-      const sumaps = await db.scanpartrefs.findAll({ attributes: excludeColumn, include: sumasInclude, order: [['id', 'ASC']] });
+      const sumaps = await db.scanpartrefs.findAll({ attributes: excludeColumn, order: [['id', 'ASC']] });
+      const sumass = await db.sumases.findAll({ attributes: excludeColumn, order: [['id', 'ASC']] });
       const refusers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId, usertypeId: 5}});
       let cliames = [];
       clmes.forEach((clm, i) => {
@@ -229,7 +230,7 @@ const doGenNewCaseOptions = function(hospitalId) {
         refes.push(tempRef);
       });
       setTimeout(()=> {
-        resolve({Result: "OK", Options: {cliames, urgents, sumaps, refes}});
+        resolve({Result: "OK", Options: {cliames, urgents, sumaps, sumass, refes}});
       },400);
     });
     Promise.all([promiseList]).then((ob)=> {
