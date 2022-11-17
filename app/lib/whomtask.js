@@ -22,7 +22,7 @@ function RadconWhomTask (socket, db, log) {
   		let task = cron.schedule(scheduleTrigger, function(){
         cb(consultId, socket, endDate);
       });
-      let newTask = {consultId: consultId, username: username, radioUsername: radioUsername, triggerAt: endDate, task: task};
+      let newTask = {consultId: Number(consultId), username: username, radioUsername: radioUsername, triggerAt: endDate, task: task};
 
       $this.whomTasks.push(newTask);
 
@@ -45,7 +45,7 @@ function RadconWhomTask (socket, db, log) {
   this.removeTaskByConsultId = function (consultId) {
     return new Promise(async function(resolve, reject) {
       let anotherWhoms = await $this.whomTasks.filter((whom)=>{
-        if (whom.consultId != consultId) {
+        if (whom.consultId != Number(consultId)) {
           return whom;
         }
       });
@@ -57,7 +57,7 @@ function RadconWhomTask (socket, db, log) {
   this.selectTaskByConsultId = function (consultId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.whomTasks.find((task)=>{
-        if (task.consultId == consultId) {
+        if (task.consultId == Number(consultId)) {
           return task;
         }
       });

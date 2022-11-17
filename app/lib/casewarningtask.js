@@ -21,7 +21,7 @@ function RadconWarningTask (socket, db, log) {
       let task = cron.schedule(scheduleTrigger, function(){
         cb(caseId, socket, endDate);
       });
-      let newTask = {caseId: caseId, radioUsername: radioUsername, triggerAt: endDate, task: task};
+      let newTask = {caseId: Number(caseId), radioUsername: radioUsername, triggerAt: endDate, task: task};
 
       $this.warningTasks.push(newTask);
 
@@ -32,10 +32,11 @@ function RadconWarningTask (socket, db, log) {
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let anotherTasks = await $this.warningTasks.filter((task)=>{
-        if (task.caseId != caseId) {
+        if (task.caseId != Number(caseId)) {
           return task;
         } else {
           task.task.stop();
+          return;
         }
       });
       $this.warningTasks = anotherTasks;
@@ -46,7 +47,7 @@ function RadconWarningTask (socket, db, log) {
   this.selectTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.warningTasks.find((task)=>{
-        if (task.caseId == caseId) {
+        if (task.caseId == Number(caseId)) {
           return task;
         }
       });
