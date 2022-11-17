@@ -4911,7 +4911,6 @@ module.exports = function ( jq ) {
 					caseTriggerAt = new Date(caseTriggerAt.getTime() + (3600000 * 1));
 	        console.log(caseTriggerAt);
 					let diffTime = caseTriggerAt.getTime() - now.getTime();
-					console.log(diffTime);
 	        let hh = parseInt(diffTime/(1000*60*60));
 	        let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
 					console.log(hh, mn);
