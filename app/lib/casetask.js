@@ -46,8 +46,8 @@ function RadconCaseTask (socket, db, log) {
       log.info('caseId param => ' + caseId);
       let anotherTasks = await $this.caseTasks.filter(async(task)=>{
         log.info('caseId current => ' + task.caseId);
-        log.info('verify result => ' + (task.caseId !== Number(caseId)));
-        if (task.caseId !== Number(caseId)) {
+        log.info('verify result => ' + (task.caseId != Number(caseId)));
+        if (task.caseId != Number(caseId)) {
           return task;
         } else {
           await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
