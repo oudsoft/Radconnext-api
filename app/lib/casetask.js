@@ -43,9 +43,11 @@ function RadconCaseTask (socket, db, log) {
 
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
-      log.info('caseId param => ' + caseId);
+      log.info('caseId param => ' + caseId + ' ' + typeof caseId);
+      log.info('caseId param Number fn => ' + Number(caseId) + ' ' + typeof Number(caseId));
       let anotherTasks = await $this.caseTasks.filter(async(task)=>{
-        log.info('caseId current => ' + task.caseId);
+        log.info('caseId current => ' + task.caseId + ' ' + typeof task.caseId);
+        log.info('caseId current Number fn => ' + Number(task.caseId) + ' ' + typeof Number(task.caseId));
         log.info('verify result => ' + (task.caseId != Number(caseId)));
         if (task.caseId != Number(caseId)) {
           return task;
