@@ -4905,6 +4905,7 @@ module.exports = function ( jq ) {
 	      if ((caseTask) && (caseTask.triggerAt)){
 					let now = new Date();
 					console.log(now);
+					console.log(caseTask.triggerAt);
 	        let caseTriggerAt = new Date(caseTask.triggerAt);
 					caseTriggerAt.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
 	        console.log(caseTriggerAt);
@@ -5039,6 +5040,7 @@ module.exports = function ( jq ) {
 	      if (caseLists.length > 0) {
 	        for (let i=0; i < caseLists.length; i++) {
 	          let caseItem = caseLists[i];
+						console.log(myTaksCase);
 						let task = await doFindTaksOfCase(myTaksCase.Records, caseItem.id);
 		        let caseRow = await doCreateCaseItemRow(caseItem, task);
 						if (caseRow){
