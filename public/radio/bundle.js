@@ -5027,13 +5027,14 @@ module.exports = function ( jq ) {
       $('body').loading('start');
       let myAccCase = await doCallMyAccCase();
 			let myTaksCase = await doCallMyTasksCase();
-			//console.log(myTaksCase);
+			console.log(myTaksCase);
 			if (myAccCase.status.code == 200){
 	      let myAccCaseView = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 	      let caseHearder = doCreateHeaderRow();
 	      $(myAccCaseView).append($(caseHearder));
 	      let caseLists = myAccCase.Records;
 				console.log(caseLists);
+				console.log(myTaksCase);
 	      if (caseLists.length > 0) {
 	        for (let i=0; i < caseLists.length; i++) {
 	          let caseItem = caseLists[i];
