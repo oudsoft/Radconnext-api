@@ -34,23 +34,9 @@ function RadconCaseTask (socket, db, log) {
         cb(caseId, socket, endDate);
       });
 
-      let newTask = {caseId: caseId, username: username, radioUsername: radioUsername, triggerAt: endDate, transactionId: transactionId, task: task};
+      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, triggerAt: endDate, transactionId: transactionId, task: task};
 
       $this.caseTasks.push(newTask);
-      /*
-      log.info('All new Task ' + JSON.stringify($this.getTasks()));
-      let msg = 'You have a new Case on ' + hospitalName + '. This your case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
-      let notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
-      let canSend = await socket.sendMessage(notify, radioUsername);
-
-      if (canSend) {
-        msg = 'The Radiologist of your new case can recieve message of this your case, And this case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
-      } else {
-        msg = 'The Radiologist of your new case can not recieve message of this your case, And this case will be expire at ' + endDate.getFullYear() + '-' + endMM + '-' + endDD + ' : ' + endHH + '.' + endMN;
-      }
-      notify = {type: 'notify', message: msg, caseId: caseId, casestatusId: baseCaseStatusId};
-      await socket.sendMessage(notify, username);
-      */
       resolve(newTask);
     });
   }
@@ -58,7 +44,7 @@ function RadconCaseTask (socket, db, log) {
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let anotherTasks = await $this.caseTasks.filter(async(task)=>{
-        if (task.caseId != caseId) {
+        if (task.caseId !== Number(caseId)) {
           return task;
         } else {
           await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
@@ -73,7 +59,7 @@ function RadconCaseTask (socket, db, log) {
   this.selectTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.caseTasks.find((task)=>{
-        if (task.caseId === caseId) {
+        if (task.caseId === Number(caseId)) {
           return task;
         }
       });
