@@ -108,17 +108,22 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           //if (targetCases[0].Case_RadiologistId == userId) {
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
-            if (remark) {
-              let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-              await common.doCaseChangeStatusKeepLog(newKeepLog);
-            }
             let controlAction = await doActionAfterChange(from, next, caseId);
             let actions = controlAction.actions;
             if ((from == 1) && (next == 2)) {
               let triggerDate = controlAction.triggerDate;
               resolve({change: {status: true}, actions: actions, triggerDate: triggerDate});
+              if (remark) {
+                let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+                newKeepLog.triggerAt = triggerDate;
+                await common.doCaseChangeStatusKeepLog(newKeepLog);
+              }
             } else {
               resolve({change: {status: true}, actions: actions});
+              if (remark) {
+                let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+                await common.doCaseChangeStatusKeepLog(newKeepLog);
+              }
             }
           //} else {
             //resolve({change: {status: false}});
