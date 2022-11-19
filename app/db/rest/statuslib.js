@@ -115,7 +115,13 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
               resolve({change: {status: true}, actions: actions, triggerDate: triggerDate});
               if (remark) {
                 let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-                newKeepLog.triggerAt = triggerDate;
+                let offset = 7;
+                let d = new Date(triggerDate);
+                let utc = d.getTime();
+                d = new Date(utc + (offset * 60 * 60 * 1000));
+                let yymmddhhmnss = uti.doFormateDateTime(d);
+                log.info('yymmddhhmnss on 1 to 2 event ' + JSON.stringify(yymmddhhmnss));
+                newKeepLog.triggerAt = yymmddhhmnss;
                 await common.doCaseChangeStatusKeepLog(newKeepLog);
               }
             } else {

@@ -58,7 +58,9 @@ app.post('/case/event/nofify', async (req, res) => {
   let to = req.body.to;
   let remark = req.body.remark;
   let triggerAt = req.body.triggerAt;
-  let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: userId}});
+  let ownerCaseUsers = await db.cases.findAll({attributes: ['userId'], where: {id: caseId}});
+  let ownerCaseUserId = ownerCaseUsers[0].userId;
+  let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: ownerCaseUserId}});
   let eventCaseUsername = eventCaseUsers[0].username;
   let caseEventData = {caseId, userId, from, to, remark};
   if (triggerAt) {
