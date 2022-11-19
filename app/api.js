@@ -107,7 +107,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const pricechart = require('./db/rest/pricechart.js')(db, log);
 	const chatlog = require('./db/rest/radchatlog.js')(db, log);
 	const ailog = require('./db/rest/radailog.js')(db, log);
-	const keeplog = require('./db/rest/radkeeplog.js')(db, log);
+	const keeplog = require('./db/rest/radkeeplog.js')(db, log, webSocketServer);
 	const consult = require('./db/rest/radconsult.js')(webSocketServer, db, log, whomtask);
 
 	const uicommon = require('./db/rest/auicommon.js')(db, taskCase, taskWarning, voipTask, log, webSocketServer);

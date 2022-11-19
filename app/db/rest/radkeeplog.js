@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, log, auth;
+var db, log, auth, websocket;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -50,6 +50,24 @@ app.post('/select/(:caseId)', async (req, res) => {
   });
 });
 
+app.post('/case/event/nofify', async (req, res) => {
+  let caseId = req.body.caseId;
+  let userId = req.body.userId;
+  let from = req.body.from;
+  let to = req.body.to;
+  let remark = req.body.remark;
+  let triggerAt = req.body.triggerAt;
+  let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: userId}});
+  let eventCaseUsername = eventCaseUsers[0].username;
+  let caseEventData = {caseId, userId, from, to, remark};
+  if (triggerAt) {
+    caseEventData.triggerAt = triggerAt;
+  }
+  let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
+  let canSent = await websocket.sendMessage(caseEventMsg, eventCaseUsername)
+  res.json({status: {code: 200}, result: canSent});
+});
+
 /*
   when
   /add api
@@ -58,9 +76,10 @@ app.post('/select/(:caseId)', async (req, res) => {
   are work in file lib/websocket.js
 */
 
-module.exports = ( dbconn, monitor ) => {
+module.exports = ( dbconn, monitor, wsssocket ) => {
   db = dbconn;
   log = monitor;
+  websocket = wsssocket;
   auth = require('./auth.js')(db, log);
   return app;
 }

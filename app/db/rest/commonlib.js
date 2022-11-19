@@ -653,6 +653,12 @@ const doCaseChangeStatusKeepLog = function(data) {
     }
     let adLog = await db.radkeeplogs.create(newKeepLog);
     resolve(adLog);
+
+    let curlData = JSON.stringify(newKeepLog);
+    let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
+    let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
+    let keeplogReply = await uti.runcommand(setCaseStatusCmd);
+    log.info('keeplogReply=>' + JSON.stringify(keeplogReply));
   });
 }
 
