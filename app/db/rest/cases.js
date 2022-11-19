@@ -436,9 +436,9 @@ app.post('/add', (req, res) => {
 
           //Insert New Case
           const adCase = await Case.create(newCase);
-          log.info('newCase=>' + JSON.stringify(adCase));
+          //log.info('newCase=>' + JSON.stringify(adCase));
+          //log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
-          log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           await adCase.setCasestatus(newcaseStatus[0]);
 
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'สร้างเคส สำเร็จ'};
