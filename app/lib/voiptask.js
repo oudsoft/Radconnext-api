@@ -7,7 +7,7 @@ function RadconVoipTask (socket, db, log) {
 
 	this.voipTasks = [];
 
-  this.doCreateNewTaskVoip = function (caseId, username, triggerParam, radioUsername, cb) {
+  this.doCreateNewTaskVoip = function (caseId, username, triggerParam, radioUsername, radioNameTH, cb) {
     return new Promise(async function(resolve, reject) {
       const startDate = new Date();
       const day = Number(triggerParam.dd) * 24 * 60 * 60 * 1000;
@@ -26,7 +26,7 @@ function RadconVoipTask (socket, db, log) {
         cb(caseId, socket, endDate);
       });
       let responseKEYs = [];
-      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, triggerAt: endDate, responseKEYs: responseKEYs, task: task};
+      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs, task: task};
 
       $this.voipTasks.push(newTask);
       resolve(newTask);
@@ -50,6 +50,13 @@ function RadconVoipTask (socket, db, log) {
           let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
           await db.radkeeplogs.create(newKeepLog);
           task.task.stop();
+
+          let curlData = JSON.stringify(newKeepLog);
+          let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
+          let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
+          let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
+          log.info('keeplogReply=>' + JSON.stringify(keeplogReply));
+
           return;
         }
       });

@@ -459,7 +459,8 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
 
 const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, caseData){
   return new Promise(async function(resolve, reject) {
-    let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, async (caseId, socket, endDateTime)=>{
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+    let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, radioNameTH, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
       if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
@@ -471,8 +472,6 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         newTask.msisdn = callReqResult.msisdn;
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
-        let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-        newTask.radioNameTH = radioNameTH;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
         let newKeepLog = {caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark};
         await doCaseChangeStatusKeepLog(newKeepLog);

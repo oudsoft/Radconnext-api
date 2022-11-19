@@ -51,7 +51,7 @@ function RadconCaseTask (socket, db, log) {
           return;
         }
       });
-      await db.radkeeplogs.update({triggerAt: undefined},  {where: {caseId: caseId}});
+      await db.radkeeplogs.update({triggerAt: null},  {where: {caseId: caseId}});
       $this.caseTasks = anotherTasks;
       resolve(anotherTasks);
     });

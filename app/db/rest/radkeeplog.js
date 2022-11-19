@@ -51,6 +51,7 @@ app.post('/select/(:caseId)', async (req, res) => {
 });
 
 app.post('/case/event/nofify', async (req, res) => {
+  log.info('caseEventNotify Call=> ' + JSON.stringify(req.body));
   let caseId = req.body.caseId;
   let userId = req.body.userId;
   let from = req.body.from;
@@ -64,6 +65,7 @@ app.post('/case/event/nofify', async (req, res) => {
     caseEventData.triggerAt = triggerAt;
   }
   let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
+  log.info('caseEventMsg=> ' + JSON.stringify(caseEventMsg));
   let canSent = await websocket.sendMessage(caseEventMsg, eventCaseUsername)
   res.json({status: {code: 200}, result: canSent});
 });
