@@ -84,7 +84,7 @@ app.post('/filter/hospital', (req, res) => {
               }
             }
           }
-          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
+          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
           const orderby = [['id', 'DESC']];
           const cases = await Case.findAll({include: caseInclude, where: whereClous, order: orderby});
           const casesFormat = [];
