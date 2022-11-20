@@ -104,7 +104,15 @@
     $(clockMNFrag).empty().append(numToDigit(settings.countToMN));
     $(clockWrapper).append($('<span>(เหลือเวลา </span>')).append($(clockHHFrag)).append($(clockCoFrag)).append($(clockMNFrag)).append($('<span>)</span>'));
     startClock();
-    return this.append($(clockWrapper));
+    this.append($(clockWrapper));
+
+    let output = {
+      hhFrag: clockHHFrag,
+      coFrag: clockCoFrag,
+      mnFrag: clockMNFrag
+    }
+
+    return output;
 
   };
 

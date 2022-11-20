@@ -135,7 +135,7 @@ app.post('/filter/radio', (req, res) => {
         try {
           const statusId = req.body.statusId;
           const radioId = req.body.userId;
-          const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
+          const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
           const whereClous = {Case_RadiologistId: radioId, casestatusId: { [db.Op.in]: statusId } };
           const orderby = [['id', 'DESC']];
           const radioCases = await Case.findAll({include: caseInclude, where: whereClous, order: orderby});
@@ -348,7 +348,7 @@ app.post('/search/radio', (req, res) => {
           const hospitalId = req.body.condition.hospitalId;
           const key = req.body.condition.key;
           const value = req.body.condition.value;
-          const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
+          const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
           const whereClous = {hospitalId: hospitalId, Case_RadiologistId: raduserId, casestatusId: { [db.Op.in]: statusId }};
           const cases = await Case.findAll({include: caseInclude, where: whereClous});
           let caseResults = [];
@@ -431,8 +431,9 @@ app.post('/add', (req, res) => {
           const hospitalId = req.body.hospitalId;
           const patientId = req.body.patientId;
           const urgenttypeId = req.body.urgenttypeId;
+          const sumaseId = req.body.sumaseId;
           const cliamerightId = req.body.cliamerightId;
-          const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: urgenttypeId};
+          const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
 
           //Insert New Case
           const adCase = await Case.create(newCase);
@@ -508,7 +509,7 @@ app.post('/update', (req, res) => {
         let targetCases = await Case.findAll({include: caseInclude, where: {id: targetCaseId}});
         let targetCase = targetCases[0];
         let nowCaseStatus = targetCase.casestatusId;
-        let nowUrgenttypeId = targetCase.urgenttypeId;
+        //let nowUrgenttypeId = targetCase.urgenttypeId;
         let oldHR = targetCase.Case_PatientHRLink;
         let newHR = updateData.Case_PatientHRLink;
         let canUpdate = ((uti.contains.call(common.casestatusCanUpdate, nowCaseStatus)));
@@ -611,7 +612,7 @@ app.post('/update', (req, res) => {
             caseState = 'normal change';
           }
           let newKeepLog = { caseId : targetCaseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'แก้ไขเคส [' + caseState + '] สำเร็จ'};
-          newKeepLog.oldUrgenttypeId = nowUrgenttypeId;
+          //newKeepLog.oldUrgenttypeId = nowUrgenttypeId;
           await common.doCaseChangeStatusKeepLog(newKeepLog);
 
         } else {
@@ -798,7 +799,7 @@ app.post('/search/key', async (req, res) => {
           }
         }
 
-        const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}];
+        const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
         const orderby = [['id', 'DESC']];
         const cases = await Case.findAll({include: caseInclude, where: [casewhereClous], order: orderby});
 
@@ -928,13 +929,15 @@ app.get('/status/by/dicom/(:dicomId)', async (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         const dicomId = req.params.dicomId;
+
         const caseInclude = [{model: db.casestatuses, attributes: ['CS_Name_EN']}];
-        const youCcases = await Case.findAll({attributes:['id', 'casestatusId', 'urgenttypeId', 'createdAt', 'Case_StudyInstanceUID'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
+        const youCcases = await Case.findAll({attributes:['id', 'casestatusId', 'urgenttypeId', 'sumaseId', 'createdAt', 'Case_StudyInstanceUID'], include: caseInclude,  where: {Case_OrthancStudyID: dicomId}, order: [['id', 'DESC']], limit: 1});
         if (youCcases.length > 0){
           let dicomCase = {id: youCcases[0].id, casestatusId: youCcases[0].casestatusId, urgenttypeId: youCcases[0].urgenttypeId, createdAt: youCcases[0].createdAt, casestatus: youCcases[0].casestatus};
           let hadOnProcess = uti.contains.call([1, 2, 8, 9], dicomCase.casestatusId);
           if (hadOnProcess) {
-            const yourUrgents = await db.urgenttypes.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].urgenttypeId}});
+            //const yourUrgents = await db.urgenttypes.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].urgenttypeId}});
+            const yourUrgents = await db.sumases.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].sumaseId}});
             dicomCase.urgent = yourUrgents[0];
           }
           res.json({status: {code: 200}, Records: [dicomCase]});

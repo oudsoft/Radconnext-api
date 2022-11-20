@@ -3100,6 +3100,10 @@ module.exports = function ( jq ) {
 			let triggerData = {dicom : data.dicom, result: data.result};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'caseeventlog') {
+			let eventName = 'caseeventlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
+			document.dispatchEvent(event);
 		}
 	}
 
@@ -3272,6 +3276,7 @@ module.exports = function ( jq, wsm ) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
+			/*
       let masterNotify = localStorage.getItem('masternotify');
       let MasterNotify = JSON.parse(masterNotify);
       if (MasterNotify) {
@@ -3281,6 +3286,7 @@ module.exports = function ( jq, wsm ) {
         MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
       }
       localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+			*/
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
@@ -3405,7 +3411,6 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'caseeventlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
-
     } else {
 			console.log('Nothing Else');
 		}
@@ -4896,7 +4901,8 @@ module.exports = function ( jq ) {
 			if ((caseScanparts) && (caseScanparts.length > 0)) {
 				yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
 			}
-			let caseUG = caseItem.urgenttype.UGType_Name;
+			//let caseUG = caseItem.urgenttype.UGType_Name;
+			let caseUG = caseItem.sumase.UGType_Name;
       let caseHosName = caseItem.hospital.Hos_Name;
       let caseSTA = caseItem.casestatus.CS_Name_EN;
 
@@ -6020,7 +6026,8 @@ module.exports = function ( jq ) {
 				if ((caseScanparts) && (caseScanparts.length > 0)) {
 					yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
 				}
-				let caseUG = caseItem.urgenttype.UGType_Name;
+				//let caseUG = caseItem.urgenttype.UGType_Name;
+				let caseUG = caseItem.sumase.UGType_Name;
 	      let caseHosName = caseItem.hospital.Hos_Name;
 
 				let caseCMD = doCreateCaseItemCommand(caseItem);
@@ -9715,7 +9722,8 @@ module.exports = function ( jq ) {
       }
       let caseUG = '-';
 			if (caseItem.case.urgenttype){
-				caseUG = caseItem.case.urgenttype.UGType_Name;
+				//caseUG = caseItem.case.urgenttype.UGType_Name;
+				caseUG = caseItem.sumase.UGType_Name;
 			}
       //let caseREFF = caseItem.Refferal.User_NameTH + ' ' + caseItem.Refferal.User_LastNameTH;
       //console.log(caseItem);
