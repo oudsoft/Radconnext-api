@@ -136,6 +136,7 @@ cases.belongsTo(urgenttypes);
 cases.belongsTo(cliamerights);
 cases.belongsTo(casestatuses);
 cases.belongsTo(users);
+cases.belongsTo(sumases);
 /*
 cases.prototype.getCreatedAtWithOffset = function (offset) {
   return moment(this.created_at).utcOffset(offset);

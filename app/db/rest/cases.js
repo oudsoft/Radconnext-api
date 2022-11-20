@@ -432,7 +432,7 @@ app.post('/add', (req, res) => {
           const patientId = req.body.patientId;
           const urgenttypeId = req.body.urgenttypeId;
           const cliamerightId = req.body.cliamerightId;
-          const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId};
+          const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: urgenttypeId};
 
           //Insert New Case
           const adCase = await Case.create(newCase);
