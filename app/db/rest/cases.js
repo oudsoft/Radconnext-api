@@ -121,7 +121,7 @@ app.post('/filter/hospital', (req, res) => {
                   let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
                   await socket.sendMessage(caseEventMsg, eventCaseUsername)
                 }
-              }, 40000);
+              }, 10000);
             }
           }).catch((err)=>{
             log.error(error);
