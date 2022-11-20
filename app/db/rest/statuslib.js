@@ -769,6 +769,16 @@ const onOpenCaseEvent = function(caseId){
 
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
     let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ'};
+    let caseTask = await tasks.selectTaskByCaseId(caseId);
+    if (caseTask) {
+      let offset = 7;
+      let d = new Date(caseTask.triggerAt);
+      let utc = d.getTime();
+      d = new Date(utc + (offset * 60 * 60 * 1000));
+      let yymmddhhmnss = uti.doFormateDateTime(d);
+      log.info('yymmddhhmnss on 8 event ' + JSON.stringify(yymmddhhmnss));
+      newKeepLog.triggerAt = yymmddhhmnss;
+    }
     await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }

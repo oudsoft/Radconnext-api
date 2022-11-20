@@ -88,6 +88,7 @@ app.post('/filter/hospital', (req, res) => {
           const orderby = [['id', 'DESC']];
           const cases = await Case.findAll({include: caseInclude, where: whereClous, order: orderby});
           const casesFormat = [];
+          const allCaseId = [];
           const promiseList = new Promise(async function(resolve, reject) {
             for (let i=0; i<cases.length; i++) {
               let item = cases[i];
@@ -98,6 +99,7 @@ app.post('/filter/hospital', (req, res) => {
               const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
               const Refferal = {id: item.Case_RefferalId, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH};
               casesFormat.push({case: item, Radiologist: Radiologist, Refferal: Refferal});
+              allCaseId.push({caseId: item.id, userId: item.userId});
             }
             setTimeout(()=> {
               resolve(casesFormat);
@@ -105,6 +107,22 @@ app.post('/filter/hospital', (req, res) => {
           });
           Promise.all([promiseList]).then((ob)=> {
             res.json({status: {code: 200}, Records: ob[0]});
+            let check = statusId.includes(1);
+            if (!check) {
+              setTimeout(async()=>{
+                for (let i=0; i < allCaseId.length; i++){
+                  let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: allCaseId[i].caseId}, order: [['id', 'DESC']], limit: 1});
+                  let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: allCaseId[i].userId}});
+                  let eventCaseUsername = eventCaseUsers[0].username;
+                  let caseEventData = {caseId: keepLogs[0].caseId, userId: keepLogs[0].userId, from: keepLogs[0].from, to: keepLogs[0].to, remark: keepLogs[0].remark};
+                  if (keepLogs[0].triggerAt) {
+                    caseEventData.triggerAt = keepLogs[0].triggerAt;
+                  }
+                  let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
+                  await socket.sendMessage(caseEventMsg, eventCaseUsername)
+                }
+              }, 40000);
+            }
           }).catch((err)=>{
             log.error(error);
             res.json({status: {code: 500}, error: err});
@@ -434,7 +452,7 @@ app.post('/add', (req, res) => {
           const sumaseId = req.body.sumaseId;
           const cliamerightId = req.body.cliamerightId;
           const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
-          log.info('sumaseId=>' + sumaseId);
+          //log.info('sumaseId=>' + sumaseId);
           //Insert New Case
           const adCase = await Case.create(newCase);
           //log.info('newCase=>' + JSON.stringify(adCase));
