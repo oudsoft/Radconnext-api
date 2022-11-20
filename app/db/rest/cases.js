@@ -434,7 +434,7 @@ app.post('/add', (req, res) => {
           const sumaseId = req.body.sumaseId;
           const cliamerightId = req.body.cliamerightId;
           const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
-
+          log.info('sumaseId=>' + sumaseId);
           //Insert New Case
           const adCase = await Case.create(newCase);
           //log.info('newCase=>' + JSON.stringify(adCase));
