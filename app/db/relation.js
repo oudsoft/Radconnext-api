@@ -101,6 +101,8 @@ orthancs.belongsTo(hospitals);
 const urgenttypes = sequelize.define('urgenttypes', Def.RadUrgentTypeDef);
 urgenttypes.belongsTo(hospitals);
 
+const sumases = sequelize.define('sumases', Def.RadSUMasDef);
+
 const generalstatuses = sequelize.define('generalstatuses', Def.RadGeneralStatusDef);
 const cliamerights = sequelize.define('cliamerights', Def.RadCliameRightsDef);
 
@@ -157,8 +159,6 @@ const lineusers = sequelize.define('lineusers', Def.RadLineUserDef);
 lineusers.belongsTo(users);
 
 const risinterfaces = sequelize.define('risinterfaces', Def. RadRisInterfaceDef);
-
-const sumases = sequelize.define('sumases', Def.RadSUMasDef);
 
 const scanpartrefs = sequelize.define('scanpartrefs', Def. RadScanPartRefDef);
 scanpartrefs.belongsTo(sumases);
