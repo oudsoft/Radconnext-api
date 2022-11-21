@@ -4872,6 +4872,7 @@ module.exports = function ( jq ) {
 					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
 				}
 				*/
+				let newCaseStatus = 8;
 				eventData.statusId = newCaseStatus;
 				eventData.startDownload = 0;
 				$(openCmd).trigger('opencase', [eventData]);

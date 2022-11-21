@@ -313,7 +313,7 @@ app.post('/status/(:caseId)', async (req, res) => {
           let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Web กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
           let newKeepLog = { caseId : caseId,	userId : userId, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
-          await Voip.removeTaskByCaseId(caseId);
+          await voips.removeTaskByCaseId(caseId);
         } else {
           let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
           res.json({status: {code: 200}, actions: changeResult.change.actiohs});
