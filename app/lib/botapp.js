@@ -230,15 +230,14 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
           break;
           case 'x401':
             /* radio accept new case*/
-            let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId', 'urgenttypeId'], where: {id: data}});
-            let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].urgenttypeId}});
+            let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId', 'urgenttypeId', 'sumaseId'], where: {id: data}});
+            //let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
+            let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
             let nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
               let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id);
-              //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LastNameTH'], where: {userId: radUser.id}});
-              //console.log('radUser.id=>' + radUser.id);
               let userProfile = await common.doLoadRadioProfile(radUser.id);
-              log.info('userProfile=>' + JSON.stringify(userProfile));
+
               let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
               let dd = Number(triggerParam.dd);
               let hh = Number(triggerParam.hh);
@@ -255,7 +254,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
               let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Line Application กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
               let newKeepLog = { caseId : targetCases[0].id,	userId : radUser.id, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
               await common.doCaseChangeStatusKeepLog(newKeepLog);
-              await Voip.removeTaskByCaseId(targetCases[0].id);              
+              await Voip.removeTaskByCaseId(targetCases[0].id);
               if (changeRes.change.status == true) {
                 /*
                 action = 'quick';

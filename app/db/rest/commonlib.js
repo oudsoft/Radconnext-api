@@ -473,19 +473,11 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
-        let newKeepLog = {caseId : caseId,	userId : systemId, from : baseCaseStatusId, to : baseCaseStatusId, remark : remark};
+        let newKeepLog = {caseId: caseId,	userId: systemId, from: baseCaseStatusId, to: baseCaseStatusId, remark: remark};
         await doCaseChangeStatusKeepLog(newKeepLog);
-        if (radioProfile.phoneRetry.noactioncasestatus == 3) {
-          let callDelay = undefined;
-          if (radioProfile.phoneRetry) {
-            callDelay = (Number(radioProfile.phoneRetry.retrytime) * Number(radioProfile.phoneRetry.retrysecond)) * 1000;
-          } else {
-            radioProfile.phoneRetry = phoneRetryOptions;
-            // update newRadioProfile
-            callDelay = (Number(radioProfile.phoneRetry.retrytime) * Number(radioProfile.phoneRetry.retrysecond)) * 1000;
-          }
-          log.info('callDepositionDelay=>' + callDelay);
-          setTimeout(async()=>{
+        if (radioProfile.phoneRetry.noactioncasestatus == 3) { /* caseStatusId=3 = Reject Case */
+
+          const doCallClearVoipTask = async function(){
             nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
             log.info('VoIp Task nowcaseStatus After Call => ' + JSON.stringify(nowcaseStatus));
             if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
@@ -496,7 +488,6 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
                 let setCaseStatusCmdFmt = 'curl -X POST --user %s -H "Content-Type: application/json" https://radconnext.info/api/cases/status/%s -d \'{"casestatusId": 3, "caseDescription": "%s"}\'';
                 let radioUPD = uti.fmtStr('%s:%s', radioProfile.username, radioProfile.username);
                 let rejectRemark = uti.fmtStr('รังสีแพทย์ %s กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส', radioNameTH);
-                //รังสีแพทย์ กดวางสาย ตั้งค่าไม่รับสายให้เท่ากับปฏิเสธเคส
                 let setCaseStatusCmd = uti.fmtStr(setCaseStatusCmdFmt, radioUPD, caseId, rejectRemark);
                 let changeCaseStatusReply = await uti.runcommand(setCaseStatusCmd);
                 log.info('changeCaseStatusReply=>' + JSON.stringify(changeCaseStatusReply));
@@ -507,7 +498,30 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             } else {
               await tasks.removeTaskByCaseId(caseId);
             }
-          }, callDelay)
+          }
+
+          let callDelaySecond = undefined;
+          let callRetry = undefined;
+          if (radioProfile.phoneRetry) {
+            callDelaySecond = Number(radioProfile.phoneRetry.retrysecond);
+            callRetry = Number(radioProfile.phoneRetry.retrytime);
+          } else {
+            radioProfile.phoneRetry = phoneRetryOptions;
+            callDelaySecond = Number(radioProfile.phoneRetry.retrysecond);
+            callRetry = Number(radioProfile.phoneRetry.retrytime);
+          }
+
+          if ((callRetry > 0) && (callDelaySecond > 0)) {
+            let eofTime = 0.1;
+            let callDelay = callDelaySecond * (1 + eofTime) * 1000;
+            let callCount = 0;
+            while (callCount < callRetry) {
+              setTimeout(()=>{
+                doCallClearVoipTask();
+              }, callDelay)
+              callCount = callCount + 1;
+            }
+          }
         } else {
           await tasks.removeTaskByCaseId(caseId);
         }

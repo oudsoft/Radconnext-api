@@ -60,7 +60,7 @@ gsettings set org.gnome.desktop.background picture-uri file:///home/oudsoft/ggg/
 let clockCounter = undefined;
 let milli = 1000;
 let min = 1;
-let max = 756;
+let max = 817;
 let imgDomain = 'http://localhost/ggg/doubleclick-001/';
 let imgFileName = 'doubleclick-632.png';
 let imgURL = imgDomain + imgFileName;

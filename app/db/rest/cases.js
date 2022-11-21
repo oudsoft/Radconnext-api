@@ -107,22 +107,19 @@ app.post('/filter/hospital', (req, res) => {
           });
           Promise.all([promiseList]).then((ob)=> {
             res.json({status: {code: 200}, Records: ob[0]});
-            let check = statusId.includes(1);
-            if (!check) {
-              setTimeout(async()=>{
-                for (let i=0; i < allCaseId.length; i++){
-                  let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: allCaseId[i].caseId}, order: [['id', 'DESC']], limit: 1});
-                  let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: allCaseId[i].userId}});
-                  let eventCaseUsername = eventCaseUsers[0].username;
-                  let caseEventData = {caseId: keepLogs[0].caseId, userId: keepLogs[0].userId, from: keepLogs[0].from, to: keepLogs[0].to, remark: keepLogs[0].remark};
-                  if (keepLogs[0].triggerAt) {
-                    caseEventData.triggerAt = keepLogs[0].triggerAt;
-                  }
-                  let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
-                  await socket.sendMessage(caseEventMsg, eventCaseUsername)
+            setTimeout(async()=>{
+              for (let i=0; i < allCaseId.length; i++){
+                let keepLogs = await db.radkeeplogs.findAll({ where: {	caseId: allCaseId[i].caseId}, order: [['id', 'DESC']], limit: 1});
+                let eventCaseUsers = await db.users.findAll({attributes: ['username'], where: {id: allCaseId[i].userId}});
+                let eventCaseUsername = eventCaseUsers[0].username;
+                let caseEventData = {caseId: keepLogs[0].caseId, userId: keepLogs[0].userId, from: keepLogs[0].from, to: keepLogs[0].to, remark: keepLogs[0].remark};
+                if (keepLogs[0].triggerAt) {
+                  caseEventData.triggerAt = keepLogs[0].triggerAt;
                 }
-              }, 10000);
-            }
+                let caseEventMsg = {type: 'caseeventlog', data: caseEventData};
+                await socket.sendMessage(caseEventMsg, eventCaseUsername)
+              }
+            }, 10000);
           }).catch((err)=>{
             log.error(error);
             res.json({status: {code: 500}, error: err});
@@ -285,16 +282,41 @@ app.post('/status/(:caseId)', async (req, res) => {
         const remark = req.body.caseDescription;
         //attributes = 'casestatusId'
         const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}, {model: db.hospitals, attributes: ['Hos_Name']}];
-        const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId', 'Case_StudyDescription', 'Case_Modality'], include: caseInclude, where: {id: caseId}});
+        const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId', 'Case_RadiologistId', 'Case_StudyDescription', 'Case_Modality', 'urgenttypeId', 'sumaseId'], include: caseInclude, where: {id: caseId}});
 
         const currentStatus = targetCases[0].casestatusId;
         //const userId = targetCases[0].userId;
         const userId = ur[0].id;
 
-        //console.log(currentStatus, reqCaseStatusId, caseId, userId, remark);
-        let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
-        //console.log(changeResult)
-        res.json({status: {code: 200}, actions: changeResult.change.actiohs});
+        if ((currentStatus == 1) && (reqCaseStatusId == 2)) {
+          let changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, userId);
+          res.json({status: {code: 200}, actions: changeRes.change.actiohs});
+
+          let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
+          let radioId = targetCases[0].Case_RadiologistId;
+          let userProfile = await common.doLoadRadioProfile(radioId);
+          let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+
+          let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+          let dd = Number(triggerParam.dd);
+          let hh = Number(triggerParam.hh);
+          let mn = Number(triggerParam.mn);
+
+          const offset = 7;
+          let shiftMinut = (dd * 1440) + (hh * 60) + mn;
+          let d = new Date();
+          let utc = d.getTime();
+          d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+          let yymmddhhmnss = uti.doFormateDateTime(d);
+          let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
+          let remark = uti.fmtStr('รังสีแพทย์ %s ตอบรับเคสผ่านทาง Web กำหนดส่งผลอ่าน ภายใน %s', radioNameTH, yymmddhhmnText);
+          let newKeepLog = { caseId : caseId,	userId : userId, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
+          await Voip.removeTaskByCaseId(caseId);
+        } else {
+          let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
+          res.json({status: {code: 200}, actions: changeResult.change.actiohs});
+        }
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
