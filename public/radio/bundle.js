@@ -4859,10 +4859,9 @@ module.exports = function ( jq ) {
 			let eventData = common.doCreateOpenCaseData(caseItem);
 			let currentCaseRes = await common.doGetApi('/api/cases/status/' + caseItem.id, {});
 			if (currentCaseRes.current == 2){
-				/*
 				let newCaseStatus = 8;
 				let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
-				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสเพื่ออ่านผลสำเร็จ'
+				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ'
 	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, actionRemark);
 				if (response.status.code == 200) {
 		      eventData.statusId = newCaseStatus;
@@ -4871,11 +4870,12 @@ module.exports = function ( jq ) {
 				} else {
 					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
 				}
-				*/
+				/*
 				let newCaseStatus = 8;
 				eventData.statusId = newCaseStatus;
 				eventData.startDownload = 0;
 				$(openCmd).trigger('opencase', [eventData]);
+				*/
 			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9) || (currentCaseRes.current == 14)){
 				eventData.statusId = caseItem.casestatusId;
 				eventData.startDownload = 0;
