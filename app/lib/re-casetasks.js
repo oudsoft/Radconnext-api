@@ -149,7 +149,17 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
 
             let newAccUrgentParam = doCalTriggerParam(aliveCase.createdAt, triggerAccAt);
 
-            let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, newAccUrgentParam, caseStatusId, lineCaseDetaileMsg, caseMsgData);
+            let taskTriggerAt = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, newAccUrgentParam, caseStatusId, lineCaseDetaileMsg, caseMsgData);
+            let dd = Number(newAccUrgentParam.dd) * 24 * 60;
+            let hh = Number(newAccUrgentParam.hh) * 60;
+            let mn = Number(newAccUrgentParam.mn);
+            let shiftMinut = dd + hh + mn;
+            let offset = 7;
+            let d = new Date();
+            let utc = d.getTime();
+            d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+            let yymmddhhmnss = uti.doFormateDateTime(d);
+            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: data.caseId, to: 1}});
 
             if (radioProfile.radioAutoCall == 1) {
               let totalMinut = (Number(newAccUrgentParam.dd) * 24 * 60) + (Number(newAccUrgentParam.hh) * 60) + Number(newAccUrgentParam.mn);
@@ -204,7 +214,17 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
 
             let newWrkUrgentParam = doCalTriggerParam(aliveCase.createdAt, triggerWrkAt);
 
-            let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, newWrkUrgentParam, caseStatusId, lineCaseDetaileMsg, caseMsgData);
+            let taskTriggerAt = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, newWrkUrgentParam, caseStatusId, lineCaseDetaileMsg, caseMsgData);
+            let dd = Number(newWrkUrgentParam.dd) * 24 * 60;
+            let hh = Number(newWrkUrgentParam.hh) * 60;
+            let mn = Number(newWrkUrgentParam.mn);
+            let shiftMinut = dd + hh + mn;
+            let offset = 7;
+            let d = new Date();
+            let utc = d.getTime();
+            d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
+            let yymmddhhmnss = uti.doFormateDateTime(d);
+            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: data.caseId, to: { [db.Op.in]: [2, 8, 9] }}});
 
             alives.push(caseId);
           }
