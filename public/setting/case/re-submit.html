@@ -388,7 +388,7 @@
           $(referCol).append($(referIdCell));
           $(itemRow).append($(referCol));
           let sumaseCell = $('<td align="center"></td>').text(cases[i].sumaseId).css({'cursor': 'pointer'});
-          $(sumaseCell).on('clock', (evt)=>{
+          $(sumaseCell).on('click', (evt)=>{
             console.log(cases[i].sumase);
             doPopupSumase(cases[i].sumase);
           });
