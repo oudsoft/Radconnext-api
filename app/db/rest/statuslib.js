@@ -812,7 +812,17 @@ const onDraftResultCaseEvent = function(caseId){
     resolve(actions);
 
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-    let newKeepLog = { caseId : caseId,	userId : radioId, from : 8, to : 9, remark : 'รังสีแพทย์ ' + radioNameTH + ' บันทึกร่างผลอ่าน'};
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 8, to : 9, remark : 'รังสีแพทย์ ' + radioNameTH + ' บันทึกร่างผลอ่านสำเร็จ'};
+    let caseTask = await tasks.selectTaskByCaseId(caseId);
+    if (caseTask) {
+      let offset = 7;
+      let d = new Date(caseTask.triggerAt);
+      let utc = d.getTime();
+      d = new Date(utc + (offset * 60 * 60 * 1000));
+      let yymmddhhmnss = uti.doFormateDateTime(d);
+      log.info('yymmddhhmnss on 9 event ' + JSON.stringify(yymmddhhmnss));
+      newKeepLog.triggerAt = yymmddhhmnss;
+    }
     await common.doCaseChangeStatusKeepLog(newKeepLog);
   });
 }
