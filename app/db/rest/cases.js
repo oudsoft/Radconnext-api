@@ -853,7 +853,7 @@ app.post('/search/key', async (req, res) => {
             const Radiologist = {id: item.Case_RadiologistId, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH};
             let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
             //if (item.sumaseId == 851) {
-              log.info('urgents=>'+ JSON.stringify(urgents));
+              //log.info('urgents=>'+ JSON.stringify(urgents));
             //}
             item.sumase = urgents[0];
             let next = await common.doCanNextStatus(item.casestatusId);
@@ -1046,7 +1046,25 @@ app.get('/list/(:hospitalId)', async (req, res) => {
   const orderby = [['id', 'DESC']];
   const caseInclude = [{model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_HN']}];
   const cases = await Case.findAll({include: caseInclude, offset: startAt, limit: limit, where: {hospitalId: hospitalId}, order: orderby});
-  res.json({Result: "OK", Records: cases, TotalRecordCount: cases.length});
+
+  const casesFormat = [];
+  const promiseList = new Promise(async function(resolve, reject) {
+    for (let i=0; i<cases.length; i++) {
+      let item = cases[i];
+      //const radUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RadiologistId}});
+      //const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
+      //const Radiologist = {id: item.Case_RadiologistId, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH};
+      let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+      item.sumase = urgents[0];
+      casesFormat.push(item);
+    }
+    setTimeout(()=> {
+      resolve(casesFormat);
+    },500);
+  });
+  Promise.all([promiseList]).then((ob)=> {
+    res.json({Result: "OK", Records: ob[0], TotalRecordCount: ob[0].length});
+  })
 });
 
 app.post('/rezip', async (req, res) => {
