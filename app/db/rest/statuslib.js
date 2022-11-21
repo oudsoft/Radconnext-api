@@ -621,6 +621,8 @@ const onExpiredCaseEvent = function(caseId) {
       await db.userprofiles.update({Profile: radioProfile}, { where: { userId: radioId } });
     }
     */
+    await voips.removeTaskByCaseId(targetCase.id);
+
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
     /*
@@ -640,6 +642,7 @@ const onSuccessCaseEvent = function(caseId){
     const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
 
     await tasks.removeTaskByCaseId(targetCase.id);
+    await voips.removeTaskByCaseId(targetCase.id);
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};
@@ -731,6 +734,8 @@ const onCancelCaseEvent = function(caseId) {
     await socket.sendMessage(refreshCancelCase , userProfile.username);
     await socket.sendMessage(hospitalNotify, userProfile.username);
 
+    await voips.removeTaskByCaseId(targetCase.id);
+    
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
 

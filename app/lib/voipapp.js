@@ -171,6 +171,12 @@ app.get('/task/list', async function(req, res) {
   res.json({status: {code: 200}, tasks: tasks});
 });
 
+app.get('/task/remove/(:caseId)', async function(req, res) {
+  let caseId = req.params.caseId;
+  let tasks = await Voip.removeTaskByCaseId(caseId);
+  res.json({status: {code: 200}, tasks: tasks});
+});
+
 app.get('/get/deposition', async function(req, res) {
   let transactionId = req.query.transactionId;
   let msisdn = req.query.msisdn;
