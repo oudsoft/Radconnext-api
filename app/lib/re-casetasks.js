@@ -119,8 +119,8 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
           let caseUserId = aliveCase.userId;
           let caseRadioId = aliveCase.Case_RadiologistId;
           let caseUrgents = await doLoadUrgent(caseUrgentTypeId);
-          let triggerAccAt = JSON.parse(caseUrgents[0].UGType_AcceptStep);
-          let triggerWrkAt = JSON.parse(caseUrgents[0].UGType_WorkingStep);
+          let triggerAccAt = caseUrgents[0].UGType_AcceptStep;
+          let triggerWrkAt = caseUrgents[0].UGType_WorkingStep;
 
           let accAlive = isAlive(aliveCase.createdAt, triggerAccAt);
           let wrkAlive = isAlive(aliveCase.createdAt, triggerWrkAt);
