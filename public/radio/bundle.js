@@ -9855,6 +9855,7 @@ module.exports = function ( jq ) {
       let showCases = [];
 
       let allCaseRecords = response.Records;
+			console.log(allCaseRecords);
       if (userItemPerPage == 0) {
         showCases = allCaseRecords;
       } else {

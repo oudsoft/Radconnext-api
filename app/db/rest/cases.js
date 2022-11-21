@@ -840,7 +840,7 @@ app.post('/search/key', async (req, res) => {
           }
         }
 
-        const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
+        const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}];
         const orderby = [['id', 'DESC']];
         const cases = await Case.findAll({include: caseInclude, where: [casewhereClous], order: orderby});
 
@@ -851,11 +851,11 @@ app.post('/search/key', async (req, res) => {
             const radUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RadiologistId}});
             const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
             const Radiologist = {id: item.Case_RadiologistId, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH};
-            /*
-            const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
-            const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
-            const Refferal = {id: item.Case_RefferalId, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH};
-            */
+            let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+            //if (item.sumaseId == 851) {
+              log.info('urgents=>'+ JSON.stringify(urgents));
+            //}
+            item.sumase = urgents[0];
             let next = await common.doCanNextStatus(item.casestatusId);
             casesFormat.push({case: item, Radiologist: Radiologist, /* Refferal: Refferal*/ next: next});
           }

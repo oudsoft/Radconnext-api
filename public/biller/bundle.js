@@ -12163,7 +12163,8 @@ module.exports = function ( jq ) {
 
 						let fmtScanDateTime = strToDateTime(item.scanDate, item.scanTime);
 						let scanDateTime = new Date(fmtScanDateTime);
-						let urgentType = JSON.parse(item.urgenttype.UGType_WorkingStep);
+						//let urgentType = JSON.parse(item.urgenttype.UGType_WorkingStep);
+						let urgentType = item.urgenttype.UGType_WorkingStep;
 						let urgentShiftTimeVal = (Number(urgentType.dd)* 24*60*60*1000) + (Number(urgentType.hh)*60*60*1000) + (Number(urgentType.mn)*60*1000);
 						let urgentTime = undefined;
 						if (cutoffTimeSelected == 1) {
@@ -12800,7 +12801,8 @@ module.exports = function ( jq ) {
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
 		localStorage.removeItem('masternotify');
-		//localStorage.removeItem('dicomfilter');
+		//localStorage.removeItem('caseoptions');
+		//localStorage.removeItem('rememberwantsavescanpart');
 		sessionStorage.removeItem('logged');
 	  let url = '/index.html';
 	  window.location.replace(url);
@@ -12876,11 +12878,21 @@ module.exports = function ( jq ) {
 
 	const doCountImageLocalDicom = function(studyID){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
 			const dicomUrl = '/api/orthanc/study/count/instances';
-			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
-			resolve(dicomStudiesRes.result);
-			$('body').loading('stop');
+			const rqParams = {StudyID: studyID};
+			$.post(dicomUrl, rqParams, function(response){
+				resolve(response.result);
+			});
+		});
+	}
+
+	const doSeekingAttachFile = function(patientNameEN){
+		return new Promise(async function(resolve, reject) {
+			const dicomUrl = '/api/orthanc/attach/file';
+			const rqParams = {PatientNameEN: patientNameEN};
+			$.post(dicomUrl, rqParams, function(response){
+				resolve(response);
+			});
 		});
 	}
 
@@ -12934,7 +12946,7 @@ module.exports = function ( jq ) {
 		rqParams.Patient_NameEN = patientNameEN;
 		rqParams.Patient_LastNameEN = patientLastNameEN;
 		rqParams.Patient_CitizenID = newCaseData.patientCitizenID;
-		rqParams.Patient_Birthday = '';
+		rqParams.Patient_Birthday = newCaseData.patientBirthDate;
 		rqParams.Patient_Age = newCaseData.patientAge;
 		rqParams.Patient_Sex = newCaseData.patientSex;
 		rqParams.Patient_Tel = '';
@@ -13181,10 +13193,15 @@ module.exports = function ( jq ) {
 			let hospitalId = userdata.hospitalId;
 			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
-			let apiUrl = '/api/scanpartaux/select';
+			let apiUrl = 'https://radconnext.info/api/scanpartaux/select';
 			try {
+				/*
 				let response = await doCallApi(apiUrl, rqParams);
 				resolve(response);
+				*/
+				$.post(apiUrl, rqParams, function(response){
+					resolve(response);
+				});
 			} catch(e) {
 	      reject(e);
     	}
@@ -13240,33 +13257,61 @@ module.exports = function ( jq ) {
 	const doRenderScanpartSelectedBox = function(scanparts) {
 		return new Promise(async function(resolve, reject) {
 			const doCreateHeaderField = function() {
-	      let headerFieldRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: ' + headBackgroundColor + '; color: white;"></div>');
-				let fieldCell = $('<div style="display: table-cell; padding: 2px;">ลำดับที่</div>');
+	      //let headerFieldRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: ' + headBackgroundColor + '; color: white;"></div>');
+				let headerFieldRow = $('<tr></tr>').css({'background-color': headBackgroundColor, 'color': 'white'})
+				//let fieldCell = $('<div style="display: table-cell; padding: 2px; text-align: center;">ลำดับที่</div>');
+				let fieldCell = $('<td></td>').attr({'width': '10%', 'align': 'left'}).text('ลำดับที่').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">รหัส</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px;">รหัส</div>');
+				fieldCell = $('<td></td>').attr({'width': '20%', 'align': 'left'}).text('รหัส').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ชื่อ</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px;">ชื่อ</div>');
+				fieldCell = $('<td></td>').attr({'width': '40%', 'align': 'left'}).text('ชื่อ').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
-	      fieldCell = $('<div style="display: table-cell; padding: 2px;">ราคา</div>');
+	      //fieldCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">ราคา</div>');
+				fieldCell = $('<td></td>').attr({'width': '20%', 'align': 'left'}).text('ราคา').css({'padding-left': '2px'});
 	      $(fieldCell).appendTo($(headerFieldRow));
+				//fieldCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+				fieldCell = $('<td></td>').attr({'width': '*', 'align': 'left'});
+				$(fieldCell).appendTo($(headerFieldRow));
 	      return $(headerFieldRow);
 	    };
 
-			let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			//let selectedBox = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			let selectedBox = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+
 			let headerFieldRow = doCreateHeaderField();
 			$(headerFieldRow).appendTo($(selectedBox));
 			if ((scanparts) && (scanparts.length > 0)) {
 				await scanparts.forEach((item, i) => {
-					let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					//let itemRow = $('<div style="display: table-row;  width: 100%; border: 2px solid black; background-color: #ccc;"></div>');
+					let itemRow = $('<tr></tr>').css({'background-color': '#ccc'})
 					$(itemRow).appendTo($(selectedBox));
-					let itemCell = $('<div style="display: table-cell; padding: 2px;">' + (i+1) + '</div>');
+					//let itemCell = $('<div style="display: table-cell; padding: 2px; text-align: center;">' + (i+1) + '</div>');
+					let itemCell = $('<td></td>').attr({'align': 'left'}).text((i+1)).css({'padding-left': '10px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Code + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(item.Code).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px;">' + item.Name + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(item.Name).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
-					itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					//itemCell = $('<div style="display: table-cell; padding: 2px; text-align: right;">' + formatNumberWithCommas(item.Price) + '</div>');
+					itemCell = $('<td></td>').attr({'align': 'left'}).text(formatNumberWithCommas(item.Price)).css({'padding-left': '2px'});
 					$(itemCell).appendTo($(itemRow));
+
+					let removeCmd = $('<img/>')
+					$(removeCmd).attr('src', '/images/minus-sign-red-icon.png');
+					$(removeCmd).attr('title', 'ลบ Scan Part');
+					$(removeCmd).css({'cursor': 'pointer', 'width': '25px', 'height': 'auto'});
+					$(removeCmd).on('click', (evt)=>{
+						scanparts.splice(i, 1);
+						$(itemRow).remove();
+					});
+					//itemCell = $('<div style="display: table-cell; padding: 2px;"></div>').css({'text-align': 'right', 'vertical-align': 'middle'});
+					itemCell = $('<td></td>').attr({'align': 'center', 'valign': 'middle'});
+					$(itemCell).append($(removeCmd));
+					$(itemRow).append($(itemCell))
 				});
 			}
 			resolve($(selectedBox));
@@ -13621,6 +13666,100 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doFilterMajorType = function(masters, majorType) {
+		return new Promise(async function(resolve, reject) {
+			let result = await masters.filter((item) => {
+				if (item.MajorType == majorType) {
+					return item;
+				}
+			});
+			resolve(result);
+		})
+	}
+
+	const doFindMemberInMains = function(mains, members) {
+		return new Promise(function(resolve, reject) {
+			let	promiseList = new Promise(async function(resolve2, reject2){
+				for (let i = 0; i < members.length; i++) {
+					let memberItem = members[i];
+					let result = await mains.filter((item)=>{
+						if (item.id == memberItem.id) {
+							return item;
+						}
+					});
+					if (result.length == 0) {
+						mains.push(memberItem);
+					}
+				}
+				setTimeout(()=>{
+          resolve2(mains);
+        }, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doSelectUrgentMesh = function(scanparts, sumass) {
+		return new Promise(function(resolve, reject) {
+			if (scanparts.length == 1) {
+				resolve(scanparts[0]);
+			} else {
+				let lastTTMinus = 0;
+				let mesh = undefined;
+				let	promiseList = new Promise(async function(resolve2, reject2){
+					for (let i=0; i < scanparts.length; i++) {
+						let sumas = await sumass.find((item)=>{
+							if (item.id == scanparts[i].sumaseId) {
+								return item;
+							}
+						});
+						if (sumas) {
+							let workingStep = sumas.UGType_WorkingStep;
+							let workingStepMinus = Number(workingStep.mn) + (Number(workingStep.hh) * 60) + (Number(workingStep.dd) * 60 * 24);
+							if (workingStepMinus > lastTTMinus) {
+								lastTTMinus = workingStepMinus;
+								mesh = scanparts[i];
+							}
+						} else {
+							mesh = scanparts[0];
+						}
+					}
+					setTimeout(()=>{
+						resolve2(mesh);
+					}, 100);
+				});
+				Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			}
+		});
+	}
+
+	const doArrangeNewUrgent = function(scanparts, sumass) {
+		return new Promise(function(resolve, reject) {
+			let newUrgentTypes = [];
+			let meshUrgentTypes = [];
+			let	promiseList = new Promise(async function(resolve2, reject2){
+				for (let i = 0; i < scanparts.length; i++) {
+					let majorType = scanparts[i].MajorType;
+					let majors = await doFilterMajorType(sumass, majorType);
+					newUrgentTypes = await doFindMemberInMains(newUrgentTypes, majors);
+					meshUrgentTypes.push(scanparts[i]);
+				}
+				setTimeout(async()=>{
+					let mesh = await doSelectUrgentMesh(meshUrgentTypes, sumass);
+					meshUrgentTypes = [mesh];
+					resolve2({newUrgentTypes, meshUrgentTypes});
+				}, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -13655,6 +13794,7 @@ module.exports = function ( jq ) {
 		doDownloadLocalDicom,
 		doDeleteLocalDicom,
 		doCountImageLocalDicom,
+		doSeekingAttachFile,
     doPreparePatientParams,
     doPrepareCaseParams,
 		doGetSeriesList,
@@ -13695,7 +13835,11 @@ module.exports = function ( jq ) {
 		doCheckOutTime,
 		doCallPriceChart,
 		doCreateOpenCaseData,
-		doAddNotifyCustomStyle
+		doAddNotifyCustomStyle,
+		doFilterMajorType,
+		doFindMemberInMains,
+		doSelectUrgentMesh,
+		doArrangeNewUrgent
 	}
 }
 
@@ -14217,9 +14361,9 @@ module.exports = function ( jq ) {
 	}
 
 	const formatDateTimeStr = function(dt){
-	  d = new Date(dt);
+	  let d = new Date(dt);
 		d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
-		var yy, mm, dd, hh, mn, ss;
+		let yy, mm, dd, hh, mn, ss;
 	  yy = d.getFullYear();
 	  if (d.getMonth() + 1 < 10) {
 	    mm = '0' + (d.getMonth() + 1);
@@ -14246,7 +14390,41 @@ module.exports = function ( jq ) {
 	  } else {
 	    ss = '' + d.getSeconds();
 	  }
-		var td = `${yy}-${mm}-${dd}T${hh}:${mn}:${ss}`;
+		let td = `${yy}-${mm}-${dd} ${hh}:${mn}:${ss}`;
+		return td;
+	}
+
+	const formatDateTimeDDMMYYYYJSON = function(dt){
+	  let d = new Date(dt);
+		d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+		let yy, mm, dd, hh, mn, ss;
+	  yy = d.getFullYear();
+	  if (d.getMonth() + 1 < 10) {
+	    mm = '0' + (d.getMonth() + 1);
+	  } else {
+	    mm = '' + (d.getMonth() + 1);
+	  }
+	  if (d.getDate() < 10) {
+	    dd = '0' + d.getDate();
+	  } else {
+	    dd = '' + d.getDate();
+	  }
+	  if (d.getHours() < 10) {
+	    hh = '0' + d.getHours();
+	  } else {
+		   hh = '' + d.getHours();
+	  }
+	  if (d.getMinutes() < 10){
+		   mn = '0' + d.getMinutes();
+	  } else {
+	    mn = '' + d.getMinutes();
+	  }
+	  if (d.getSeconds() < 10) {
+		   ss = '0' + d.getSeconds();
+	  } else {
+	    ss = '' + d.getSeconds();
+	  }
+		let td = {YY: yy, MM: mm, DD: dd, HH: hh, MN: mn, SS: ss};
 		return td;
 	}
 
@@ -14256,12 +14434,22 @@ module.exports = function ( jq ) {
 	}
 
 	const formatFullDateStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		return `${dtStrings[0]}`;;
 	}
 
 	const formatTimeHHMNStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		let ts = dtStrings[1].split(':');
 		return `${ts[0]}:${ts[1]}`;;
 	}
@@ -14321,10 +14509,12 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounter = function(){
-		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
-			wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
-		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+		if (wsm) {
+			if ((wsm.readyState == 0) || (wsm.readyState == 1)){
+				wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+			} else {
+				//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			}
 		}
 	}
 
@@ -14332,7 +14522,7 @@ module.exports = function ( jq ) {
 		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 			wsm.send(JSON.stringify({type: 'set', what: 'screenstate', value: state}));
 		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
 		}
 	}
 
@@ -14432,6 +14622,10 @@ module.exports = function ( jq ) {
 			let eventName = 'triggerupdatedicom'
 			let triggerData = {dicom : data.dicom, result: data.result};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'caseeventlog') {
+			let eventName = 'caseeventlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
 		}
 	}
@@ -14537,6 +14731,12 @@ module.exports = function ( jq ) {
 	});
 	*/
 
+	const fmtStr = function (str) {
+	  var args = [].slice.call(arguments, 1);
+	  var i = 0;
+	  return str.replace(/%s/g, () => args[i++]);
+	}
+
 	return {
 		formatDateStr,
 		getTodayDevFormat,
@@ -14555,6 +14755,7 @@ module.exports = function ( jq ) {
 		getDatetimeValue,
 		formatDateDev,
 		formatDateTimeStr,
+		formatDateTimeDDMMYYYYJSON,
 		formatStartTimeStr,
 		formatFullDateStr,
 		formatTimeHHMNStr,
@@ -14574,6 +14775,7 @@ module.exports = function ( jq ) {
 		doCreateDownloadXLSX,
 		doShowLogWindow,
 		//dicomZipSyncWorker,
+		fmtStr,
 		/*  Web Socket Interface */
 		wsm
 	}
@@ -14597,6 +14799,7 @@ module.exports = function ( jq, wsm ) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
+			/*
       let masterNotify = localStorage.getItem('masternotify');
       let MasterNotify = JSON.parse(masterNotify);
       if (MasterNotify) {
@@ -14606,6 +14809,7 @@ module.exports = function ( jq, wsm ) {
         MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
       }
       localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+			*/
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
@@ -14725,6 +14929,10 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'rezip') {
 			let eventName = 'triggerrezip';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {studyID: data.studyID, dicomZipFilename: data.dicomZipFilename}}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'caseeventlog') {
+			let eventName = 'caseeventlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
