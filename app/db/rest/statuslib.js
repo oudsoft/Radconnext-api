@@ -360,18 +360,18 @@ const onNewCaseEvent = function(caseId, options){
     await socket.sendMessage(radioNotify, radioProfile.username);
 
     //Load Urgent Profile
-    let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.urgenttypeId}});
+    let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.sumaseId}});
     let radioAutoCallMark = 1;
     if ((radioProfile.autoacc == 0) || (!radioProfile.autoacc)) {
       log.info('== When autoacc of Radio Profile is undefined or OFF ==');
-      let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+      let triggerParam = urgents[0].UGType_AcceptStep;
       let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
       if (radioProfile.radioAutoCall == 1) {
         let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
         log.info('totalMinut=>' + totalMinut);
         let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
         log.info('triggerMinut=>' + triggerMinut);
-        let workingParam = JSON.parse(urgents[0].UGType_WorkingStep);
+        let workingParam = urgents[0].UGType_WorkingStep;
         let workingMinut = (Number(workingParam.dd) * 24 * 60) + (Number(workingParam.hh) * 60) + Number(workingParam.mn);
         log.info('workingMinut=>' + workingMinut);
         if ((triggerMinut) && (triggerMinut > 0)) {
@@ -406,14 +406,14 @@ const onNewCaseEvent = function(caseId, options){
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           log.info('== But Radio Lock Screen ==');
-          let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+          let triggerParam = urgents[0].UGType_AcceptStep;
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
           if (radioProfile.radioAutoCall == 1) {
             let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
             log.info('totalMinut=>' + totalMinut);
             let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
             log.info('triggerMinut=>' + triggerMinut);
-            let workingParam = JSON.parse(urgents[0].UGType_WorkingStep);
+            let workingParam = urgents[0].UGType_WorkingStep;
             let workingMinut = (Number(workingParam.dd) * 24 * 60) + (Number(workingParam.hh) * 60) + Number(workingParam.mn);
             log.info('workingMinut=>' + workingMinut);
             if ((triggerMinut) && (triggerMinut > 0)) {
@@ -427,14 +427,14 @@ const onNewCaseEvent = function(caseId, options){
         }
       } else {
         log.info('== When Radio Offline ==');
-        let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+        let triggerParam = urgents[0].UGType_AcceptStep;
         let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, newCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
         if (radioProfile.radioAutoCall == 1) {
           let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
           log.info('totalMinut=>' + totalMinut);
           let triggerMinut = await doCalTriggerMinut(totalMinut, radioProfile);
           log.info('triggerMinut=>' + triggerMinut);
-          let workingParam = JSON.parse(urgents[0].UGType_WorkingStep);
+          let workingParam = urgents[0].UGType_WorkingStep;
           let workingMinut = (Number(workingParam.dd) * 24 * 60) + (Number(workingParam.hh) * 60) + Number(workingParam.mn);
           log.info('workingMinut=>' + workingMinut);
           if ((triggerMinut) && (triggerMinut > 0)) {
@@ -501,8 +501,8 @@ const onAcceptCaseEvent = function(caseId) {
     await socket.sendMessage(hospitalNotify, userProfile.username);
 
     //Load Urgent Profile
-    let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
-    let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+    let urgents = await db.sumases.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.sumaseId}});
+    let triggerParam = urgents[0].UGType_WorkingStep;
 
     await tasks.removeTaskByCaseId(caseId);
     let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
@@ -1117,16 +1117,16 @@ const onHospitalUpdateCaseEvent = function(caseId, newTaskOption){
         let actions = await onNewCaseEvent(caseId, editOption);
         resolve(actions);
       } else {
-        let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.urgenttypeId}});
+        let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.sumaseId}});
         if (radioProfile.autoacc == 0) {
-          //Create Task Schedule
-          let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
+          //Create Task Schedul
+          let triggerParam = urgents[0].UGType_AcceptStep;
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
         } else if (radioProfile.autoacc == 1) {
           let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
           let acceptedCaseStatusId = acceptedCaseStatus[0].id;
           await targetCase.setCasestatus(acceptedCaseStatus[0]);
-          let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+          let triggerParam = urgents[0].UGType_WorkingStep;
           let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, acceptedCaseStatusId, lineCaseDetaileMsg, caseMsgData);
         }
         if ((radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {

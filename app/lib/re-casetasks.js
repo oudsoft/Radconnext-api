@@ -29,7 +29,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
 
   let doLoadUrgent = function(urgenttypeId){
     return new Promise(async function(resolve, reject) {
-      let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: urgenttypeId}});
+      let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: urgenttypeId}});
       resolve(urgents);
     });
   }
@@ -112,7 +112,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
       const promiseList = new Promise(async function(resolve2, reject2) {
         await aliveCases.forEach(async (aliveCase, i) => {
           let caseCreateAt = aliveCase.createdAt;
-          let caseUrgentTypeId = aliveCase.urgenttypeId;
+          let caseUrgentTypeId = aliveCase.sumaseId;
           let caseStatusId = aliveCase.caseStatusId;
           let caseUserId = aliveCase.userId;
           let caseRadioId = aliveCase.Case_RadiologistId;

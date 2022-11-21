@@ -297,7 +297,8 @@ app.post('/status/(:caseId)', async (req, res) => {
           let userProfile = await common.doLoadRadioProfile(radioId);
           let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
 
-          let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+          //let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+          let triggerParam = urgents[0].UGType_WorkingStep;
           let dd = Number(triggerParam.dd);
           let hh = Number(triggerParam.hh);
           let mn = Number(triggerParam.mn);

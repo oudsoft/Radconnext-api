@@ -238,7 +238,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
               let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id);
               let userProfile = await common.doLoadRadioProfile(radUser.id);
 
-              let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
+              let triggerParam = urgents[0].UGType_WorkingStep;
               let dd = Number(triggerParam.dd);
               let hh = Number(triggerParam.hh);
               let mn = Number(triggerParam.mn);
