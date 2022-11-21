@@ -22,7 +22,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
   let doLoadAliveCase = function(casestatusIds){
     return new Promise(async function(resolve, reject) {
       const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name', 'Hos_Code']}];
-      let aliveCases = await db.cases.findAll({include: caseInclude, attributes: ['id', 'urgenttypeId', 'userId', 'casestatusId', 'Case_RadiologistId', 'createdAt', 'Case_StudyDescription', 'Case_ProtocolName', 'Case_BodyPart', 'Case_Modality'], where: {casestatusId: { [db.Op.in]: casestatusIds}}});
+      let aliveCases = await db.cases.findAll({include: caseInclude, attributes: ['id', 'urgenttypeId', 'sumaseId', 'userId', 'casestatusId', 'Case_RadiologistId', 'createdAt', 'Case_StudyDescription', 'Case_ProtocolName', 'Case_BodyPart', 'Case_Modality'], where: {casestatusId: { [db.Op.in]: casestatusIds}}});
       resolve(aliveCases);
     });
   }
@@ -45,6 +45,8 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
     const endDate = new Date(createTime + day + hour + minute);
     const endTime = endDate.getTime();
 
+    log.info('endDate=>' + endDate)
+    log.info('startDate=>'  + startDate)
     if (endTime > startTime){
       return true
     } else {
