@@ -232,7 +232,7 @@ const postbackMessageHandle = (userId, replyToken, cmds, radUser)=>{
             /* radio accept new case*/
             let targetCases = await db.cases.findAll({ attributes: ['id', 'casestatusId', 'Case_RadiologistId', 'urgenttypeId', 'sumaseId'], where: {id: data}});
             //let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
-            let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
+            let urgents = await uti.doLoadCaseUrgent(targetCases[0].sumaseId);
             let nowCaseStatus = targetCases[0].casestatusId;
             if (nowCaseStatus == 1) {
               let changeRes = await statusControl.doChangeCaseStatus(1, 2, data, radUser.id);

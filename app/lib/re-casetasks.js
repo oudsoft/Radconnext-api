@@ -29,7 +29,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
 
   let doLoadUrgent = function(urgenttypeId){
     return new Promise(async function(resolve, reject) {
-      let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: urgenttypeId}});
+      let urgents = await uti.doLoadCaseUrgent(urgenttypeId);
       resolve(urgents);
     });
   }

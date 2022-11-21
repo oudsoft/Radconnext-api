@@ -485,6 +485,22 @@ const voipRequest = function(rqParam) {
 	});
 }
 
+const doLoadCaseUrgent = function(sumaseId) {
+	return new Promise(async function(resolve, reject) {
+		if (sumaseId > 16) {
+			let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
+			let result = {
+				UGType_AcceptStep: JSON.parse(urgents[0].UGType_AcceptStep),
+				UGType_WorkingStep: JSON.parse(urgents[0].UGType_WorkingStep)
+			}
+			resolve([result]);
+		} else {
+			let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
+			resolve(urgents);
+		}
+	});
+}
+
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
@@ -511,6 +527,7 @@ module.exports = (dbconn, monitor) => {
 		doFormateDateTimeThaiZone,
 		doFormateDateThaiZone,
 		doCalUrgentVoiceCall,
-		voipRequest
+		voipRequest,
+		doLoadCaseUrgent
   }
 }

@@ -62,8 +62,7 @@ app.post('/response', async function(req, res) {
     voip.responseKEYs.push(key);
     let action = undefined;
     let targetCases = await db.cases.findAll({ attributes: ['Case_RadiologistId', 'casestatusId', 'urgenttypeId', 'sumaseId'], where: {id: caseId}});
-    //let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].urgenttypeId}});
-    let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
+    let urgents = await uti.doLoadCaseUrgent(targetCases[0].sumaseId);
     let radioId = targetCases[0].Case_RadiologistId;
     //let userinfos = await db.userinfoes.findAll({ attributes: ['User_NameTH', 'User_LaseNameTH'], where: {userId: radioId}});
     let userProfile = await common.doLoadRadioProfile(radioId);

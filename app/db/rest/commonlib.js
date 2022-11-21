@@ -707,13 +707,14 @@ const doSummaryBillReport = function(hospitalId, key) {
     let casewhereClous = {hospitalId: hospitalId};
     casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
     const orderby = [['createdAt', 'ASC']];
-    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep']}];
+    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}];
     const caseContents = await db.cases.findAll({attributes: ['id', 'createdAt', 'updatedAt', 'Case_UploadedAt', 'Case_ScanPart', 'Case_RadiologistId', 'Case_OrthancStudyID', 'Case_PatientHRLink', 'hospitalId'], include: caseInclude, where: [casewhereClous], order: orderby});
     let finalSumaryRows = [];
     const promiseList = new Promise(function(resolve2, reject2) {
       caseContents.forEach(async (row, i) => {
         let radioRes = await doLoadRadioProfile(row.Case_RadiologistId);
         let caseReportRes = await doLoadCaseReport(row.id);
+        let urgents = await uti.doLoadCaseUrgent(row.sumaseId);
         let studyTagsRes = await db.dicomtransferlogs.findAll({attributes: ['StudyTags'], where: {ResourceID: row.Case_OrthancStudyID}});
         let radioBill = {User_NameEN: radioRes.User_NameEN, User_LastNameEN: radioRes.User_LastNameEN, User_NameTH: radioRes.User_NameTH, User_LastNameTH: radioRes.User_LastNameTH};
         let newItem = JSON.parse(JSON.stringify(row));
@@ -723,6 +724,7 @@ const doSummaryBillReport = function(hospitalId, key) {
           newItem.reportUpdateAt = caseReportRes.updateAt;
           newItem.reportLink = caseReportRes.PDF_Filename;
           newItem.reportLog = caseReportRes.Log;
+          newItem.urgenttype = urgents[0];
         }
         if (studyTagsRes) {
           newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;

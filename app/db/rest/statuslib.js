@@ -360,7 +360,7 @@ const onNewCaseEvent = function(caseId, options){
     await socket.sendMessage(radioNotify, radioProfile.username);
 
     //Load Urgent Profile
-    let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: newCase.sumaseId}});
+    let urgents = await uti.doLoadCaseUrgent(newCase.sumaseId);
     let radioAutoCallMark = 1;
     if ((radioProfile.autoacc == 0) || (!radioProfile.autoacc)) {
       log.info('== When autoacc of Radio Profile is undefined or OFF ==');
@@ -501,7 +501,7 @@ const onAcceptCaseEvent = function(caseId) {
     await socket.sendMessage(hospitalNotify, userProfile.username);
 
     //Load Urgent Profile
-    let urgents = await db.sumases.findAll({ attributes: ['UGType_WorkingStep'], where: {id: targetCase.sumaseId}});
+    let urgents = await uti.doLoadCaseUrgent(targetCase.sumaseId);
     let triggerParam = urgents[0].UGType_WorkingStep;
 
     await tasks.removeTaskByCaseId(caseId);
@@ -1127,7 +1127,7 @@ const onHospitalUpdateCaseEvent = function(caseId, newTaskOption){
         let actions = await onNewCaseEvent(caseId, editOption);
         resolve(actions);
       } else {
-        let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCase.sumaseId}});
+        let urgents = await uti.doLoadCaseUrgent(targetCase.sumaseId);
         if (radioProfile.autoacc == 0) {
           //Create Task Schedul
           let triggerParam = urgents[0].UGType_AcceptStep;

@@ -292,7 +292,7 @@ app.post('/status/(:caseId)', async (req, res) => {
           let changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, userId);
           res.json({status: {code: 200}, actions: changeRes.change.actiohs});
 
-          let urgents = await db.sumases.findAll({ attributes: ['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: targetCases[0].sumaseId}});
+          let urgents = await uti.doLoadCaseUrgent(targetCases[0].sumaseId);
           let radioId = targetCases[0].Case_RadiologistId;
           let userProfile = await common.doLoadRadioProfile(radioId);
           let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
@@ -977,8 +977,7 @@ app.get('/status/by/dicom/(:dicomId)', async (req, res) => {
           let dicomCase = {id: youCcases[0].id, casestatusId: youCcases[0].casestatusId, urgenttypeId: youCcases[0].urgenttypeId, createdAt: youCcases[0].createdAt, casestatus: youCcases[0].casestatus};
           let hadOnProcess = uti.contains.call([1, 2, 8, 9], dicomCase.casestatusId);
           if (hadOnProcess) {
-            //const yourUrgents = await db.urgenttypes.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].urgenttypeId}});
-            const yourUrgents = await db.sumases.findAll({attributes:['UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: youCcases[0].sumaseId}});
+            const yourUrgents = await uti.doLoadCaseUrgent(youCcases[0].sumaseId);
             dicomCase.urgent = yourUrgents[0];
           }
           res.json({status: {code: 200}, Records: [dicomCase]});
