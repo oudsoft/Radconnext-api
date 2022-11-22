@@ -159,7 +159,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
             let utc = d.getTime();
             d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
             let yymmddhhmnss = uti.doFormateDateTime(d);
-            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: data.caseId, to: 1}});
+            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: caseId, to: 1}});
 
             if (radioProfile.radioAutoCall == 1) {
               let totalMinut = (Number(newAccUrgentParam.dd) * 24 * 60) + (Number(newAccUrgentParam.hh) * 60) + Number(newAccUrgentParam.mn);
@@ -224,7 +224,7 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
             let utc = d.getTime();
             d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
             let yymmddhhmnss = uti.doFormateDateTime(d);
-            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: data.caseId, to: { [db.Op.in]: [2, 8, 9] }}});
+            await db.radkeeplogs.update({triggerAt: yymmddhhmnss}, {where: {caseId: caseId, to: { [db.Op.in]: [2, 8, 9] }}});
 
             alives.push(caseId);
           }
