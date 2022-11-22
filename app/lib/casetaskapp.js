@@ -273,6 +273,6 @@ module.exports = ( taskCase, taskWarning, taskVoip, dbconn, monitor ) => {
   lineApi = require('./mod/lineapi.js')(db, log);
   Task = taskCase;
   Warning = taskWarning;
-  Voip =
+  Voip = taskVoip;
   return app;
 }
