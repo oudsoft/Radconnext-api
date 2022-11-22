@@ -528,9 +528,8 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         }
       }
     });
-    let endTime = newTask.triggerAt;
-
-    resolve(endTime);
+    log.info('VoIp triggerAt => ' + newTask.triggerAt);
+    resolve(newTask.triggerAt);
   });
 }
 
