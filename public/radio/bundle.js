@@ -4744,7 +4744,7 @@ function doAutoAcceptCase(autoSelectPage){
         let caseLists = myNewCase.Records;
         if (caseLists.length > 0){
           for (let i=0; i < caseLists.length; i++) {
-            let caseItem = caseLists[i];
+            let caseItem = caseLists[i].case;
             await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
           }
         } else {
