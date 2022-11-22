@@ -1597,6 +1597,16 @@ module.exports = function ( jq ) {
 
 	const doExtractList = function(originList, from, to) {
 		return new Promise(async function(resolve, reject) {
+			await originList.sort((a,b) => {
+				let av = util.getDatetimeValue(a.MainDicomTags.StudyDate, a.MainDicomTags.StudyTime);
+				let bv = util.getDatetimeValue(b.MainDicomTags.StudyDate, b.MainDicomTags.StudyTime);
+				if (av && bv) {
+					return bv - av;
+				} else {
+					return 0;
+				}
+			});
+
 			let exResults = [];
 			let	promiseList = new Promise(function(resolve2, reject2){
 				for (let i = (from-1); i < to; i++) {
@@ -4095,6 +4105,7 @@ $( document ).ready(function() {
       if ((transactionId) && (transactionId !== '')) {
         let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
         $.get(callURLTokenURL, {}, async function(data){
+          console.log(data);
           if ((data) && (data.token)) {
             sessionStorage.setItem('logged', true);
             localStorage.setItem('token', data.token);

@@ -107,7 +107,9 @@ function RadconCaseTask (socket, db, log) {
 
   this.filterTaskByTransactionId = function (transactionId) {
     return new Promise(async function(resolve, reject) {
+      console.log('transactionId param => ' + transactionId);
       let yourcases = await $this.caseTasks.filter((task)=>{
+        console.log('task.transactionId => ' + task.transactionId);
         if (task.transactionId == transactionId) {
           return task;
         }
