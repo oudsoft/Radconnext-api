@@ -480,8 +480,6 @@ const onAcceptCaseEvent = function(caseId) {
     const patientNameTH = targetCase.patient.Patient_NameTH + ' ' + targetCase.patient.Patient_LastNameTH;
     const studyDescription = targetCase.Case_StudyDescription;
     const caseMsgData = {hospitalName, patientNameEN, patientNameTH, studyDescription};
-    await tasks.removeTaskByCaseId(targetCase.id);
-    await voips.removeTaskByCaseId(targetCase.id);
 
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
@@ -505,6 +503,7 @@ const onAcceptCaseEvent = function(caseId) {
     let triggerParam = urgents[0].UGType_WorkingStep;
 
     await tasks.removeTaskByCaseId(caseId);
+    await voips.removeTaskByCaseId(caseId);
     let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     log.info('triggerDate=>' + triggerDate);
 
@@ -604,7 +603,6 @@ const onRejectCaseEvent = function(caseId) {
 
 const onExpiredCaseEvent = function(caseId) {
   return new Promise(async function(resolve, reject) {
-    await tasks.removeTaskByCaseId(caseId);
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const targetCase = targetCases[0];
@@ -621,7 +619,8 @@ const onExpiredCaseEvent = function(caseId) {
       await db.userprofiles.update({Profile: radioProfile}, { where: { userId: radioId } });
     }
     */
-    await voips.removeTaskByCaseId(targetCase.id);
+    await tasks.removeTaskByCaseId(caseId);
+    await voips.removeTaskByCaseId(caseId);
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
@@ -641,8 +640,8 @@ const onSuccessCaseEvent = function(caseId){
     const radioId = targetCase.Case_RadiologistId;
     const patientNameEN = targetCase.patient.Patient_NameEN + ' ' + targetCase.patient.Patient_LastNameEN;
 
-    await tasks.removeTaskByCaseId(targetCase.id);
-    await voips.removeTaskByCaseId(targetCase.id);
+    await tasks.removeTaskByCaseId(caseId);
+    await voips.removeTaskByCaseId(caseId);
     //Load Radio radioProfile
     let radioProfile = await common.doLoadRadioProfile(radioId);
     //radioProfile = {userId: radioId, username: radioUsers[0].username, radioUsers[0].User_NameEN, radioUsers[0].User_LastNameEN, lineUserId: radioUserLines[0].UserId, config: configs[0]};

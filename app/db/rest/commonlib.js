@@ -524,7 +524,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             }
           }
         } else {
-          await tasks.removeTaskByCaseId(caseId);
+          //await tasks.removeTaskByCaseId(caseId);
         }
       }
     });
@@ -625,7 +625,7 @@ const doCreateTaskWarning = function(warnings, caseId, radioProfile, triggerTime
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
         } else {
-          await warnings.removeTaskByCaseId(caseId);
+          //await warnings.removeTaskByCaseId(caseId);
         }
       }
     });
