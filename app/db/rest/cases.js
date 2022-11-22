@@ -167,7 +167,7 @@ app.post('/filter/radio', (req, res) => {
               let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
               item.sumase = urgents[0];
               finalCases.push({case: item, reff: refes[0], owner: owners[0]});
-            });
+            }
             setTimeout(()=> {
               resolveRef(finalCases);
             },1500);
