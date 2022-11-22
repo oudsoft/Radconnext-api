@@ -23,6 +23,7 @@ function RadconVoipTask (socket, db, log) {
 
       let responseKEYs = [];
       let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs};
+      $this.voipTasks.push(newTask);
 
       resolve(newTask);
 
@@ -33,14 +34,14 @@ function RadconVoipTask (socket, db, log) {
       });
 
       newTask.task = task;
-      $this.voipTasks.push(newTask);
+
     });
   }
 
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let anotherTasks = await $this.voipTasks.filter(async(task)=>{
-        if (task.caseId != Number(caseId)) {
+        if (Number(task.caseId) !== Number(caseId)) {
           return task;
         } else {
           //doCall rwquest remove callFile from VOIP Server
