@@ -68,6 +68,9 @@ function RadconVoipTask (socket, db, log) {
   this.selectTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.voipTasks.find((task)=>{
+        log.info('Number(task.caseId)=>' + Number(task.caseId));
+        log.info('Number(caseId)=>' + Number(caseId));
+        log.info(Number(task.caseId) === Number(caseId));
         if (Number(task.caseId) === Number(caseId)) {
           return task;
         }
