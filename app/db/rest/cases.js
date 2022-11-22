@@ -99,6 +99,7 @@ app.post('/filter/hospital', (req, res) => {
               const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
               const Refferal = {id: item.Case_RefferalId, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH};
               let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+              log.info('urgents=>' + JSON.stringify(urgents));
               item.sumase = urgents[0];
               casesFormat.push({case: item, Radiologist: Radiologist, Refferal: Refferal});
               allCaseId.push({caseId: item.id, userId: item.userId});
