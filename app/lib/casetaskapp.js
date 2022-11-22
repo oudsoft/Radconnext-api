@@ -224,6 +224,7 @@ app.post('/task/new/(:caseId)', (req, res) => {
   Task.selectTaskByCaseId(caseId).then(async(thatCase)=>{
     if (!thatCase) {
       let newTask = await onNewCaseEvent(caseId, triggerParam);
+      newTask = await Task.selectTaskByCaseId(caseId);
       res.status(200).send({status: {code: 200}, Records: [newTask]});
     } else {
       res.status(200).send({status: {code: 200}, Records: [thatCase]});
