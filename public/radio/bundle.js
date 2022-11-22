@@ -6024,10 +6024,9 @@ module.exports = function ( jq ) {
     return $(caseCmdBox);
   }
 
-  const doCreateCaseItemRow = function(caseItem, caseTask) {
+  const doCreateCaseItemRow = function(incident, caseTask) {
     return new Promise(async function(resolve, reject) {
-      //let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
-			console.log(caseItem);
+			let caseItem = incident.case;
 			if ((caseTask) && (caseTask.triggerAt)){
 				let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 				let casedatetime = caseDate.split(' ');
