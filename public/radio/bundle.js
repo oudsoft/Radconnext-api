@@ -4851,6 +4851,7 @@ module.exports = function ( jq ) {
   }
 
   const doCreateCaseItemCommand = function (caseItem) {
+		//let caseItem = incident.case;
     let userdata = JSON.parse(localStorage.getItem('userdata'));
     let caseCmdBox = $('<div style="text-align: center; padding: 4px;"></div>');
 		let openCmdText = undefined;
