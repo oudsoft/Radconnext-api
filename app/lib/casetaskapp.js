@@ -46,6 +46,8 @@ const onNewCaseEvent = function(caseId, triggerParam){
       let urgents = await uti.doLoadCaseUrgent(newCase.sumaseId);
       caseTriggerParam = urgents[0].UGType_AcceptStep;
     }
+
+    let baseCaseStatusId = newCase.casestatusId;
     let newTransactionId = uti.doCreateTranctionId();
 
     let newTask = await Task.doCreateNewTaskCase(caseId, userProfile.username, caseTriggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, newTransactionId, async (caseId, socket, endDateTime)=>{
