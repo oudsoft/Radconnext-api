@@ -9,7 +9,51 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, Task, Warning, log, auth;
+var db, Task, Warning, log, auth, common;
+
+const onNewCaseEvent = function(caseId, triggerParam){
+  return new Promise(async function(resolve, reject) {
+    const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name', 'Hos_Code']}];
+    const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
+    const newCase = targetCases[0];
+    const userId = newCase.userId;
+    const hospitalId = newCase.hospitalId;
+    const radioId = newCase.Case_RadiologistId;
+    const hospitalName = newCase.hospital.Hos_Name;
+    const hospitalCode = newCase.hospital.Hos_Code;
+    const patientNameEN = newCase.patient.Patient_NameEN + ' ' + newCase.patient.Patient_LastNameEN;
+    const patientNameTH = newCase.patient.Patient_NameTH + ' ' + newCase.patient.Patient_LastNameTH;
+
+    const caseCreateAt = newCase.updatedAt;
+
+    let studyDescription = '';
+    if ((newCase.Case_StudyDescription) && (newCase.Case_StudyDescription !== '')) {
+      studyDescription = newCase.Case_StudyDescription;
+    } else if ((newCase.Case_ProtocolName) && (newCase.Case_ProtocolName !== '')) {
+      studyDescription = newCase.Case_ProtocolName;
+    } else {
+      studyDescription = 'N/A';
+    }
+
+    const caseMsgData = {hospitalName, hospitalCode, patientNameEN, patientNameTH, caseCreateAt, studyDescription};
+
+    let radioProfile = await common.doLoadRadioProfile(radioId);
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+    let userProfile = await common.doLoadUserProfile(userId);
+    let lineCaseDetaileMsg = uti.fmtStr(common.msgNewCaseRadioDetailFormat, userProfile.hospitalName, patientNameEN, newCase.Case_StudyDescription, newCase.Case_ProtocolName, newCase.Case_BodyPart, newCase.Case_Modality);
+    let caseTriggerParam = triggerParam;
+    if (!caseTriggerParam) {
+      let urgents = await uti.doLoadCaseUrgent(newCase.sumaseId);
+      caseTriggerParam = urgents[0].UGType_AcceptStep;
+    }
+    let newTransactionId = uti.doCreateTranctionId();
+
+    let newTask = await Task.doCreateNewTaskCase(caseId, userProfile.username, caseTriggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, newTransactionId, async (caseId, socket, endDateTime)=>{
+      log.info('But No Idea to do this action, please look on next time update version.')
+    });
+    resolve(newTask);
+  });
+}
 
 //List API
 app.post('/list', (req, res) => {
@@ -172,10 +216,24 @@ app.get('/select/(:caseId)', (req, res) => {
   });
 });
 
+app.post('/new/(:caseId)', (req, res) => {
+  let caseId = req.params.caseId;
+  let triggerParam = req.body.triggerParam;
+  Task.selectTaskByCaseId(caseId).then(async(thatCase)=>{
+    if (!thatCase) {
+      let newTask = await onNewCaseEvent(caseId, triggerParam);
+      res.status(200).send({status: {code: 200}, Records: [newCase]});
+    } else {
+      res.status(200).send({status: {code: 200}, Records: [thatCase]});
+    }
+  });
+});
+
 module.exports = ( taskCase, taskWarning, dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('../db/rest/auth.js')(db, log);
+  common = require('../db/rest/commonlib.js')(db, log);
   Task = taskCase;
   Warning = taskWarning;
   return app;
