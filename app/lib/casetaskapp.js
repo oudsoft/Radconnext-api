@@ -119,13 +119,13 @@ app.post('/filter/user/(:userId)', (req, res) => {
   }
 });
 
-app.get('/list', (req, res) => {
+app.get('/task/list', (req, res) => {
   Task.getTasks().then((tasks)=>{
     res.status(200).send({Result: "OK", Records: tasks});
   });
 });
 
-app.get('/remove/(:caseId)', (req, res) => {
+app.get('/task/remove/(:caseId)', (req, res) => {
   let caseId = req.params.caseId;
   Task.removeTaskByCaseId(caseId).then((tasks)=>{
     res.status(200).send({status: "OK", result: tasks});
