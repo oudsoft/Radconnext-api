@@ -84,7 +84,7 @@ app.post('/filter/hospital', (req, res) => {
               }
             }
           }
-          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
+          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
           const orderby = [['id', 'DESC']];
           const cases = await Case.findAll({include: caseInclude, where: whereClous, order: orderby});
           const casesFormat = [];
@@ -98,6 +98,8 @@ app.post('/filter/hospital', (req, res) => {
               const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
               const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
               const Refferal = {id: item.Case_RefferalId, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH};
+              let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+              item.sumase = urgents[0];
               casesFormat.push({case: item, Radiologist: Radiologist, Refferal: Refferal});
               allCaseId.push({caseId: item.id, userId: item.userId});
             }
@@ -150,18 +152,20 @@ app.post('/filter/radio', (req, res) => {
         try {
           const statusId = req.body.statusId;
           const radioId = req.body.userId;
-          const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}, {model: db.sumases, attributes: ['id', 'UGType_Name']}];
+          const caseInclude = [{model: db.hospitals, attributes: ['id', 'Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
           const whereClous = {Case_RadiologistId: radioId, casestatusId: { [db.Op.in]: statusId } };
           const orderby = [['id', 'DESC']];
           const radioCases = await Case.findAll({include: caseInclude, where: whereClous, order: orderby});
-          /*
           const promiseListRef = new Promise(async function(resolveRef, rejectRef) {
-            const finalCases = [];
-            await radioCases.forEach(async (item, i) => {
+            let finalCases = [];
+            for (let i=0; i<radioCases.length; i++) {
+              let item = radioCases[i];
               const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
               const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
               const ownerUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.userId}});
               const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
+              let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+              item.sumase = urgents[0];
               finalCases.push({case: item, reff: refes[0], owner: owners[0]});
             });
             setTimeout(()=> {
@@ -171,8 +175,7 @@ app.post('/filter/radio', (req, res) => {
           Promise.all([promiseListRef]).then((ob)=> {
             res.json({status: {code: 200}, Records: ob[0]});
           });
-          */
-          res.json({status: {code: 200}, Records: radioCases});
+          //res.json({status: {code: 200}, Records: radioCases});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -852,9 +855,6 @@ app.post('/search/key', async (req, res) => {
             const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
             const Radiologist = {id: item.Case_RadiologistId, User_NameTH: rades[0].User_NameTH, User_LastNameTH: rades[0].User_LastNameTH};
             let urgents = await uti.doLoadCaseUrgent(item.sumaseId);
-            //if (item.sumaseId == 851) {
-              //log.info('urgents=>'+ JSON.stringify(urgents));
-            //}
             item.sumase = urgents[0];
             let next = await common.doCanNextStatus(item.casestatusId);
             casesFormat.push({case: item, Radiologist: Radiologist, /* Refferal: Refferal*/ next: next});
