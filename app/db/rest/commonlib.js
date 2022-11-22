@@ -411,20 +411,21 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
       }
     });
 
-    let dd = Number(triggerParam.dd) * 24 * 60;
-    let hh = Number(triggerParam.hh) * 60;
-    let mn = Number(triggerParam.mn);
-    let shiftMinut = dd + hh + mn;
-
-    let endTime = newTask.triggerAt;
-
-    let endDateText = uti.doFormateDateTimeChatbot(endTime);
-
-    let caseDateText = uti.doFormateDateTimeChatbot(caseMsgData.caseCreateAt);
     // Chatbot message to Radio
     log.info('radioProfile=> ' + JSON.stringify(radioProfile));
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
       if (baseCaseStatusId == 1 ) {
+        let dd = Number(triggerParam.dd) * 24 * 60;
+        let hh = Number(triggerParam.hh) * 60;
+        let mn = Number(triggerParam.mn);
+        let shiftMinut = dd + hh + mn;
+
+        let endTime = newTask.triggerAt;
+
+        let endDateText = uti.doFormateDateTimeChatbot(endTime);
+
+        let caseDateText = uti.doFormateDateTimeChatbot(caseMsgData.caseCreateAt);
+
         let dataOnCaseBot = {
           headerTitle: 'แจ้งเคสใหม่',
           caseDatetime: caseDateText,
@@ -437,12 +438,12 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
         let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
         let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
         await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
+
         let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
         const offset = 7;
         let d = new Date();
         let utc = d.getTime();
         d = new Date(utc + (offset * 60 * 60 * 1000) + (shiftMinut * 60 *1000));
-
         let yymmddhhmnss = uti.doFormateDateTime(d);
         let yymmddhhmnText = uti.fmtStr('%s-%s-%s %s.%s', yymmddhhmnss.DD, yymmddhhmnss.MM, yymmddhhmnss.YY, yymmddhhmnss.HH, yymmddhhmnss.MN);
         let remark = 'แจ้งเตือนรังสีแพทย์ ' + radioNameTH + ' ทาง Line Application กำหนดเวลาตอบรับเคส ภายใน ' + yymmddhhmnText;

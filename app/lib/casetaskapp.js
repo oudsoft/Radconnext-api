@@ -9,9 +9,9 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, Task, Warning, log, auth, common, uti;
+var db, Task, Warning, Voip, log, auth, common, uti, lineApi;
 
-const onNewCaseEvent = function(caseId, triggerParam){
+const onNewCaseEvent = function(caseId, triggerParam, action){
   return new Promise(async function(resolve, reject) {
     const caseInclude = [ {model: db.patients, attributes: ['Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}, {model: db.hospitals, attributes: ['Hos_Name', 'Hos_Code']}];
     const targetCases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
@@ -51,7 +51,38 @@ const onNewCaseEvent = function(caseId, triggerParam){
     let newTransactionId = uti.doCreateTranctionId();
 
     let newTask = await Task.doCreateNewTaskCase(caseId, userProfile.username, caseTriggerParam, radioProfile.username, userProfile.hospitalName, baseCaseStatusId, newTransactionId, async (caseId, socket, endDateTime)=>{
-      log.info('But No Idea to do this action, please look on next time update version.')
+      log.info('== State Triger by your action parameter ===');
+      if (action) {
+        if (action.line == 1) {
+          log.info('== State Line Triger ====');
+          let dd = Number(triggerParam.dd) * 24 * 60;
+          let hh = Number(triggerParam.hh) * 60;
+          let mn = Number(triggerParam.mn);
+          let shiftMinut = dd + hh + mn;
+
+          let endTime = newTask.triggerAt;
+
+          let endDateText = uti.doFormateDateTimeChatbot(endTime);
+
+          let caseDateText = uti.doFormateDateTimeChatbot(caseMsgData.caseCreateAt);
+
+          let dataOnCaseBot = {
+            headerTitle: 'แจ้งเคสใหม่',
+            caseDatetime: caseDateText,
+            hospitalName: caseMsgData.hospitalName,
+            urgentName: 'Due',
+            expireDatetime: endDateText,
+            patientName: caseMsgData.patientNameEN,
+            studyDescription: caseMsgData.studyDescription
+          };
+          let acceptActionMenu =  [{id: 'x401', name: 'รับ', data: caseId}, {id: 'x402', name: 'ไม่รับ', data: caseId}];
+          let bubbleMenu = lineApi.doCreateCaseAccBubbleReply(dataOnCaseBot, acceptActionMenu);
+          await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
+        }
+        if (action.phone == 1) {
+
+        }
+      }
     });
     resolve(newTask);
   });
@@ -221,9 +252,10 @@ app.get('/task/select/(:caseId)', (req, res) => {
 app.post('/task/new/(:caseId)', (req, res) => {
   let caseId = req.params.caseId;
   let triggerParam = req.body.triggerParam;
+  let action = req.body.action;
   Task.selectTaskByCaseId(caseId).then(async(thatCase)=>{
     if (!thatCase) {
-      let newTask = await onNewCaseEvent(caseId, triggerParam);
+      let newTask = await onNewCaseEvent(caseId, triggerParam, action);
       newTask = await Task.selectTaskByCaseId(caseId);
       res.status(200).send({status: {code: 200}, Records: [newTask]});
     } else {
@@ -232,13 +264,15 @@ app.post('/task/new/(:caseId)', (req, res) => {
   });
 });
 
-module.exports = ( taskCase, taskWarning, dbconn, monitor ) => {
+module.exports = ( taskCase, taskWarning, taskVoip, dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('../db/rest/auth.js')(db, log);
   common = require('../db/rest/commonlib.js')(db, log);
   uti = require('./mod/util.js')(db, log);
+  lineApi = require('./mod/lineapi.js')(db, log);
   Task = taskCase;
   Warning = taskWarning;
+  Voip =
   return app;
 }

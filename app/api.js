@@ -69,7 +69,7 @@ module.exports = ( httpsServer, monitor ) => {
   const whomtask = require('./lib/whomtask.js')(webSocketServer, db, log);
 	const taskWarning = require('./lib/casewarningtask.js')(webSocketServer, db, log);
 	const voipTask = require('./lib/voiptask.js')( webSocketServer, db, log);
-	const taskApp = require('./lib/casetaskapp.js')(taskCase, taskWarning, db, log);
+	const taskApp = require('./lib/casetaskapp.js')(taskCase, taskWarning, voipTask, db, log);
 	const resetPwdTask = require('./lib/resetpwdtask.js')( db, log);
 	const resetPwdApp = require('./lib/resetpwdapp.js')( resetPwdTask, db, log);
 	const activateAccountTask = require('./lib/activateaccounttask.js')( db, log);
