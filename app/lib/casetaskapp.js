@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, Task, Warning, log, auth, common;
+var db, Task, Warning, log, auth, common, uti;
 
 const onNewCaseEvent = function(caseId, triggerParam){
   return new Promise(async function(resolve, reject) {
@@ -208,7 +208,7 @@ app.get('/warning/list', (req, res) => {
   });
 });
 
-app.get('/select/(:caseId)', (req, res) => {
+app.get('/task/select/(:caseId)', (req, res) => {
   let caseId = req.params.caseId;
   Task.selectTaskByCaseId(caseId).then((thatCase)=>{
     //log.info('ThatTask=>' + JSON.stringify(thatCase));
@@ -216,7 +216,7 @@ app.get('/select/(:caseId)', (req, res) => {
   });
 });
 
-app.post('/new/(:caseId)', (req, res) => {
+app.post('/task/new/(:caseId)', (req, res) => {
   let caseId = req.params.caseId;
   let triggerParam = req.body.triggerParam;
   Task.selectTaskByCaseId(caseId).then(async(thatCase)=>{
@@ -234,6 +234,7 @@ module.exports = ( taskCase, taskWarning, dbconn, monitor ) => {
   log = monitor;
   auth = require('../db/rest/auth.js')(db, log);
   common = require('../db/rest/commonlib.js')(db, log);
+  uti = require('./mod/util.js')(db, log);
   Task = taskCase;
   Warning = taskWarning;
   return app;
