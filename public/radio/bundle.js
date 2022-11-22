@@ -4901,9 +4901,9 @@ module.exports = function ( jq ) {
     return $(caseCmdBox);
   }
 
-  const doCreateCaseItemRow = function(caseItem, caseTask) {
+  const doCreateCaseItemRow = function(incident, caseTask) {
     return new Promise(async function(resolve, reject) {
-			console.log(caseItem);
+			let caseItem = incident.case;
 			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 			let casedatetime = caseDate.split(' ');
 			let casedateSegment = casedatetime[0].split('-');
