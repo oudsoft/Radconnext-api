@@ -4903,6 +4903,7 @@ module.exports = function ( jq ) {
 
   const doCreateCaseItemRow = function(caseItem, caseTask) {
     return new Promise(async function(resolve, reject) {
+			console.log(caseItem);
 			let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 			let casedatetime = caseDate.split(' ');
 			let casedateSegment = casedatetime[0].split('-');
@@ -6026,6 +6027,7 @@ module.exports = function ( jq ) {
   const doCreateCaseItemRow = function(caseItem, caseTask) {
     return new Promise(async function(resolve, reject) {
       //let caseTask = await common.doCallApi('/api/tasks/select/'+ caseItem.id, {});
+			console.log(caseItem);
 			if ((caseTask) && (caseTask.triggerAt)){
 				let caseDate = util.formatDateTimeStr(caseItem.createdAt);
 				let casedatetime = caseDate.split(' ');
