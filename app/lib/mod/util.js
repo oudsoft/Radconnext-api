@@ -489,12 +489,21 @@ const doLoadCaseUrgent = function(sumaseId) {
 	return new Promise(async function(resolve, reject) {
 		if (sumaseId > 16) {
 			let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
-			let result = {
-				UGType_Name: urgents[0].UGType_Name,
-				UGType_AcceptStep: JSON.parse(urgents[0].UGType_AcceptStep),
-				UGType_WorkingStep: JSON.parse(urgents[0].UGType_WorkingStep)
+			if (urgents.length > 0) {
+				let result = {
+					UGType_Name: urgents[0].UGType_Name,
+					UGType_AcceptStep: JSON.parse(urgents[0].UGType_AcceptStep),
+					UGType_WorkingStep: JSON.parse(urgents[0].UGType_WorkingStep)
+				}
+				resolve([result]);
+			} else {
+				let result = {
+					UGType_Name: 'N/A',
+					UGType_AcceptStep: {dd:0, hh: 0, mn: 0},
+					UGType_WorkingStep: {dd:0, hh: 0, mn: 0}
+				}
+				resolve([result]);
 			}
-			resolve([result]);
 		} else {
 			let urgents = await db.sumases.findAll({ attributes: ['UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
 			resolve(urgents);
