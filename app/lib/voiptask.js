@@ -20,16 +20,20 @@ function RadconVoipTask (socket, db, log) {
       let endMN = endDate.getMinutes();
       let endSS = endDate.getSeconds();
       let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
+
+      let responseKEYs = [];
+      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs};
+
+      resolve(newTask);
+
       log.info('VoIP scheduleTrigger => ' + scheduleTrigger);
-  		let task = cron.schedule(scheduleTrigger, function(){
+      let task = cron.schedule(scheduleTrigger, function(){
         log.info('VoIP start trigger => ' + caseId);
         cb(caseId, socket, endDate);
       });
-      let responseKEYs = [];
-      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs, task: task};
 
+      newTask.task = task;
       $this.voipTasks.push(newTask);
-      resolve(newTask);
     });
   }
 
@@ -68,9 +72,9 @@ function RadconVoipTask (socket, db, log) {
   this.selectTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.voipTasks.find((task)=>{
-        log.info('Number(task.caseId)=>' + Number(task.caseId));
-        log.info('Number(caseId)=>' + Number(caseId));
-        log.info(Number(task.caseId) === Number(caseId));
+        //log.info('Number(task.caseId)=>' + Number(task.caseId));
+        //log.info('Number(caseId)=>' + Number(caseId));
+        //log.info(Number(task.caseId) === Number(caseId));
         if (Number(task.caseId) === Number(caseId)) {
           return task;
         }
