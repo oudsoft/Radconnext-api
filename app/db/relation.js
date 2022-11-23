@@ -134,11 +134,11 @@ templates.belongsTo(users);
 const cases = sequelize.define('cases', Def.RadCaseDef);
 cases.belongsTo(hospitals);
 cases.belongsTo(patients);
-cases.belongsTo(urgenttypes);
+//cases.belongsTo(urgenttypes);
 cases.belongsTo(cliamerights);
 cases.belongsTo(casestatuses);
 cases.belongsTo(users);
-cases.belongsTo(sumases);
+//cases.belongsTo(sumases);
 /*
 cases.prototype.getCreatedAtWithOffset = function (offset) {
   return moment(this.created_at).utcOffset(offset);
