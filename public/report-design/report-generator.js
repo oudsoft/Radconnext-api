@@ -123,7 +123,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     */
 
     let endResultAt = parseFloat(rsH) + parseFloat(resultTopPosition); // 1380;
-    let eff = 0.18;
+    let eff = 0.19;
     endResultAt += (endResultAt * eff);
     console.log('endResultAt=>' + endResultAt);
 
