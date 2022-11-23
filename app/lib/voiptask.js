@@ -54,8 +54,9 @@ function RadconVoipTask (socket, db, log) {
           let remark = 'ระบบทำการยกเลิกสายเรียกของรังสีแพทย์ ' + task.radioNameTH;
           let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
           await db.radkeeplogs.create(newKeepLog);
-          task.task.stop();
-
+          if ((task) && (task.task)) {
+            task.task.stop();
+          }
           let curlData = JSON.stringify(newKeepLog);
           let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
           let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
