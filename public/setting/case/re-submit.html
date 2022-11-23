@@ -396,6 +396,13 @@
           $(itemRow).append($(sumaseCell));
           let cmdCol = $('<td align="center"></td>');
           $(itemRow).append($(cmdCol));
+
+          let hrCmd = $('<input type="button" value="HR"/>');
+          $(hrCmd).on('click', (evt)=>{
+            doPopupHR(cases[i].Case_PatientHRLink);
+          });
+          $(cmdCol).append($(hrCmd));
+
           let isEditResponse = contains.call(editResponseStatus, cases[i].casestatusId);
           if (isEditResponse){
             let reSubmitCmd = $('<input type="button" value="Re-Submit"/>');
@@ -406,19 +413,13 @@
             $(openResultCmd).on('click', (evt)=>{
               doOpenResult(cases[i].id);
             });
+            $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openResultCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(reSubmitCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openCaseLogCmd));
           } else {
-            $(cmdCol).append($('<span>  </span>'));
-            let hrCmd = $('<input type="button" value="HR"/>');
-            $(hrCmd).on('click', (evt)=>{
-              //doReDicomLog(cases[i].hospitalId, cases[i].Case_OrthancStudyID);
-              doPopupHR(cases[i].Case_PatientHRLink);
-            });
-            $(cmdCol).append($(hrCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openCaseLogCmd));
           }
@@ -593,7 +594,7 @@
     let radAlertMsg = $('<div></div>');
     //$(radAlertMsg).append($('<span></span>').text(JSON.stringify(hrData)));
     hrData.forEach((item, i) => {
-      let hrIntanceId = $('<span></span>').text(item.instanceId);
+      let hrIntanceId = $('<div></div>').text(item.instanceId);
       let hrImg = $('<img/>').css({'width': '80px', 'height': 'auto', 'cursor': 'pointer'});
       $(hrImg).attr({'src': item.link});
       $(hrImg).on('click', (evt)=>{
