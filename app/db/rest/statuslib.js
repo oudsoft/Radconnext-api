@@ -260,6 +260,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
       let voiceUrgent = undefined;
       let triggerAt = totalMinut - triggerMinut;
       if (triggerAt > 0){
+        log.info('Positive triggerAt=>' + triggerAt + ' Start Task.');
         let delta = triggerAt;
         let dd = Math.floor(delta / 1440);
         delta -= dd * 1440;
@@ -267,9 +268,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         delta -= hh * 60;
         let mn = delta;
         voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-        log.info('PhoneCallRadio totalMinut=>' + totalMinut);
         voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
-        log.info('PhoneCallRadio voiceUrgent=>' + voiceUrgent);
         let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
         let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, casestatusId, caseVoipData);
         resolve(theVoipTask);
@@ -283,11 +282,12 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
         let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 1, remark : remark, triggerAt: yymmddhhmnss};
         await common.doCaseChangeStatusKeepLog(newKeepLog);
       } else {
+        log.info('Negative triggerAt=>' + triggerAt + ' Start Task.');
         let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
         log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
         if (nowcaseStatus[0].casestatusId === casestatusId) {
         //if ([2, 8].includes(nowcaseStatus[0].casestatusId)) {
-          voipTriggerParam = {dd: 0, hh: 0, mn: -1};
+          voipTriggerParam = {dd: 0, hh: 0, mn: 1};
           voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
           let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
           log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));

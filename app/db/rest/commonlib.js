@@ -523,6 +523,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
               callCount = callCount + 1;
             }
           }
+
         } else {
           //await tasks.removeTaskByCaseId(caseId);
         }
