@@ -204,8 +204,9 @@ app.get('/task/list', (req, res) => {
 
 app.get('/task/remove/(:caseId)', (req, res) => {
   let caseId = req.params.caseId;
-  Task.removeTaskByCaseId(caseId).then((tasks)=>{
-    res.status(200).send({status: "OK"});
+  Task.removeTaskByCaseId(caseId).then(async (tasks)=>{
+    let remainTasks = await Task.getTasks();
+    res.status(200).send({status: "OK"}, task: remainTasks);
   });
 });
 

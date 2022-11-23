@@ -174,6 +174,7 @@ app.get('/task/list', async function(req, res) {
 app.get('/task/remove/(:caseId)', async function(req, res) {
   let caseId = req.params.caseId;
   let tasks = await Voip.removeTaskByCaseId(caseId);
+  tasks = await Voip.getTasks();
   res.json({status: {code: 200}, tasks: tasks});
 });
 
