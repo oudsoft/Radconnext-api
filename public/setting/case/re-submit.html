@@ -576,7 +576,7 @@
 
   function doPopupSumase(sumaseData){
     let radAlertMsg = $('<div></div>');
-    $(radAlertMsg).text(JSON.stringify(sumaseData));
+    $(radAlertMsg).append($('<span></span>').text(JSON.stringify(sumaseData)));
     const radconfirmoption = {
       title: 'Urgent',
       msg: $(radAlertMsg),
@@ -591,7 +591,14 @@
 
   function doPopupHR(hrData){
     let radAlertMsg = $('<div></div>');
-    $(radAlertMsg).text(JSON.stringify(hrData));
+    $(radAlertMsg).append($('<span></span>').text(JSON.stringify(hrData)));
+    hrData.forEach((item, i) => {
+      let hrImg = $('<img/>').css('width': '80px', 'height': 'audio', 'cursor': 'pointer');
+      $(hrImg).on('click', (evt)=>{
+        window.open(item.link, '_blank');
+      });
+      $(radAlertMsg).append($(hrImg));
+    });
     const radconfirmoption = {
       title: 'Urgent',
       msg: $(radAlertMsg),
