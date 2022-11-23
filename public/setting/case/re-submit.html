@@ -413,11 +413,12 @@
             $(cmdCol).append($(openCaseLogCmd));
           } else {
             $(cmdCol).append($('<span>  </span>'));
-            let reDicomCmd = $('<input type="button" value="Re-Dicom"/>');
-            $(reDicomCmd).on('click', (evt)=>{
-              doReDicomLog(cases[i].hospitalId, cases[i].Case_OrthancStudyID);
+            let hrCmd = $('<input type="button" value="HR"/>');
+            $(hrCmd).on('click', (evt)=>{
+              //doReDicomLog(cases[i].hospitalId, cases[i].Case_OrthancStudyID);
+              doPopupHR(cases[i].Case_PatientHRLink);
             });
-            $(cmdCol).append($(reDicomCmd));
+            $(cmdCol).append($(hrCmd));
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(openCaseLogCmd));
           }
@@ -576,6 +577,21 @@
   function doPopupSumase(sumaseData){
     let radAlertMsg = $('<div></div>');
     $(radAlertMsg).text(JSON.stringify(sumaseData));
+    const radconfirmoption = {
+      title: 'Urgent',
+      msg: $(radAlertMsg),
+      width: '320px',
+      onOk: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
+    $(radConfirmBox.cancelCmd).hide();
+  }
+
+  function doPopupHR(hrData){
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).text(JSON.stringify(hrData));
     const radconfirmoption = {
       title: 'Urgent',
       msg: $(radAlertMsg),
