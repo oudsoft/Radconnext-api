@@ -488,9 +488,11 @@ app.post('/add', (req, res) => {
           newCase.urgenttypeId = urgenttypeId
           newCase.sumaseId = sumaseId
           newCase.caseStatusId = 1;
-          const adCase = await Case.create(newCase);
+
+          log.info('newCase=>' + JSON.stringify(adCase));
           
-          //log.info('newCase=>' + JSON.stringify(adCase));
+          const adCase = await db.cases.create(newCase);
+
           //log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           //await Case.update(setupCaseTo, { where: { id: adCase.id } });
           //await adCase.setCasestatus(newcaseStatus[0]);
