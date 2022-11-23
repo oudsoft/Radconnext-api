@@ -591,13 +591,14 @@
 
   function doPopupHR(hrData){
     let radAlertMsg = $('<div></div>');
-    $(radAlertMsg).append($('<span></span>').text(JSON.stringify(hrData)));
+    //$(radAlertMsg).append($('<span></span>').text(JSON.stringify(hrData)));
     hrData.forEach((item, i) => {
+      let hrIntanceId = $('<span></span>').text(item.instanceId);
       let hrImg = $('<img/>').css({'width': '80px', 'height': 'auto', 'cursor': 'pointer'});
       $(hrImg).on('click', (evt)=>{
         window.open(item.link, '_blank');
       });
-      $(radAlertMsg).append($(hrImg));
+      $(radAlertMsg).append($(hrImg)).append($(hrIntanceId));
     });
     const radconfirmoption = {
       title: 'Urgent',
