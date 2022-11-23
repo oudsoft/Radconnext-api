@@ -21,6 +21,7 @@
         <label for="Limit">Limit:</label><span>  </span>
         <select id="Limit"></select><span>  </span>
         <input type="button" id="LoadCaseCmd" value="Load Cases."/>
+        <input type="button" id="BackCmd" value="Back"/>
       </div>
       <div id="CaseList"></div>
     </div>
@@ -43,6 +44,11 @@
     $('#LoadCaseCmd').on('click', (evt)=>{
       doLoadLast20Cases(evt);
     });
+
+    $('#BackCmd').on('click', (evt)=>{
+      window.location.replace('/staff.html');
+    });
+
   });
 
   const initPage = function(){
