@@ -291,7 +291,7 @@ const doAutoPhoneCallRadio = function(totalMinut, triggerMinut, workingMinut, ca
           voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
           let endDate = new Date();
           let newVoipTask = {caseId: Number(caseId), username: userProfile.username, radioUsername: radioProfile.username, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: []};
-          voips.voipTasks.push(newTask);
+          voips.voipTasks.push(newVoipTask);
 
           let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
           log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
