@@ -454,7 +454,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
       }
     }
 
-    resolve(newTask.triggerAt);
+    resolve(newTask);
   });
 }
 

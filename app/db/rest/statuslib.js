@@ -508,16 +508,18 @@ const onAcceptCaseEvent = function(caseId) {
 
     await tasks.removeTaskByCaseId(caseId);
     await voips.removeTaskByCaseId(caseId);
-    let triggerDate = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+    let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
+    let triggerDate = theTask.triggerAt;
     log.info('triggerDate=>' + triggerDate);
 
     let lineCaseMsg = undefined;
     let menuQuickReply = undefined;
     let action = 'quick';
     if ((radioProfile.linenotify == 1) && (radioProfile.lineUserId) && (radioProfile.lineUserId !== '')) {
-      let tskCase = await tasks.selectTaskByCaseId(caseId);
+      //let tskCase = await tasks.selectTaskByCaseId(caseId);
       //log.info('all case tasks === ' + JSON.stringify(tsks));
-      let newTransactionId = tskCase.transactionId;
+      let newTransactionId = theTask.transactionId;
+      //let newTransactionId = tskCase.transactionId;
       let triggerDateText = uti.doFormateDateTimeChatbot(triggerDate);
       let newQuickLink = 'https://radconnext.info/radio/?transactionId=' + newTransactionId;
       lineCaseMsg = uti.fmtStr('รับเคส\nชื่อ %s แล้ว\nกำหนดเวลาส่งผล %s\nเข้าอ่านผลได้โดยคลิกที่ลิงค์\n%s', patientNameEN, triggerDateText, newQuickLink);

@@ -5056,7 +5056,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			if ((tasks) && (tasks.length > 0)){
 				let task = await tasks.find((item)=>{
-					if (item.caseId == caseId) return item;
+					if (Number(item.caseId) === Number(caseId)) return item;
 				});
 				resolve(task);
 			} else {

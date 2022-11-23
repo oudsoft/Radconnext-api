@@ -246,7 +246,7 @@
   }
 
   const doOpenTask = function(caseId){
-    let openUrl = '/api/tasks/select/' + caseId;
+    let openUrl = '/api/tasks/task/select/' + caseId;
     let params = {};
     $.get(openUrl, params).then((response) => {
       let tasks = response.Records;

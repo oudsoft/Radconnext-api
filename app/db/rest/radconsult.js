@@ -221,8 +221,8 @@ const onNewConsultEvent = function(consultId){
     let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_AcceptStep'], where: {id: newConsult.UGType}});
 
     let triggerParam = JSON.parse(urgents[0].UGType_AcceptStep);
-    let endTime = await doCreateTaskAction(consultId, userProfile, radioProfile, triggerParam, newConsult.casestatusId, lineConsultDetaileMsg, consultMsgData);
-    log.info('endTime=>' + endTime);
+    let caseTask = await doCreateTaskAction(consultId, userProfile, radioProfile, triggerParam, newConsult.casestatusId, lineConsultDetaileMsg, consultMsgData);
+    log.info('endTime=>' + caseTask);
     resolve(endTime);
   });
 }
