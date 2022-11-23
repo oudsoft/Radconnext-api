@@ -4102,6 +4102,7 @@ $( document ).ready(function() {
       let queryString = decodeURIComponent(window.location.search);
       let params = new URLSearchParams(queryString);
       let transactionId = params.get('transactionId');
+      console.log(transactionId);
       if ((transactionId) && (transactionId !== '')) {
         let callURLTokenURL = '/api/tasks/find/transaction/' + transactionId;
         $.get(callURLTokenURL, {}, async function(data){
@@ -4120,7 +4121,8 @@ $( document ).ready(function() {
             //doAutoAcceptCase(0);
             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
-            let remark = 'รังสีแพทบ์ ' + userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH + ' เข้าอ่านผลทาง Quick Link';
+            let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+            let remark = 'รังสีแพทบ์ ' + radioNameTH + ' เข้าอ่านผลทาง Quick Link';
             let response = await common.doUpdateCaseStatus(quickCaseId, 8, remark);
             if (response.status.code == 200) {
               let eventData = data.caseData;
@@ -4734,6 +4736,7 @@ function doSetupAutoReadyAfterLogin(){
 
 function doAutoAcceptCase(autoSelectPage){
   const userdata = JSON.parse(localStorage.getItem('userdata'));
+  const radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
   const autoAcc = userdata.userprofiles[0].Profile.activeState.autoAcc;
   $('.case-counter').hide();
   //console.log(autoAcc);
@@ -4745,7 +4748,7 @@ function doAutoAcceptCase(autoSelectPage){
         if (caseLists.length > 0){
           for (let i=0; i < caseLists.length; i++) {
             let caseItem = caseLists[i].case;
-            await common.doUpdateCaseStatus(caseItem.id, 2, 'Radiologist Accept case by Auto Acc.');
+            await common.doUpdateCaseStatus(caseItem.id, 2, 'รังสีแพทย์ ' + radioNameTH + ' ตั้งรับเคสอัตโนมัติ');
           }
         } else {
           doLoadDefualtPage(autoSelectPage);
