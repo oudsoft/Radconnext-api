@@ -5054,8 +5054,13 @@ module.exports = function ( jq ) {
 
 	const doFindTaksOfCase = function(tasks, caseId){
 		return new Promise(async function(resolve, reject) {
+			console.log(caseId);
+			console.log(typeof caseId);
 			if ((tasks) && (tasks.length > 0)){
 				let task = await tasks.find((item)=>{
+					console.log(item.caseId);
+					console.log(typeof item.caseId);
+					console.log(Number(item.caseId) === Number(caseId));
 					if (Number(item.caseId) === Number(caseId)) return item;
 				});
 				resolve(task);
