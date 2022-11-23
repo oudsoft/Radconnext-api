@@ -5084,7 +5084,7 @@ module.exports = function ( jq ) {
 	        for (let i=0; i < caseLists.length; i++) {
 	          let caseItem = caseLists[i];
 						console.log(myTaksCase);
-						let task = await doFindTaksOfCase(myTaksCase.Records, caseItem.id);
+						let task = await doFindTaksOfCase(myTaksCase.Records, caseItem.case.id);
 		        let caseRow = await doCreateCaseItemRow(caseItem, task);
 						if (caseRow){
 	          	$(myAccCaseView).append($(caseRow));
