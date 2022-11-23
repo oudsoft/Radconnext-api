@@ -489,8 +489,8 @@ app.post('/add', (req, res) => {
           newCase.sumaseId = sumaseId
           newCase.caseStatusId = 1;
 
-          log.info('newCase=>' + JSON.stringify(adCase));
-          
+          log.info('newCase=>' + JSON.stringify(newCase));
+
           const adCase = await db.cases.create(newCase);
 
           //log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
