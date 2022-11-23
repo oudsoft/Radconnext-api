@@ -4128,6 +4128,8 @@ $( document ).ready(function() {
               let eventData = data.caseData;
               eventData.startDownload = 1;
               onOpenCaseTrigger(eventData);
+
+              $('body').loading('stop');
             } else {
     					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
     				}
