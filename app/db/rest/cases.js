@@ -481,11 +481,19 @@ app.post('/add', (req, res) => {
           const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
           log.info('setupCaseTo Data=>' + JSON.stringify(setupCaseTo));
           //Insert New Case
+          newCase.hospitalId = hospitalId
+          newCase.patientId = patientId
+          newCase.userId = userId
+          newCase.cliamerightId = cliamerightId
+          newCase.urgenttypeId = urgenttypeId
+          newCase.sumaseId = sumaseId
+          newCase.caseStatusId = 1;
           const adCase = await Case.create(newCase);
+          
           //log.info('newCase=>' + JSON.stringify(adCase));
           //log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
-          await Case.update(setupCaseTo, { where: { id: adCase.id } });
-          await adCase.setCasestatus(newcaseStatus[0]);
+          //await Case.update(setupCaseTo, { where: { id: adCase.id } });
+          //await adCase.setCasestatus(newcaseStatus[0]);
 
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'สร้างเคส สำเร็จ'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
