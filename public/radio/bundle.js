@@ -5054,13 +5054,8 @@ module.exports = function ( jq ) {
 
 	const doFindTaksOfCase = function(tasks, caseId){
 		return new Promise(async function(resolve, reject) {
-			console.log(caseId);
-			console.log(typeof caseId);
 			if ((tasks) && (tasks.length > 0)){
 				let task = await tasks.find((item)=>{
-					console.log(item.caseId);
-					console.log(typeof item.caseId);
-					console.log(Number(item.caseId) === Number(caseId));
 					if (Number(item.caseId) === Number(caseId)) return item;
 				});
 				resolve(task);
@@ -5083,7 +5078,7 @@ module.exports = function ( jq ) {
 	      if (caseLists.length > 0) {
 	        for (let i=0; i < caseLists.length; i++) {
 	          let caseItem = caseLists[i];
-						console.log(myTaksCase);
+						//console.log(myTaksCase);
 						let task = await doFindTaksOfCase(myTaksCase.Records, caseItem.case.id);
 		        let caseRow = await doCreateCaseItemRow(caseItem, task);
 						if (caseRow){
@@ -6298,7 +6293,7 @@ module.exports = function ( jq ) {
 	const doFindTaksOfCase = function(tasks, caseId){
 		return new Promise(async function(resolve, reject) {
 			let task = await tasks.find((item)=>{
-				if (item.caseId == caseId) return item;
+				if (Number(item.caseId) === Number(caseId)) return item;
 			});
 			resolve(task);
 		});
@@ -6339,7 +6334,7 @@ module.exports = function ( jq ) {
 		      $(myNewCaseView).append($(caseHeader));
 	        for (let i=0; i < caseLists.length; i++) {
 	          let caseItem = caseLists[i];
-						let task = await doFindTaksOfCase(myTasks.Records, caseItem.id);
+						let task = await doFindTaksOfCase(myTasks.Records, caseItem.case.id);
 	          let caseRow = await doCreateCaseItemRow(caseItem, task);
 						if (caseRow){
 	          	$(myNewCaseView).append($(caseRow));
