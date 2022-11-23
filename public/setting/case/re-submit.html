@@ -593,7 +593,7 @@
     let radAlertMsg = $('<div></div>');
     $(radAlertMsg).append($('<span></span>').text(JSON.stringify(hrData)));
     hrData.forEach((item, i) => {
-      let hrImg = $('<img/>').css('width': '80px', 'height': 'audio', 'cursor': 'pointer');
+      let hrImg = $('<img/>').css({'width': '80px', 'height': 'audio', 'cursor': 'pointer'});
       $(hrImg).on('click', (evt)=>{
         window.open(item.link, '_blank');
       });
