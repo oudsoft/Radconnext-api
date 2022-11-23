@@ -4756,6 +4756,7 @@ function doAutoAcceptCase(autoSelectPage){
           doLoadDefualtPage(autoSelectPage);
         }
       }
+      $('body').loading('stop');
     });
   } else {
     doLoadDefualtPage(autoSelectPage);
@@ -7391,6 +7392,7 @@ module.exports = function ( jq ) {
 			*/
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
+			let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let responseHTML = $('#SimpleEditor').val();
 			let startPointText = '<!--StartFragment-->';
 			let endPointText = '<!--EndFragment-->';
@@ -7410,7 +7412,7 @@ module.exports = function ( jq ) {
 			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 			responseText = toAsciidoc(tempToken);
 			let saveData = {Response_HTML: tempToken, Response_Text: responseText, Response_Type: type};
-			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId, reporttype: type};
+			let params = {caseId: caseId, userId: userId, data: saveData, responseId: caseResponseId, reporttype: type, radioNameTH: radioNameTH};
 			let saveResponseRes = await doCallSaveResponse(params);
 			resolve(saveResponseRes);
 		});

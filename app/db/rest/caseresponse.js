@@ -73,10 +73,31 @@ app.post('/add', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-
+        /*
         let addNewResResult = await statusControl.doControlAddNewResponse(req.body);
         res.json(addNewResResult);
+        */
 
+        let reqData = req.body;
+        let newResponse = reqData.data;
+        let caseId = reqData.caseId;
+        let userId = reqData.userId;
+        let radioNameTH = reqData.radioNameTH;
+        let reporttype = reqData.reporttype;
+
+        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ';
+        let adResponse = await db.caseresponses.create(newResponse);
+        await db.caseresponses.update({caseId: caseId, userId: userId}, { where: { id: adResponse.id } });
+
+        res.json({status: {code: 200}, result: {responseId: adResponse.id}});
+
+        let nowStatusId = 8;
+        let nextStatus = 9;
+        let changeResult = await doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
+        let reportLog = [{action: 'new', by: userId, at: new Date()}];
+        let newCaseReport = {Remark: remark, Report_Type: reportType, Status: 'new', Log: reportLog};
+        let adReport = await db.casereports.create(newCaseReport);
+        await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -99,6 +120,14 @@ app.post('/update', (req, res) => {
         let upResponse = req.body.data;
         await Response.update(upResponse, { where: { id: req.body.responseId } });
         res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
+
+        let newReportLog = {action: 'update', by: userId, at: new Date()};
+        let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: req.body.responseId}});
+        if (casereports.length > 0) {
+          let oldLog = casereports[0].Log;
+          oldLog.push(newReportLog);
+          await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
+        }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {

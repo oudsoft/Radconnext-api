@@ -1201,7 +1201,7 @@ const doControlAddNewResponse = function(reqData) {
     const responseType = reqData.data.Response_Type;
 
     const cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
-    const users = await db.users.findAll({attributes: ['id'], where: {id: userId}});
+    //const users = await db.users.findAll({attributes: ['id'], where: {id: userId}});
     const nowStatusId = cases[0].casestatusId;
 
     let responseId = reqData.responseId;
