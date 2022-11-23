@@ -481,12 +481,12 @@ app.post('/add', (req, res) => {
           const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
           log.info('setupCaseTo Data=>' + JSON.stringify(setupCaseTo));
           //Insert New Case
-          newCase.hospitalId = hospitalId
-          newCase.patientId = patientId
-          newCase.userId = userId
-          newCase.cliamerightId = cliamerightId
-          newCase.urgenttypeId = urgenttypeId
-          newCase.sumaseId = sumaseId
+          newCase.hospitalId = Number(hospitalId);
+          newCase.patientId = Number(patientId);
+          newCase.userId = Number(userId);
+          newCase.cliamerightId = Number(cliamerightId);
+          newCase.urgenttypeId = Number(urgenttypeId);
+          newCase.sumaseId = Number(sumaseId);
           newCase.caseStatusId = 1;
 
           log.info('newCase=>' + JSON.stringify(newCase));
