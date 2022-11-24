@@ -478,7 +478,6 @@ app.post('/add', (req, res) => {
           const urgenttypeId = req.body.urgenttypeId;
           const sumaseId = req.body.sumaseId;
           const cliamerightId = req.body.cliamerightId;
-          //const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId, casestatusId: 1};
 
           //Insert New Case
 
@@ -496,10 +495,11 @@ app.post('/add', (req, res) => {
           const adCase = await db.cases.create(newCase);
 
           log.info('adCase=>' + JSON.stringify(adCase));
-          /*
+
+          const setupCaseTo = {urgenttypeId: urgenttypeId, sumaseId: sumaseId, casestatusId: 1};
           log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
-          */
+
           //await adCase.setCasestatus(newcaseStatus[0]);
 
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'สร้างเคส สำเร็จ'};
@@ -525,9 +525,10 @@ app.post('/add', (req, res) => {
           let notifyMsg = 'Your request new case can success create advance dicom zip file.'
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
+
+          */
           let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
           let yourOrthancId = orthancs[0].id;
-          */
           let studyTags = req.body.studyTags;
           //log.info('studyTags=> ' + JSON.stringify(studyTags));
           let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyTags.ID}});
