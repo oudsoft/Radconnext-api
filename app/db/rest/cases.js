@@ -470,7 +470,7 @@ app.post('/add', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         //common.doCallCaseStatusByName('New').then(async (newcaseStatus) => {
-          const newcaseStatusId = newcaseStatus[0].id;
+          //const newcaseStatusId = newcaseStatus[0].id;
           const newCase = req.body.data;
           const userId = req.body.userId;
           const hospitalId = req.body.hospitalId;
