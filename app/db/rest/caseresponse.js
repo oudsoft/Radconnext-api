@@ -95,7 +95,7 @@ app.post('/add', (req, res) => {
         let nextStatus = 9;
         let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
-        let newCaseReport = {Remark: remark, Report_Type: reportType, Status: 'new', Log: reportLog};
+        let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
         await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
       } else if (ur.token.expired){
