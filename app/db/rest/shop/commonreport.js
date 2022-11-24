@@ -431,7 +431,8 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 		const fileNames = pdfFileName.split('.');
 		const filecode = fileNames[0];
 		const qrgenerator = require('../../../lib/shop/qrcodegenerator.js');
-		const qrcontent = 'https://radconnext.tech/shop/img/usr/pdf/' + pdfFileName;
+		//const qrcontent = 'https://radconnext.tech/shop/img/usr/pdf/' + pdfFileName;
+		const qrcontent = 'https://radconnext.tech/shop/img/usr/pdf/' + fileNames[0] + '.png';
 
     const qrcodeFullPath = shopDir + process.env.USRQRCODE_PATH + '/' + filecode + '.png';
     if (fs.existsSync(qrcodeFullPath)) {
@@ -524,10 +525,12 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
             let pdfPage = await doCountPagePdf(reportPdfFilePath);
             log.info('pdfPage=> ' + pdfPage);
 						log.info("Create Pdf Report file Success.");
+						/*
 						if (paperSize == 1) {
 							let result = {reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPages: pdfPage, qrLink: qrlink};
 							resolve(result);
 						} else if (paperSize == 2) {
+							*/
 							let htmlFilePath = usrPdfPath + '/' + htmlFileName;
 							let pngFileName = fileNames[0] + '.png';
 							let reportPNGFilePath = usrPdfPath + '/' + pngFileName;
@@ -541,7 +544,9 @@ const reportCreator = function(elements, variable, pdfFileName, orderId, rsH, rs
 							let reportPNGLinkPath = '/shop' + process.env.USRPDF_PATH + '/' + pngFileName;
 							let result = {reportPdfLinkPath: reportPdfLinkPath, reportHtmlLinkPath: reportHtmlLinkPath, reportPNGLinkPath: reportPNGLinkPath, reportPages: pdfPage, qrLink: qrlink};
 							resolve(result);
+						/*
 						}
+						*/
 					}).catch((cmderr) => {
 						log.error('cmderr: 500 >>', cmderr);
 						reject(cmderr);

@@ -695,10 +695,8 @@ app.post('/delete', (req, res) => {
         log.info('delete id=>' + targetCaseId);
         const deleteCases = await Case.findAll({attributes: ['casestatusId', 'Case_DicomZipFilename'], where: {id: targetCaseId}});
         log.info('deleteCases=>' + JSON.stringify(deleteCases));
-        res.json({status: {code: 200}, id: targetCaseId, deleteCases: deleteCases});
-        /*
+        //res.json({status: {code: 200}, id: targetCaseId, deleteCases: deleteCases});
         if (deleteCases.length > 0){
-
           if ((deleteCases[0].casestatusId == 7)) {
             await db.radkeeplogs.destroy({ where: { id:  targetCaseId} });
             await Case.destroy({ where: { id:  targetCaseId} });
@@ -722,7 +720,6 @@ app.post('/delete', (req, res) => {
         } else {
           res.json({Result: "Not Found Case", status: {code: 201}, notice: 'The case is not found on DB.'});
         }
-        */
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
