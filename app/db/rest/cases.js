@@ -517,7 +517,7 @@ app.post('/add', (req, res) => {
 
           let yourOrthancId = 1
           let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
-          if (orthancs.length > 0)
+          if (orthancs.length > 0 {
             yourOrthancId = orthancs[0].id;
           }
           let studyTags = req.body.studyTags;
