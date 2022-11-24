@@ -194,16 +194,16 @@
     });
   }
 
-  const doOpenCaseLog = function(caseId){
+  const doOpenCaseLog = function(caseId, patientNameEN){
     let openUrl = '/api/keeplog/select/' + caseId;
     let params = {};
     $.post(openUrl, params).then((response) => {
       let keeplogs = response.Logs;
-      doShowKeepLogs(response);
+      doShowKeepLogs(response, patientNameEN);
     });
   }
 
-  const doShowKeepLogs = function(logs){
+  const doShowKeepLogs = function(logs, patientNameEN){
     let keeplogs = logs.Logs;
     console.log(keeplogs);
 
@@ -224,7 +224,7 @@
     }
     $(radAlertInfo).append($(logTable))
     const radAlertOption = {
-      title: 'บันทึกการเปลี่ยนสถานะเคส',
+      title: 'บันทึกการเปลี่ยนสถานะเคส [' + patientNameEN +']',
       msg: $(radAlertInfo),
       width: '820px',
       onOk: function(evt) {
@@ -332,9 +332,11 @@
       $(caseTable).append($(headerRow));
       let promiseList = new Promise(async function(resolve2, reject2) {
         for (let i=0; i < cases.length; i++){
+          let patientNameEN = cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN;
+
           let openCaseLogCmd = $('<input type="button" value="Log"/>');
           $(openCaseLogCmd).on('click', (evt)=>{
-            doOpenCaseLog(cases[i].id);
+            doOpenCaseLog(cases[i].id, patientNameEN);
           });
 
           let itemRow = $('<tr></tr>');
@@ -371,7 +373,7 @@
           });
 
           $(itemRow).append($('<td align="left">' + casedate + ' : ' + casetime + '</td>'));
-          $(itemRow).append($('<td align="left">' + cases[i].patient.Patient_NameEN + ' ' + cases[i].patient.Patient_LastNameEN + ' => (' + scanpartText + ')</td>'));
+          $(itemRow).append($('<td align="left">' + patientNameEN + ' => (' + scanpartText + ')</td>'));
           let radioCol = $('<td align="center"></td>');
           let radioIdCell = $('<span class="tooltiptext">' + cases[i].Case_RadiologistId + '</span>');
           $(radioIdCell).on('mouseover', (evt)=>{

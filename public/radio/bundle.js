@@ -1598,10 +1598,18 @@ module.exports = function ( jq ) {
 	const doExtractList = function(originList, from, to) {
 		return new Promise(async function(resolve, reject) {
 			await originList.sort((a,b) => {
-				let av = util.getDatetimeValue(a.MainDicomTags.StudyDate, a.MainDicomTags.StudyTime);
-				let bv = util.getDatetimeValue(b.MainDicomTags.StudyDate, b.MainDicomTags.StudyTime);
-				if (av && bv) {
-					return bv - av;
+				let aStudyDate = a.MainDicomTags.StudyDate;
+				let aStudyTime = a.MainDicomTags.StudyTime
+				let bStudyDate = b.MainDicomTags.StudyDate;
+				let bStudyTime = b.MainDicomTags.StudyTime
+				if ((aStudyDate) && (aStudyTime) && (bStudyDate) && (bStudyTime)) {
+					let av = util.getDatetimeValue(aStudyDate, aStudyTime);
+					let bv = util.getDatetimeValue(bStudyDate, bStudyTime);
+					if (av && bv) {
+						return bv - av;
+					} else {
+						return 0;
+					}
 				} else {
 					return 0;
 				}
@@ -4123,7 +4131,7 @@ $( document ).ready(function() {
             doSetupAutoReadyAfterLogin();
             let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
             let remark = 'รังสีแพทบ์ ' + radioNameTH + ' เข้าอ่านผลทาง Quick Link';
-            let response = await common.doUpdateCaseStatus(quickCaseId, 8, remark);
+            let response = await common.doUpdateCaseStatus(quickCaseId, 2, remark);
             if (response.status.code == 200) {
               let eventData = data.caseData;
               eventData.startDownload = 1;
