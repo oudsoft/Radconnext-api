@@ -120,7 +120,7 @@ app.post('/update', (req, res) => {
         let upResponse = req.body.data;
         await Response.update(upResponse, { where: { id: req.body.responseId } });
         res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
-
+        let userId = ur[0].id;
         let newReportLog = {action: 'update', by: userId, at: new Date()};
         let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: req.body.responseId}});
         if (casereports.length > 0) {

@@ -817,7 +817,7 @@ const onDraftResultCaseEvent = function(caseId){
     await socket.sendMessage(hospitalNotify, userProfile.username);
 
     await tasks.removeTaskByCaseId(caseId);
-    await voips.removeTaskByCaseId(cased);
+    await voips.removeTaskByCaseId(caseId);
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
