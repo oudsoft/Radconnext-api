@@ -745,7 +745,7 @@ const doSummaryBillReport = function(hospitalId, key) {
 
 const doSelectCaseById = function(caseId){
   return new Promise(async function(resolve, reject) {
-    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType', 'UGType_Name']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
+    const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.cliamerights, attributes: ['id', 'CR_Name']}];
     const cases = await db.cases.findAll({include: caseInclude, where: {id: caseId}});
     const casesFormat = [];
     const promiseList = new Promise(async function(resolve2, reject2) {
