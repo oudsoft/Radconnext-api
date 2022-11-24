@@ -512,6 +512,7 @@ app.post('/add', (req, res) => {
             let scanpartAux = await common.doSaveScanpartAux(scanpartAuxData, userId);
           }
           res.json({Result: "OK", status: {code: 200}, Record: adCase});
+
           /*
           let actionAfterChange = await statusControl.onNewCaseEvent(adCase.id);
           res.json({Result: "OK", status: {code: 200}, Record: adCase, actions: actionAfterChange});

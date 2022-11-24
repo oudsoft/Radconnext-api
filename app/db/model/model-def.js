@@ -413,7 +413,13 @@ const RadCaseDef = {
 			},
 			Case_UploadedAt : {
 				type: Sequelize.DATE
-			}
+			},
+			urgenttypeId : {
+				type: Sequelize.INTEGER,
+			},
+			sumaseId : {
+				type: Sequelize.INTEGER,
+			},
 		};
 
 //User_ID <-- Radiologist
