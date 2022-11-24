@@ -693,7 +693,7 @@ app.post('/delete', (req, res) => {
         /* ถ้า urgent เป็นแบบ custom ให้ลบ urgent ด้วย */
         let targetCaseId = req.body.id;
         log.info('delete id=>' + targetCaseId);
-        const deleteCases = await Case.findAll({attributes: ['casestatusId', 'Case_DicomZipFilename']}, {where: {id: targetCaseId}});
+        const deleteCases = await Case.findAll({attributes: ['casestatusId', 'Case_DicomZipFilename'], where: {id: targetCaseId}});
         log.info('deleteCases=>' + JSON.stringify(deleteCases));
         res.json({status: {code: 200}, id: targetCaseId, deleteCases: deleteCases});
         /*
