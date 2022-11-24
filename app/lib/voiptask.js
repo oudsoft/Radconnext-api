@@ -61,7 +61,8 @@ function RadconVoipTask (socket, db, log) {
           let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
           let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
           let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
-          log.info('keeplogReply=>' + JSON.stringify(keeplogReply));
+          log.info('keeplogReply on /case/event/nofify end point =>');
+          log.info(JSON.stringify(keeplogReply))
 
           return;
         }

@@ -507,7 +507,7 @@ const onAcceptCaseEvent = function(caseId) {
     let triggerParam = urgents[0].UGType_WorkingStep;
 
     await tasks.removeTaskByCaseId(caseId);
-    await voips.removeTaskByCaseId(caseId);
+
     let theTask = await common.doCreateTaskAction(tasks, caseId, userProfile, radioProfile, triggerParam, targetCase.casestatusId, lineCaseDetaileMsg, caseMsgData);
     let triggerDate = theTask.triggerAt;
     log.info('triggerDate=>' + triggerDate);
@@ -543,6 +543,8 @@ const onAcceptCaseEvent = function(caseId) {
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve({actions: actions, triggerDate: triggerDate});
+
+    await voips.removeTaskByCaseId(caseId);
   });
 }
 
