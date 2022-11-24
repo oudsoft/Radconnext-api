@@ -93,7 +93,7 @@ app.post('/add', (req, res) => {
 
         let nowStatusId = 8;
         let nextStatus = 9;
-        let changeResult = await doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
+        let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reportType, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
