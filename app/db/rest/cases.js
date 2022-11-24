@@ -469,7 +469,7 @@ app.post('/add', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        common.doCallCaseStatusByName('New').then(async (newcaseStatus) => {
+        //common.doCallCaseStatusByName('New').then(async (newcaseStatus) => {
           const newcaseStatusId = newcaseStatus[0].id;
           const newCase = req.body.data;
           const userId = req.body.userId;
@@ -478,10 +478,10 @@ app.post('/add', (req, res) => {
           const urgenttypeId = req.body.urgenttypeId;
           const sumaseId = req.body.sumaseId;
           const cliamerightId = req.body.cliamerightId;
-          const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId};
+          //const setupCaseTo = { hospitalId: hospitalId, patientId: patientId, userId: userId, cliamerightId: cliamerightId, urgenttypeId: urgenttypeId, sumaseId: sumaseId, casestatusId: 1};
 
           //Insert New Case
-          /*
+
           newCase.hospitalId = Number(hospitalId);
           newCase.patientId = Number(patientId);
           newCase.userId = Number(userId);
@@ -489,15 +489,18 @@ app.post('/add', (req, res) => {
           newCase.urgenttypeId = Number(urgenttypeId);
           newCase.sumaseId = Number(sumaseId);
           newCase.caseStatusId = 1;
-          */
+
 
           log.info('newCase=>' + JSON.stringify(newCase));
 
           const adCase = await db.cases.create(newCase);
 
+          log.info('adCase=>' + JSON.stringify(adCase));
+          /*
           log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
-          await adCase.setCasestatus(newcaseStatus[0]);
+          */
+          //await adCase.setCasestatus(newcaseStatus[0]);
 
           let newKeepLog = { caseId : adCase.id,	userId : userId, from : 1, to : 1, remark : 'สร้างเคส สำเร็จ'};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
@@ -522,10 +525,9 @@ app.post('/add', (req, res) => {
           let notifyMsg = 'Your request new case can success create advance dicom zip file.'
           let ownerNotify = {type: 'notify', message: notifyMsg};
           await socket.sendMessage(ownerNotify, ur[0].username);
-          */
           let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
           let yourOrthancId = orthancs[0].id;
-
+          */
           let studyTags = req.body.studyTags;
           //log.info('studyTags=> ' + JSON.stringify(studyTags));
           let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyTags.ID}});
@@ -538,7 +540,7 @@ app.post('/add', (req, res) => {
             let updateDicomLog = {StudyTags: studyTags, ResourceID: studyTags.ID, ResourceType: 'study', orthancId: yourOrthancId};
             let upDicomTransferLog = await db.dicomtransferlogs.update(updateDicomLog, { where: { id: logId } });
           }
-        });
+        //});
       } else if (ur.token.expired){
 				res.json({ status: {code: 210}, token: {expired: true}});
       } else {
