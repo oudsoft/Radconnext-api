@@ -487,7 +487,7 @@ app.post('/add', (req, res) => {
           newCase.cliamerightId = Number(cliamerightId);
           newCase.urgenttypeId = Number(urgenttypeId);
           newCase.sumaseId = Number(sumaseId);
-          newCase.caseStatusId = 1;
+          newCase.casestatusId = 1;
 
 
           log.info('newCase=>' + JSON.stringify(newCase));
