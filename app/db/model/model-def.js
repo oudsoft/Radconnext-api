@@ -419,7 +419,7 @@ const RadCaseDef = {
 			},
 			sumaseId : {
 				type: Sequelize.INTEGER,
-			},
+			}
 		};
 
 //User_ID <-- Radiologist

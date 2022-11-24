@@ -496,9 +496,11 @@ app.post('/add', (req, res) => {
 
           log.info('adCase=>' + JSON.stringify(adCase));
 
+          /*
           const setupCaseTo = {urgenttypeId: urgenttypeId, sumaseId: sumaseId, casestatusId: 1};
           log.info('setupCaseTo=>' + JSON.stringify(setupCaseTo));
           await Case.update(setupCaseTo, { where: { id: adCase.id } });
+          */
 
           //await adCase.setCasestatus(newcaseStatus[0]);
 
@@ -513,23 +515,11 @@ app.post('/add', (req, res) => {
           }
           res.json({Result: "OK", status: {code: 200}, Record: adCase});
 
-          /*
-          let actionAfterChange = await statusControl.onNewCaseEvent(adCase.id);
-          res.json({Result: "OK", status: {code: 200}, Record: adCase, actions: actionAfterChange});
-          let patients = await db.patients.findAll({attributes: ['Patient_NameEN', 'Patient_LastNameEN'], where: {id: patientId}});
-          let patientNameEN = patients[0].Patient_NameEN;
-          let patientLastNameEN = patients[0].Patient_LastNameEN;
-          let out = await common.doConvertPatientHistoryImage2Dicom(adCase.Case_OrthancStudyID, hospitalId, req.hostname, adCase.Case_PatientHRLink, adCase.Case_Modality, patientNameEN, patientLastNameEN);
-          log.info('out=> ' + JSON.stringify(out));
-          let reviseHR = {Case_PatientHRLink: out.newHRprop};
-          await Case.update(reviseHR, { where: { id: adCase.id } });
-          let notifyMsg = 'Your request new case can success create advance dicom zip file.'
-          let ownerNotify = {type: 'notify', message: notifyMsg};
-          await socket.sendMessage(ownerNotify, ur[0].username);
-
-          */
+          let yourOrthancId = 1
           let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
-          let yourOrthancId = orthancs[0].id;
+          if (orthancs.length > 0)
+            yourOrthancId = orthancs[0].id;
+          }
           let studyTags = req.body.studyTags;
           //log.info('studyTags=> ' + JSON.stringify(studyTags));
           let dicomlogRes = await db.dicomtransferlogs.findAll({attributes: excludeColumn, where: {ResourceID: studyTags.ID}});
