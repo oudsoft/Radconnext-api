@@ -693,15 +693,12 @@ app.post('/delete', (req, res) => {
         /* ถ้า urgent เป็นแบบ custom ให้ลบ urgent ด้วย */
         let targetCaseId = req.body.id;
         log.info('delete id=>' + targetCaseId);
-        const deleteCases = await Case.findAll({attributes: ['casestatusId', 'Case_DicomZipFilename'], include: {model: db.urgenttypes, attributes: ['id', 'UGType']}, where: {id: targetCaseId}});
+        const deleteCases = await Case.findAll({attributes: ['casestatusId', 'Case_DicomZipFilename']}, where: {id: targetCaseId}});
         log.info('deleteCases=>' + JSON.stringify(deleteCases));
         if (deleteCases.length > 0){
           if ((deleteCases[0].casestatusId == 7)) {
             await db.radkeeplogs.destroy({ where: { id:  targetCaseId} });
             await Case.destroy({ where: { id:  targetCaseId} });
-            if (deleteCases[0].urgenttype.UGType === 'custom') {
-              db.urgenttypes.destroy({ where: { id:  deleteCases[0].urgenttype.id} });
-            }
             tasks.removeTaskByCaseId(targetCaseId);
             let refreshDeleteCase = {type: 'refresh', statusId: deleteCases[0].casestatusId, caseId: targetCaseId};
             await socket.sendMessage(refreshDeleteCase , ur[0].username);
