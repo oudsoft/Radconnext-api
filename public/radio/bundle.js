@@ -6937,7 +6937,7 @@ module.exports = function ( jq ) {
 	const doDownloadDicom = function(caseDicomZipFilename) {
 		util.doResetPingCounter();
 		$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'info' );
-		let dicomZipLink = '/imcaseDicomZipFilenameg/usr/zip/' + caseDicomZipFilename;
+		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		/*
 		pom.setAttribute('target', "_blank");
