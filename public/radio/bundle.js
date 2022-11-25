@@ -4546,6 +4546,14 @@ function doLoadDefualtPage(autoSelectPage) {
     */
     util.doResetPingCounter();
     if (autoSelectPage == 1) {
+      if (loadRes.accList.Records.length > 0) {
+        $('#AcceptedCaseCmd').click();
+      } else if (loadRes.newList.Records.length > 0 ) {
+        $('#NewCaseCmd').click();
+      } else {
+        $(".mainfull").empty();
+      }
+    } else {
       if (loadRes.newList.Records.length > 0 ) {
         $('#NewCaseCmd').click();
       } else if (loadRes.accList.Records.length > 0) {
@@ -4654,6 +4662,24 @@ function unlockAction(modalBox) {
 }
 
 function onLockScreenTrigger() {
+  let simpleEditor = $('#SimpleEditor');
+  if (simpleEditor) {
+    let responseHTML = $(simpleEditor).val();
+    if (responseHTML !== '') {
+      let startPointText = '<!--StartFragment-->';
+      let endPointText = '<!--EndFragment-->';
+      let tempToken = responseHTML.replace('\n', '');
+      let startPosition = tempToken.indexOf(startPointText);
+      if (startPosition >= 0) {
+        let endPosition = tempToken.indexOf(endPointText);
+        tempToken = tempToken.slice((startPosition+20), (endPosition));
+      }
+      tempToken = tempToken.replace(startPointText, '<div>');
+      tempToken = tempToken.replace(endPointText, '</div>');
+      let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
+      localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+    }
+  }
   let lockScreenBox = $('<div style="width: 100%; text-align: center;" tabindex="0"></div>');
   $(lockScreenBox).append('<h2>Press any key to unlock</h2>');
   //$(lockScreenBox).append('<h3>You can Unlock by Click mouse or press any key.</h3>');
@@ -6912,10 +6938,39 @@ module.exports = function ( jq ) {
 		util.doResetPingCounter();
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
+		/*
 		pom.setAttribute('target', "_blank");
 		pom.setAttribute('href', dicomZipLink);
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
+		*/
+
+		$.ajax({
+			url: dicomZipLink,
+			xhrFields:{
+				responseType: 'blob'
+			},
+			xhr: function () {
+				var xhr = $.ajaxSettings.xhr();
+				xhr.onprogress = function(event) {
+					if (event.lengthComputable) {
+						// For Download
+						let loaded = event.loaded;
+						let total = event.total;
+						let prog = (loaded / total) * 100;
+						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+						console.log('Retrieving ' + perc + '%');
+					}
+				}
+				return xhr;
+			},
+			success: function(data){
+				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
+				pom.setAttribute('href', stremLink);
+				pom.setAttribute('download', caseDicomZipFilename);
+				pom.click();
+			}
+		});
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
@@ -7611,6 +7666,20 @@ module.exports = function ( jq ) {
 	    url: link,
 			xhrFields:{
 	 			responseType: 'blob'
+			},
+			xhr: function () {
+				var xhr = $.ajaxSettings.xhr();
+				xhr.onprogress = function(event) {
+					if (event.lengthComputable) {
+						// For Download
+						let loaded = event.loaded;
+						let total = event.total;
+						let prog = (loaded / total) * 100;
+						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+						console.log('Retrieving ' + perc + '%');
+					}
+				}
+				return xhr;
 			},
 	    success: function(data){
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'image/jpeg'}));
