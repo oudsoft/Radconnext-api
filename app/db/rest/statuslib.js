@@ -780,7 +780,7 @@ const onOpenCaseEvent = function(caseId){
     resolve(actions);
 
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-    let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ'};
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api]'};
     let caseTask = await tasks.selectTaskByCaseId(caseId);
     if (caseTask) {
       let offset = 7;

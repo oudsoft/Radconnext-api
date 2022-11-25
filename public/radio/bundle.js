@@ -4917,7 +4917,7 @@ module.exports = function ( jq ) {
 			if (currentCaseRes.current == 2){
 				let newCaseStatus = 8;
 				let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
-				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ'
+				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ [web]'
 	      let response = await common.doUpdateCaseStatus(caseItem.id, newCaseStatus, actionRemark);
 				if (response.status.code == 200) {
 		      eventData.statusId = newCaseStatus;
