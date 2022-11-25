@@ -825,7 +825,7 @@ const onDraftResultCaseEvent = function(caseId){
     resolve(actions);
 
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-    let newKeepLog = { caseId : caseId,	userId : radioId, from : 8, to : 9, remark : 'รังสีแพทย์ ' + radioNameTH + ' บันทึกร่างผลอ่านสำเร็จ'};
+    let newKeepLog = { caseId : caseId,	userId : radioId, from : 8, to : 9, remark : 'รังสีแพทย์ ' + radioNameTH + ' บันทึกร่างผลอ่านสำเร็จ [api-statuslib]'};
     let caseTask = await tasks.selectTaskByCaseId(caseId);
     if (caseTask) {
       let offset = 7;

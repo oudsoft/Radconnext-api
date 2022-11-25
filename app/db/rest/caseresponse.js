@@ -85,15 +85,18 @@ app.post('/add', (req, res) => {
         let radioNameTH = reqData.radioNameTH;
         let reporttype = reqData.reporttype;
 
-        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ';
         let adResponse = await db.caseresponses.create(newResponse);
         await db.caseresponses.update({caseId: caseId, userId: userId}, { where: { id: adResponse.id } });
 
         res.json({status: {code: 200}, result: {responseId: adResponse.id}});
 
+        /*
         let nowStatusId = 8;
         let nextStatus = 9;
+        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
         let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
+        */
+        
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
