@@ -7200,7 +7200,8 @@ module.exports = function ( jq ) {
 					//->ตรงนี้คืออะไร
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
 					params.reporttype = 'normal';
-					let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
+					//let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
+					let saveResponseApiURL = '/api/caseresponse/add';
 					$.post(saveResponseApiURL, params, async function(saveResponseRes){
 						if ((saveResponseRes.result) && (saveResponseRes.result.responseId)) {
 							caseResponseId = saveResponseRes.result.responseId;
