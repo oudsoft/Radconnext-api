@@ -6936,7 +6936,8 @@ module.exports = function ( jq ) {
 
 	const doDownloadDicom = function(caseDicomZipFilename) {
 		util.doResetPingCounter();
-		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
+		$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'info' );
+		let dicomZipLink = '/imcaseDicomZipFilenameg/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		/*
 		pom.setAttribute('target', "_blank");
@@ -6967,8 +6968,9 @@ module.exports = function ( jq ) {
 			success: function(data){
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
 				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', caseDicomZipFilename);
+				pom.setAttribute('download', caseDicomZipFilenameb);
 				pom.click();
+				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'info' );
 			}
 		});
 		common.downloadDicomList.push(caseDicomZipFilename);
