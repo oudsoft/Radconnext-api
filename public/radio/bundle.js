@@ -6968,7 +6968,7 @@ module.exports = function ( jq ) {
 			success: function(data){
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
 				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', caseDicomZipFilenameb);
+				pom.setAttribute('download', caseDicomZipFilename);
 				pom.click();
 				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'info' );
 			}
