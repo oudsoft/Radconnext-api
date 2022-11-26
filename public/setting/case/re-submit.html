@@ -145,37 +145,13 @@
   }
 
   const doDownloadZipFile = function(dicomZipFilename){
-    $.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
+    //$.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
     let dicomZipLink = '/img/usr/zip/' + dicomZipFilename;
     let pom = document.createElement('a');
-
-    $.ajax({
-			url: dicomZipLink,
-			xhrFields:{
-				responseType: 'blob'
-			},
-			xhr: function () {
-				var xhr = $.ajaxSettings.xhr();
-				xhr.onprogress = function(event) {
-					if (event.lengthComputable) {
-						// For Download
-						let loaded = event.loaded;
-						let total = event.total;
-						let prog = (loaded / total) * 100;
-						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						console.log('Retrieving ' + perc + '%');
-					}
-				}
-				return xhr;
-			},
-			success: function(data){
-				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
-				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', dicomZipFilename);
-				pom.click();
-				$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
-			}
-		});
+    pom.setAttribute('href', stremLink);
+    pom.setAttribute('download', dicomZipFilename);
+    pom.click();
+    //$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
   }
 
   const doOpenStudyTag = function(caseId, studyId, patientNameEN) {

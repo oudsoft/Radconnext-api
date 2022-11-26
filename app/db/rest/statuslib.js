@@ -778,7 +778,8 @@ const onOpenCaseEvent = function(caseId){
 
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
-
+    /*
+    ย้ายไปทำใน cases -> /satatus [post]
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
     let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api]'};
     let caseTask = await tasks.selectTaskByCaseId(caseId);
@@ -792,6 +793,7 @@ const onOpenCaseEvent = function(caseId){
       newKeepLog.triggerAt = yymmddhhmnss;
     }
     await common.doCaseChangeStatusKeepLog(newKeepLog);
+    */
   });
 }
 

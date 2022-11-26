@@ -4617,23 +4617,20 @@ function unlockAction(modalBox) {
 }
 
 function onLockScreenTrigger() {
-  let simpleEditor = $('#SimpleEditor');
-  if (simpleEditor) {
-    let responseHTML = $(simpleEditor).val();
-    if (responseHTML !== '') {
-      let startPointText = '<!--StartFragment-->';
-      let endPointText = '<!--EndFragment-->';
-      let tempToken = responseHTML.replace('\n', '');
-      let startPosition = tempToken.indexOf(startPointText);
-      if (startPosition >= 0) {
-        let endPosition = tempToken.indexOf(endPointText);
-        tempToken = tempToken.slice((startPosition+20), (endPosition));
-      }
-      tempToken = tempToken.replace(startPointText, '<div>');
-      tempToken = tempToken.replace(endPointText, '</div>');
-      let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
-      localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+  let responseHTML = $('#SimpleEditor').val();
+  if ((responseHTML) && (responseHTML !== '')) {
+    let startPointText = '<!--StartFragment-->';
+    let endPointText = '<!--EndFragment-->';
+    let tempToken = responseHTML.replace('\n', '');
+    let startPosition = tempToken.indexOf(startPointText);
+    if (startPosition >= 0) {
+      let endPosition = tempToken.indexOf(endPointText);
+      tempToken = tempToken.slice((startPosition+20), (endPosition));
     }
+    tempToken = tempToken.replace(startPointText, '<div>');
+    tempToken = tempToken.replace(endPointText, '</div>');
+    let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
+    localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
   }
   let lockScreenBox = $('<div style="width: 100%; text-align: center;" tabindex="0"></div>');
   $(lockScreenBox).append('<h2>Press any key to unlock</h2>');

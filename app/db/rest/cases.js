@@ -292,14 +292,15 @@ app.post('/status/(:caseId)', async (req, res) => {
         //const userId = targetCases[0].userId;
         const userId = ur[0].id;
 
+        let radioId = targetCases[0].Case_RadiologistId;
+        let userProfile = await common.doLoadRadioProfile(radioId);
+        let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+
         if ((currentStatus == 1) && (reqCaseStatusId == 2)) {
           let changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, userId);
           res.json({status: {code: 200}, actions: changeRes.change.actiohs});
 
           let urgents = await uti.doLoadCaseUrgent(targetCases[0].sumaseId);
-          let radioId = targetCases[0].Case_RadiologistId;
-          let userProfile = await common.doLoadRadioProfile(radioId);
-          let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
 
           //let triggerParam = JSON.parse(urgents[0].UGType_WorkingStep);
           let triggerParam = urgents[0].UGType_WorkingStep;
@@ -318,6 +319,23 @@ app.post('/status/(:caseId)', async (req, res) => {
           let newKeepLog = { caseId : caseId,	userId : userId, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
           await voips.removeTaskByCaseId(caseId);
+        if ((currentStatus == 2) && (reqCaseStatusId == 8)) {
+          let changeRes = await statusControl.doChangeCaseStatus(2, 8, caseId, userId);
+          res.json({status: {code: 200}, actions: changeRes.change.actiohs});
+
+          let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
+          let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api]'};
+          let caseTask = await tasks.selectTaskByCaseId(caseId);
+          if (caseTask) {
+            let offset = 7;
+            let d = new Date(caseTask.triggerAt);
+            let utc = d.getTime();
+            d = new Date(utc + (offset * 60 * 60 * 1000));
+            let yymmddhhmnss = uti.doFormateDateTime(d);
+            log.info('yymmddhhmnss on 8 event ' + JSON.stringify(yymmddhhmnss));
+            newKeepLog.triggerAt = yymmddhhmnss;
+          }
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
           res.json({status: {code: 200}, actions: changeResult.change.actiohs});
