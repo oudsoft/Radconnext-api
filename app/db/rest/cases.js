@@ -319,7 +319,7 @@ app.post('/status/(:caseId)', async (req, res) => {
           let newKeepLog = { caseId : caseId,	userId : userId, from : 1, to : 2, remark: remark, triggerAt: yymmddhhmnss};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
           await voips.removeTaskByCaseId(caseId);
-        if ((currentStatus == 2) && (reqCaseStatusId == 8)) {
+        } else if ((currentStatus == 2) && (reqCaseStatusId == 8)) {
           let changeRes = await statusControl.doChangeCaseStatus(2, 8, caseId, userId);
           res.json({status: {code: 200}, actions: changeRes.change.actiohs});
 
