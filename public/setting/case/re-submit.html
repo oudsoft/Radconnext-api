@@ -111,18 +111,58 @@
     });
   }
 
-  const doReZipCase = function(hospitalId, userId, studyID, dicomZipFilename){
-    let callUrl = '/api/cases/rezip';
-    let params = {hospitalId, userId, studyID, dicomZipFilename};
-    $.post(callUrl, params).then((response) => {
-      //resolve(response);
-      console.log(response);
-      if (response.Result == 'OK') {
-        alert('OK');
-      } else {
-        alert('Sorry');
-      }
+  const doOpenZipFile = function(caseId, dicomZipFilename) {
+    let radAlertMsg = $('<div></div>');
+    let zipFilenameInput = $('<input type="text"/>').val(dicomZipFilename).css({'width': '140px'});
+    let downloadCmd = $('<span></span>').text('Download').css({'margin-left': '10px', 'cursor': 'pointer'});
+    $(downloadCmd).on('click', (evt)=>{
+      doDownloadZipFile(dicomZipFilename);
     });
+    $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd));
+    const radconfirmoption = {
+      title: 'Dicom Zip File',
+      msg: $(radAlertMsg),
+      width: '320px',
+      onOk: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
+    $(radConfirmBox.cancelCmd).hide();
+  }
+
+  const doDownloadZipFile = function(dicomZipFilename){
+    $.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
+    let dicomZipLink = '/img/usr/zip/' + dicomZipFilename;
+    let pom = document.createElement('a');
+
+    $.ajax({
+			url: dicomZipLink,
+			xhrFields:{
+				responseType: 'blob'
+			},
+			xhr: function () {
+				var xhr = $.ajaxSettings.xhr();
+				xhr.onprogress = function(event) {
+					if (event.lengthComputable) {
+						// For Download
+						let loaded = event.loaded;
+						let total = event.total;
+						let prog = (loaded / total) * 100;
+						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+						console.log('Retrieving ' + perc + '%');
+					}
+				}
+				return xhr;
+			},
+			success: function(data){
+				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
+				pom.setAttribute('href', stremLink);
+				pom.setAttribute('download', dicomZipFilename);
+				pom.click();
+				$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
+			}
+		});
   }
 
   const doCancelCase = function(caseId, hospitalId, userId){
@@ -442,7 +482,7 @@
           }
           let reZipCmd = $('<input type="button" value="Re-Zip"/>');
           $(reZipCmd).on('click', (evt)=>{
-            doReZipCase(cases[i].hospitalId, cases[i].userId, cases[i].Case_OrthancStudyID, cases[i].Case_DicomZipFilename);
+            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename);
           });
           $(cmdCol).append($(reZipCmd).css({'margin-left': '5px'}));
           if (cases[i].casestatusId != 7) {
