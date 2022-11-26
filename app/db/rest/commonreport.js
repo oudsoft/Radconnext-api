@@ -722,7 +722,8 @@ const doReSubmitReport = function(caseId, hostname){
         let reporttype = 'normal';
         let remark = 'สร้างรายงายผลอ่านด้วยการ re-submit โดย admin';
         let reportLog = [{action: 'new', by: 0, at: new Date()}];
-        let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
+        let pdfFileUrl = '/img/usr/pdf/' + pdfFileName;
+        let newCaseReport = {Remark: remark, Report_Type: reporttype, PDF_Filename: pdfFileUrl, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
         await db.casereports.update({caseId: caseId, userId: 0, caseresponseId: responseId}, { where: { id: adReport.id } });
         casereports = await db.casereports.findAll({ where: {caseresponseId: responseId}});
