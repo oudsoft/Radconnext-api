@@ -4876,7 +4876,7 @@ module.exports = function ( jq ) {
 				let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ [web]'
 	      let response = await common.doUpdateCaseStatus(caseItem.id, nextCaseStatus, actionRemark);
 				if (response.status.code == 200) {
-		      eventData.statusId = newCaseStatus;
+		      eventData.statusId = nextCaseStatus;
 					eventData.startDownload = 0;
 		      $(openCmd).trigger('opencase', [eventData]);
 				} else {
