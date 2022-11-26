@@ -4945,7 +4945,8 @@ module.exports = function ( jq ) {
 					console.log(caseTask.triggerAt);
 	        let caseTriggerAt = new Date(caseTask.triggerAt);
 					//caseTriggerAt.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
-					caseTriggerAt = new Date(caseTriggerAt.getTime() + (3600000 * 1));
+					//caseTriggerAt = new Date(caseTriggerAt.getTime() + (3600000 * 1));
+					caseTriggerAt = new Date(caseTriggerAt.getTime());
 	        console.log(caseTriggerAt);
 					let diffTime = caseTriggerAt.getTime() - now.getTime();
 	        let hh = parseInt(diffTime/(1000*60*60));
