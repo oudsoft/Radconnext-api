@@ -4742,6 +4742,7 @@ function doAutoAcceptCase(autoSelectPage){
             let caseItem = caseLists[i].case;
             await common.doUpdateCaseStatus(caseItem.id, 2, 'รังสีแพทย์ ' + radioNameTH + ' ตั้งรับเคสอัตโนมัติ');
           }
+          doLoadDefualtPage(autoSelectPage);
         } else {
           doLoadDefualtPage(autoSelectPage);
         }
