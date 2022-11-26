@@ -744,7 +744,10 @@ const doReSubmitReport = function(caseId, hostname){
         let radioId = cases[0].Case_RadiologistId;
         let risParams = await risParamCreator(caseId, radioId);
 
-        let socketTrigger = {type: 'newreport', pdfDicomSeriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, risParams: risParams, dicom: dicom};
+        let socketTrigger = {type: 'newreport', pdfDicomSeriesIds: pdfDicomSeriesIds, risParams: risParams, dicom: dicom};
+        if (seriesInstanceUIDs) {
+          socketTrigger.seriesInstanceUIDs = seriesInstanceUIDs;
+        }
         let result = await websocket.sendLocalGateway(socketTrigger, hospitalId);
   			log.info('send resubmitreport trigger result => ' + JSON.stringify(result));
         resolve({status: {code: 200}, submit: 'done', result: result, triggerData: socketTrigger});
