@@ -111,7 +111,7 @@
     });
   }
 
-  const doOpenZipFile = function(caseId, dicomZipFilename) {
+  const doOpenZipFile = function(caseId, dicomZipFilename, patientNameEN) {
     let radAlertMsg = $('<div></div>');
     let zipFilenameInput = $('<input type="text"/>').val(dicomZipFilename).css({'width': '240px'});
     let downloadCmd = $('<span></span>').text('Download').css({'margin-left': '10px', 'cursor': 'pointer'});
@@ -133,7 +133,7 @@
     });
     $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd)).append($(updateZipFilenameCmd));
     const radconfirmoption = {
-      title: 'Dicom Zip File',
+      title: 'Dicom Zip File  [' + patientNameEN + ']',
       msg: $(radAlertMsg),
       width: '420px',
       onOk: function(evt) {
@@ -178,20 +178,20 @@
 		});
   }
 
-  const doOpenStudyTag = function(caseId, studyId) {
+  const doOpenStudyTag = function(caseId, studyId, patientNameEN) {
     let params = {};
     let callStudyUrl = '/api/dicomtransferlog/select/' + studyId;
     $.post(callStudyUrl, params).then((response) => {
       console.log(response);
       var JSONPretty = JSON.stringify(response.dicom[0].StudyTags, undefined, 4);
       let studyText = $('<textarea></textarea>').val(JSONPretty);
-      $(studyText).attr({'rows': '20', 'cols': '44'});
+      $(studyText).attr({'rows': '20', 'cols': '60'});
       let radAlertMsg = $('<div></div>');
       $(radAlertMsg).append($(studyText));
       const radconfirmoption = {
-        title: 'Study Tag',
+        title: 'Study Tag [' + patientNameEN + ']',
         msg: $(radAlertMsg),
-        width: '420px',
+        width: '520px',
         onOk: function(evt) {
           radConfirmBox.closeAlert();
         }
@@ -489,13 +489,13 @@
 
           let zipFileCmd = $('<input type="button" value="Zip File"/>');
           $(zipFileCmd).on('click', (evt)=>{
-            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename);
+            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename, patientNameEN);
           });
           $(cmdCol).append($(zipFileCmd).css({'margin-left': '5px'}));
 
           let studyCmd = $('<input type="button" value="Study"/>');
           $(studyCmd).on('click', (evt)=>{
-            doOpenStudyTag(cases[i].id, cases[i].Case_OrthancStudyID);
+            doOpenStudyTag(cases[i].id, cases[i].Case_OrthancStudyID, patientNameEN);
           });
           $(cmdCol).append($(studyCmd).css({'margin-left': '5px'}));
 
