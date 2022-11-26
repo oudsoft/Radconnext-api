@@ -6890,16 +6890,14 @@ module.exports = function ( jq ) {
 
 	const doDownloadDicom = function(caseDicomZipFilename) {
 		util.doResetPingCounter();
-		$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
+		//$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
-		/*
 		pom.setAttribute('target', "_blank");
 		pom.setAttribute('href', dicomZipLink);
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
-		*/
-
+		/*
 		$.ajax({
 			url: dicomZipLink,
 			xhrFields:{
@@ -6927,6 +6925,7 @@ module.exports = function ( jq ) {
 				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
 			}
 		});
+		*/
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
@@ -7610,7 +7609,7 @@ module.exports = function ( jq ) {
 	}
 
   const doOpenHR = function(link, patientFullName, casedate){
-		$('body').loading('start');
+		//$('body').loading('start');
     //window.open(link, '_blank');
 		let filePaths = link.split('/');
 		let fileNames = filePaths[filePaths.length-1];
@@ -7618,6 +7617,10 @@ module.exports = function ( jq ) {
 		let fileExt = fileName[1];
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		var pom = document.createElement('a');
+		pom.setAttribute('href', link);
+		pom.setAttribute('download', fileName);
+		pom.click();
+		/*
 		$.ajax({
 	    url: link,
 			xhrFields:{
@@ -7644,7 +7647,8 @@ module.exports = function ( jq ) {
 				pom.click();
 			}
 		});
-		$('body').loading('stop');
+		*/
+		//$('body').loading('stop');
   }
 
   const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
