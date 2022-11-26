@@ -181,7 +181,7 @@
   const doOpenStudyTag = function(caseId, studyId) {
     let params = {};
     let callStudyUrl = '/api/dicomtransferlog/select/' + studyId;
-    $.post(updateZipFilenameUrl, params).then((response) => {
+    $.post(callStudyUrl, params).then((response) => {
       let studyText = $('<textarea></textarea>').val(JSON.stringify(response.StudyTags));
       $(studyText).attr({'rows': '15', 'cols': '20'});
       let radAlertMsg = $('<div></div>');
