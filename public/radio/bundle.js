@@ -6894,10 +6894,12 @@ module.exports = function ( jq ) {
 		//$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
+		document.body.appendChild(pom);
 		pom.setAttribute('target', "_blank");
 		pom.setAttribute('href', dicomZipLink);
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
+		document.body.removeChild(pom);
 		/*
 		$.ajax({
 			url: dicomZipLink,
