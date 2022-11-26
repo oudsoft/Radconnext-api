@@ -6892,7 +6892,7 @@ module.exports = function ( jq ) {
 
 	const doDownloadDicom = function(caseDicomZipFilename) {
 		util.doResetPingCounter();
-		$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'info' );
+		$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		/*
@@ -6926,7 +6926,7 @@ module.exports = function ( jq ) {
 				pom.setAttribute('href', stremLink);
 				pom.setAttribute('download', caseDicomZipFilename);
 				pom.click();
-				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'info' );
+				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
 			}
 		});
 		common.downloadDicomList.push(caseDicomZipFilename);
