@@ -616,9 +616,9 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let lastReports = await db.casereports.findAll({attributes: ['PDF_DicomSeriesIds', 'SeriesInstanceUIDs', 'SOPInstanceUIDs'], where: {caseresponseId: responseId}});
       log.info('lastReports=>' + JSON.stringify(lastReports));
 
-      /*
+
       let dicom = undefined;
-      if (lastReports[0].PDF_DicomSeriesIds) {
+      if ((lastReports) && (lastReports.length > 0) && (lastReports[0].PDF_DicomSeriesIds)) {
         if ((isEditResponse) && (lastReports.length > 0)) {
           dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
           log.info('dicom last result => ' + JSON.stringify(dicom));
@@ -633,11 +633,6 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
         log.info('dicom first result => ' + JSON.stringify(dicom));
         await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
       }
-      */
-
-      let dicom = await dicomConvertor(studyID, modality, pdfReportFileName, hospitalId, hostname, pdfPages);
-      log.info('dicom first result => ' + JSON.stringify(dicom));
-      await db.casereports.update({PDF_DicomSeriesIds: {items: dicom.seriesIds}, SeriesInstanceUIDs: {items: dicom.seriesInstanceUIDs}, SOPInstanceUIDs: {items: dicom.sopInstanceUIDs}}, { where: { caseresponseId: responseId }}); //<-- save orthanc seriesId to casereport
 
       common.removeReportTempFile(pdfReportFileName);
 
