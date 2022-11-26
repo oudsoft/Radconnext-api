@@ -323,7 +323,6 @@ app.post('/status/(:caseId)', async (req, res) => {
           let changeRes = await statusControl.doChangeCaseStatus(2, 8, caseId, userId);
           res.json({status: {code: 200}, actions: changeRes.change.actiohs});
 
-          let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
           let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api]'};
           let caseTask = await tasks.selectTaskByCaseId(caseId);
           if (caseTask) {
