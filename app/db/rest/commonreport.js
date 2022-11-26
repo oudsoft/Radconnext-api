@@ -718,7 +718,16 @@ const doReSubmitReport = function(caseId, hostname){
 
       let casereports = await db.casereports.findAll({ where: {caseresponseId: responseId}});
       log.info('casereports=> ' + JSON.stringify(casereports));
-
+      if (casereports.length == 0) {
+        let reporttype = 'normal';
+        let remark = 'สร้างรายงายผลอ่านด้วยการ re-submit โดย admin';
+        let reportLog = [{action: 'new', by: 0, at: new Date()}];
+        let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
+        let adReport = await db.casereports.create(newCaseReport);
+        await db.casereports.update({caseId: caseId, userId: 0, caseresponseId: responseId}, { where: { id: adReport.id } });
+        casereports = await db.casereports.findAll({ where: {caseresponseId: responseId}});
+        log.info('casereports=> ' + JSON.stringify(casereports));
+      }
       const hosReports = await db.hospitalreports.findAll({ attributes: ['AutoConvert'], where: {hospitalId: hospitalId}});
       const autoConvert = hosReports[0].AutoConvert;
       if (autoConvert == 1){
@@ -729,11 +738,9 @@ const doReSubmitReport = function(caseId, hostname){
           if (casereports[0].PDF_DicomSeriesIds) {
             pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;
           }
-
           if (casereports[0].SeriesInstanceUIDs) {
             seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
           }
-
           if (casereports[0].SOPInstanceUIDs) {
             sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
           }

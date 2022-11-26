@@ -98,7 +98,7 @@ app.post('/add', (req, res) => {
         */
 
         let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
-        
+
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
@@ -165,6 +165,13 @@ app.post('/save', (req, res) => {
             let oldLog = casereports[0].Log;
             oldLog.push(newReportLog);
             await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
+          } else {
+            let reporttype = reqData.reporttype;
+            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
+            let reportLog = [{action: 'new', by: userId, at: new Date()}];
+            let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
+            let adReport = await db.casereports.create(newCaseReport);
+            await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: caseresponseId}, { where: { id: adReport.id } });
           }
         } else {
           //use add
