@@ -915,7 +915,7 @@ const doGenSmartTemplateOptions = function(templateData, radioId) {
 const nextCaseStausOnResponseChange = function(nowStatus, responseType, reportType){
   log.info('nowStatus=> ' + nowStatus);
   let nextStatus = undefined;
-  //let newResponseStatus = [8, 9, 13];
+  //let newResponseStatus = [2, 8, 9, 13];
   //let editResponseStatus = [5, 6, 10, 11, 12, 14];
   let isNewResponse = uti.contains.call(newResponseStatus, nowStatus);
   let isEditResponse = uti.contains.call(editResponseStatus, nowStatus);
@@ -927,9 +927,9 @@ const nextCaseStausOnResponseChange = function(nowStatus, responseType, reportTy
         nextStatus = 5;
       }
     } else if (responseType === 'draft'){
-      nextStatus = 9;
+      nextStatus = 5;
     } else {
-      nextStatus = 9;
+      nextStatus = 5;
     }
   } else if (isEditResponse) {
     nextStatus = 12;
