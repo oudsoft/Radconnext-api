@@ -7214,7 +7214,7 @@ module.exports = function ( jq ) {
 					//-> ตรงนี้คือการสั่งให้เซิร์ฟเวอร์สร้างผลอ่าน pdf ไว้ก่อนล่วงหน้า
 					params.reporttype = 'normal';
 					//let saveResponseApiURL = '/api/uicommon/radio/saveresponse';
-					let saveResponseApiURL = '/api/caseresponse/add';
+					let saveResponseApiURL = '/api/caseresponse/save';
 					$.post(saveResponseApiURL, params, async function(saveResponseRes){
 						if ((saveResponseRes.result) && (saveResponseRes.result.responseId)) {
 							caseResponseId = saveResponseRes.result.responseId;
@@ -8351,13 +8351,8 @@ module.exports = function ( jq ) {
 
 	const doCallSaveResponse = function(params){
 		return new Promise(function(resolve, reject) {
-			var apiUri = undefined;
+			var apiUri = '/api/caseresponse/save';
 			console.log(params);
-			if (params.responseId){
-				apiUri = '/api/caseresponse/update';
-			} else {
-				apiUri = '/api/caseresponse/add';
-			}
 			apiconnector.doCallApi(apiUri, params).then((response)=>{
 				resolve(response);
 			}).catch((err) => {

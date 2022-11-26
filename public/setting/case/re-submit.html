@@ -185,7 +185,7 @@
       console.log(response);
       var JSONPretty = JSON.stringify(response.dicom[0].StudyTags, undefined, 4);
       let studyText = $('<textarea></textarea>').val(JSONPretty);
-      $(studyText).attr({'rows': '15', 'cols': '42'});
+      $(studyText).attr({'rows': '20', 'cols': '44'});
       let radAlertMsg = $('<div></div>');
       $(radAlertMsg).append($(studyText));
       const radconfirmoption = {

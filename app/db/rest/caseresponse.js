@@ -96,7 +96,7 @@ app.post('/add', (req, res) => {
         let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
         let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
         */
-        
+
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
@@ -130,6 +130,59 @@ app.post('/update', (req, res) => {
           let oldLog = casereports[0].Log;
           oldLog.push(newReportLog);
           await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/save', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let userId = ur[0].id;
+        let caseresponseId = req.body.responseId;
+        if (caseresponseId) {
+          //use update
+          let upResponse = req.body.data;
+          await Response.update(req.body.data, { where: { id: caseresponseId} });
+          res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
+          let userId = ur[0].id;
+          let newReportLog = {action: 'update', by: userId, at: new Date()};
+          let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: caseresponseId}});
+          if (casereports.length > 0) {
+            let oldLog = casereports[0].Log;
+            oldLog.push(newReportLog);
+            await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
+          }
+        } else {
+          //use add
+          let reqData = req.body;
+          let newResponse = reqData.data;
+          let caseId = reqData.caseId;
+          let userId = reqData.userId;
+          let radioNameTH = reqData.radioNameTH;
+          let reporttype = reqData.reporttype;
+
+          let adResponse = await Response.create(newResponse);
+          await db.caseresponses.update({caseId: caseId, userId: userId}, { where: { id: adResponse.id } });
+
+          res.json({status: {code: 200}, result: {responseId: adResponse.id}});
+
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
+          let reportLog = [{action: 'new', by: userId, at: new Date()}];
+          let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
+          let adReport = await db.casereports.create(newCaseReport);
+          await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
         }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
