@@ -182,8 +182,9 @@
     let params = {};
     let callStudyUrl = '/api/dicomtransferlog/select/' + studyId;
     $.post(callStudyUrl, params).then((response) => {
+      console.log(response);
       let studyText = $('<textarea></textarea>').val(JSON.stringify(response.StudyTags));
-      $(studyText).attr({'rows': '15', 'cols': '20'});
+      $(studyText).attr({'rows': '15', 'cols': '40'});
       let radAlertMsg = $('<div></div>');
       $(radAlertMsg).append($(studyText));
       const radconfirmoption = {
