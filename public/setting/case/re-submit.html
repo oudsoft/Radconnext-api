@@ -113,16 +113,29 @@
 
   const doOpenZipFile = function(caseId, dicomZipFilename) {
     let radAlertMsg = $('<div></div>');
-    let zipFilenameInput = $('<input type="text"/>').val(dicomZipFilename).css({'width': '140px'});
+    let zipFilenameInput = $('<input type="text"/>').val(dicomZipFilename).css({'width': '240px'});
     let downloadCmd = $('<span></span>').text('Download').css({'margin-left': '10px', 'cursor': 'pointer'});
     $(downloadCmd).on('click', (evt)=>{
       doDownloadZipFile(dicomZipFilename);
     });
-    $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd));
+    let updateZipFilenameCmd = $('<span></span>').text('Update').css({'margin-left': '10px', 'cursor': 'pointer'});
+    $(updateZipFilenameCmd).on('click', (evt)=>{
+      let newFileName = $(zipFilenameInput).val();
+      if (newFileName !== '') {
+        let params = {caseId: caseId, Case_DicomZipFilename: newFileName};
+        let updateZipFilenameUrl = '/api/cases/updatezipfilename';
+        $.post(updateZipFilenameUrl, params).then((response) => {
+          console.log(response);
+        });
+      } else {
+        $.notify('ชื่อไฟล์ว่าง', 'error');
+      }
+    });
+    $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd)).append($(updateZipFilenameCmd));
     const radconfirmoption = {
       title: 'Dicom Zip File',
       msg: $(radAlertMsg),
-      width: '320px',
+      width: '420px',
       onOk: function(evt) {
         radConfirmBox.closeAlert();
       }
@@ -132,7 +145,7 @@
   }
 
   const doDownloadZipFile = function(dicomZipFilename){
-    $.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
+    $.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
     let dicomZipLink = '/img/usr/zip/' + dicomZipFilename;
     let pom = document.createElement('a');
 
@@ -163,6 +176,27 @@
 				$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
 			}
 		});
+  }
+
+  const doOpenStudyTag = function(caseId, studyId) {
+    let params = {};
+    let callStudyUrl = '/api/dicomtransferlog/select/' + studyId;
+    $.post(updateZipFilenameUrl, params).then((response) => {
+      let studyText = $('<textarea></textarea>').val(JSON.stringify(response.StudyTags));
+      $(studyText).attr({'rows': '15', 'cols': '20'});
+      let radAlertMsg = $('<div></div>');
+      $(radAlertMsg).append($(studyText));
+      const radconfirmoption = {
+        title: 'Study Tag',
+        msg: $(radAlertMsg),
+        width: '420px',
+        onOk: function(evt) {
+          radConfirmBox.closeAlert();
+        }
+      }
+      let radConfirmBox = $('body').radalert(radconfirmoption);
+      $(radConfirmBox.cancelCmd).hide();
+    });
   }
 
   const doCancelCase = function(caseId, hospitalId, userId){
@@ -451,6 +485,18 @@
           });
           $(cmdCol).append($(hrCmd));
 
+          let zipFileCmd = $('<input type="button" value="Zip File"/>');
+          $(zipFileCmd).on('click', (evt)=>{
+            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename);
+          });
+          $(cmdCol).append($(zipFileCmd).css({'margin-left': '5px'}));
+
+          let studyCmd = $('<input type="button" value="Study"/>');
+          $(studyCmd).on('click', (evt)=>{
+            doOpenStudyTag(cases[i].id, cases[i].Case_OrthancStudyID);
+          });
+          $(cmdCol).append($(studyCmd).css({'margin-left': '5px'}));
+
           let isEditResponse = contains.call(editResponseStatus, cases[i].casestatusId);
           if (isEditResponse){
             let reSubmitCmd = $('<input type="button" value="Re-Submit"/>');
@@ -480,11 +526,6 @@
             $(cmdCol).append($('<span>  </span>'));
             $(cmdCol).append($(showTaskCmd));
           }
-          let reZipCmd = $('<input type="button" value="Re-Zip"/>');
-          $(reZipCmd).on('click', (evt)=>{
-            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename);
-          });
-          $(cmdCol).append($(reZipCmd).css({'margin-left': '5px'}));
           if (cases[i].casestatusId != 7) {
             let cancelCaseCmd = $('<input type="button" value="Cancel"/>');
             $(cancelCaseCmd).on('click', (evt)=>{

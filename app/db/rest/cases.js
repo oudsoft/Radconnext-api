@@ -1169,6 +1169,12 @@ app.post('/updatecase/trigger', async (req, res) => {
   res.json({status: {code: 200}, result: actionAfterChange});
 });
 
+app.post('/updatezipfilename', async (req, res) => {
+  let updateData = {Case_DicomZipFilename: req.body.Case_DicomZipFilename};
+  await db.cases.update(updateData, {where: {id: req.body.caseId}});
+  res.json({status: {code: 200}, result: {zip: req.body.Case_DicomZipFilename}});
+});
+
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {
   db = dbconn;
   tasks = caseTask;

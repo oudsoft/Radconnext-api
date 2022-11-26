@@ -112,15 +112,9 @@ app.post('/select/(:resourceId)', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-					let hostname = req.hostname;
-				  let hospitalId = req.body.hospitalId;
-				  let username = req.body.username;
 					let resourceId = req.params.resourceId;
-					let orthancs = await db.orthancs.findAll({ attributes: excludeColumn, where: {hospitalId: hospitalId}});
-				  let yourOrthancId = orthancs[0].id;
-					const orthancRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {orthancId: yourOrthancId, ResourceID: resourceId}});
-					//log.info('orthancRes=>' + JSON.stringify(orthancRes));
-					res.json({status: {code: 200}, orthancRes: orthancRes});
+					const dicomRes = await DicomTransferLog.findAll({attributes: excludeColumn, where: {ResourceID: resourceId}});
+					res.json({status: {code: 200}, dicom: dicomRes});
 				} catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
