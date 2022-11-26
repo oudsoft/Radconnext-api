@@ -6888,7 +6888,8 @@ module.exports = function ( jq ) {
   	});
 	}
 
-	const doDownloadDicom = function(caseDicomZipFilename) {
+	const doDownloadDicom = function(evt, caseDicomZipFilename) {
+		evt.preventDefault();
 		util.doResetPingCounter();
 		//$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
@@ -7670,8 +7671,9 @@ module.exports = function ( jq ) {
 					let patientHRButton = $('<div class="action-btn" style="position: relative; display: inline-block; cursor: pointer; text-align: center;">' + linkText + '</div>');
 
 					$(patientHRButton).on("click", function(evt){
+						evt.preventDefault();
 						if (fileExt === 'zip') {
-							let dwnList = doDownloadDicom(fileNames);
+							let dwnList = doDownloadDicom(evt, fileNames);
 						} else {
 	          	doOpenHR(item.link, patientFullName, casedate);
 						}
@@ -7695,7 +7697,7 @@ module.exports = function ( jq ) {
 		$(downloadCmd).appendTo($(dicomCmdBox));
 		$(downloadCmd).on('click', async (evt)=>{
 			//$('body').loading('start');
-			let downloadList = doDownloadDicom(caseDicomZipFilename);
+			let downloadList = doDownloadDicom(evt, caseDicomZipFilename);
 			//$('body').loading('stop');
 		});
 		/*
@@ -7722,6 +7724,7 @@ module.exports = function ( jq ) {
 					$(codeLink).css(commandButtonStyle);
 					$(hrbackwardBox).append($(codeLink));
 					$(codeLink).on('click',(evt)=>{
+						evt.preventDefault();
 						doOpenHR(item.link, patientFullName, casedate);
 					});
 				});
@@ -8021,10 +8024,10 @@ module.exports = function ( jq ) {
 						});
 						$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 					} else {
-						let dwnList = doDownloadDicom(downloadData.dicomzipfilename);
+						let dwnList = doDownloadDicom(evt, downloadData.dicomzipfilename);
 					}
 					*/
-					let dwnList = doDownloadDicom(downloadData.dicomzipfilename);
+					let dwnList = doDownloadDicom(evt, downloadData.dicomzipfilename);
 				}
 			});
 			$(downloadCmd).appendTo($(downloadCmdCell));
@@ -8493,7 +8496,7 @@ module.exports = function ( jq ) {
 				//dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
 				let downloadData = $(downloadDicomZipCmd).data('downloadData');
 				let dicomzipfilename = downloadData.dicomzipfilename;
-				let downloadList = doDownloadDicom(dicomzipfilename);
+				let downloadList = doDownloadDicom(evt, dicomzipfilename);
 			}
 		});
 	}
