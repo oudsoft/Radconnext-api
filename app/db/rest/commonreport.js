@@ -723,16 +723,18 @@ const doReSubmitReport = function(caseId, hostname){
       const autoConvert = hosReports[0].AutoConvert;
       if (autoConvert == 1){
         let pdfDicomSeriesIds = undefined;
-        if (casereports[0].PDF_DicomSeriesIds) {
-          pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;
-        }
-        let seriesInstanceUIDs = undefined;
-        if (casereports[0].SeriesInstanceUIDs) {
-          seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
-        }
-        let sopInstanceUIDs = undefined;
-        if (casereports[0].SOPInstanceUIDs) {
-          sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
+        if (casereports.length > 0) {
+          if (casereports[0].PDF_DicomSeriesIds) {
+            pdfDicomSeriesIds = casereports[0].PDF_DicomSeriesIds.items;
+          }
+          let seriesInstanceUIDs = undefined;
+          if (casereports[0].SeriesInstanceUIDs) {
+            seriesInstanceUIDs = casereports[0].SeriesInstanceUIDs.items;
+          }
+          let sopInstanceUIDs = undefined;
+          if (casereports[0].SOPInstanceUIDs) {
+            sopInstanceUIDs = casereports[0].SOPInstanceUIDs.items;
+          }
         }
         //let dicom = {seriesIds: pdfDicomSeriesIds, seriesInstanceUIDs: seriesInstanceUIDs, sopInstanceUIDs: sopInstanceUIDs};
         let publicDir = path.normalize(__dirname + '/../../../public');
