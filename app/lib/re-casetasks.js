@@ -334,9 +334,9 @@ module.exports = ( taskCase, task, voipTask, dbconn, monitor, webSocketServer ) 
   let doRun = function(){
     return new Promise(async function(resolve, reject) {
       let taskCaseResult = await reRunGenerateCaseTask();
-      let taskConsultResult = await doReConsultTask();
+      //let taskConsultResult = await doReConsultTask();
       let lastExceedCaseResult = await doLoadExceedCase();
-      resolve({taskCaseResult, taskConsultResult/*, lastExceedCaseResult*/});
+      resolve({taskCaseResult /*, taskConsultResult, lastExceedCaseResult*/});
     });
   }
 
