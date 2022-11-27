@@ -249,9 +249,9 @@ app.post('/radio/submitresult', (req, res) => {
 
           let submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
 
-          log.info('create report result on submit result event => ');
+          log.info('\n\ncreate report result on submit result event => ');
           log.info(JSON.stringify(submitRes));
-
+          log.info('=============\n\n');
           if (nowStatusId == 14){
             db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
           }
