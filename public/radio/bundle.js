@@ -7367,10 +7367,11 @@ module.exports = function ( jq ) {
 	    const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let caseId = saveResponseData.caseId
 			let userId = userdata.id;
-
+			let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			let params = {
 				caseId: caseId,
 				userId: userId,
+				radioNameTH: radioNameTH,
 				responseId: caseResponseId,
 				hospitalId: caseHospitalId,
 				reporttype: reportType,
@@ -7389,7 +7390,9 @@ module.exports = function ( jq ) {
 				$("#dialog").empty();
 				if (saveResponseData.previewOption === 0){
 					resolve(saveResponseRes);
-					$('#AcceptedCaseCmd').click();
+					setTimeout(()=>{
+						$('#AcceptedCaseCmd').click();
+					}, 1800);
 				} else if (saveResponseData.previewOption === 1) {
 					let pdfReportLink = saveResponseData.reportPdfLinkPath + '?t=' + common.genUniqueID();
 					console.log(pdfReportLink);
