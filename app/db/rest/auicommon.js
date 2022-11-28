@@ -228,11 +228,15 @@ app.post('/radio/submitresult', (req, res) => {
           let hostname = req.hostname;
           let report = req.body.report;
           let reportType = req.body.reportType;
+          /*
           let cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
           let nowStatusId = cases[0].casestatusId;
+          let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
+          */
 
           let responseType = 'normal';
-          let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
+          let nowStatusId = 9;
+          let nextStatus = 5;
           let remark = 'รังสีแพทย์ส่งผลอ่าน (Submit) สำเร็จ';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});

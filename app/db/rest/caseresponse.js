@@ -86,7 +86,7 @@ app.post('/add', (req, res) => {
 
         res.json({status: {code: 200}, result: {responseId: adResponse.id}});
 
-        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
+        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-add]';
 
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
@@ -99,6 +99,9 @@ app.post('/add', (req, res) => {
           const next = 9;
           const caseStatusChange = { casestatusId: next, Case_DESC: remark};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
+          const from = 8;
+          let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         }
 
       } else if (ur.token.expired){
@@ -139,6 +142,11 @@ app.post('/update', (req, res) => {
           const next = 9;
           const caseStatusChange = { casestatusId: next, Case_DESC: remark};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
+          const from = 8;
+          let radioNameTH = reqData.radioNameTH;
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-update]';
+          let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+          await common.doCaseChangeStatusKeepLog(newKeepLog);
         }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
@@ -192,6 +200,10 @@ app.post('/save', (req, res) => {
             const next = 9;
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
+            const from = 8;
+            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save]';
+            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+            await common.doCaseChangeStatusKeepLog(newKeepLog);
           }
         } else {
           //use add
