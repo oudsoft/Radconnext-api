@@ -190,7 +190,7 @@ app.post('/save', (req, res) => {
             if (!reporttype) {
               reporttype = 'normal';
             }
-            let reportLog = [{action: 'new', by: userId, at: new Date()on: 'caseresponse-save-update'}];
+            let reportLog = [{action: 'new', by: userId, at: new Date(), on: 'caseresponse-save-update'}];
             let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
             let adReport = await db.casereports.create(newCaseReport);
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: caseresponseId}, { where: { id: adReport.id } });
