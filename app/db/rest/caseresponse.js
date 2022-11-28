@@ -163,7 +163,7 @@ app.post('/save', (req, res) => {
         if (caseresponseId) {
           //use update
           let updateData = req.body.data;
-          await Response.update(rupdateData, { where: { id: caseresponseId} });
+          await Response.update(updateData, { where: { id: caseresponseId} });
 
           res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
 
