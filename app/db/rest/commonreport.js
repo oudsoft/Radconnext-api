@@ -639,7 +639,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
       let radioId = cases[0].Case_RadiologistId;
       let radioProfile = await common.doLoadRadioProfile(radioId);
       let risParams = await risParamCreator(caseId, radioId);
-      let socketTrigger = {type: 'newreport', studyid: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom, radioProfile: radioProfile, hospitalId: hospitalId, caseId: caseId, patientFullName: report.patientFullName};
+      let socketTrigger = {type: 'newreport', studyId: studyID, studyInstanceUID: studyInstanceUID, risParams: risParams, dicom: dicom, radioProfile: radioProfile, hospitalId: hospitalId, caseId: caseId, patientFullName: report.patientFullName};
 
       let yourLocalSocket = await websocket.findOrthancLocalSocket(hospitalId);
       if (yourLocalSocket) {
@@ -657,27 +657,11 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           ownerCaseSocket.send(JSON.stringify(socketTrigger));
           resolve({status: {code: 200}, submit: 'done', ownerCaseSocket: ownerCaseSocket, triggerData: socketTrigger});
         } else {
-          websocket.unSendDatas.push({sendTo: ownerCaseUsername, callData: socketTrigger, hospitalId: hospitalId});
+          let unSendTrigger = {sendTo: ownerCaseUsername, callData: socketTrigger, hospitalId: hospitalId};
+          //websocket.unSendDatas.push(unSendTrigger);
+          await db.casereports.update({PDF_DicomSeriesIds: unSendTrigger}, { where: { caseresponseId: responseId }});
           /*
           send Admin Notify
-          */
-          /*
-          let radioSocket = await websocket.findUserSocket(radioProfile.username);
-          if (radioSocket) {
-            let radioNotify = {type: 'newreportlocalfail', result: 'Fail, not found local socket', hospitalId: hospitalId, from: radioProfile.username, patientFullName: report.patientFullName};
-            if ((newReportRes) && (newReportRes.reportLink)) {
-              radioNotify.reportLink = newReportRes.reportLink
-            }
-            radioSocket.send(JSON.stringify(radioNotify));
-          }
-          */
-          /*
-          let subject = 'Cuase of API not found local user owner case socket'
-          let msgHtml = uti.fmtStr('<p>caseId=%s</p><p>userId=%s</p><p>username=%s</p><p>hospitalId=%s</p><p>pdfFileName=%s</p><p>responseId=%s</p>', caseId, userId, ownerCaseUsername, hospitalId, pdfReportFileName, responseId);
-          msgHtml += uti.fmtStr('<p>Create-Report=> %s</p>', JSON.stringify(newReportRes));
-          let caseData = await db.cases.findAll({ where: {id: caseId}});
-          msgHtml += uti.fmtStr('<p>Case Data=> %s</p>', JSON.stringify(caseData));
-          let sendEmailRes = await common.doSendEmailToAdmin(subject, msgHtml);
           */
           let msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการส่งผลอ่านทาง Web Socket ของผู้ใช้งาน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
           await common.sendNotifyChatBotToAdmin(msgHtml);
