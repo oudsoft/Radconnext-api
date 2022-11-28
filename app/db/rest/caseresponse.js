@@ -73,10 +73,6 @@ app.post('/add', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        /*
-        let addNewResResult = await statusControl.doControlAddNewResponse(req.body);
-        res.json(addNewResResult);
-        */
 
         let reqData = req.body;
         let newResponse = reqData.data;
@@ -90,19 +86,21 @@ app.post('/add', (req, res) => {
 
         res.json({status: {code: 200}, result: {responseId: adResponse.id}});
 
-        /*
-        let nowStatusId = 8;
-        let nextStatus = 9;
-        let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
-        let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
-        */
-
         let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse]';
 
         let reportLog = [{action: 'new', by: userId, at: new Date()}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
         await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
+
+        const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+        const nowCaseStatus = targetCases[0].casestatusId;
+        if (nowCaseStatus == 8) {
+          const next = 9;
+          const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+          await db.cases.update(caseStatusChange, { where: { id: caseId } });
+        }
+
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -133,6 +131,15 @@ app.post('/update', (req, res) => {
           oldLog.push(newReportLog);
           await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
         }
+
+        let caseId = req.body.caseId;
+        const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+        const nowCaseStatus = targetCases[0].casestatusId;
+        if (nowCaseStatus == 8) {
+          const next = 9;
+          const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+          await db.cases.update(caseStatusChange, { where: { id: caseId } });
+        }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
       } else {
@@ -155,10 +162,14 @@ app.post('/save', (req, res) => {
         let caseresponseId = req.body.responseId;
         if (caseresponseId) {
           //use update
-          let upResponse = req.body.data;
-          await Response.update(req.body.data, { where: { id: caseresponseId} });
+          let updateData = req.body.data;
+          await Response.update(rupdateData, { where: { id: caseresponseId} });
+
           res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
-          let userId = ur[0].id;
+
+          let userId = req.body.userId;
+          let radioNameTH = req.body.radioNameTH;
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
           let newReportLog = {action: 'update', by: userId, at: new Date()};
           let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: caseresponseId}});
           if (casereports.length > 0) {
@@ -167,11 +178,20 @@ app.post('/save', (req, res) => {
             await db.casereports.update({Log: oldLog}, { where: { id: casereports[0].id } });
           } else {
             let reporttype = reqData.reporttype;
-            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
+            if (!reporttype) {
+              reporttype = 'normal';
+            }
             let reportLog = [{action: 'new', by: userId, at: new Date()}];
             let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
             let adReport = await db.casereports.create(newCaseReport);
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: caseresponseId}, { where: { id: adReport.id } });
+          }
+          const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+          const nowCaseStatus = targetCases[0].casestatusId;
+          if (nowCaseStatus == 8) {
+            const next = 9;
+            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            await db.cases.update(caseStatusChange, { where: { id: caseId } });
           }
         } else {
           //use add
@@ -192,6 +212,14 @@ app.post('/save', (req, res) => {
           let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
           let adReport = await db.casereports.create(newCaseReport);
           await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
+
+          const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+          const nowCaseStatus = targetCases[0].casestatusId;
+          if (nowCaseStatus == 8) {
+            const next = 9;
+            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            await db.cases.update(caseStatusChange, { where: { id: caseId } });
+          }
         }
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});

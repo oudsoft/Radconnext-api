@@ -4419,19 +4419,18 @@ function doLoadMainPage(){
             let responseText = toAsciidoc(responseHTML);
             let userdata = JSON.parse(localStorage.getItem('userdata'));
             let userId = userdata.id;
+            let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
             let saveData = {Response_HTML: responseHTML, Response_Text: responseText, Response_Type: type};
             $.post('/api/caseresponse/select/' + caseId, {}, function(callRes){
               //console.log(callRes);
-              let apiUri = undefined;
+              let apiUri = '/api/caseresponse/save';
               let params = undefined;
               if (callRes.Record.length > 0) {
                 let responseId = callRes.Record[0].id;
                 opencase.setCaseResponseId(responseId);
-                params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId};
-                apiUri = '/api/caseresponse/update';
+                params = {caseId: caseId, userId: userId, data: saveData, responseId: responseId, radioNameTH: radioNameTH};
               } else {
-                params = {caseId: caseId, userId: userId, data: saveData};
-                apiUri = '/api/caseresponse/add';
+                params = {caseId: caseId, userId: userId, data: saveData, radioNameTH: radioNameTH};
               }
               $.post(apiUri, params, function(saveRes){
                 //console.log(saveRes);
