@@ -175,6 +175,7 @@ app.post('/save', (req, res) => {
 
           res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
 
+          let caseId = req.body.caseId;
           let userId = req.body.userId;
           let radioNameTH = req.body.radioNameTH;
           let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
