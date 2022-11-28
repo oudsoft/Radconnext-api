@@ -78,6 +78,7 @@ function RadconWebSocketServer (arg, db, log) {
 				}
 			});
 			if (unSendMes.length > 0){
+				/*
 				await unSendMes.forEach(async(item, i) => {
 					await $this.selfSendMessage(ws, item.callData, item.sendTo);
 				});
@@ -86,6 +87,7 @@ function RadconWebSocketServer (arg, db, log) {
 						return item;
 					}
 				});
+				*/
 				$this.unSendDatas = unSendOthers;
 			}
 		}

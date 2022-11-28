@@ -242,7 +242,8 @@ app.post('/radio/submitresult', (req, res) => {
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             const from = 8;
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            await common.doCaseChangeStatusKeepLog(newKeepLog);
+            //await common.doCaseChangeStatusKeepLog(newKeepLog);
+            await db.radkeeplogs.create(newKeepLog);
           }
 
           let responseType = 'normal';
