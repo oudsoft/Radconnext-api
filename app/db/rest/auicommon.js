@@ -227,7 +227,7 @@ app.post('/radio/submitresult', (req, res) => {
           let responseId = req.body.responseId;
           let hostname = req.hostname;
           let report = req.body.report;
-          let reportType = req.body.reportType;
+          let reportType = req.body.reporttype;
           let radioNameTH = req.body.radioNameTH;
 
           let cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});

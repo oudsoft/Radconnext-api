@@ -88,7 +88,7 @@ app.post('/add', (req, res) => {
 
         let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-add]';
 
-        let reportLog = [{action: 'new', by: userId, at: new Date()}];
+        let reportLog = [{action: 'new', by: userId, at: new Date(), on: 'caseresponse-add'}];
         let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
         let adReport = await db.casereports.create(newCaseReport);
         await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
@@ -127,7 +127,7 @@ app.post('/update', (req, res) => {
         await Response.update(upResponse, { where: { id: req.body.responseId } });
         res.json({status: {code: 200}, result: {responseId: req.body.responseId}});
         let userId = ur[0].id;
-        let newReportLog = {action: 'update', by: userId, at: new Date()};
+        let newReportLog = {action: 'update', by: userId, at: new Date(), on: 'caseresponse-update'};
         let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: req.body.responseId}});
         if (casereports.length > 0) {
           let oldLog = casereports[0].Log;
@@ -178,8 +178,8 @@ app.post('/save', (req, res) => {
           let caseId = req.body.caseId;
           let userId = req.body.userId;
           let radioNameTH = req.body.radioNameTH;
-          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
-          let newReportLog = {action: 'update', by: userId, at: new Date()};
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ [api-caseresponse-save-update]';
+          let newReportLog = {action: 'update', by: userId, at: new Date(), on: 'caseresponse-save-update'};
           let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: caseresponseId}});
           if (casereports.length > 0) {
             let oldLog = casereports[0].Log;
@@ -190,7 +190,7 @@ app.post('/save', (req, res) => {
             if (!reporttype) {
               reporttype = 'normal';
             }
-            let reportLog = [{action: 'new', by: userId, at: new Date()}];
+            let reportLog = [{action: 'new', by: userId, at: new Date()on: 'caseresponse-save-update'}];
             let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
             let adReport = await db.casereports.create(newCaseReport);
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: caseresponseId}, { where: { id: adReport.id } });
@@ -199,12 +199,11 @@ app.post('/save', (req, res) => {
           const nowCaseStatus = targetCases[0].casestatusId;
           if (nowCaseStatus == 8) {
             const next = 9;
-            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save]';
+            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save-update]';
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
-            const from = 8;
-            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            await common.doCaseChangeStatusKeepLog(newKeepLog);
+            let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : next, remark : remark};
+            await db.radkeeplogs.create(newKeepLog);
           }
         } else {
           //use add
@@ -220,8 +219,8 @@ app.post('/save', (req, res) => {
 
           res.json({status: {code: 200}, result: {responseId: adResponse.id}});
 
-          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ';
-          let reportLog = [{action: 'new', by: userId, at: new Date()}];
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ [api-caseresponse-save-add]';
+          let reportLog = [{action: 'new', by: userId, at: new Date(), on: 'caseresponse-save-add'}];
           let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
           let adReport = await db.casereports.create(newCaseReport);
           await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: adResponse.id}, { where: { id: adReport.id } });
@@ -232,6 +231,8 @@ app.post('/save', (req, res) => {
             const next = 9;
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
+            let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : next, remark : remark};
+            await db.radkeeplogs.create(newKeepLog);
           }
         }
       } else if (ur.token.expired){
