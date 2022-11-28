@@ -140,11 +140,11 @@ app.post('/update', (req, res) => {
         const nowCaseStatus = targetCases[0].casestatusId;
         if (nowCaseStatus == 8) {
           const next = 9;
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-update]';
           const caseStatusChange = { casestatusId: next, Case_DESC: remark};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
           const from = 8;
           let radioNameTH = reqData.radioNameTH;
-          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-update]';
           let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         }
@@ -198,10 +198,10 @@ app.post('/save', (req, res) => {
           const nowCaseStatus = targetCases[0].casestatusId;
           if (nowCaseStatus == 8) {
             const next = 9;
+            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save]';
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             const from = 8;
-            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save]';
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
             await common.doCaseChangeStatusKeepLog(newKeepLog);
           }

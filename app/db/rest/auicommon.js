@@ -228,16 +228,28 @@ app.post('/radio/submitresult', (req, res) => {
           let hostname = req.hostname;
           let report = req.body.report;
           let reportType = req.body.reportType;
-          /*
+          let radioNameTH = req.body.radioNameTH;
+
           let cases = await db.cases.findAll({attributes: ['casestatusId'], where: {id: caseId}});
           let nowStatusId = cases[0].casestatusId;
+          /*
           let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
           */
+          if (nowCaseStatus == 8) {
+            const next = 9;
+            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-aui-radio-submit]';
+            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            await db.cases.update(caseStatusChange, { where: { id: caseId } });
+            const from = 8;
+
+            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+            await common.doCaseChangeStatusKeepLog(newKeepLog);
+          }
 
           let responseType = 'normal';
-          let nowStatusId = 9;
+          nowStatusId = 9;
           let nextStatus = 5;
-          let remark = 'รังสีแพทย์ส่งผลอ่าน (Submit) สำเร็จ';
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' ส่งผลอ่าน (Submit) สำเร็จ';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});
           log.info('==' + remark + '==');
@@ -253,9 +265,9 @@ app.post('/radio/submitresult', (req, res) => {
 
           let submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
 
-          log.info('\n\ncreate report result on submit result event => ');
-          log.info(JSON.stringify(submitRes));
-          log.info('=============\n\n');
+          //log.info('\n\ncreate report result on submit result event => ');
+          //log.info(JSON.stringify(submitRes));
+          //log.info('=============\n\n');
           if (nowStatusId == 14){
             db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
           }
