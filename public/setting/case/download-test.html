@@ -36,14 +36,19 @@
       try {
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
-        xhr.addEventListener("load", transferComplete);
-        xhr.addEventListener("error", transferFailed);
+        //xhr.addEventListener("load", transferComplete);
+        //xhr.addEventListener("error", transferFailed);
         xhr.send();
         xhr.onreadystatechange = function(){
-          //console.log(xhr.readyState);
+          console.log(xhr.readyState);
           if (xhr.readyState == 4) {
-            let response = JSON.parse(xhr.responseText);
-            console.log(response);
+            //let response = JSON.parse(xhr.responseText);
+            console.log(xhr.responseText);
+            let pom = document.createElement('a');
+            pom.setAttribute('target', "_blank");
+            pom.setAttribute('href', xhr.responseText);
+            pom.setAttribute('download', name);
+            pom.click();
           }
         }
         xhr.onload = function(data){
@@ -62,11 +67,11 @@
   }
 
   let url = '/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip';
-  getBinaryContent(url);
+  getBinaryContent(url, 'zip1.zip');
 
   $('#imgtest1').on('click', (evt)=>{
     evt.preventDefault();
     url = '/img/usr/upload/13439ed1-116b.jpg';
-    getBinaryContent(url);
+    getBinaryContent(url, 'img1.jpg');
   })
 </script>
