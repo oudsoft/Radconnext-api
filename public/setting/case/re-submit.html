@@ -145,10 +145,12 @@
   }
 
   const doDownloadZipFile = function(dicomZipFilename){
-    //$.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
+    $.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
+    $('body').loading('start');
     let dicomZipLink = '/img/usr/zip/' + dicomZipFilename;
     fetch(dicomZipLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
       let url = window.URL.createObjectURL(blob);
+      let a = document.createElement('a');
       a.href = url;
       a.download = dicomZipFilename;
       document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
