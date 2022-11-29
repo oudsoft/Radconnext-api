@@ -269,7 +269,7 @@ app.post('/select/(:caseId)', (req, res) => {
 
 //change status
 app.post('/status/(:caseId)', async (req, res) => {
-  let quicklink = finalCases;
+  let quicklink = false;
   let token = req.headers.authorization;
   if (token.indexOf('Basic') >= 0) {
     let up = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
