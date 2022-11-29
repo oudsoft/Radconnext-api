@@ -21,10 +21,10 @@
     <div>
       <div>Image File</div>
       <div>
-        <a href="/img/usr/upload/13439ed1-116b.jpg" target="_blank">13439ed1-116b.jpg</a>
+        <a id="imgtest1" href="/img/usr/upload/13439ed1-116b.jpg" target="_blank">13439ed1-116b.jpg</a>
       </div>
       <div>
-        <a href="/img/usr/upload/18231376-4b32.jpg" target="_blank">18231376-4b32.jpg</a>
+        <a id="imgtest2" href="/img/usr/upload/18231376-4b32.jpg" target="_blank">18231376-4b32.jpg</a>
       </div>
     </div>
   </body>
@@ -57,6 +57,9 @@
   let url = '/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip';
   getBinaryContent(url);
 
-  url = '/img/usr/upload/13439ed1-116b.jpg';
-  getBinaryContent(url);
+  $('#imgtest1').on('click', (evt)=>{
+    evt.preventDefault();
+    url = '/img/usr/upload/13439ed1-116b.jpg';
+    getBinaryContent(url);
+  })
 </script>
