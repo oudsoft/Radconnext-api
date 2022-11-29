@@ -97,12 +97,12 @@
         return;
       }
 
-      if (!filename) filename = 'console.json'
-
+      if (!filename) filename = 'zip1.zip'
+      /*
       if (typeof data === "object") {
         data = JSON.stringify(data, undefined, 4);
       }
-
+      */
       var blob = new Blob([data], {type: 'application/octetstream'});
       var e = document.createEvent('MouseEvents'),
       var a = document.createElement('a');

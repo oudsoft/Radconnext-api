@@ -147,11 +147,15 @@
   const doDownloadZipFile = function(dicomZipFilename){
     //$.notify(('เริ่มดาวน์โหลดไฟล์ ' + dicomZipFilename), 'success' );
     let dicomZipLink = '/img/usr/zip/' + dicomZipFilename;
-    let pom = document.createElement('a');
-    pom.setAttribute('href', dicomZipLink);
-    pom.setAttribute('download', dicomZipFilename);
-    pom.click();
-    //$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
+    fetch(dicomZipLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+      let url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = dicomZipFilename;
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();
+      a.remove();
+      //$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
+    });
   }
 
   const doOpenStudyTag = function(caseId, studyId, patientNameEN) {
