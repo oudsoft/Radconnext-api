@@ -39,6 +39,9 @@
         xhr.addEventListener("load", transferComplete);
         xhr.addEventListener("error", transferFailed);
         xhr.send();
+        xhr.onreadystatechange = function(){
+          console.log(xhr.status);
+        }
       } catch (err) {
         reject(new Error(err));
       }
