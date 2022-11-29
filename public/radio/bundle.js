@@ -4880,12 +4880,6 @@ module.exports = function ( jq ) {
 					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
 				}
 
-				/*
-				let nextCaseStatus = 8;
-				eventData.statusId = nextCaseStatus;
-				eventData.startDownload = 0;
-				$(openCmd).trigger('opencase', [eventData]);
-				*/
 			} else if ((currentCaseRes.current == 8) || (currentCaseRes.current == 9) || (currentCaseRes.current == 14)){
 				eventData.statusId = caseItem.casestatusId;
 				eventData.startDownload = 0;
@@ -4926,14 +4920,20 @@ module.exports = function ( jq ) {
 
       let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
 			$(caseRow).css({'cursor': 'pointer'});
-			$(caseRow).on('dblclick', (evt)=>{
-				/*
-				let eventData = common.doCreateOpenCaseData(caseItem);
-				eventData.statusId = caseItem.casestatusId;
-				eventData.startDownload = 1;
-				$(caseRow).trigger('opencase', [eventData]);
-				*/
-				$(caseCMD).find('#OpenCaseCmd').click();
+			$(caseRow).on('dblclick', async (evt)=>{
+				if (caseItem.casestatusId == 2){
+					let nextCaseStatus = 8;
+					let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+					let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ [web]'
+					let response = await common.doUpdateCaseStatus(caseItem.id, nextCaseStatus, actionRemark);
+					if (response.status.code == 200) {
+						eventData.statusId = nextCaseStatus;
+						eventData.startDownload = 1;
+						$(openCmd).trigger('opencase', [eventData]);
+					} else {
+						$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
+					}
+				}
 			});
   		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
   		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
