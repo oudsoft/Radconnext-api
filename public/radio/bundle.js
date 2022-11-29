@@ -4930,7 +4930,7 @@ module.exports = function ( jq ) {
 				let eventData = common.doCreateOpenCaseData(caseItem);
 				eventData.statusId = nextCaseStatus;
 				eventData.startDownload = 1;
-				$(openCmd).trigger('opencase', [eventData]);
+				$(caseCMD).trigger('opencase', [eventData]);
 			});
   		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
   		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
