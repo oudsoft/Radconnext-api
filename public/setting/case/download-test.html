@@ -31,7 +31,7 @@
 </html>
 
 <script type="text/javascript">
-  function getBinaryContent(url) {
+  function getBinaryContent(url, name) {
     //return new Promise((resolve, reject) => {
       try {
         let xhr = new XMLHttpRequest();
@@ -41,6 +41,12 @@
         xhr.send();
         xhr.onreadystatechange = function(){
           console.log(xhr.readyState);
+          if (xhr.readyState == 4) {
+
+          }
+        }
+        xhr.onload = function(data){
+          console.log(data);
         }
       } catch (err) {
         reject(new Error(err));
