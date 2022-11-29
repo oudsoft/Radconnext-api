@@ -43,12 +43,20 @@
           console.log(xhr.readyState);
           if (xhr.readyState == 4) {
             //let response = JSON.parse(xhr.responseText);
+            /*
             console.log(xhr.responseText);
             let pom = document.createElement('a');
             pom.setAttribute('target', "_blank");
             pom.setAttribute('href', xhr.responseText);
             pom.setAttribute('download', name);
             pom.click();
+            */
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              console.log(evt.target.result);
+            };
+            //reader.readAsText(xhr.responseText);
+            reader.readAsDataURL(xhr.responseText)
           }
         }
         xhr.onload = function(data){
