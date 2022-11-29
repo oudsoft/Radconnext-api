@@ -38,7 +38,7 @@
         xhr.open("GET", url, true);
         xhr.addEventListener("load", transferComplete);
         xhr.addEventListener("error", transferFailed);
-        //xhr.send();
+        xhr.send();
       } catch (err) {
         reject(new Error(err));
       }
