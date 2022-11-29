@@ -6896,7 +6896,7 @@ module.exports = function ( jq ) {
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		document.body.appendChild(pom);
-		pom.setAttribute('target', "_parent");
+		pom.setAttribute('target', "_blank");
 		pom.setAttribute('href', dicomZipLink);
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
@@ -7624,10 +7624,12 @@ module.exports = function ( jq ) {
 		let fileExt = fileName[1];
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		var pom = document.createElement('a');
+		document.body.appendChild(pom);
 		pom.setAttribute('href', link);
-		pom.setAttribute('target', "_parent");
+		pom.setAttribute('target', "_blank");
 		pom.setAttribute('download', fileName);
 		pom.click();
+		document.body.removeChild(pom);
 		/*
 		$.ajax({
 	    url: link,
