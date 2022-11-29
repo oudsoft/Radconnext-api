@@ -6880,6 +6880,7 @@ module.exports = function ( jq ) {
 				//$(downloadCmd).removeClass('action-btn');
 				//$(downloadCmd).addClass('special-action-btn');
 				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
+				pom.setAttribute('target', "_blank");
 				pom.setAttribute('href', stremLink);
 				pom.setAttribute('download', outputFilename);
 				pom.click();
@@ -7623,21 +7624,13 @@ module.exports = function ( jq ) {
 		let fileName = fileNames.split('.');
 		let fileExt = fileName[1];
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
-		/*
-		var pom = document.createElement('a');
+		let pom = document.createElement('a');
 		document.body.appendChild(pom);
-		pom.setAttribute('href', 		link);
+		pom.setAttribute('href', link);
 		pom.setAttribute('target', "_blank");
 		pom.setAttribute('download', fileName);
 		pom.click();
 		document.body.removeChild(pom);
-		*/
-		let iframe = document.createElement('iframe');
-		iframe.style.visibility = 'collapse';
-		document.body.append(iframe);
-		iframe.contentDocument.write(`<form action="${link}" method="GET"></form>`);
-		iframe.contentDocument.forms[0].submit();
-		setTimeout(() => iframe.remove(), 2000);
 		/*
 		$.ajax({
 	    url: link,
