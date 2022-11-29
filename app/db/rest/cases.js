@@ -269,13 +269,13 @@ app.post('/select/(:caseId)', (req, res) => {
 
 //change status
 app.post('/status/(:caseId)', async (req, res) => {
+  let quicklink = finalCases;
   let token = req.headers.authorization;
   if (token.indexOf('Basic') >= 0) {
     let up = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
     let ups = up.split(':');
-    //log.info('ups=>' + JSON.stringify(ups))
     token = auth.doEncodeToken(ups[0]);
-    //log.info('newtoken=>' + token);
+    quicklink = true;
   }
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
@@ -323,7 +323,11 @@ app.post('/status/(:caseId)', async (req, res) => {
           let changeRes = await statusControl.doChangeCaseStatus(2, 8, caseId, userId);
           res.json({status: {code: 200}, actions: changeRes.change.actiohs});
 
-          let newKeepLog = { caseId : caseId,	userId : radioId, from : 2, to : 8, remark : 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api]'};
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' เปิดเคสสำเร็จ [api cases-status]';
+          if (quicklink) {
+            remark = remark + ' โดย Quick Link';
+          }
+          let newKeepLog = { caseId: caseId,	userId: radioId, from: 2, to: 8, remark: remark};
           let caseTask = await tasks.selectTaskByCaseId(caseId);
           if (caseTask) {
             let offset = 7;
