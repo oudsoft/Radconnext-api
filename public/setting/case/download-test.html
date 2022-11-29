@@ -55,8 +55,8 @@
             reader.onload = (evt) => {
               console.log(evt.target.result);
             };
-            //reader.readAsText(xhr.responseText);
-            reader.readAsDataURL(xhr.response)
+            console.log(xhr.response);
+            reader.readAsText(xhr.response)
           }
         }
         xhr.onload = function(data){
