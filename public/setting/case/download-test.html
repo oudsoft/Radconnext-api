@@ -55,8 +55,17 @@
             reader.onload = (evt) => {
               console.log(evt.target.result);
             };
+
             console.log(xhr.response);
-            reader.readAsText(xhr.response)
+            const arrayBuffer = reader.readAsArrayBuffer(xhr.response);
+            let blob = new Blob([arrayBuffer], { type: 'image/jpeg'});
+            console.log(blob);
+            let blobUrl = URL.createObjectURL(blob);
+            console.log(blobUrl);
+            var link = document.createElement("a"); // Or maybe get it from the current document
+            link.href = blobUrl;
+            link.download = name;
+            link.click();
           }
         }
         xhr.onload = function(data){
