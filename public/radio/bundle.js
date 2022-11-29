@@ -4927,10 +4927,13 @@ module.exports = function ( jq ) {
       let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
 			$(caseRow).css({'cursor': 'pointer'});
 			$(caseRow).on('dblclick', (evt)=>{
+				/*
 				let eventData = common.doCreateOpenCaseData(caseItem);
 				eventData.statusId = caseItem.casestatusId;
 				eventData.startDownload = 1;
 				$(caseRow).trigger('opencase', [eventData]);
+				*/
+				$(caseCMD).find('#OpenCaseCmd').click();
 			});
   		let caseColumn = $('<div style="display: table-cell; padding: 4px;"></div>');
   		$(caseColumn).append('<span>' + casedate + ' : ' + casetime + '</span>');
