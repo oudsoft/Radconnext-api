@@ -7625,6 +7625,7 @@ module.exports = function ( jq ) {
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		var pom = document.createElement('a');
 		pom.setAttribute('href', link);
+		pom.setAttribute('target', "_parent");
 		pom.setAttribute('download', fileName);
 		pom.click();
 		/*
