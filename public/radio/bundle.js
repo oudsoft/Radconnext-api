@@ -4926,6 +4926,7 @@ module.exports = function ( jq ) {
 					let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ [web]'
 					let response = await common.doUpdateCaseStatus(caseItem.id, nextCaseStatus, actionRemark);
+					let eventData = common.doCreateOpenCaseData(caseItem);
 					if (response.status.code == 200) {
 						eventData.statusId = nextCaseStatus;
 						eventData.startDownload = 1;
