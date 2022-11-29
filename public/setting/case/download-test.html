@@ -91,6 +91,7 @@
       .then(data => console.save(data));
 
     console.save = function (data, filename) {
+      console.log(data);
       if (!data) {
         console.error('Console.save: No data')
         return;
@@ -102,9 +103,9 @@
         data = JSON.stringify(data, undefined, 4);
       }
 
-      var blob = new Blob([data], {type: 'application/octetstream'}),
-          e    = document.createEvent('MouseEvents'),
-          a    = document.createElement('a');
+      var blob = new Blob([data], {type: 'application/octetstream'});
+      var e = document.createEvent('MouseEvents'),
+      var a = document.createElement('a');
 
       a.download = filename;
       a.href = window.URL.createObjectURL(blob);
