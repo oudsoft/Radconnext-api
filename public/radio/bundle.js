@@ -7629,13 +7629,14 @@ module.exports = function ( jq ) {
 		let fileName = fileNames.split('.');
 		let fileExt = fileName[1];
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
-		let pom = document.createElement('a');
-		document.body.appendChild(pom);
-		pom.setAttribute('href', link);
-		pom.setAttribute('target', "_blank");
-		pom.setAttribute('download', fileName);
-		pom.click();
-		document.body.removeChild(pom);
+		fetch(link, {method: 'GET'}).then(response => response.blob()).then(blob => {
+			let url = window.URL.createObjectURL(blob);
+			let pom = document.createElement('a');
+			pom.download = fileName;
+      document.body.appendChild(pom); // we need to append the element to the dom -> otherwise it will not work in firefox
+      pom.click();
+      pom.remove();
+		});
 		/*
 		$.ajax({
 	    url: link,
