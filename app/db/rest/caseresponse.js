@@ -178,7 +178,7 @@ app.post('/save', (req, res) => {
           let caseId = req.body.caseId;
           let userId = req.body.userId;
           let radioNameTH = req.body.radioNameTH;
-          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านใหม่สำเร็จ [api-caseresponse-save-update]';
+          let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save-update]';
           let newReportLog = {action: 'update', by: userId, at: new Date(), on: 'caseresponse-save-update'};
           let casereports = await db.casereports.findAll({attributes: ['id', 'Log'], where: {caseresponseId: caseresponseId}});
           if (casereports.length > 0) {
@@ -191,18 +191,21 @@ app.post('/save', (req, res) => {
               reporttype = 'normal';
             }
             let reportLog = [{action: 'new', by: userId, at: new Date(), on: 'caseresponse-save-update'}];
-            let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'new', Log: reportLog};
+            let newCaseReport = {Remark: remark, Report_Type: reporttype, Status: 'update', Log: reportLog};
             let adReport = await db.casereports.create(newCaseReport);
             await db.casereports.update({caseId: caseId, userId: userId, caseresponseId: caseresponseId}, { where: { id: adReport.id } });
           }
-          const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
-          const nowCaseStatus = targetCases[0].casestatusId;
+          let targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+          let nowCaseStatus = targetCases[0].casestatusId;
+          //let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save-update]';
           if (nowCaseStatus == 8) {
-            const next = 9;
-            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save-update]';
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            let next = 9;
+            let caseStatusChange = { casestatusId: next, Case_DESC: remark};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : next, remark : remark};
+            await db.radkeeplogs.create(newKeepLog);
+          } else {
+            let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : remark};
             await db.radkeeplogs.create(newKeepLog);
           }
         } else {
@@ -227,6 +230,7 @@ app.post('/save', (req, res) => {
 
           const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
           const nowCaseStatus = targetCases[0].casestatusId;
+          log.info('nowCaseStatus on first save response => ' + nowCaseStatus);
           if (nowCaseStatus == 8) {
             const next = 9;
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
