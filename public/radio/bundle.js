@@ -4921,8 +4921,8 @@ module.exports = function ( jq ) {
       let caseRow = $('<div style="display: table-row; width: 100%;" class="case-row"></div>');
 			$(caseRow).css({'cursor': 'pointer'});
 			$(caseRow).on('dblclick', async (evt)=>{
+				let nextCaseStatus = 8;
 				if (caseItem.casestatusId == 2){
-					let nextCaseStatus = 8;
 					let radioName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let actionRemark = 'รังสีแพทย์ ' + radioName + ' เปิดเคสสำเร็จ [web]'
 					let response = await common.doUpdateCaseStatus(caseItem.id, nextCaseStatus, actionRemark);
