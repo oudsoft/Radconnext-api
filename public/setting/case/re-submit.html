@@ -138,6 +138,7 @@
       width: '420px',
       onOk: function(evt) {
         radConfirmBox.closeAlert();
+        $('body').loading('stop');
       }
     }
     let radConfirmBox = $('body').radalert(radconfirmoption);
@@ -156,7 +157,8 @@
       document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
       a.click();
       a.remove();
-      //$.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
+      $.notify(('ดาวน์โหลดไฟล์ ' + dicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
+      $('body').loading('stop');
     });
   }
 
