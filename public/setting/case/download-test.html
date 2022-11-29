@@ -8,24 +8,49 @@
     <script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
   </head>
   <body>
-    <div>Zip File</div>
     <div>
-      <a href="/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip" target="_blank">SAITHONG RUCHISAN</a>
-    </div>
-    <div>
-      <a href="/img/usr/zip/CHIRAWUT_SUNTHONWARI-20221123-082650-104202.zip" target="_blank">CHIRAWUT SUNTHONWARI</a>
+      <div>Zip File</div>
+      <div>
+        <a href="/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip" target="_blank">SAITHONG RUCHISAN</a>
+      </div>
+      <div>
+        <a href="/img/usr/zip/CHIRAWUT_SUNTHONWARI-20221123-082650-104202.zip" target="_blank">CHIRAWUT SUNTHONWARI</a>
+      </div>
     </div>
     <div style="height: 50px;"></div>
-    <div>Image File</div>
     <div>
-      <a href="/img/usr/upload/13439ed1-116b.jpg" target="_blank">13439ed1-116b.jpg</a>
-    </div>
-    <div>
-      <a href="/img/usr/upload/18231376-4b32.jpg" target="_blank">18231376-4b32.jpg</a>
+      <div>Image File</div>
+      <div>
+        <a href="/img/usr/upload/13439ed1-116b.jpg" target="_blank">13439ed1-116b.jpg</a>
+      </div>
+      <div>
+        <a href="/img/usr/upload/18231376-4b32.jpg" target="_blank">18231376-4b32.jpg</a>
+      </div>
     </div>
   </body>
 </html>
 
 <script type="text/javascript">
+  function getBinaryContent(url) {
+    //return new Promise((resolve, reject) => {
+      try {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.addEventListener("load", transferComplete);
+        xhr.addEventListener("error", transferFailed);
+        //xhr.send();
+      } catch (err) {
+        reject(new Error(err));
+      }
+    //});
+  }
+  function transferComplete(evt) {
+    console.log(evt);
+  }
+  function transferFailed(evt) {
+    console.log(evt);
+  }
 
+  let url = '/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip';
+  getBinaryContent(url)
 </script>
