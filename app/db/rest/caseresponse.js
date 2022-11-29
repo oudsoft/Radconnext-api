@@ -230,7 +230,7 @@ app.post('/save', (req, res) => {
 
           const targetCases = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
           const nowCaseStatus = targetCases[0].casestatusId;
-          log.info('nowCaseStatus on first save response => ' + nowCaseStatus);
+          //log.info('nowCaseStatus on first save response => ' + nowCaseStatus);
           if (nowCaseStatus == 8) {
             const next = 9;
             const caseStatusChange = { casestatusId: next, Case_DESC: remark};
