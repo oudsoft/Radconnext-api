@@ -6896,7 +6896,7 @@ module.exports = function ( jq ) {
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let pom = document.createElement('a');
 		document.body.appendChild(pom);
-		pom.setAttribute('target', "_blank");
+		pom.setAttribute('target', "_parent");
 		pom.setAttribute('href', dicomZipLink);
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
