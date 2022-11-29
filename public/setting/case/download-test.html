@@ -57,10 +57,12 @@
             };
 
             console.log(xhr.response);
+            /*
             const arrayBuffer = reader.readAsArrayBuffer(xhr.response);
             let blob = new Blob([arrayBuffer], { type: 'image/jpeg'});
             console.log(blob);
-            let blobUrl = URL.createObjectURL(blob);
+            */
+            let blobUrl = URL.createObjectURL(xhr.response);
             console.log(blobUrl);
             var link = document.createElement("a"); // Or maybe get it from the current document
             link.href = blobUrl;
