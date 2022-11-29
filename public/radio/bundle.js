@@ -4499,21 +4499,26 @@ function doLoadDefualtPage(autoSelectPage) {
     });
     */
     util.doResetPingCounter();
-    if (autoSelectPage == 1) {
-      if (loadRes.accList.Records.length > 0) {
-        $('#AcceptedCaseCmd').click();
-      } else if (loadRes.newList.Records.length > 0 ) {
-        $('#NewCaseCmd').click();
-      } else {
-        $(".mainfull").empty();
-      }
+    let responseHTML = $('#SimpleEditor').val();
+    if ((responseHTML) && (responseHTML !== '')) {
+
     } else {
-      if (loadRes.newList.Records.length > 0 ) {
-        $('#NewCaseCmd').click();
-      } else if (loadRes.accList.Records.length > 0) {
-        $('#AcceptedCaseCmd').click();
+      if (autoSelectPage == 1) {
+        if (loadRes.accList.Records.length > 0) {
+          $('#AcceptedCaseCmd').click();
+        } else if (loadRes.newList.Records.length > 0 ) {
+          $('#NewCaseCmd').click();
+        } else {
+          $(".mainfull").empty();
+        }
       } else {
-        $(".mainfull").empty();
+        if (loadRes.newList.Records.length > 0 ) {
+          $('#NewCaseCmd').click();
+        } else if (loadRes.accList.Records.length > 0) {
+          $('#AcceptedCaseCmd').click();
+        } else {
+          $(".mainfull").empty();
+        }
       }
     }
     $('body').loading('stop');
