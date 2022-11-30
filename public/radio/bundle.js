@@ -7634,10 +7634,16 @@ module.exports = function ( jq ) {
 			let url = window.URL.createObjectURL(blob);
 			console.log(url);
 			let pom = document.createElement('a');
+			/*
+			pom.setAttribute('target', "_blank");
+			pom.setAttribute('href', stremLink);
+			pom.setAttribute('download', outputFilename);
+			*/
+			pom.href = url;
 			pom.download = fileName;
       document.body.appendChild(pom);
       pom.click();
-      //pom.remove();
+      pom.remove();
 		});
 		/*
 		$.ajax({
