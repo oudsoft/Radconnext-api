@@ -4459,6 +4459,11 @@ const onOpenCaseTrigger = function(caseData) {
     $.notify('เปิดเคส สำเร็จ', 'success');
     //$('.jqte_editor').css(common.sizeA4Style);
     //console.log($('.jqte_editor').css('font-family'));
+    let firstLink = '/images/system-logo.png'
+		window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+      let url = window.URL.createObjectURL(blob);
+      console.log(url);
+    });
   }).catch(async (err)=>{
     if (err.error.code == 210){
       let rememberme = localStorage.getItem('rememberme');
