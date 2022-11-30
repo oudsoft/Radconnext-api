@@ -4459,7 +4459,7 @@ const onOpenCaseTrigger = function(caseData) {
     $.notify('เปิดเคส สำเร็จ', 'success');
     //$('.jqte_editor').css(common.sizeA4Style);
     //console.log($('.jqte_editor').css('font-family'));
-    let firstLink = '/images/case-incident-icon-2.png'
+    let firstLink = '/images/case-incident-icon-3.png'
 		window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
       let url = window.URL.createObjectURL(blob);
       console.log(url);
