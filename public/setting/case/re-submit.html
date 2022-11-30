@@ -111,7 +111,7 @@
     });
   }
 
-  const doOpenZipFile = function(caseId, dicomZipFilename, patientNameEN) {
+  const doOpenZipFile = function(caseId, dicomZipFilename, patientNameEN, caseData) {
     let radAlertMsg = $('<div></div>');
     let zipFilenameInput = $('<input type="text"/>').val(dicomZipFilename).css({'width': '240px'});
     let downloadCmd = $('<span></span>').text('Download').css({'margin-left': '10px', 'cursor': 'pointer'});
@@ -131,11 +131,21 @@
         $.notify('ชื่อไฟล์ว่าง', 'error');
       }
     });
-    $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd)).append($(updateZipFilenameCmd));
+
+    let openCaseCmd = $('<span></span>').text('Open Case').css({'margin-left': '10px', 'cursor': 'pointer'});
+    $(openCaseCmd).on('click', (evt)=>{
+      let opencaseData = doCreateOpenCaseData(caseData);
+      opencaseData.statusId = caseData.casestatusId;
+      opencaseData.startDownload = 0;
+
+      console.log(opencaseData);
+    });
+
+    $(radAlertMsg).append($(zipFilenameInput)).append($(downloadCmd)).append($(updateZipFilenameCmd)).append($(openCaseCmd));
     const radconfirmoption = {
       title: 'Dicom Zip File  [' + patientNameEN + ']',
       msg: $(radAlertMsg),
-      width: '420px',
+      width: '520px',
       onOk: function(evt) {
         radConfirmBox.closeAlert();
         $('body').loading('stop');
@@ -169,7 +179,7 @@
       console.log(response);
       var JSONPretty = JSON.stringify(response.dicom[0].StudyTags, undefined, 4);
       let studyText = $('<textarea></textarea>').val(JSONPretty);
-      $(studyText).attr({'rows': '20', 'cols': '60'});
+      $(studyText).attr({'rows': '20', 'cols': '56'});
       let radAlertMsg = $('<div></div>');
       $(radAlertMsg).append($(studyText));
       const radconfirmoption = {
@@ -473,7 +483,7 @@
 
           let zipFileCmd = $('<input type="button" value="Zip File"/>');
           $(zipFileCmd).on('click', (evt)=>{
-            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename, patientNameEN);
+            doOpenZipFile(cases[i].id, cases[i].Case_DicomZipFilename, patientNameEN, cases[i]);
           });
           $(cmdCol).append($(zipFileCmd).css({'margin-left': '5px'}));
 
@@ -688,6 +698,17 @@
     let radConfirmBox = $('body').radalert(radconfirmoption);
     $(radConfirmBox.cancelCmd).hide();
   }
+
+  const doCreateOpenCaseData = function(caseItem){
+		let openCaseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
+		openCaseData.Modality = caseItem.Case_Modality;
+		openCaseData.StudyDescription = caseItem.Case_StudyDescription;
+		openCaseData.ProtocolName = caseItem.Case_ProtocolName;
+		if ((openCaseData.StudyDescription == '') && (openCaseData.ProtocolName != '')) {
+			openCaseData.StudyDescription = openCaseData.ProtocolName;
+		}
+		return openCaseData;
+	}
 
 </script>
 
