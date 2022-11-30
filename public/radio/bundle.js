@@ -6901,6 +6901,7 @@ module.exports = function ( jq ) {
 		util.doResetPingCounter();
 		//$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
+		/*
 		let pom = document.createElement('a');
 		document.body.appendChild(pom);
 		pom.setAttribute('target', "_blank");
@@ -6908,35 +6909,18 @@ module.exports = function ( jq ) {
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
 		document.body.removeChild(pom);
-		/*
-		$.ajax({
-			url: dicomZipLink,
-			xhrFields:{
-				responseType: 'blob'
-			},
-			xhr: function () {
-				var xhr = $.ajaxSettings.xhr();
-				xhr.onprogress = function(event) {
-					if (event.lengthComputable) {
-						// For Download
-						let loaded = event.loaded;
-						let total = event.total;
-						let prog = (loaded / total) * 100;
-						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						console.log('Retrieving ' + perc + '%');
-					}
-				}
-				return xhr;
-			},
-			success: function(data){
-				let stremLink = URL.createObjectURL(new Blob([data], {type: 'application/octetstream'}));
-				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', caseDicomZipFilename);
-				pom.click();
-				$.notify(('ดาวน์โหลดไฟล์ ' + caseDicomZipFilename + ' เสร็จสมบูรณ์'), 'success' );
-			}
-		});
 		*/
+		
+		window.fetch(dicomZipLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+			let url = window.URL.createObjectURL(blob);
+			let pom = document.createElement('a');
+			pom.href = url;
+			pom.download = caseDicomZipFilename;
+      document.body.appendChild(pom);
+      pom.click();
+      pom.remove();
+		});
+
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
@@ -7639,35 +7623,6 @@ module.exports = function ( jq ) {
       pom.click();
       pom.remove();
 		});
-		/*
-		$.ajax({
-	    url: link,
-			xhrFields:{
-	 			responseType: 'blob'
-			},
-			xhr: function () {
-				var xhr = $.ajaxSettings.xhr();
-				xhr.onprogress = function(event) {
-					if (event.lengthComputable) {
-						// For Download
-						let loaded = event.loaded;
-						let total = event.total;
-						let prog = (loaded / total) * 100;
-						let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						console.log('Retrieving ' + perc + '%');
-					}
-				}
-				return xhr;
-			},
-	    success: function(data){
-				let stremLink = URL.createObjectURL(new Blob([data], {type: 'image/jpeg'}));
-				pom.setAttribute('href', stremLink);
-				pom.setAttribute('download', fileName);
-				pom.click();
-			}
-		});
-		*/
-		//$('body').loading('stop');
   }
 
   const doRenderPatientHR = function(hrlinks, patientFullName, casedate) {
