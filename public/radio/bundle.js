@@ -4622,7 +4622,8 @@ function unlockAction(modalBox) {
 
 function onLockScreenTrigger() {
   let responseHTML = $('#SimpleEditor').val();
-  if ((responseHTML) && (responseHTML !== '')) {
+  let caseData = $('#SimpleEditor').data('casedata');
+  if ((responseHTML) && (responseHTML !== '') && (caseData)) {
     let startPointText = '<!--StartFragment-->';
     let endPointText = '<!--EndFragment-->';
     let tempToken = responseHTML.replace('\n', '');
@@ -4633,7 +4634,7 @@ function onLockScreenTrigger() {
     }
     tempToken = tempToken.replace(startPointText, '<div>');
     tempToken = tempToken.replace(endPointText, '</div>');
-    let draftbackup = {caseId: caseId, content: tempToken, backupAt: new Date()};
+    let draftbackup = {caseId: caseData.caseId, content: tempToken, backupAt: new Date()};
     localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
   }
   let lockScreenBox = $('<div style="width: 100%; text-align: center;" tabindex="0"></div>');
@@ -7634,9 +7635,9 @@ module.exports = function ( jq ) {
 			console.log(url);
 			let pom = document.createElement('a');
 			pom.download = fileName;
-      document.body.appendChild(pom); // we need to append the element to the dom -> otherwise it will not work in firefox
+      document.body.appendChild(pom);
       pom.click();
-      pom.remove();
+      //pom.remove();
 		});
 		/*
 		$.ajax({
