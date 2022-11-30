@@ -7632,13 +7632,7 @@ module.exports = function ( jq ) {
 		fileName = (patientFullName.split(' ').join('_')) + '-' + casedate + '.' + fileExt;
 		window.fetch(link, {method: 'GET'}).then(response => response.blob()).then(blob => {
 			let url = window.URL.createObjectURL(blob);
-			console.log(url);
 			let pom = document.createElement('a');
-			/*
-			pom.setAttribute('target', "_blank");
-			pom.setAttribute('href', stremLink);
-			pom.setAttribute('download', outputFilename);
-			*/
 			pom.href = url;
 			pom.download = fileName;
       document.body.appendChild(pom);
