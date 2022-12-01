@@ -619,7 +619,7 @@
     let getUserLineIDUrl = '/api/user/lineid/' + userData.id;
     doGetApi(getUserLineIDUrl).then(async(response)=>{
       console.log(response);
-      if ((response) && (response.lines)) {
+      if ((response) && (response.lines) && (response.lines.length > 0)) {
         let lines = response.lines;
         alert(lines[0].UserId);
       } else {
