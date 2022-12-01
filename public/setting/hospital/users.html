@@ -370,10 +370,15 @@
         $(changeUsernameCmd).on('click', (evt)=>{
           doChangeUsername(userData);
         });
-        let changeHospitalCmd = $('<input type="button" value=" Move Tp ... "/>');
+        let changeHospitalCmd = $('<input type="button" value=" Move To ... "/>');
         $(changeHospitalCmd).on('click', (evt)=>{
           doMoveToHospital(userData);
         });
+        let callLineIdCmd = $('<input type="button" value=" LineID "/>');
+        $(callLineIdCmd).on('click', (evt)=>{
+          doCallLineID(userData);
+        });
+
         let deleteUserCmd = $('<input type="button" value=" Delete "/>');
         $(deleteUserCmd).on('click', (evt)=>{
           doDeleteUserCmd(userData);
@@ -381,7 +386,7 @@
 
         $(commandCol).append($(editCmd)).append($('<span>  </span>')).append($(resetPwdCmd)).append($('<span>  </span>'));
         $(commandCol).append($(changeUsernameCmd)).append($('<span>  </span>')).append($(changeHospitalCmd)).append($('<span>  </span>'));
-        $(commandCol).append($(deleteUserCmd))
+        $(commandCol).append($(callLineIdCmd)).append($('<span>  </span>')).append($(deleteUserCmd))
       }
       $('#UserListByHospital').append($(table));
     });
@@ -608,6 +613,18 @@
       }
     }
     let radConfirmBox = $('body').radalert(radconfirmoption);
+  }
+
+  function doCallLineID(userData) {
+    let getUserLineIDUrl = '/api/user/lineid/' + userData.id;
+    doGetApi(getUserLineIDUrl).then(async(response)=>{
+      let lines = response.lines;
+      if (lines) {
+        alert(lines[0].UserId);
+      } else {
+        alert('Not Found User Register from LINE');
+      }
+    });
   }
 
   function doDeleteUserCmd(userData){

@@ -63,6 +63,12 @@ app.post('/list/by/hospital/(:hospitalId)', (req, res) => {
   }
 });
 
+app.get('/lineid/(:userId)', (req, res) => {
+  let userId = req.params.userId;
+  let userLines = await db.lineusers.findAll({ attributes: ['id', 'UserId'], where: {userId: userId}});
+  res.json({status: {code: 200}, lines: userLines});
+});
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
