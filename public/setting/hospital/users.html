@@ -618,8 +618,9 @@
   function doCallLineID(userData) {
     let getUserLineIDUrl = '/api/user/lineid/' + userData.id;
     doGetApi(getUserLineIDUrl).then(async(response)=>{
-      let lines = response.lines;
-      if (lines) {
+      console.log(response);
+      if ((response) && (response.lines)) {
+        let lines = response.lines;
         alert(lines[0].UserId);
       } else {
         alert('Not Found User Register from LINE');
