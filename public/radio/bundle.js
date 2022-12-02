@@ -1740,7 +1740,9 @@ module.exports = function ( jq ) {
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			let textPastedData = clipboardData.getData('text');
+			console.log(textPastedData);
 			let htmlPastedData = clipboardData.getData('text/html');
+			console.log(htmlPastedData);
 			let htmlFormat = htmlformat(htmlPastedData);
 
 			let caseData = $('#SimpleEditorBox').data('casedata');
