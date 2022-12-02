@@ -706,6 +706,7 @@ const doSummaryBillReport = function(hospitalId, key) {
     let fromDateWithZ = new Date(key.fromDateKeyValue);
     let toDateWithZ = new Date(key.toDateKeyValue);
     let casewhereClous = {hospitalId: hospitalId};
+    casewhereClous.casestatusId = { [db.Op.in]: [5, 6, 10, 11, 12, 13, 14]};
     casewhereClous.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
     const orderby = [['createdAt', 'ASC']];
     const caseInclude = [{model: db.hospitals, attributes: ['Hos_Name']}, {model: db.patients, attributes: ['Patient_HN', 'Patient_NameEN', 'Patient_LastNameEN', 'Patient_NameTH', 'Patient_LastNameTH']}];
