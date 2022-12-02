@@ -717,12 +717,14 @@ const doSummaryBillReport = function(hospitalId, key) {
         let radioRes = await doLoadRadioProfile(row.Case_RadiologistId);
         let caseReportRes = await doLoadCaseReport(row.id);
         let urgents = await uti.doLoadCaseUrgent(row.sumaseId);
+        /*
         if (urgents.length == 0) {
           log.info('caseId=>' + row.id);
           log.info('sumaseId=>' + row.sumaseId);
           log.info('urgenttypeId=>' + row.urgenttypeId);
           urgents = await uti.doLoadCaseUrgent(row.urgenttypeId);
         }
+        */
         let studyTagsRes = await db.dicomtransferlogs.findAll({attributes: ['StudyTags'], where: {ResourceID: row.Case_OrthancStudyID}});
         let radioBill = {User_NameEN: radioRes.User_NameEN, User_LastNameEN: radioRes.User_LastNameEN, User_NameTH: radioRes.User_NameTH, User_LastNameTH: radioRes.User_LastNameTH};
         let newItem = JSON.parse(JSON.stringify(row));
@@ -733,6 +735,10 @@ const doSummaryBillReport = function(hospitalId, key) {
           newItem.reportLink = caseReportRes.PDF_Filename;
           newItem.reportLog = caseReportRes.Log;
           newItem.urgenttype = urgents[0];
+        } else {
+          log.info('caseId=>' + row.id);
+          log.info('sumaseId=>' + row.sumaseId);
+          log.info('urgenttypeId=>' + row.urgenttypeId);
         }
         if (studyTagsRes) {
           newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;
