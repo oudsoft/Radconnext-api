@@ -740,6 +740,7 @@ const doSummaryBillReport = function(hospitalId, key) {
           log.info('caseId=>' + row.id);
           log.info('sumaseId=>' + row.sumaseId);
           log.info('urgenttypeId=>' + row.urgenttypeId);
+          newItem.urgenttype = urgents[0];
         }
         if (studyTagsRes) {
           newItem.scanDate = studyTagsRes[0].StudyTags.MainDicomTags.StudyDate;
