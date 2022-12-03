@@ -1230,7 +1230,7 @@ module.exports = function ( jq ) {
 			let username = userdata.username;
 			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceList: instanceList};
 			let apiurl = '/api/orthancproxy/create/preview';
-			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			let orthancRes = await apiconnector.doCallApi(apiurl, params);
 			resolve(orthancRes);
 		});
 	}
@@ -7673,11 +7673,14 @@ module.exports = function ( jq ) {
 					patientName = patientName.substring(0, 12);
 					let linkText = patientName + ' (' + (i+1) + ')' + '.' + fileExt;
 					//$(patientHRLink).text(linkText);
-					let patientHRButton = $('<div class="action-btn" style="position: relative; display: inline-block; cursor: pointer; text-align: center;">' + linkText + '</div>');
-
+					let fileTypeLow = fileExt.toLowerCase();
+					let patientHRButton = $('<div class="action-btn" style="position: relative; display: inline-block; cursor: pointer; text-align: center; width: 99%;">' + linkText + '</div>');
+					if ((fileTypeLow  === 'zip') || (fileTypeLow  === 'rar')) {
+						patientHRButton = $('<input type="button" value="' + linkText + '" class="action-btn" style="cursor: pointer; width: 100%;"/>');
+					}
 					$(patientHRButton).on("click", function(evt){
 						evt.preventDefault();
-						if (fileExt === 'zip') {
+						if ((fileTypeLow  === 'zip') || (fileTypeLow  === 'rar')) {
 							let dwnList = doDownloadDicom(evt, fileNames);
 						} else {
 	          	doOpenHR(item.link, patientFullName, casedate);
@@ -7697,7 +7700,8 @@ module.exports = function ( jq ) {
 	//const doCreateDicomCmdBox = function(orthancStudyID, studyInstanceUID, casedate, casetime, hospitalId){
 	const doCreateDicomCmdBox = function(caseDicomZipFilename){
 		let dicomCmdBox = $('<div></div>');
-		let downloadCmd = $('<div class="action-btn" style="position: relative; display: inline-block; width: 110px;">Download</div>');
+		//let downloadCmd = $('<div class="action-btn" style="position: relative; display: inline-block; width: 110px;">Download</div>');
+		let downloadCmd = $('<input type="button" value="Download" class="action-btn" style="cursor: pointer; width: 100%;"/>');
 		$(downloadCmd).css(commandButtonStyle);
 		$(downloadCmd).appendTo($(dicomCmdBox));
 		$(downloadCmd).on('click', async (evt)=>{
@@ -7971,8 +7975,8 @@ module.exports = function ( jq ) {
 			let summarySecondArea = $('<table width="100%" border="0" cellspacing="0" cellpadding="0"></table>');
 			let summarySecondAreaRow = $('<tr></tr>');
 			let summarySecondAreaLeft = $('<td width="31%" align="left" valign="top"></td>');
-			let summarySecondAreaMiddle1 = $('<td width="15%" align="center" valign="top"></td>');
-			let summarySecondAreaMiddle2 = $('<td width="25%" align="center" valign="top"></td>');
+			let summarySecondAreaMiddle1 = $('<td width="20%" align="center" valign="top"></td>');
+			let summarySecondAreaMiddle2 = $('<td width="23%" align="center" valign="top"></td>');
 			let summarySecondAreaMiddle3 = $('<td width="15%" align="left" valign="top">&nbsp;</td>');
 			let summarySecondAreaRight = $('<td width="*" align="center" valign="top"></td>');
 			$(summarySecondAreaRow).append($(summarySecondAreaLeft)).append($(summarySecondAreaMiddle1)).append($(summarySecondAreaMiddle2)).append($(summarySecondAreaMiddle3)).append($(summarySecondAreaRight));
