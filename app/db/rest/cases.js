@@ -1196,6 +1196,18 @@ app.post('/updatezipfilename', async (req, res) => {
   res.json({status: {code: 200}, result: {zip: req.body.Case_DicomZipFilename}});
 });
 
+app.post('/append/patienthrlink', async (req, res) => {
+  let caseId = req.body.caseId;
+  let casePatientHRLinks = req.body.Case_PatientHRLinks;
+  let targetCases = await Case.findAll({attributes: ['id', 'Case_PatientHRLink'], where: {id: caseId}});
+  let newCasePatientHRLinks = targetCases[0].Case_PatientHRLink;
+  await casePatientHRLinks.forEach((item, i) => {
+    newCasePatientHRLinks.push(item);
+  });
+  await db.cases.update({Case_PatientHRLink: newCasePatientHRLinks}, {where: {id: caseId}});
+  res.json({status: {code: 200}, result: newCasePatientHRLinks});
+});
+
 module.exports = ( dbconn, caseTask, warningTask, voipTask, monitor, websocket ) => {
   db = dbconn;
   tasks = caseTask;
