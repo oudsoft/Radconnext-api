@@ -1728,7 +1728,7 @@ module.exports = function ( jq ) {
 	}
 
 	const onSimpleEditorPaste = function(evt){
-		console.log(evt);
+		//console.log(evt);
 		let pathElems = evt.originalEvent.path;
 		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
@@ -1740,9 +1740,9 @@ module.exports = function ( jq ) {
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			let textPastedData = clipboardData.getData('text');
-			console.log(textPastedData);
+			//console.log(textPastedData);
 			let htmlPastedData = clipboardData.getData('text/html');
-			console.log(htmlPastedData);
+			//console.log(htmlPastedData);
 			let htmlFormat = htmlformat(htmlPastedData);
 
 			let caseData = $('#SimpleEditorBox').data('casedata');
@@ -6908,9 +6908,8 @@ module.exports = function ( jq ) {
 	const doDownloadDicom = function(evt, caseDicomZipFilename) {
 		evt.preventDefault();
 		util.doResetPingCounter();
-		//$.notify(('เริ่มดาวน์โหลดไฟล์ ' + caseDicomZipFilename), 'success' );
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
-
+		/*
 		let pom = document.createElement('a');
 		document.body.appendChild(pom);
 		pom.setAttribute('target', "_blank");
@@ -6918,9 +6917,30 @@ module.exports = function ( jq ) {
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
 		document.body.removeChild(pom);
+		*/
 
-		/*
-		window.fetch(dicomZipLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+		let downloadCmd = $(evt.currentTarget);
+		let oldLabel = $(downloadCmd).val();
+		$(downloadCmd).prop('disabled', true);
+		window.fetch(dicomZipLink, {method: 'GET'}).then(async (response) => {
+			let reader = response.body.getReader();
+			let contentLength = response.headers.get('Content-Length');
+			let receivedLength = 0;
+			let chunks = [];
+			while(true) {
+  			let {done, value} = await reader.read();
+			  if (done) {
+			    break;
+			  }
+				chunks.push(value);
+			  receivedLength += value.length;
+				let prog = (receivedLength / contentLength) * 100;
+				let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+				$(downloadCmd).val(oldLabel + '(' + perc + '%)');
+			}
+			let blob = new Blob(chunks);
+			return blob;
+		}).then((blob) => {
 			let url = window.URL.createObjectURL(blob);
 			let pom = document.createElement('a');
 			pom.href = url;
@@ -6928,9 +6948,11 @@ module.exports = function ( jq ) {
       document.body.appendChild(pom);
       pom.click();
       pom.remove();
+			$(downloadCmd).val(oldLabel);
+			$(downloadCmd).prop('disabled', false);
 		});
-		*/
-		
+
+
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
