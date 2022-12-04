@@ -18,8 +18,10 @@ app.get('/', (req, res) => {
 app.post('/', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
+  log.info('username => ' + username):
+  log.info('password => ' + password):
   auth.doVerifyUser(username, password).then((result) => {
-    //log.info('your result => ' + JSON.stringify(result));
+    log.info('your result => ' + JSON.stringify(result));
     if (result.result === true) {
       const yourToken = auth.doEncodeToken(username);
       res.json({status: {code: 200}, success: true, token: yourToken, data: result.data });

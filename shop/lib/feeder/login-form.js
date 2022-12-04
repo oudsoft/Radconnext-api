@@ -35,7 +35,7 @@
 
     const doGetCheckUsername = function(username){
   		return new Promise(function(resolve, reject) {
-  			var existUsernameApiUri = '/api/shop/users/searchusername/' + username;
+  			var existUsernameApiUri = '/api/shop/user/searchusername/' + username;
   			var params = {username: username};
   			$.get(existUsernameApiUri, params, function(response){
   				resolve(response);

@@ -287,6 +287,25 @@ app.post('/resetpassword', async (req, res) => {
   }
 });
 
+app.get('/searchusername/(:username)', async (req, res) => {
+	const username = req.params.username;
+  //const userInclude = [db.hospitals, db.usertypes, db.userstatuses, db.userinfoes];
+  const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
+	try {
+		const user = await db.users.findAll({	include: userInclude, attributes: excludeColumn, where: {	username: username}});
+    //log.info('user=>' + JSON.stringify(user));
+    if ((user) && (user.length == 0)) {
+      res.json({status: {code: 200}, result: true, reson: 'Valid username'});
+    } else if ((user) && (user.length > 0)) {
+		  res.json({status: {code: 200}, result: (user.length > 0), email: user[0].userinfo.User_Email, id: user[0].id});
+    } else {
+      res.json({status: {code: 200}, result: false, reson: 'Invalid username'});
+    }
+	} catch(error) {
+		log.error(error)
+	}
+});
+
 module.exports = ( dbconn, monitor, casetask) => {
   db = dbconn;
   log = monitor;

@@ -57,6 +57,7 @@ app.get('/searchusername/(:username)', async (req, res) => {
 		log.error(error)
 	}
 });
+
 app.post('/verifyusername/(:username)', async (req, res) => {
   const username = req.params.username;
   const password = req.body.password;
