@@ -256,6 +256,7 @@
           $(errorMsgBox).hide();
           let user = {username: username, password: password};
           doCallLoginApi(user).then(async (response) => {
+            console.log(response);
             if (response.success == false) {
               if (tryLoginCount == 4) {
                 doGetCheckUsername(username).then((existRes)=>{
