@@ -18,8 +18,8 @@ app.get('/', (req, res) => {
 app.post('/', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  log.info('username => ' + username):
-  log.info('password => ' + password):
+  log.info('username => ' + username);
+  log.info('password => ' + password);
   auth.doVerifyUser(username, password).then((result) => {
     log.info('your result => ' + JSON.stringify(result));
     if (result.result === true) {
