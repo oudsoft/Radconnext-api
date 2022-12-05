@@ -781,7 +781,10 @@ const doSelectCaseById = function(caseId){
         const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
         const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, username: ownerUser[0].username};
         const studyTags = await db.dicomtransferlogs.findAll({ attributes: ['StudyTags'], where: {ResourceID: item.Case_OrthancStudyID}});
-        casesFormat.push({case: item, Radiologist: radioData, Refferal: referData, Owner: ownerData, StudyTags: studyTags[0]});
+        const urgents = await uti.doLoadCaseUrgent(item.sumaseId);
+        const newItem = JSON.parse(JSON.stringify(item));
+        newItem.urgenttype = urgents[0];
+        casesFormat.push({case: newItem, Radiologist: radioData, Refferal: referData, Owner: ownerData, StudyTags: studyTags[0]});
       });
       setTimeout(()=> {
         resolve2(casesFormat);
