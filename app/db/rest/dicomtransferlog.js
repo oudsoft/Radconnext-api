@@ -299,6 +299,7 @@ app.get('/socket/clients', async(req, res) => {
 app.get('/socket/client/(:socketname)', async(req, res) => {
 	let socketname = req.params.socketname;
   let userSocket = await websocket.findUserSocket(socketname);
+	log.info('userSocket ' + socketname + ' ==> ' + JSON.stringify(userSocket));
 	if (userSocket){
 		userSocket.send(JSON.stringify({type: 'clientreconnect'}));
 		res.json({status: {code: 200}, result: 'OK socket=>' + socketname});

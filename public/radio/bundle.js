@@ -7732,10 +7732,19 @@ module.exports = function ( jq ) {
 					let fileCode = fileName[0];
 					let codeLink = $('<div class="action-btn" style="position: relative; display: inline-block; width: 140px; cursor: pointer;">' + fileCode + '</div>');
 					$(codeLink).css(commandButtonStyle);
+					let fileTypeLow = fileName[1].toLowerCase();
+					if ((fileTypeLow  === 'zip') || (fileTypeLow  === 'rar')) {
+						codeLink = $('<input type="button" value="Attach" class="action-btn" style="cursor: pointer; width: 100%;"/>');
+					}
 					$(hrbackwardBox).append($(codeLink));
 					$(codeLink).on('click',(evt)=>{
 						evt.preventDefault();
-						doOpenHR(item.link, patientFullName, casedate);
+						if ((fileTypeLow  === 'zip') || (fileTypeLow  === 'rar')) {
+							let caseDicomZipFilename = fileCode + '.' + fileName[1];
+							let downloadList = doDownloadDicom(evt, caseDicomZipFilename);
+						} else {
+							doOpenHR(item.link, patientFullName, casedate);
+						}
 					});
 				});
 			}
