@@ -96,6 +96,7 @@
                 return item;
               }
             });
+            console.log(yourOrthancSockets);
             if (yourOrthancSockets.length == 0){
               let clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
               $(clientReConnectCmd).on('click', async (evt)=>{
