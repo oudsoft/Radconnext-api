@@ -3084,6 +3084,9 @@ module.exports = function ( jq ) {
 			let eventName = 'caseeventlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'web-reconnect-cloud') {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
 		}
 	}
 
@@ -7057,6 +7060,7 @@ module.exports = function ( jq ) {
 		*/
 		let thirdPartyLink = 'radiant://?n=f&v=';
 		if (common.downloadDicomList.length > 0) {
+			/*
 			if (common.downloadDicomList.length <= 3) {
 				common.downloadDicomList.forEach((item, i) => {
 					if (i < (common.downloadDicomList.length-1)) {
@@ -7068,12 +7072,32 @@ module.exports = function ( jq ) {
 				console.log(thirdPartyLink);
 				var pom = document.createElement('a');
 				pom.setAttribute('href', thirdPartyLink);
-				//pom.setAttribute('download', dicomFilename);
 				pom.click();
 				common.downloadDicomList = [];
 			} else {
 				$.notify("sorry, not support exceed three file download", "warn");
 			}
+			*/
+
+			let l = common.downloadDicomList.length;
+			let r = l - 3;
+			for (let i=(l-1); i>r; i--) {
+				if (i >= 0) {
+					let item = common.downloadDicomList[i];
+					if (item !== '') {
+						thirdPartyLink += defaultDownloadPath + '/' + item + '&v=';
+					}
+				}
+			}
+			let lastThree = thirdPartyLink.substr(thirdPartyLink.length - 3);
+			if (lastThree === '&v=') {
+				thirdPartyLink = thirdPartyLink.substring(0, thirdPartyLink.length-3);
+			}
+			console.log(thirdPartyLink);
+			let pom = document.createElement('a');
+			pom.setAttribute('href', thirdPartyLink);
+			pom.click();
+			common.downloadDicomList = [];
 		} else {
 			$.notify("ขออภัย ยังไม่พบรายการดาวน์โหลดไฟล์", "warn");
 		}
