@@ -7179,7 +7179,7 @@ module.exports = function ( jq ) {
 			const saveNewResponseData = $(createNewResponseCmd).data('createNewResponseData');
 			console.log(saveNewResponseData);
 	    const userdata = JSON.parse(localStorage.getItem('userdata'));
-
+			const radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 			/*
 			ต้องทดสอบการ Paste จาก MS Word แบบละเียดอีกที
 			*/
@@ -7223,6 +7223,7 @@ module.exports = function ( jq ) {
 				let params = {
 					caseId: caseId,
 					userId: userId,
+					radioNameTH: radioNameTH,
 					data: saveData,
 					hospitalId: caseHospitalId,
 					pdfFileName: fileName

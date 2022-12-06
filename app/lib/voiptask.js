@@ -163,6 +163,8 @@ function RadconVoipTask (socket, db, log) {
       const reqCallURLFmt = 'https://202.28.68.6/callradio/deletecallfile.php?%s';
       //let callData = uti.fmtStr(callDataFmt, callFile);
       let callData = 'callFile=' + callFile;
+      log.info('voip callData on calldelete outgoing=>');
+      log.info(callData);
       let reqCallURL = uti.fmtStr(reqCallURLFmt, callData);
       let rqParams = {
         method: 'GET',
@@ -173,7 +175,8 @@ function RadconVoipTask (socket, db, log) {
         }
       }
       let callRes = await uti.voipRequest(rqParams);
-      //log.info('voiceRes=> ' + JSON.stringify(voiceRes));
+      log.info('voip response on calldelete outgoing=>');
+      log.info(JSON.stringify(voiceRes));
       resolve(callRes);
     });
   }
