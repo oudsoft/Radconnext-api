@@ -89,7 +89,7 @@
           $(itemRow).append($(cmdCol));
           if (sockets[i].id !== 'orthanc'){
             let yourOrthancSockets = await sockets.filter((item)=>{
-              if ((item.hospitalId == 'orthanc') && (item.hospitalId == sockets[i].hospitalId)){
+              if ((item.id == 'orthanc') && (item.hospitalId == sockets[i].hospitalId)){
                 return item;
               }
             });
