@@ -87,7 +87,7 @@ function RadconWebSocketServer (arg, db, log) {
 						return item;
 					}
 				});
-				
+
 				$this.unSendDatas = unSendOthers;
 			}
 		}
@@ -343,7 +343,7 @@ function RadconWebSocketServer (arg, db, log) {
 		ws.on('pong', () => {
 			ws.counterping += 1;
 			ws.isAlive = true;
-			ws.send(JSON.stringify({type: 'ping', counterping: ws.counterping, datetime: new Date()}));
+			ws.send(JSON.stringify({type: 'ping', counterping: ws.counterping, form: 'master', datetime: new Date()}));
 		});
 
 		ws.on('close', async function(client, req) {
