@@ -156,7 +156,7 @@
     });
   }
 
-  const doOpenInputDataDialog =function(socket){
+  const doOpenInputDataDialog =function(socket, JSONPretty){
     let studyText = $('<textarea></textarea>').val(JSONPretty);
     $(studyText).attr({'rows': '20', 'cols': '56'});
     let radAlertMsg = $('<div></div>');
