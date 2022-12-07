@@ -25,16 +25,23 @@
 </style>
 <script type="text/javascript">
 
+  let wsm = undefined;
+  let userdata = undefined;
+
   $( document ).ready(function() {
     console.log(localStorage.getItem('token'));
-
     $.ajaxSetup({
       beforeSend: function(xhr) {
         xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
       }
     });
-    let userdata = JSON.parse(localStorage.getItem('userdata'));
+
+    userdata = JSON.parse(localStorage.getItem('userdata'));
     console.log(userdata);
+
+    let wsUrl = 'wss://radconnext.info/' + userdata.username + '/' + userdata.hospitalId + '?type=monitor';
+	  wsm = new WebSocket(wsUrl);
+    wsm.onmessage = onMessageEvt;
 
     $('#LoadSocketCmd').on('click', (evt)=>{
       doLoadOnlineSocket(evt);
@@ -58,6 +65,12 @@
       $.get(callUrl, params).then((response) => {
         resolve(response);
       });
+    });
+  }
+
+  const doCallGetStateSocket = function(socketId){
+    return new Promise(async function(resolve, reject) {
+      wsm.send(JSON.stringify({type: 'web', from: userdata.username, to: socketId, data: {type: 'getsocketstate'}}));
     });
   }
 
@@ -102,7 +115,13 @@
               });
               $(cmdCol).append($(clientReConnectCmd));
             } else {
-              $(cmdCol).append($('<span></span>'));
+              //$(cmdCol).append($('<span></span>'));
+              let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
+              $(clientGetStateCmd).on('click', async (evt)=>{
+                let reconnRes = await doCallGetStateSocket(sockets[i].id);
+                console.log(reconnRes);
+              });
+              $(cmdCol).append($(clientGetStateCmd));
             }
           } else {
             let clientMonitorCmd = $('<input type="button" value="Monitor"/>');
@@ -124,4 +143,19 @@
     });
   }
 
+  const onMessageEvt = function(msgEvt){
+    let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+    } else if (data.type == 'socketstate') {
+      console.log(data.data);
+    }
+  }
 </script>

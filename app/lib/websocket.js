@@ -332,6 +332,12 @@ function RadconWebSocketServer (arg, db, log) {
 						let apiRes = await uti.proxyRequest(apiOptions);
 						ws.send(JSON.stringify({type: 'server-api-result', result: apiRes}));
 					break;
+					case "web":
+						let userSocket = await $this.findUserSocket(data.to);
+						if (userSocket){
+							userSocket.send(JSON.stringify({type: data.data.type, from: data.from}));
+						}
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
