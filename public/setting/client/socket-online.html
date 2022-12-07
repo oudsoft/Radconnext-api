@@ -169,7 +169,8 @@
         let inputText = $(studyText).val();
         console.log(inputText);
 
-        wsm.send(JSON.stringify(inputText))
+        wsm.send(JSON.stringify(inputText));
+        wsm.send(inputText);
         radConfirmBox.closeAlert();
       },
       onCancel: function(evt) {
