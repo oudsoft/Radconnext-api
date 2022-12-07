@@ -116,12 +116,14 @@
               $(cmdCol).append($(clientReConnectCmd));
             } else {
               //$(cmdCol).append($('<span></span>'));
-              let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
-              $(clientGetStateCmd).on('click', async (evt)=>{
-                let reconnRes = await doCallGetStateSocket(sockets[i].id);
-                console.log(reconnRes);
-              });
-              $(cmdCol).append($(clientGetStateCmd));
+              if (sockets[i].hospitalId != 1) {
+                let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
+                $(clientGetStateCmd).on('click', async (evt)=>{
+                  let reconnRes = await doCallGetStateSocket(sockets[i].id);
+                  console.log(reconnRes);
+                });
+                $(cmdCol).append($(clientGetStateCmd));
+              }
             }
           } else {
             let clientMonitorCmd = $('<input type="button" value="Monitor"/>');
