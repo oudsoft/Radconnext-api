@@ -144,7 +144,6 @@
               doOpenInputDataDialog(sockets[i]);
             });
             $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
-
           }
         }
         setTimeout(()=> {
@@ -170,7 +169,7 @@
         let inputText = $(studyText).val();
         console.log(inputText);
         radConfirmBox.closeAlert();
-      }
+      },
       onCancel: function(evt) {
         radConfirmBox.closeAlert();
       }
