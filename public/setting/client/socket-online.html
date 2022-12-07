@@ -106,9 +106,10 @@
                 return item;
               }
             });
-            // console.log(yourOrthancSockets);
+
+            let clientReConnectCmd = undefined;
             if (yourOrthancSockets.length > 0){
-              let clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
+              clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
               $(clientReConnectCmd).on('click', async (evt)=>{
                 let reconnRes = await doReConnectSocket(sockets[i].id);
                 console.log(reconnRes);
@@ -124,6 +125,9 @@
                 console.log(reconnRes);
               });
               $(cmdCol).append($(clientGetStateCmd));
+              if (clientReConnectCmd) {
+                $(clientGetStateCmd).css({'margin-left': '10px'});
+              }
             }
           } else {
             let clientMonitorCmd = $('<input type="button" value="Monitor"/>');
