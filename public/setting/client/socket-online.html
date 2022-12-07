@@ -8,6 +8,7 @@
   	<script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
   	<script type="text/javascript" src="../../lib/jquery.loading.min.js"></script>
     <script type="text/javascript" src="../../lib/notify.min.js"></script>
+    <script type="text/javascript" src="../plugin/jquery-radutil-plugin.js"></script>
     <link rel='stylesheet' href='../../lib/jquery-ui.min.css' />
     <link rel='stylesheet' href='../../stylesheets/style.css' />
   </head>
@@ -137,6 +138,13 @@
               window.open(newWindowUrl);
             });
             $(cmdCol).append($(clientMonitorCmd));
+
+            let sendDataCmd = $('<input type="button" value="Send Data"/>');
+            $(sendDataCmd).on('click', async (evt)=>{
+              doOpenInputDataDialog(sockets[i]);
+            });
+            $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
+
           }
         }
         setTimeout(()=> {
@@ -147,6 +155,28 @@
         resolve(ob[0])
       });
     });
+  }
+
+  const doOpenInputDataDialog =function(socket){
+    let studyText = $('<textarea></textarea>').val(JSONPretty);
+    $(studyText).attr({'rows': '20', 'cols': '56'});
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).append($(studyText));
+    const radconfirmoption = {
+      title: 'Input Data for Send to Socket ' + socket.id,
+      msg: $(radAlertMsg),
+      width: '520px',
+      onOk: function(evt) {
+        let inputText = $(studyText).val();
+        console.log(inputText);
+        radConfirmBox.closeAlert();
+      }
+      onCancel: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
+    $(radConfirmBox.cancelCmd).hide();
   }
 
   const onMessageEvt = function(msgEvt){
