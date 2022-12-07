@@ -338,6 +338,13 @@ function RadconWebSocketServer (arg, db, log) {
 							userSocket.send(JSON.stringify({type: data.data.type, from: data.from, data: data.data}));
 						}
 					break;
+					case "newreport":
+						let localHospitalId = data.hospitalId;
+						let localOrthancSocket = await $this.findOrthancLocalSocket(localHospitalId);
+						if (localOrthancSocket) {
+							localOrthancSocket.send(JSON.stringify(data));
+						}
+					break;
 				}
 			} else {
 				ws.send(JSON.stringify({type: 'error', message: 'Your command invalid type.'}));
