@@ -8172,6 +8172,8 @@ module.exports = function ( jq ) {
 			let main = require('../main.js');
 			let myWsm = main.doGetWsm();
 			console.log(myWsm);
+			util.wsm = myWsm;
+			console.log(util.wsm);
       let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
 			$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
 			$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
