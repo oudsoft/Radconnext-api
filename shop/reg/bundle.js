@@ -513,7 +513,7 @@ const doShowRegisterForm = function(){
         if (newShopRes.status.code == 200) {
           $.notify("เพิ่มรายการร้านค้าสำเร็จ", "success");
           let shopId = newShopRes.Records[0].id;
-          let newUserData = {User_NameEN: '', User_LastNameEN: '', User_NameTH: newuserInfo.Name, User_LastNameTH: newuserInfo.LastNane, User_Phone: newuserInfo.Phone, User_Email: newuserInfo.Email, User_LineID: ''};
+          let newUserData = {User_NameEN: '', User_LastNameEN: '', User_NameTH: newuserInfo.Name, User_LastNameTH: newuserInfo.LastName, User_Phone: newuserInfo.Phone, User_Email: newuserInfo.Email, User_LineID: ''};
           newUserData.username = newUserAccount.Username;
           newUserData.password = newUserAccount.Password;
           newUserData.shopId = shopId;
