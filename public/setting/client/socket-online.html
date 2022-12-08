@@ -167,9 +167,6 @@
       width: '520px',
       onOk: function(evt) {
         let inputText = $(studyText).val();
-        //console.log(inputText);
-
-        //wsm.send(JSON.stringify(inputText));
         wsm.send(inputText);
         radConfirmBox.closeAlert();
       },
@@ -178,7 +175,7 @@
       }
     }
     let radConfirmBox = $('body').radalert(radconfirmoption);
-    $(radConfirmBox.cancelCmd).hide();
+    //$(radConfirmBox.cancelCmd).hide();
   }
 
   const onMessageEvt = function(msgEvt){

@@ -10,6 +10,8 @@ function RadconWebSocketServer (arg, db, log) {
 	const $this = this;
 	const lineApi = require('./mod/lineapi.js')(db, log);
 	const uti = require('./mod/util.js')(db, log);
+	const unsend = require('./mod/socket-unsend.js')(db, log);
+
 	this.httpsServer = arg;
 	const WebSocketServer = require('ws').Server;
 	const wss = new WebSocketServer({server: this.httpsServer, /*path: '/' + roomname */ maxPayload: 502560039});
@@ -31,6 +33,7 @@ function RadconWebSocketServer (arg, db, log) {
 		wssPath = wssPath.split('/');
 		log.info(wssPath);
 		let clientId = wssPath[(wssPath.length -2)];
+		let hospitalId = wssPath[(wssPath.length -1)];
 		/*
 		//-> แบบนี้ user 1 account ใช้งานมากกว่า 1 เครื่องไม่ได้
 		let anotherSockets = await $this.clients.filter((client) =>{
@@ -41,7 +44,7 @@ function RadconWebSocketServer (arg, db, log) {
 		*/
 
 		ws.id = clientId;
-		ws.hospitalId = wssPath[(wssPath.length -1)];
+		ws.hospitalId = hospitalId;
 		ws.counterping = 0;
 		ws.screenstate = 0;
 		let connectType;
@@ -71,28 +74,30 @@ function RadconWebSocketServer (arg, db, log) {
 			$this.clients.push(ws);
 			allClient = await $this.listClient();
 			log.info('allClient after one connect=> ' + JSON.stringify(allClient));
-
-			let unSendMes = await $this.unSendDatas.filter((item)=>{
-				if ((ws.id === item.sendTo) && (ws.hospitalId === item.hospitalId)) {
-					return item;
-				}
-			});
-			if (unSendMes.length > 0){
-
-				await unSendMes.forEach(async(item, i) => {
-					await $this.selfSendMessage(ws, item.callData, item.sendTo);
-				});
-				let unSendOthers = await $this.unSendDatas.filter((item)=>{
-					if ((ws.id === item.sendTo) && (ws.hospitalId === item.hospitalId)) {
-						return item;
-					}
-				});
-
-				$this.unSendDatas = unSendOthers;
-			}
 		}
 
 		ws.send(JSON.stringify({type: 'test', message: ws.id + '[' + ws.hospitalId +'], You have Connected master websocket success.'}));
+
+		let unSendNewReports = await unsend.doLoadUnSendData(hospitalId);
+		log.info('unSendNewReport of hospitalId => ' + hospitalId);
+		log.info(JSON.stringify(unSendNewReports));
+		if (unSendNewReports.length > 0) {
+			let sendCount = 0;
+			let reSendUnSend = function() {
+				setTimeout(async()=>{
+					let reportId = unSendNewReports[sendCount].id;
+					let callData = unSendNewReports[sendCount].PDF_DicomSeriesIds.callData;
+					log.info('resend callData => ' + JSON.stringify(callData));
+					await $this.selfSendMessage(ws, callData, clientId);
+					await unsend.doShiftToSendData(reportId, callData);
+					sendCount += 1;
+					if (sendCount < unSendNewReports.length) {
+						reSendUnSend();
+					}
+				}, 2000);
+			}
+			reSendUnSend();
+		}
 
 		ws.on('message', async function (message) {
 			var data;
@@ -199,7 +204,6 @@ function RadconWebSocketServer (arg, db, log) {
 						let dicomLogReturn = {type: 'dicomlogreturn', log: data.result.log, sender: data.sender};
 						await $this.selfSendMessage(ws, dicomLogReturn, data.sender);
 					break;
-
 					case "runresult":
 						owner = data.owner;
 						let runResult = {type: "runresult", result: data.data, owner: owner};
@@ -268,7 +272,6 @@ function RadconWebSocketServer (arg, db, log) {
 						let returnMsg = {type: 'echoreturn', message: data.myconnection};
 						$this.sendMessage(returnMsg, returnSender);
 					break;
-
 					case "clientupdate":
 					break;
 					case "newreportlocalresult":
@@ -288,6 +291,7 @@ function RadconWebSocketServer (arg, db, log) {
 					case "shop":
 						let controlShopRes = await $this.doControlShopMessage(data);
 					break;
+					/*
 					case "dicombinary":
 						let zipFilename = data.filename;
 						let outputFile = tempDicomDir + '/' + zipFilename;
@@ -312,8 +316,6 @@ function RadconWebSocketServer (arg, db, log) {
 						})
 					break;
 					case "call-server-api":
-						//data.hospitalId;
-						//data.username;
 						let apiOptions = {
 							strictSSL: false,
 							method: data.method,
@@ -332,6 +334,7 @@ function RadconWebSocketServer (arg, db, log) {
 						let apiRes = await uti.proxyRequest(apiOptions);
 						ws.send(JSON.stringify({type: 'server-api-result', result: apiRes}));
 					break;
+					*/
 					case "web":
 						let userSocket = await $this.findUserSocket(data.to);
 						if (userSocket){
