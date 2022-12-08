@@ -631,8 +631,10 @@ const doStartTestPPQC = function(evt, shopData){
     ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput));
     $(ppQRBox).append($('<div style="width: 100%; text-align: center;"></div>').append($(settingPPDataCmd)));
   } else {
-    settingPPDataCmd = common.doCreateTextCmd('ตั้งค่าข้อมูลพร้อมเพย์', 'yellow', 'white');
+    settingPPDataCmd = common.doCreateTextCmd('ตั้งค่าข้อมูลพร้อมเพย์', 'orange', 'white');
     ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
+    $(ppQRBox).append($('<span>คุณยังไม่ได้ตั้งค่าข้อมูลพร้อมเพย์ของร้าน</span>'));
+    $(ppQRBox).append($('<br/>')).append($('<span>คลิกที่ปุ่ม <b>ตั้งค่าข้อมูลพร้อมเพย์</b> เพื่อตั้งค่าก่อนออกคิวอาร์โค้ด</span>'));
     $(ppQRBox).append($('<div style="width: 100%; text-align: center;"></div>').append($(settingPPDataCmd)));
   }
   $(settingPPDataCmd).on('click', (evt)=>{
