@@ -617,14 +617,15 @@ module.exports = function ( jq ) {
 
   const pageLineStyle = {'width': '100%', 'border': '2px solid gray', /*'border-radius': '10px',*/ 'background-color': '#ddd', 'margin-top': '4px', 'padding': '2px'};
 	const headBackgroundColor = '#184175';
+	
 	const onSimpleEditorChange = function() {
 		util.doResetPingCounter();
 	}
 
 	const jqteConfig = {format: false, fsize: false, ol: false, ul: false, indent: false, outdent: false,
 		link: false, unlink: false, remove: false, /*br: false,*/ strike: false, rule: false,
-		sub: false, sup: false, left: false, center: false, right: false, /* source: false */
-		change: onSimpleEditorChange
+		sub: false, sup: false, left: false, center: false, right: false /*, source: false
+		change: onSimpleEditorChange */
 	};
 	const modalitySelectItem = ['CR', 'CT', 'MG', 'US', 'MR', 'AX'];
 	const sizeA4Style = {width: '210mm', height: '297mm'};
@@ -6972,14 +6973,14 @@ module.exports = function ( jq ) {
 				pom.setAttribute('download', outputFilename);
 				pom.click();
 				successCallback();
-				util.doResetPingCounter();
+				doResetPingCounterOnOpenCase();
 			}
   	});
 	}
 
 	const doDownloadDicom = function(evt, caseDicomZipFilename) {
 		evt.preventDefault();
-		util.doResetPingCounter();
+		doResetPingCounterOnOpenCase();
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		/*
 		let pom = document.createElement('a');
@@ -8168,13 +8169,6 @@ module.exports = function ( jq ) {
 
   const doCreateSummaryDetailCase = function(caseOpen){
     return new Promise(async function(resolve, reject) {
-			console.log(util.wsm);
-			let main = require('../main.js');
-			let myWsm = main.doGetWsm();
-			console.log(myWsm);
-			util.wsm = myWsm;
-			console.log(util.wsm);
-			myWsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
       let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
 			$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
 			$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
@@ -8275,12 +8269,13 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
+				console.log(keypressCount);
 				if (keypressCount == 5){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 					keypressCount = 0;
-					util.doResetPingCounter();
+					doResetPingCounterOnOpenCase();
 				} else {
 					keypressCount += 1;
 				}
@@ -8812,6 +8807,12 @@ module.exports = function ( jq ) {
 	  return $(msgBox).append($(titleBox)).append($(bodyBox)).append($(footerBox))
 	}
 
+	const doResetPingCounterOnOpenCase = function() {
+		let main = require('../main.js');
+		let myWsm = main.doGetWsm();
+		myWsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+	}
+
   return {
 		/* Variable Zone */
 		caseHospitalId,
@@ -8845,7 +8846,8 @@ module.exports = function ( jq ) {
 		setBackupDraftCounter,
 		setCaseResponseId,
 		getCaseResponseId,
-		doReportBugOpenCase
+		doReportBugOpenCase,
+		doResetPingCounterOnOpenCase
 	}
 }
 
