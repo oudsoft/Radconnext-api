@@ -153,6 +153,7 @@ app.post('/add', (req, res) => {
                       User_Phone: req.body.User_Phone,
                       User_LineID: req.body.User_LineID,
                     };
+                    log.info('newUserinfo => ' + JSON.stringify(newUserinfo));
                     let adUserinfo = await db.userinfoes.create(newUserinfo);
                     log.info('adUserinfo => ' + JSON.stringify(adUserinfo));
                     let newUser = {username: req.body.username, password: req.body.password};
