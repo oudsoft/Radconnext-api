@@ -100,7 +100,7 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
           let voipTriggerParam = {dd: dd, hh: hh, mn: mn};
           let voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
           let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-          let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, baseCaseStatusId, caseVoipData);        
+          let theVoipTask = await common.doCreateTaskVoip(Voip, caseId, userProfile, radioProfile, voipTriggerParam, baseCaseStatusId, caseVoipData);        
         }
       }
     });
