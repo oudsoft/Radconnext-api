@@ -4537,7 +4537,7 @@ const onOpenCaseTrigger = function(caseData) {
     let firstLink = '/images/case-incident-icon-3.png'
 		window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
       let url = window.URL.createObjectURL(blob);
-      console.log(url);
+      //console.log(url);
       $(opencaseTitlePage).find('img').attr('src', url);
     });
   }).catch(async (err)=>{
@@ -8169,6 +8169,9 @@ module.exports = function ( jq ) {
   const doCreateSummaryDetailCase = function(caseOpen){
     return new Promise(async function(resolve, reject) {
 			console.log(util.wsm);
+			let main = require('../main.js');
+			let myWsm = main.doGetWsm();
+			console.log(myWsm);
       let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
 			$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
 			$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
