@@ -384,6 +384,15 @@ module.exports = function ( jq ) {
 		localStorage.setItem('changelogs', JSON.stringify(changelogs));
 	}
 
+	const isMobileDeviceCheck = function(){
+		if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
+			|| /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
@@ -405,7 +414,8 @@ module.exports = function ( jq ) {
 		doCalOrderTotal,
 		doResetSensitiveWord,
 		doConnectWebsocketMaster,
-		doPopupOrderChangeLog
+		doPopupOrderChangeLog,
+		isMobileDeviceCheck
 	}
 }
 
@@ -615,7 +625,21 @@ const doStartTestPPQC = function(evt, shopData){
     }
   });
   let editLabel = $('<label>จำนวนเงิน(บาท):</label>').attr('for', $(editInput)).css({'width': '100%'});
-  let ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput));
+  let ppQRBox = undefined;
+  if ((shopData.Shop_PromptPayNo !== '') && (shopData.Shop_PromptPayName !== '')) {
+    settingPPDataCmd = common.doCreateTextCmd('แก้ไขข้อมูลพร้อมเพย์', 'green', 'white');
+    ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput));
+    $(ppQRBox).append($('<div style="width: 100%; text-align: center;"></div>').append($(settingPPDataCmd)));
+  } else {
+    settingPPDataCmd = common.doCreateTextCmd('ตั้งค่าข้อมูลพร้อมเพย์', 'yellow', 'white');
+    ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
+    $(ppQRBox).append($('<div style="width: 100%; text-align: center;"></div>').append($(settingPPDataCmd)));
+  }
+  $(settingPPDataCmd).on('click', (evt)=>{
+    evt.stopPropagation();
+    $(pageHandle.toggleMenuCmd).click();
+    doOpenPPDataForm(evt, shopData);
+  });
   let editDlgOption = {
     title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
     msg: $(ppQRBox),
@@ -658,6 +682,55 @@ const doStartTestPPQC = function(evt, shopData){
   let dlgHandle = $('body').radalert(editDlgOption);
   $(dlgHandle.cancelCmd).hide();
   return dlgHandle;
+}
+
+const doOpenPPDataForm = function(evt, shopData) {
+  $(pageHandle.mainContent).empty();
+  let requiredDotBox = $('<span>*</span>').css({'color': 'red', 'margin-left': '5px'});
+  let ppNameLabel = $('<label>ขื่อบัญชีพร้อมเพย์:</label>').attr('for', $(ppNameInput)).css({'width': '100%'});
+  let ppNumberLabel = $('<label>หมายเลขพร้อมเพย์:</label>').attr('for', $(ppNumberInput)).css({'width': '100%'});
+  let ppNameInput = $('<input type="text"/>').css({'width': '100px', 'margin-left': '20px'});
+  let ppNumberInput = $('<input type="number"/>').css({'width': '100px', 'margin-left': '20px'});
+  let ppSaveCmd = $('<input type="button" value=" บันทึก "/>');
+  let ppCancelCmd = $('<input type="button" value=" ยกเลิก "/>').css({'margin-left': '10px'});
+  let ppNameBox = $('div style="width: 100%; text-align: left;"></div>').append($(ppNameLabel)).append($(ppNameInput)).append($(requiredDotBox));
+  let ppNumberBox = $('div style="width: 100%; text-align: left;"></div>').append($(ppNumberLabel)).append($(ppNumberInput)).append($(requiredDotBox));
+  let ppCommandBox = $('div style="width: 100%; text-align: left;"></div>').append($(ppSaveCmd)).append($(ppCancelCmd));
+  $(pageHandle.mainContent).append($(ppNameBox)).append($(ppNumberBox)).append($(ppCommandBox));
+  if ((shopData) && (shopData.Shop_PromptPayName)) {
+    $(ppNameInput).val(shopData.Shop_PromptPayName);
+  }
+  if ((shopData) && (shopData.Shop_PromptPayNo)) {
+    $(ppNumberInput).val(shopData.Shop_PromptPayNo);
+  }
+  $(ppCancelCmd).on('click', (evt)=>{
+    evt.stopPropagation();
+    orderMng.doShowOrderList(shopData.id, pageHandle.mainContent);
+  });
+  $(ppSaveCmd).on('click', async (evt)=>{
+    evt.stopPropagation();
+    let ppName = $(ppNameInput).val();
+    let ppNumber = $(ppNumberInput).val();
+    if (ppName !== '') {
+      $(ppNameInput).css({'border': ''});
+      if (ppNumber !== '') {
+        $(ppNumberInput).css({'border': ''});
+        let params = {Shop_PromptPayName: ppName, Shop_PromptPayNo: ppNumber};
+        let shopReqUrl = '/api/shop/shop/update/ppdata/' + shopData.id;
+        let shopRes = await common.doCallApi(shopReqUrl, params);
+        if (shopRes.status.code == 200) {
+          $.notify("บันทึกข้อมูลพร้อมเพย์สำเร็จ", "success");
+          $(ppCancelCmd).click();
+        } else {
+          $.notify("ไม่สามารถบันทึกข้อมูลพร้อมเพย์ได้ในขณะนี้", "error");
+        }
+      } else {
+        $(ppNumberInput).css({'border': '1px solid red'});
+      }
+    } else {
+      $(ppNameInput).css({'border': '1px solid red'});
+    }
+  });
 }
 
 },{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){

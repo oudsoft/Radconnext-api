@@ -188,6 +188,13 @@ app.post('/create/ppqrcode', async (req, res) => {
   })
 });
 
+app.post('/update/ppdata/(:shopId)', async (req, res) => {
+  let shopId = req.params.shopId;
+  let updateShop = req.body.data;
+  await db.shops.update(updateShop, { where: { id: shopId } });
+  res.json({Result: "OK", status: {code: 200}});
+});
+
 app.get('/options', (req, res) => {
   doGenOptions().then((result) => {
     res.json(result);
