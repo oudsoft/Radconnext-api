@@ -618,7 +618,6 @@ module.exports = function ( jq ) {
   const pageLineStyle = {'width': '100%', 'border': '2px solid gray', /*'border-radius': '10px',*/ 'background-color': '#ddd', 'margin-top': '4px', 'padding': '2px'};
 	const headBackgroundColor = '#184175';
 	const onSimpleEditorChange = function() {
-		console.log('SimpleEditorChange');
 		util.doResetPingCounter();
 	}
 
@@ -2972,6 +2971,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounter = function(){
+		console.log(wsm);
 		if (wsm) {
 			if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 				wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
@@ -4081,7 +4081,7 @@ window.$.ajaxSetup({
   }
 });
 
-var noti, wsm, sipUA;
+var noti, sipUA;
 
 const util = require('../case/mod/utilmod.js')($);
 const common = require('../case/mod/commonlib.js')($);
@@ -4112,7 +4112,7 @@ $( document ).ready(function() {
           console.log(userdata);
           if (userdata.usertypeId == 4){
     			  doLoadMainPage();
-            wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+            util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             doAutoAcceptCase(1);
             /*
@@ -4161,7 +4161,7 @@ $( document ).ready(function() {
             }
             doLoadMainPage();
             //doAutoAcceptCase(0);
-            wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+            util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             doSetupAutoReadyAfterLogin();
             let radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
             let remark = 'รังสีแพทบ์ ' + radioNameTH + ' เข้าอ่านผลทาง Quick Link';
@@ -4190,7 +4190,7 @@ $( document ).ready(function() {
 	};
 
   const doLoadLogin = function(){
-    common.doUserLogout(wsm);
+    common.doUserLogout(util.wsm);
   }
 
 	initPage();
@@ -4308,7 +4308,7 @@ function doLoadMainPage(){
         util.doResetPingCounter();
 			});
 			$(document).on('userlogout', (evt, data)=>{
-				common.doUserLogout(wsm);
+				common.doUserLogout(util.wsm);
 			});
 			$(document).on('openhome', (evt, data)=>{
         //$(logWin).empty();
@@ -4336,7 +4336,7 @@ function doLoadMainPage(){
                 util.doResetPingCounter();
               });
             } else {
-              common.doUserLogout(wsm);
+              common.doUserLogout(util.wsm);
             }
           }
         });
@@ -4362,7 +4362,7 @@ function doLoadMainPage(){
                 util.doResetPingCounter();
               });
             } else {
-              common.doUserLogout(wsm);
+              common.doUserLogout(util.wsm);
             }
           }
         });
@@ -4403,7 +4403,7 @@ function doLoadMainPage(){
                 $('body').loading('stop');
               });
             } else {
-              common.doUserLogout(wsm);
+              common.doUserLogout(util.wsm);
             }
           } else {
             $(".mainfull").empty().append('<h3>ระบบค้นหาเคสขัดข้อง โปรดแจ้งผู้ดูแลระบบ</h3>');
@@ -4436,7 +4436,7 @@ function doLoadMainPage(){
                 common.doScrollTopPage();
               });
             } else {
-              common.doUserLogout(wsm);
+              common.doUserLogout(util.wsm);
             }
           }
         })
@@ -4461,7 +4461,7 @@ function doLoadMainPage(){
                 util.doResetPingCounter();
               });
             } else {
-              common.doUserLogout(wsm);
+              common.doUserLogout(util.wsm);
             }
           }
         });
@@ -4554,7 +4554,7 @@ const onOpenCaseTrigger = function(caseData) {
           $.notify('เปิดเคส สำเร็จ', 'success');
         });
       } else {
-        common.doUserLogout(wsm);
+        common.doUserLogout(util.wsm);
       }
     }
   });
@@ -4615,7 +4615,7 @@ function doLoadDefualtPage(autoSelectPage) {
           $('body').loading('stop');
         });
       } else {
-        common.doUserLogout(wsm);
+        common.doUserLogout(util.wsm);
       }
     }
   });
@@ -4858,7 +4858,7 @@ function doGetUserItemPerPage(){
 }
 
 function doGetWsm(){
-	return wsm;
+	return util.wsm;
 }
 
 module.exports = {
