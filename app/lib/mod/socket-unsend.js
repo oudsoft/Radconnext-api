@@ -14,14 +14,14 @@ const doLoadUnSendData = (hospitalId) => {
       }
     };
     let unsendReports = await db.casereports.findAll({attributes: ['id', 'caseId', 'PDF_DicomSeriesIds'], where: whereClous});
-    log.info('unsendReports=>' + JSON.stringify(unsendReports));
+    //log.info('unsendReports=>' + JSON.stringify(unsendReports));
     resolve(unsendReports);
   });
 }
 
 const doShiftToSendData = (reportId, unsendData) => {
   return new Promise(async (resolve, reject) => {
-    await db.casereports.update({PDF_DicomSeriesIds: null, SeriesInstanceUIDs: unsendData}, { where: {id: reportId }});
+    await db.casereports.update({PDF_DicomSeriesIds: {}, SeriesInstanceUIDs: unsendData}, { where: {id: reportId }});
     resolve();
   });
 }

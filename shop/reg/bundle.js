@@ -4,6 +4,14 @@ module.exports = function ( jq ) {
 
   const fileUploadMaxSize = 10000000;
 
+	const shopSensitives = [6];
+
+	const fmtStr = function (str) {
+	  var args = [].slice.call(arguments, 1);
+	  var i = 0;
+	  return str.replace(/%s/g, () => args[i++]);
+	}
+
   const doCallApi = function(apiUrl, rqParams) {
     return new Promise(function(resolve, reject) {
       $('body').loading('start');
@@ -33,6 +41,11 @@ module.exports = function ( jq ) {
 	const doUserLogout = function() {
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
+		localStorage.removeItem('customers');
+		localStorage.removeItem('menugroups');
+		localStorage.removeItem('menuitems');
+		localStorage.removeItem('changelogs');
+		sessionStorage.removeItem('logged');
 	  let url = '/shop/index.html';
 	  window.location.replace(url);
 	}
@@ -44,6 +57,14 @@ module.exports = function ( jq ) {
     };
     return Number(num).toLocaleString('en', options);
   }
+
+	const doFormatQtyNumber = function(num){
+	  if ((Number(num) === num) && (num % 1 !== 0)) {
+	    return doFormatNumber(num);
+	  } else {
+	    return Number(num);
+	  }
+	}
 
 	const doFormatDateStr = function(d) {
 		var yy, mm, dd;
@@ -64,10 +85,18 @@ module.exports = function ( jq ) {
 
 	const doFormatTimeStr = function(d) {
 		var hh, mn, ss;
-		hh = d.getHours();
-		mn = d.getMinutes();
+		if (d.getHours() < 10) {
+			hh = '0' + d.getHours();
+		} else {
+			hh = '' + d.getHours();
+		}
+		if (d.getMinutes() < 10) {
+			mn = '0' + d.getMinutes();
+		} else {
+			mn = '' + d.getMinutes();
+		}
 		ss = d.getSeconds();
-		var td = `${hh}:${mn}:${ss}`;
+		var td = `${hh}.${mn}`;
 		return td;
 	}
 
@@ -85,7 +114,7 @@ module.exports = function ( jq ) {
   }
 
 	const doCreateTextCmd = function(text, bgcolor, textcolor, bordercolor, hovercolor) {
-    let textCmd = $('<span></span>').css({'min-height': '35px', 'line-height': '30px', 'cursor': 'pointer', 'border-radius': '4px', 'padding': '4px'});
+    let textCmd = $('<span></span>').css({/*'min-height': '35px', 'line-height': '30px',*/ 'cursor': 'pointer', 'border-radius': '4px', 'padding': '4px', 'text-align': 'center', 'font-size': '16px'});
 		$(textCmd).text(text);
 		$(textCmd).css({'background-color': bgcolor, 'color': textcolor});
 		if (bordercolor){
@@ -119,22 +148,314 @@ module.exports = function ( jq ) {
 		sundayFirst:false,
 	};
 
+	const genUniqueID = function () {
+		function s4() {
+			return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+		}
+		return s4() + s4() + '-' + s4();
+	}
+
+	const isExistsResource = function(url) {
+    if(url){
+      var req = new XMLHttpRequest();
+      req.open('GET', url, false);
+      req.send();
+      return req.status==200;
+    } else {
+      return false;
+    }
+	}
+
+	const doCreateReportDocButtonCmd = function(text, textCmdCallback, qrCmdCallback) {
+		let reportDocButtonBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'left', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+		let openReportDocCmd = $('<span>' + text + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
+		$(openReportDocCmd).on('click', (evt)=>{
+			evt.stopPropagation();
+			textCmdCallback(evt);
+		});
+		let openReportQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
+		$(openReportQrCmd).on('click', (evt)=>{
+			evt.stopPropagation();
+			qrCmdCallback(evt);
+		});
+		return $(reportDocButtonBox).append($(openReportDocCmd)).append($(openReportQrCmd));
+	}
+
+	const doCalOrderTotal = function(gooditems){
+    return new Promise(async function(resolve, reject) {
+      let total = 0;
+      await gooditems.forEach((item, i) => {
+        total += Number(item.Price) * Number(item.Qty);
+      });
+      resolve(total);
+    });
+  }
+
+	const doResetSensitiveWord = function(words){
+    return new Promise(async function(resolve, reject) {
+			await words.forEach((word, i) => {
+				if ($('#' + word.elementId).hasClass('sensitive-word')) {
+					$('#' + word.elementId).text(word.customWord);
+				}
+			});
+			resolve();
+    });
+  }
+
+	const doConnectWebsocketMaster = function(username, usertype, shopId, connecttype){
+	  const hostname = window.location.hostname;
+		const protocol = window.location.protocol;
+	  const port = window.location.port;
+	  const paths = window.location.pathname.split('/');
+	  const rootname = paths[1];
+
+		let wsUrl = 'wss://radconnext.tech/' + username + '/' + shopId + '?type=' + connecttype;
+		//let wsUrl = 'wss://localhost:4443/' + username + '/' + shopId + '?type=' + connecttype;
+	  const wsm = new WebSocket(wsUrl);
+		wsm.onopen = function () {
+			//console.log('Master Websocket is connected to the signaling server')
+		};
+
+		wsm.onclose = function(event) {
+			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+		};
+
+		wsm.onerror = function (err) {
+		   console.log("Master WS Got error", err);
+		};
+
+		//console.log(usertype);
+
+		/*
+		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageHospital.onMessageHospital;
+		} else if (usertype == 4) {
+			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRedio.onMessageRadio;
+		} else if (usertype == 5) {
+			const wsmMessageRefer = require('../../refer/mod/websocketmessage.js')($, wsm);
+			wsm.onmessage = wsmMessageRefer.onMessageRefer;
+		}
+		*/
+
+		const wsmMessageShop = require('./websocketmessage.js')($, wsm);
+		wsm.onmessage = wsmMessageShop.onMessageShop;
+
+		return wsm;
+	}
+
+	const doRenderEvtLogBox = function(foundItems){
+		let logBox = $('<div></div>').css({'width': '100%', 'margin-top': '20px', 'padding': '5px'});
+		for (let i=0; i < foundItems.length; i++) {
+			let evtBox = $('<div></div>').css({'width': '95%', 'padding': '5px', 'border': '2px solid #dddd'});
+			let foundItem = foundItems[i];
+			let d = new Date(foundItem.date);
+			let dd = doFormatDateStr(d);
+			let tt = doFormatTimeStr(d);
+			let diffItems = foundItem.diffItems;
+			if (diffItems.upItems.length > 0) {
+				$(evtBox).append($('<p><b>รายการเพิ่มมาใหม่ [' + dd + ' ' + tt +']</b></p>'));
+				for (let x=0; x < diffItems.upItems.length; x++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (x+1), diffItems.upItems[x].MenuName, doFormatNumber(Number(diffItems.upItems[x].Qty)), diffItems.upItems[x].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'upItems', x);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			if (diffItems.downItems.length > 0) {
+				$(evtBox).append($('<p><b>รายการถูกลดออกไป [' + dd + ' ' + tt +']</b></p>'));
+				for (let y=0; y < diffItems.downItems.length; x++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (y+1), diffItems.downItems[y].MenuName, doFormatNumber(Number(diffItems.downItems[y].Qty)), diffItems.downItems[y].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'downItems', y);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			if (diffItems.qtys.length > 0) {
+				$(evtBox).append($('<p><b>รายการคงอยู่แต่เปลี่ยนจำนวน [' + dd + ' ' + tt +']</b></p>'));
+				for (let z=0; z < diffItems.qtys.length; z++) {
+					let evtMessageLine = fmtStr('%s. %s จำนวน <span class="qty">%s</span> %s', (z+1), diffItems.qtys[z].MenuName, doFormatNumber(Number(diffItems.qtys[z].diff)), diffItems.qtys[z].Unit);
+					$(evtBox).append($('<p></p>').html(evtMessageLine));
+					$(evtBox).find('.qty').css({'min-width': '20px', 'background-color': 'grey', 'color': 'white', 'padding': '2px'});
+					let deleteEvtCmd = $('<span><b>ลบ</b></span>').css({'margin-left': '10px', 'background-color': 'red', 'color': 'white', 'cursor': 'pointer'});
+					$(deleteEvtCmd).on('click', (evt)=>{
+						doRemoveChangeLogAt(i, 'qtys', z);
+						$(evtBox).remove();
+					});
+					$(evtBox).append($(deleteEvtCmd));
+				}
+			}
+			$(logBox).append($(evtBox));
+		}
+		return $(logBox);
+	}
+
+	const doPopupOrderChangeLog = async function(orderId) {
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		let foundItems = await changelogs.filter((item, i) =>{
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				return item;
+			}
+		});
+		let oldItems = await changelogs.filter((item, i) =>{
+			if ((item.orderId == orderId) && (item.status === 'Read')) {
+				return item;
+			}
+		});
+		if (foundItems.length > 0) {
+			let logBox = doRenderEvtLogBox(foundItems);
+			let oldItemsBox = undefined;
+			let readySwitchBox = $('<div id="ReadyState" style="position: relative; display: inline-block; float: right; margin-top: 15px;"></div>');
+			let readyOption = {switchTextOnState: 'ดูทั้งหมด', switchTextOffState: 'ปิดรายการเก่า',
+				onActionCallback: ()=>{
+					oldItemsBox = doRenderEvtLogBox(oldItems);
+					$(oldItemsBox).css({'background-color': '#dddd', 'width': '95%'});
+					$(oldItemsBox).insertAfter(readySwitchBox);
+					readySwitch.onAction();
+				},
+				offActionCallback: ()=>{
+					$(oldItemsBox).remove();
+					readySwitch.offAction();
+				}
+			};
+			let readySwitch = $(readySwitchBox).readystate(readyOption);
+			$(logBox).append($(readySwitchBox));
+
+			let logDlgOption = {
+				title: 'รายการแก้ไขออร์เดอร์',
+				msg: $(logBox),
+				width: '480px',
+				onOk: async function(evt) {
+					await doSetChangeStateLog(orderId);
+					dlgHandle.closeAlert();
+				},
+				onCancel: function(evt){
+					dlgHandle.closeAlert();
+				}
+			}
+			let dlgHandle = $('body').radalert(logDlgOption);
+			$(dlgHandle.cancelCmd).hide();
+			return dlgHandle;
+		} else {
+			return;
+		}
+	}
+
+	const doSetChangeStateLog = async function(orderId){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		let newChangelogs = [];
+		await changelogs.forEach((item, i) => {
+			if ((item.orderId == orderId) && (item.status === 'New')) {
+				item.status = 'Read';
+				newChangelogs.push(item);
+			} else {
+				newChangelogs.push(item);
+			}
+		});
+		localStorage.setItem('changelogs', JSON.stringify(newChangelogs));
+	}
+
+	const doRemoveChangeLogAt = function(logIndex, diffType, diffIndex){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		changelogs[logIndex].diffItems[diffType].splice(diffIndex, 1);
+		localStorage.setItem('changelogs', JSON.stringify(changelogs));
+	}
+
   return {
 		fileUploadMaxSize,
+		shopSensitives,
+		fmtStr,
     doCallApi,
     doGetApi,
 		doUserLogout,
 		doFormatNumber,
+		doFormatQtyNumber,
 		doFormatDateStr,
 		doFormatTimeStr,
 		doCreateImageCmd,
 		doCreateTextCmd,
 		delay,
-		calendarOptions
+		calendarOptions,
+		genUniqueID,
+		isExistsResource,
+		doCreateReportDocButtonCmd,
+		doCalOrderTotal,
+		doResetSensitiveWord,
+		doConnectWebsocketMaster,
+		doPopupOrderChangeLog
 	}
 }
 
-},{}],2:[function(require,module,exports){
+},{"./websocketmessage.js":2}],2:[function(require,module,exports){
+/* websocketmessage.js */
+module.exports = function ( jq, wsm ) {
+	const $ = jq;
+
+  const onMessageShop = function (msgEvt) {
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+    let data = JSON.parse(msgEvt.data);
+    console.log(data);
+    if (data.type == 'test') {
+      $.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+    } else if (data.type == 'shop') {
+      switch(data.shop) {
+				//when somebody wants to call us
+				case "orderupdate":
+					if (data.msg) {
+						$.notify(data.msg, "success");
+					}
+					onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
+				break;
+			}
+    } else {
+			console.log('Nothing Else');
+		}
+  };
+
+  const onOrderUpdate = function(wsm, orderId, status, changeOrder){
+		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+		if (!changelogs) {
+			changelogs = [];
+		}
+		changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems, date: new Date()});
+		localStorage.setItem('changelogs', JSON.stringify(changelogs));
+		$('.order-box').each(async(i, orderBox)=>{
+			let orderData = $(orderBox).data('orderData');
+			if (orderData.id == orderId) {
+				let newMsgCounts = await changelogs.filter((item, j) =>{
+					if (item.status === 'New') {
+						return item;
+					}
+				});
+				if (newMsgCounts.length > 0) {
+					$(orderBox).find('#NotifyIndicator').text(newMsgCounts.length).show();
+				}
+			}
+		})
+  }
+
+  return {
+    onMessageShop
+	}
+}
+
+},{}],3:[function(require,module,exports){
 
 window.$ = window.jQuery = require('jquery');
 
@@ -181,11 +502,11 @@ const doShowRegisterForm = function(){
   let userInfoForm = doCreateUserInfoForm((newuserInfo)=>{
     let shopInfoForm = doCreateShopInfoForm((newShopInfo)=>{
       let userAccountForm = doCreateUserAccountForm(async (newUserAccount)=>{
-        /*
+
         console.log(newuserInfo);
         console.log(newShopInfo);
         console.log(newUserAccount);
-        */
+
         let newShopData = {Shop_Name: newShopInfo.Name, Shop_Address: newShopInfo.Address, Shop_Tel: newuserInfo.Phone, Shop_Mail: newuserInfo.Email, Shop_LogoFilename: '', Shop_VatNo: '', Shop_PromptPayNo: '', Shop_BillQuota: 500};
         let newShopRes = await common.doCallApi('/api/shop/shop/add', newShopData);
         console.log(newShopRes);
@@ -378,9 +699,9 @@ module.exports = {
   doShowRegisterForm
 }
 
-},{"../home/mod/common-lib.js":1,"jquery":3}],3:[function(require,module,exports){
+},{"../home/mod/common-lib.js":1,"jquery":4}],4:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v3.6.0
+ * jQuery JavaScript Library v3.6.1
  * https://jquery.com/
  *
  * Includes Sizzle.js
@@ -390,7 +711,7 @@ module.exports = {
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2021-03-02T17:08Z
+ * Date: 2022-08-26T17:52Z
  */
 ( function( global, factory ) {
 
@@ -404,7 +725,7 @@ module.exports = {
 		// (such as Node.js), expose a factory as module.exports.
 		// This accentuates the need for the creation of a real `window`.
 		// e.g. var jQuery = require("jquery")(window);
-		// See ticket #14549 for more info.
+		// See ticket trac-14549 for more info.
 		module.exports = global.document ?
 			factory( global, true ) :
 			function( w ) {
@@ -532,7 +853,7 @@ function toType( obj ) {
 
 
 var
-	version = "3.6.0",
+	version = "3.6.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -3510,8 +3831,8 @@ jQuery.fn.extend( {
 var rootjQuery,
 
 	// A simple way to check for HTML strings
-	// Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
-	// Strict HTML recognition (#11290: must start with <)
+	// Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
+	// Strict HTML recognition (trac-11290: must start with <)
 	// Shortcut simple #id case for speed
 	rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/,
 
@@ -4468,7 +4789,7 @@ jQuery.extend( {
 	isReady: false,
 
 	// A counter to track how many items to wait for before
-	// the ready event fires. See #6781
+	// the ready event fires. See trac-6781
 	readyWait: 1,
 
 	// Handle when the DOM is ready
@@ -4596,7 +4917,7 @@ function fcamelCase( _all, letter ) {
 
 // Convert dashed to camelCase; used by the css and data modules
 // Support: IE <=9 - 11, Edge 12 - 15
-// Microsoft forgot to hump their vendor prefix (#9572)
+// Microsoft forgot to hump their vendor prefix (trac-9572)
 function camelCase( string ) {
 	return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
 }
@@ -4632,7 +4953,7 @@ Data.prototype = {
 			value = {};
 
 			// We can accept data for non-element nodes in modern browsers,
-			// but we should not, see #8335.
+			// but we should not, see trac-8335.
 			// Always return an empty object.
 			if ( acceptData( owner ) ) {
 
@@ -4871,7 +5192,7 @@ jQuery.fn.extend( {
 					while ( i-- ) {
 
 						// Support: IE 11 only
-						// The attrs elements can be null (#14894)
+						// The attrs elements can be null (trac-14894)
 						if ( attrs[ i ] ) {
 							name = attrs[ i ].name;
 							if ( name.indexOf( "data-" ) === 0 ) {
@@ -5294,9 +5615,9 @@ var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 		input = document.createElement( "input" );
 
 	// Support: Android 4.0 - 4.3 only
-	// Check state lost if the name is set (#11217)
+	// Check state lost if the name is set (trac-11217)
 	// Support: Windows Web Apps (WWA)
-	// `name` and `type` must use .setAttribute for WWA (#14901)
+	// `name` and `type` must use .setAttribute for WWA (trac-14901)
 	input.setAttribute( "type", "radio" );
 	input.setAttribute( "checked", "checked" );
 	input.setAttribute( "name", "t" );
@@ -5320,7 +5641,7 @@ var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 } )();
 
 
-// We have to close these tags to support XHTML (#13200)
+// We have to close these tags to support XHTML (trac-13200)
 var wrapMap = {
 
 	// XHTML parsers do not magically insert elements in the
@@ -5346,7 +5667,7 @@ if ( !support.option ) {
 function getAll( context, tag ) {
 
 	// Support: IE <=9 - 11 only
-	// Use typeof to avoid zero-argument method invocation on host objects (#15151)
+	// Use typeof to avoid zero-argument method invocation on host objects (trac-15151)
 	var ret;
 
 	if ( typeof context.getElementsByTagName !== "undefined" ) {
@@ -5429,7 +5750,7 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 				// Remember the top-level container
 				tmp = fragment.firstChild;
 
-				// Ensure the created nodes are orphaned (#12392)
+				// Ensure the created nodes are orphaned (trac-12392)
 				tmp.textContent = "";
 			}
 		}
@@ -5850,15 +6171,15 @@ jQuery.event = {
 
 			for ( ; cur !== this; cur = cur.parentNode || this ) {
 
-				// Don't check non-elements (#13208)
-				// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+				// Don't check non-elements (trac-13208)
+				// Don't process clicks on disabled elements (trac-6911, trac-8165, trac-11382, trac-11764)
 				if ( cur.nodeType === 1 && !( event.type === "click" && cur.disabled === true ) ) {
 					matchedHandlers = [];
 					matchedSelectors = {};
 					for ( i = 0; i < delegateCount; i++ ) {
 						handleObj = handlers[ i ];
 
-						// Don't conflict with Object.prototype properties (#13203)
+						// Don't conflict with Object.prototype properties (trac-13203)
 						sel = handleObj.selector + " ";
 
 						if ( matchedSelectors[ sel ] === undefined ) {
@@ -6112,7 +6433,7 @@ jQuery.Event = function( src, props ) {
 
 		// Create target properties
 		// Support: Safari <=6 - 7 only
-		// Target should not be a text node (#504, #13143)
+		// Target should not be a text node (trac-504, trac-13143)
 		this.target = ( src.target && src.target.nodeType === 3 ) ?
 			src.target.parentNode :
 			src.target;
@@ -6235,10 +6556,10 @@ jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateTyp
 			return true;
 		},
 
-		// Suppress native focus or blur as it's already being fired
-		// in leverageNative.
-		_default: function() {
-			return true;
+		// Suppress native focus or blur if we're currently inside
+		// a leveraged native-event stack
+		_default: function( event ) {
+			return dataPriv.get( event.target, type );
 		},
 
 		delegateType: delegateType
@@ -6337,7 +6658,8 @@ var
 
 	// checked="checked" or checked
 	rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
-	rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+
+	rcleanScript = /^\s*<!\[CDATA\[|\]\]>\s*$/g;
 
 // Prefer a tbody over its parent table for containing new rows
 function manipulationTarget( elem, content ) {
@@ -6451,7 +6773,7 @@ function domManip( collection, args, callback, ignored ) {
 
 			// Use the original fragment for the last item
 			// instead of the first because it can end up
-			// being emptied incorrectly in certain situations (#8070).
+			// being emptied incorrectly in certain situations (trac-8070).
 			for ( ; i < l; i++ ) {
 				node = fragment;
 
@@ -6492,6 +6814,12 @@ function domManip( collection, args, callback, ignored ) {
 								}, doc );
 							}
 						} else {
+
+							// Unwrap a CDATA section containing script contents. This shouldn't be
+							// needed as in XML documents they're already not visible when
+							// inspecting element contents and in HTML documents they have no
+							// meaning but we're preserving that logic for backwards compatibility.
+							// This will be removed completely in 4.0. See gh-4904.
 							DOMEval( node.textContent.replace( rcleanScript, "" ), node, doc );
 						}
 					}
@@ -6774,9 +7102,12 @@ jQuery.each( {
 } );
 var rnumnonpx = new RegExp( "^(" + pnum + ")(?!px)[a-z%]+$", "i" );
 
+var rcustomProp = /^--/;
+
+
 var getStyles = function( elem ) {
 
-		// Support: IE <=11 only, Firefox <=30 (#15098, #14150)
+		// Support: IE <=11 only, Firefox <=30 (trac-15098, trac-14150)
 		// IE throws on elements created in popups
 		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
 		var view = elem.ownerDocument.defaultView;
@@ -6810,6 +7141,15 @@ var swap = function( elem, options, callback ) {
 
 
 var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
+
+var whitespace = "[\\x20\\t\\r\\n\\f]";
+
+
+var rtrimCSS = new RegExp(
+	"^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$",
+	"g"
+);
+
 
 
 
@@ -6876,7 +7216,7 @@ var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
 	}
 
 	// Support: IE <=9 - 11 only
-	// Style of cloned element affects source element cloned (#8908)
+	// Style of cloned element affects source element cloned (trac-8908)
 	div.style.backgroundClip = "content-box";
 	div.cloneNode( true ).style.backgroundClip = "";
 	support.clearCloneStyle = div.style.backgroundClip === "content-box";
@@ -6956,6 +7296,7 @@ var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
 
 function curCSS( elem, name, computed ) {
 	var width, minWidth, maxWidth, ret,
+		isCustomProp = rcustomProp.test( name ),
 
 		// Support: Firefox 51+
 		// Retrieving style before computed somehow
@@ -6966,10 +7307,21 @@ function curCSS( elem, name, computed ) {
 	computed = computed || getStyles( elem );
 
 	// getPropertyValue is needed for:
-	//   .css('filter') (IE 9 only, #12537)
-	//   .css('--customProperty) (#3144)
+	//   .css('filter') (IE 9 only, trac-12537)
+	//   .css('--customProperty) (gh-3144)
 	if ( computed ) {
 		ret = computed.getPropertyValue( name ) || computed[ name ];
+
+		// trim whitespace for custom property (issue gh-4926)
+		if ( isCustomProp ) {
+
+			// rtrim treats U+000D CARRIAGE RETURN and U+000C FORM FEED
+			// as whitespace while CSS does not, but this is not a problem
+			// because CSS preprocessing replaces them with U+000A LINE FEED
+			// (which *is* CSS whitespace)
+			// https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+			ret = ret.replace( rtrimCSS, "$1" );
+		}
 
 		if ( ret === "" && !isAttached( elem ) ) {
 			ret = jQuery.style( elem, name );
@@ -7066,7 +7418,6 @@ var
 	// except "table", "table-cell", or "table-caption"
 	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
-	rcustomProp = /^--/,
 	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
 	cssNormalTransform = {
 		letterSpacing: "0",
@@ -7302,15 +7653,15 @@ jQuery.extend( {
 		if ( value !== undefined ) {
 			type = typeof value;
 
-			// Convert "+=" or "-=" to relative numbers (#7345)
+			// Convert "+=" or "-=" to relative numbers (trac-7345)
 			if ( type === "string" && ( ret = rcssNum.exec( value ) ) && ret[ 1 ] ) {
 				value = adjustCSS( elem, name, ret );
 
-				// Fixes bug #9237
+				// Fixes bug trac-9237
 				type = "number";
 			}
 
-			// Make sure that null and NaN values aren't set (#7116)
+			// Make sure that null and NaN values aren't set (trac-7116)
 			if ( value == null || value !== value ) {
 				return;
 			}
@@ -7934,7 +8285,7 @@ function Animation( elem, properties, options ) {
 				remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
 
 				// Support: Android 2.3 only
-				// Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (#12497)
+				// Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (trac-12497)
 				temp = remaining / animation.duration || 0,
 				percent = 1 - temp,
 				index = 0,
@@ -8324,7 +8675,6 @@ jQuery.fx.speeds = {
 
 
 // Based off of the plugin by Clint Helfers, with permission.
-// https://web.archive.org/web/20100324014747/http://blindsignals.com/index.php/2009/07/jquery-delay/
 jQuery.fn.delay = function( time, type ) {
 	time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
 	type = type || "fx";
@@ -8549,8 +8899,7 @@ jQuery.extend( {
 				// Support: IE <=9 - 11 only
 				// elem.tabIndex doesn't always return the
 				// correct value when it hasn't been explicitly set
-				// https://web.archive.org/web/20141116233347/http://fluidproject.org/blog/2008/01/09/getting-setting-and-removing-tabindex-values-with-javascript/
-				// Use proper attribute retrieval(#12072)
+				// Use proper attribute retrieval (trac-12072)
 				var tabindex = jQuery.find.attr( elem, "tabindex" );
 
 				if ( tabindex ) {
@@ -8654,8 +9003,7 @@ function classesToArray( value ) {
 
 jQuery.fn.extend( {
 	addClass: function( value ) {
-		var classes, elem, cur, curValue, clazz, j, finalValue,
-			i = 0;
+		var classNames, cur, curValue, className, i, finalValue;
 
 		if ( isFunction( value ) ) {
 			return this.each( function( j ) {
@@ -8663,36 +9011,35 @@ jQuery.fn.extend( {
 			} );
 		}
 
-		classes = classesToArray( value );
+		classNames = classesToArray( value );
 
-		if ( classes.length ) {
-			while ( ( elem = this[ i++ ] ) ) {
-				curValue = getClass( elem );
-				cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
+		if ( classNames.length ) {
+			return this.each( function() {
+				curValue = getClass( this );
+				cur = this.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
 
 				if ( cur ) {
-					j = 0;
-					while ( ( clazz = classes[ j++ ] ) ) {
-						if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
-							cur += clazz + " ";
+					for ( i = 0; i < classNames.length; i++ ) {
+						className = classNames[ i ];
+						if ( cur.indexOf( " " + className + " " ) < 0 ) {
+							cur += className + " ";
 						}
 					}
 
 					// Only assign if different to avoid unneeded rendering.
 					finalValue = stripAndCollapse( cur );
 					if ( curValue !== finalValue ) {
-						elem.setAttribute( "class", finalValue );
+						this.setAttribute( "class", finalValue );
 					}
 				}
-			}
+			} );
 		}
 
 		return this;
 	},
 
 	removeClass: function( value ) {
-		var classes, elem, cur, curValue, clazz, j, finalValue,
-			i = 0;
+		var classNames, cur, curValue, className, i, finalValue;
 
 		if ( isFunction( value ) ) {
 			return this.each( function( j ) {
@@ -8704,44 +9051,41 @@ jQuery.fn.extend( {
 			return this.attr( "class", "" );
 		}
 
-		classes = classesToArray( value );
+		classNames = classesToArray( value );
 
-		if ( classes.length ) {
-			while ( ( elem = this[ i++ ] ) ) {
-				curValue = getClass( elem );
+		if ( classNames.length ) {
+			return this.each( function() {
+				curValue = getClass( this );
 
 				// This expression is here for better compressibility (see addClass)
-				cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
+				cur = this.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
 
 				if ( cur ) {
-					j = 0;
-					while ( ( clazz = classes[ j++ ] ) ) {
+					for ( i = 0; i < classNames.length; i++ ) {
+						className = classNames[ i ];
 
 						// Remove *all* instances
-						while ( cur.indexOf( " " + clazz + " " ) > -1 ) {
-							cur = cur.replace( " " + clazz + " ", " " );
+						while ( cur.indexOf( " " + className + " " ) > -1 ) {
+							cur = cur.replace( " " + className + " ", " " );
 						}
 					}
 
 					// Only assign if different to avoid unneeded rendering.
 					finalValue = stripAndCollapse( cur );
 					if ( curValue !== finalValue ) {
-						elem.setAttribute( "class", finalValue );
+						this.setAttribute( "class", finalValue );
 					}
 				}
-			}
+			} );
 		}
 
 		return this;
 	},
 
 	toggleClass: function( value, stateVal ) {
-		var type = typeof value,
+		var classNames, className, i, self,
+			type = typeof value,
 			isValidValue = type === "string" || Array.isArray( value );
-
-		if ( typeof stateVal === "boolean" && isValidValue ) {
-			return stateVal ? this.addClass( value ) : this.removeClass( value );
-		}
 
 		if ( isFunction( value ) ) {
 			return this.each( function( i ) {
@@ -8752,17 +9096,20 @@ jQuery.fn.extend( {
 			} );
 		}
 
-		return this.each( function() {
-			var className, i, self, classNames;
+		if ( typeof stateVal === "boolean" && isValidValue ) {
+			return stateVal ? this.addClass( value ) : this.removeClass( value );
+		}
 
+		classNames = classesToArray( value );
+
+		return this.each( function() {
 			if ( isValidValue ) {
 
 				// Toggle individual class names
-				i = 0;
 				self = jQuery( this );
-				classNames = classesToArray( value );
 
-				while ( ( className = classNames[ i++ ] ) ) {
+				for ( i = 0; i < classNames.length; i++ ) {
+					className = classNames[ i ];
 
 					// Check each className given, space separated list
 					if ( self.hasClass( className ) ) {
@@ -8896,7 +9243,7 @@ jQuery.extend( {
 					val :
 
 					// Support: IE <=10 - 11 only
-					// option.text throws exceptions (#14686, #14858)
+					// option.text throws exceptions (trac-14686, trac-14858)
 					// Strip and collapse whitespace
 					// https://html.spec.whatwg.org/#strip-and-collapse-whitespace
 					stripAndCollapse( jQuery.text( elem ) );
@@ -8923,7 +9270,7 @@ jQuery.extend( {
 					option = options[ i ];
 
 					// Support: IE <=9 only
-					// IE8-9 doesn't update selected after form reset (#2551)
+					// IE8-9 doesn't update selected after form reset (trac-2551)
 					if ( ( option.selected || i === index ) &&
 
 							// Don't return options that are disabled or in a disabled optgroup
@@ -9066,8 +9413,8 @@ jQuery.extend( jQuery.event, {
 			return;
 		}
 
-		// Determine event propagation path in advance, per W3C events spec (#9951)
-		// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+		// Determine event propagation path in advance, per W3C events spec (trac-9951)
+		// Bubble up to document, then to window; watch for a global ownerDocument var (trac-9724)
 		if ( !onlyHandlers && !special.noBubble && !isWindow( elem ) ) {
 
 			bubbleType = special.delegateType || type;
@@ -9119,7 +9466,7 @@ jQuery.extend( jQuery.event, {
 				acceptData( elem ) ) {
 
 				// Call a native DOM method on the target with the same name as the event.
-				// Don't do default actions on window, that's where global variables be (#6170)
+				// Don't do default actions on window, that's where global variables be (trac-6170)
 				if ( ontype && isFunction( elem[ type ] ) && !isWindow( elem ) ) {
 
 					// Don't re-trigger an onFOO event when we call its FOO() method
@@ -9393,7 +9740,7 @@ var
 	rantiCache = /([?&])_=[^&]*/,
 	rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
 
-	// #7653, #8125, #8152: local protocol detection
+	// trac-7653, trac-8125, trac-8152: local protocol detection
 	rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/,
 	rnoContent = /^(?:GET|HEAD)$/,
 	rprotocol = /^\/\//,
@@ -9416,7 +9763,7 @@ var
 	 */
 	transports = {},
 
-	// Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
+	// Avoid comment-prolog char sequence (trac-10098); must appease lint and evade compression
 	allTypes = "*/".concat( "*" ),
 
 	// Anchor tag for parsing the document origin
@@ -9487,7 +9834,7 @@ function inspectPrefiltersOrTransports( structure, options, originalOptions, jqX
 
 // A special extend for ajax options
 // that takes "flat" options (not to be deep extended)
-// Fixes #9887
+// Fixes trac-9887
 function ajaxExtend( target, src ) {
 	var key, deep,
 		flatOptions = jQuery.ajaxSettings.flatOptions || {};
@@ -9898,12 +10245,12 @@ jQuery.extend( {
 		deferred.promise( jqXHR );
 
 		// Add protocol if not provided (prefilters might expect it)
-		// Handle falsy url in the settings object (#10093: consistency with old signature)
+		// Handle falsy url in the settings object (trac-10093: consistency with old signature)
 		// We also use the url parameter if available
 		s.url = ( ( url || s.url || location.href ) + "" )
 			.replace( rprotocol, location.protocol + "//" );
 
-		// Alias method option to type as per ticket #12004
+		// Alias method option to type as per ticket trac-12004
 		s.type = options.method || options.type || s.method || s.type;
 
 		// Extract dataTypes list
@@ -9946,7 +10293,7 @@ jQuery.extend( {
 		}
 
 		// We can fire global events as of now if asked to
-		// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+		// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (trac-15118)
 		fireGlobals = jQuery.event && s.global;
 
 		// Watch for a new set of requests
@@ -9975,7 +10322,7 @@ jQuery.extend( {
 			if ( s.data && ( s.processData || typeof s.data === "string" ) ) {
 				cacheURL += ( rquery.test( cacheURL ) ? "&" : "?" ) + s.data;
 
-				// #9682: remove data so that it's not used in an eventual retry
+				// trac-9682: remove data so that it's not used in an eventual retry
 				delete s.data;
 			}
 
@@ -10248,7 +10595,7 @@ jQuery._evalUrl = function( url, options, doc ) {
 	return jQuery.ajax( {
 		url: url,
 
-		// Make this explicit, since user can override this through ajaxSetup (#11264)
+		// Make this explicit, since user can override this through ajaxSetup (trac-11264)
 		type: "GET",
 		dataType: "script",
 		cache: true,
@@ -10357,7 +10704,7 @@ var xhrSuccessStatus = {
 		0: 200,
 
 		// Support: IE <=9 only
-		// #1450: sometimes IE returns 1223 when it should be 204
+		// trac-1450: sometimes IE returns 1223 when it should be 204
 		1223: 204
 	},
 	xhrSupported = jQuery.ajaxSettings.xhr();
@@ -10429,7 +10776,7 @@ jQuery.ajaxTransport( function( options ) {
 								} else {
 									complete(
 
-										// File: protocol always yields status 0; see #8605, #14207
+										// File: protocol always yields status 0; see trac-8605, trac-14207
 										xhr.status,
 										xhr.statusText
 									);
@@ -10490,7 +10837,7 @@ jQuery.ajaxTransport( function( options ) {
 					xhr.send( options.hasContent && options.data || null );
 				} catch ( e ) {
 
-					// #14683: Only rethrow if this hasn't been notified as an error yet
+					// trac-14683: Only rethrow if this hasn't been notified as an error yet
 					if ( callback ) {
 						throw e;
 					}
@@ -11134,7 +11481,9 @@ jQuery.each(
 
 // Support: Android <=4.0 only
 // Make sure we trim BOM and NBSP
-var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+// Require that the "whitespace run" starts from a non-whitespace
+// to avoid O(N^2) behavior when the engine would try matching "\s+$" at each space position.
+var rtrim = /^[\s\uFEFF\xA0]+|([^\s\uFEFF\xA0])[\s\uFEFF\xA0]+$/g;
 
 // Bind a function to a context, optionally partially applying any
 // arguments.
@@ -11201,7 +11550,7 @@ jQuery.isNumeric = function( obj ) {
 jQuery.trim = function( text ) {
 	return text == null ?
 		"" :
-		( text + "" ).replace( rtrim, "" );
+		( text + "" ).replace( rtrim, "$1" );
 };
 
 
@@ -11249,8 +11598,8 @@ jQuery.noConflict = function( deep ) {
 };
 
 // Expose jQuery and $ identifiers, even in AMD
-// (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
-// and CommonJS for browser emulators (#13566)
+// (trac-7102#comment:10, https://github.com/jquery/jquery/pull/557)
+// and CommonJS for browser emulators (trac-13566)
 if ( typeof noGlobal === "undefined" ) {
 	window.jQuery = window.$ = jQuery;
 }
@@ -11261,4 +11610,4 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}]},{},[2]);
+},{}]},{},[3]);
