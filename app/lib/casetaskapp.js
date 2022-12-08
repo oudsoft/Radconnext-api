@@ -89,18 +89,28 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
           let workingParam = urgents[0].UGType_WorkingStep;
           let workingMinut = (Number(workingParam.dd) * 24 * 60) + (Number(workingParam.hh) * 60) + Number(workingParam.mn);
           log.info('workingMinut=>' + workingMinut);
-
           let triggerAt = totalMinut - triggerMinut;
-          let delta = triggerAt;
-          let dd = Math.floor(delta / 1440);
-          delta -= dd * 1440;
-          let hh = Math.floor(delta / 60) % 24;
-          delta -= hh * 60;
-          let mn = delta;
-          let voipTriggerParam = {dd: dd, hh: hh, mn: mn};
-          let voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
-          let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
-          let theVoipTask = await common.doCreateTaskVoip(Voip, caseId, userProfile, radioProfile, voipTriggerParam, baseCaseStatusId, caseVoipData);        
+          if (triggerAt > 0){
+            log.info('Positive triggerAt=>' + triggerAt + ' Start Task.');
+            let delta = triggerAt;
+            let dd = Math.floor(delta / 1440);
+            delta -= dd * 1440;
+            let hh = Math.floor(delta / 60) % 24;
+            delta -= hh * 60;
+            let mn = delta;
+            let voipTriggerParam = {dd: dd, hh: hh, mn: mn};
+            let voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
+            let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
+            let theVoipTask = await common.doCreateTaskVoip(Voip, caseId, userProfile, radioProfile, voipTriggerParam, baseCaseStatusId, caseVoipData);
+          } else {
+            let voipTriggerParam = {dd: 0, hh: 0, mn: 1};
+            let voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
+            let endDate = new Date();
+            let newVoipTask = {caseId: Number(caseId), username: userProfile.username, radioUsername: radioProfile.username, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: []};
+            Voip.voipTasks.push(newVoipTask);
+            let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
+            log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+          }
         }
       }
     });
