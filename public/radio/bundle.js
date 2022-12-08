@@ -8168,6 +8168,7 @@ module.exports = function ( jq ) {
 
   const doCreateSummaryDetailCase = function(caseOpen){
     return new Promise(async function(resolve, reject) {
+			console.log(util.wsm);
       let jqtePluginStyleUrl = '../../lib/jqte/jquery-te-1.4.0.css';
 			$('head').append('<link rel="stylesheet" href="' + jqtePluginStyleUrl + '" type="text/css" />');
 			$('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
