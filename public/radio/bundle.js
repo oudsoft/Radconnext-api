@@ -2608,7 +2608,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsm;
+	let wsm, wsl;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -2983,7 +2983,8 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
+	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype, wsl){
+		wsl = wsl;
 	  const hostname = window.location.hostname;
 		const protocol = window.location.protocol;
 	  const port = window.location.port;
@@ -3010,7 +3011,7 @@ module.exports = function ( jq ) {
 		//console.log(usertype);
 
 		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm, wsl);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
@@ -3021,7 +3022,14 @@ module.exports = function ( jq ) {
 		}
 
 	  wsm.onclose = function(event) {
-			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+			setTimeout(()=>{
+				if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+					window.location.reload();
+				} else if (usertype == 4) {
+					doConnectWebsocketMaster(username, usertype, hospitalId, connecttype, wsl);
+				}
+				return false;
+			}, 60800);
 		};
 
 		wsm.onerror = function (err) {
@@ -3033,6 +3041,10 @@ module.exports = function ( jq ) {
 
 	const wslOnClose = function(event) {
 		console.log("Local WebSocket is closed now. with  event:=> ", event);
+		setTimeout(()=>{
+			window.location.reload();
+			return false;
+		}, 60800);
 	}
 
 	const wslOnError = function (err) {
@@ -3046,19 +3058,26 @@ module.exports = function ( jq ) {
 	const wslOnMessage = function (msgEvt) {
 		let data = JSON.parse(msgEvt.data);
 		console.log(data);
-		if (data.type !== 'test') {
-			let localNotify = localStorage.getItem('localnotify');
-			let LocalNotify = JSON.parse(localNotify);
-			if (LocalNotify) {
-				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
-			} else {
-				LocalNotify = [];
-				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
-			}
-			localStorage.setItem('localnotify', JSON.stringify(LocalNotify));
-		}
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		if (data.type == 'test') {
 			$.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			wsl.clientSocketState = data.clientSocketState;
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsl.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+			if (!(data.clientSocketState.connected)) {
+				let ms = 60;
+				setTimeout(()=>{
+					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let params = {};
+					$.get(callUrl, params).then((response) => {
+						console.log(response);
+					});
+				}, (ms*1000));
+				doCreateWebSocketRetry(ms)
+			}
 		} else if (data.type == 'result') {
 			$.notify(data.message, "success");
 		} else if (data.type == 'notify') {
@@ -3087,6 +3106,12 @@ module.exports = function ( jq ) {
 		} else if (data.type == 'web-reconnect-cloud') {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+		} else if (data.type == 'web-disconnect-cloud') {
+			if (wsm) {
+				wsm.close();
+			}
+		} else if (data.type == 'web-connect-cloud-state') {
+
 		}
 	}
 
@@ -3191,6 +3216,37 @@ module.exports = function ( jq ) {
 	});
 	*/
 
+	const doCreateWebSocketRetry = function(ms) {
+		let radAlertMsg = $('<div></div>');
+		$(radAlertMsg).append($('<span>ระบบเตรียมทำการเชื่อมต่อใหม่อัตโนมัติ</span>'));
+		let milliSecCountDownBox = $('<span></span>').css({'margin-left': '10px'});
+		let milliSecUnitBox = $('<span>วินาที</span>').css({'margin-left': '10px'});
+		$(radAlertMsg).append($('<div><span>ภายใน</span></div>').css({'width': '100%', 'text-align': 'center'}).append($(milliSecCountDownBox)).append($(milliSecUnitBox)));
+		const radconfirmoption = {
+			title: 'การเชื่อมต่อระบบขัดข้อง',
+			msg: $(radAlertMsg),
+			width: '380px',
+			onOk: function(evt) {
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+		$(radConfirmBox.cancelCmd).hide();
+		setTimeout(()=>{
+			radConfirmBox.closeAlert();
+		}, (ms*1000) - 400);
+		let countDown = 0;
+		$(milliSecCountDownBox).text(ms);
+		let countDownBlink = function() {
+			setTimeout(()=>{
+				countDown += 1;
+				$(milliSecCountDownBox).text(ms-countDown);
+				countDownBlink();
+			}, 1000);
+		}
+		countDownBlink();
+	}
+
 	const fmtStr = function (str) {
 	  var args = [].slice.call(arguments, 1);
 	  var i = 0;
@@ -3235,6 +3291,7 @@ module.exports = function ( jq ) {
 		doCreateDownloadXLSX,
 		doShowLogWindow,
 		//dicomZipSyncWorker,
+		doCreateWebSocketRetry,
 		fmtStr,
 		/*  Web Socket Interface */
 		wsm
@@ -3252,7 +3309,7 @@ module.exports = function ( jq ) {
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],9:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsm ) {
+module.exports = function ( jq, wsm, wsl) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -3394,6 +3451,12 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'caseeventlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'getsocketstate'){
+			if ((wsm) && (wsl)) {
+				let stateData = {state: wsl.clientSocketState.state};
+				let stateMsg = {type: 'web', from: userdata.username, to: data.from, data: {type: 'socketstate', state: wsl.clientSocketState.state, connected: wsl.clientSocketState.connected}}
+				wsm.send(JSON.stringify(stateMsg));
+			}
     } else {
 			console.log('Nothing Else');
 		}

@@ -40,10 +40,10 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
     let radioProfile = await common.doLoadRadioProfile(radioId);
     let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
     let userProfile = await common.doLoadUserProfile(userId);
+    let urgents = await uti.doLoadCaseUrgent(newCase.sumaseId);
     let lineCaseDetaileMsg = uti.fmtStr(common.msgNewCaseRadioDetailFormat, userProfile.hospitalName, patientNameEN, newCase.Case_StudyDescription, newCase.Case_ProtocolName, newCase.Case_BodyPart, newCase.Case_Modality);
     let caseTriggerParam = triggerParam;
     if (!caseTriggerParam) {
-      let urgents = await uti.doLoadCaseUrgent(newCase.sumaseId);
       caseTriggerParam = urgents[0].UGType_AcceptStep;
     }
 
@@ -54,7 +54,7 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
       log.info('== State Triger by your action parameter ===');
       if (action) {
         if (action.line == 1) {
-          log.info('== State Line Triger ====');
+          log.info('== State Line Trigger ====');
           let dd = Number(triggerParam.dd) * 24 * 60;
           let hh = Number(triggerParam.hh) * 60;
           let mn = Number(triggerParam.mn);
@@ -80,7 +80,27 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
           await lineApi.pushConnect(radioProfile.lineUserId, bubbleMenu);
         }
         if (action.phone == 1) {
+          log.info('== State Phone Trigger ====');
+          let voiceTransactionId = uti.doCreateTranctionId();
+          let totalMinut = (Number(triggerParam.dd) * 24 * 60) + (Number(triggerParam.hh) * 60) + Number(triggerParam.mn);
+          log.info('totalMinut=>' + totalMinut);
+          let triggerMinut = 10;
+          log.info('triggerMinut=>' + triggerMinut);
+          let workingParam = urgents[0].UGType_WorkingStep;
+          let workingMinut = (Number(workingParam.dd) * 24 * 60) + (Number(workingParam.hh) * 60) + Number(workingParam.mn);
+          log.info('workingMinut=>' + workingMinut);
 
+          let triggerAt = totalMinut - triggerMinut;
+          let delta = triggerAt;
+          let dd = Math.floor(delta / 1440);
+          delta -= dd * 1440;
+          let hh = Math.floor(delta / 60) % 24;
+          delta -= hh * 60;
+          let mn = delta;
+          let voipTriggerParam = {dd: dd, hh: hh, mn: mn};
+          let voiceUrgent = uti.doCalUrgentVoiceCall(workingMinut);
+          let caseVoipData = {caseId: caseId, transactionId: voiceTransactionId, hospitalCode: hospitalCode, urgentType: voiceUrgent};
+          let theVoipTask = await common.doCreateTaskVoip(voips, caseId, userProfile, radioProfile, voipTriggerParam, baseCaseStatusId, caseVoipData);        
         }
       }
     });
