@@ -9904,10 +9904,11 @@ module.exports = function ( jq ) {
       if ((caseScanparts) && (caseScanparts.length > 0)) {
         yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
       }
+			console.log(caseItem.case);
       let caseUG = '-';
 			if (caseItem.case.urgenttype){
 				//caseUG = caseItem.case.urgenttype.UGType_Name;
-				caseUG = caseItem.urgenttype.UGType_Name;
+				caseUG = caseItem.case.urgenttype.UGType_Name;
 			}
       //let caseREFF = caseItem.Refferal.User_NameTH + ' ' + caseItem.Refferal.User_LastNameTH;
       //console.log(caseItem);
