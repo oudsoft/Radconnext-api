@@ -129,7 +129,7 @@ function RadconVoipTask (socket, db, log) {
     return new Promise(async function(resolve, reject) {
       let finalTasks = [];
       await $this.voipTasks.forEach((item, i) => {
-        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs, callFile: task.callFile, transactionId: task.transactionId, msisdn: task.msisdn};
+        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs, callFile: item.callFile, transactionId: item.transactionId, msisdn: item.msisdn};
         finalTasks.push(nwTask);
       });
       resolve(finalTasks);

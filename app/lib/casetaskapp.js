@@ -114,7 +114,7 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
             newVoipTask.callFile = callReqResult.callFile;
             newVoipTask.transactionId = callReqResult.transactionid;
             newVoipTask.msisdn = callReqResult.msisdn;
-            log.info('Voip.voipTasks=> ' + JSON.stringify(Voip.voipTasks));
+            log.info('Voip.voipTask of => ' + caseId + '==>' + JSON.stringify(Voip.selectTaskByCaseId(caseId)));
           }
         }
       }

@@ -89,7 +89,7 @@ function RadconWebSocketServer (arg, db, log) {
 					let callData = unSendNewReports[sendCount].PDF_DicomSeriesIds.callData;
 					log.info('resend callData => ' + JSON.stringify(callData));
 					//await $this.selfSendMessage(ws, callData, clientId);
-					ws.send(JSON.stringify(JSON.stringify(callData)));
+					ws.send(JSON.stringify(callData));
 					await unsend.doShiftToSendData(reportId, callData);
 					sendCount += 1;
 					if (sendCount < unSendNewReports.length) {
