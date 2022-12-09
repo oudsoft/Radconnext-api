@@ -9904,7 +9904,7 @@ module.exports = function ( jq ) {
       if ((caseScanparts) && (caseScanparts.length > 0)) {
         yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
       }
-			console.log(caseItem.case);
+			//console.log(caseItem.case);
       let caseUG = '-';
 			if (caseItem.case.urgenttype){
 				//caseUG = caseItem.case.urgenttype.UGType_Name;
