@@ -95,7 +95,7 @@ function RadconWebSocketServer (arg, db, log) {
 					if (sendCount < unSendNewReports.length) {
 						reSendUnSend();
 					}
-				}, 2000);
+				}, 5000);
 			}
 			reSendUnSend();
 		}
