@@ -176,7 +176,7 @@ function RadconVoipTask (socket, db, log) {
       }
       let callRes = await uti.voipRequest(rqParams);
       log.info('voip response on calldelete outgoing=>');
-      log.info(JSON.stringify(voiceRes));
+      log.info(JSON.stringify(callRes));
       resolve(callRes);
     });
   }
