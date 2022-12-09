@@ -69,9 +69,9 @@
     });
   }
 
-  const doCallGetStateSocket = function(socketId){
+  const doCallGetStateSocket = function(socketId, orthancCount){
     return new Promise(async function(resolve, reject) {
-      wsm.send(JSON.stringify({type: 'web', from: userdata.username, to: socketId, data: {type: 'getsocketstate'}}));
+      wsm.send(JSON.stringify({type: 'web', from: userdata.username, to: socketId, data: {type: 'getsocketstate', orthancCount: orthancCount}}));
     });
   }
 
@@ -122,7 +122,7 @@
             if (sockets[i].hospitalId != 1) {
               let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
               $(clientGetStateCmd).on('click', async (evt)=>{
-                let reconnRes = await doCallGetStateSocket(sockets[i].id);
+                let reconnRes = await doCallGetStateSocket(sockets[i].id, yourOrthancSockets.length);
                 console.log(reconnRes);
               });
               $(cmdCol).append($(clientGetStateCmd));
@@ -191,6 +191,9 @@
 			}
     } else if (data.type == 'socketstate') {
       console.log(data.data);
+      if ((data.data.connected) && (data.data.state == 'open')) {
+
+      }
     }
   }
 </script>
