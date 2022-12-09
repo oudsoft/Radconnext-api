@@ -110,6 +110,11 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
             Voip.voipTasks.push(newVoipTask);
             let callPhoneRes = await common.doRequestPhoneCalling(caseId, radioProfile, voipTriggerParam, hospitalCode, voiceUrgent);
             log.info('callPhoneRes => ' + JSON.stringify(callPhoneRes));
+            let callReqResult = JSON.parse(callPhoneRes.res.body);
+            newVoipTask.callFile = callReqResult.callFile;
+            newVoipTask.transactionId = callReqResult.transactionid;
+            newVoipTask.msisdn = callReqResult.msisdn;
+            log.info('Voip.voipTasks=> ' + JSON.stringify(Voip.voipTasks));
           }
         }
       }

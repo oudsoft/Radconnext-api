@@ -22,7 +22,7 @@ function RadconVoipTask (socket, db, log) {
       let scheduleTrigger = endSS + ' ' + endMN + ' ' + endHH + ' ' + endDD + ' ' + endMM + ' *';
 
       let responseKEYs = [];
-      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs};
+      let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs, callFile: '', transactionId: '', msisdn: ''};
       $this.voipTasks.push(newTask);
 
       resolve(newTask);
@@ -85,7 +85,7 @@ function RadconVoipTask (socket, db, log) {
         }
       });
       if (theCase){
-        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, triggerAt: theCase.triggerAt, responseKEYs: theCase.responseKEYs};
+        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, triggerAt: theCase.triggerAt, responseKEYs: theCase.responseKEYs, callFile: theCase.callFile, transactionId: theCase.transactionId, msisdn: theCase.msisdn};
         resolve(thisTask);
       } else {
         resolve();
@@ -102,7 +102,7 @@ function RadconVoipTask (socket, db, log) {
       });
       let fmtTasks = [];
       await yourcases.forEach((task, i) => {
-        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt, responseKEYs: task.responseKEYs};
+        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt, responseKEYs: task.responseKEYs, callFile: task.callFile, transactionId: task.transactionId, msisdn: task.msisdn};
         fmtTasks.push(thisTask);
       });
       resolve(fmtTasks);
@@ -118,7 +118,7 @@ function RadconVoipTask (socket, db, log) {
       });
       let fmtTasks = [];
       await yourcases.forEach((task, i) => {
-        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt, responseKEYs: task.responseKEYs};
+        let thisTask = {caseId: task.caseId, username: task.username, radioUsername: task.radioUsername, triggerAt: task.triggerAt, responseKEYs: task.responseKEYs, callFile: task.callFile, transactionId: task.transactionId, msisdn: task.msisdn};
         fmtTasks.push(thisTask);
       });
       resolve(fmtTasks);
@@ -129,7 +129,7 @@ function RadconVoipTask (socket, db, log) {
     return new Promise(async function(resolve, reject) {
       let finalTasks = [];
       await $this.voipTasks.forEach((item, i) => {
-        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs};
+        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs, callFile: task.callFile, transactionId: task.transactionId, msisdn: task.msisdn};
         finalTasks.push(nwTask);
       });
       resolve(finalTasks);

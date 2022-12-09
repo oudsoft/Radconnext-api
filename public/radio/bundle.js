@@ -2972,7 +2972,6 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounter = function(){
-		console.log(wsm);
 		if (wsm) {
 			if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 				wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
@@ -8269,7 +8268,6 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
-				console.log(keypressCount);
 				if (keypressCount == 5){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
