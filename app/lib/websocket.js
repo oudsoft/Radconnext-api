@@ -350,10 +350,10 @@ function RadconWebSocketServer (arg, db, log) {
 						}
 					break;
 					case "orthanc":
-						let localHospitalId = data.hospitalId;
-						let localOrthancSocket = await $this.findOrthancLocalSocket(localHospitalId);
-						if (localOrthancSocket) {
-							localOrthancSocket.send(JSON.stringify(data.orthanc));
+						let localOrthancId = data.hospitalId;
+						let localHospitalSocket = await $this.findOrthancLocalSocket(localOrthancId);
+						if (localHospitalSocket) {
+							localHospitalSocket.send(JSON.stringify(data.orthanc));
 						}
 					break;
 				}
