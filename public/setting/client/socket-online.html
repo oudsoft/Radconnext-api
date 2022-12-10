@@ -137,7 +137,7 @@
                 let orthancData = {type: 'clientclose'}
                 wsm.send(JSON.stringify({type: 'orthanc', hospitalId: sockets[i].hospitalId, orthanc: orthancData}));
               });
-              $(cmdCol).append($(clientReConnectCmd));
+              $(cmdCol).append($(clientCloseCmd));
             } else {
               //$(cmdCol).append($('<span></span>'));
             }
