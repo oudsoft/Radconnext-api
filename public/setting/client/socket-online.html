@@ -190,7 +190,7 @@
   }
 
   const doOpenInputDataDialog =function(socket, JSONPretty){
-    let studyText = $('<textarea></textarea>').val(JSONPretty);
+    let studyText = $('<textarea></textarea>').val(JSON.stringify(JSONPretty));
     $(studyText).attr({'rows': '20', 'cols': '56'});
     let radAlertMsg = $('<div></div>');
     $(radAlertMsg).append($(studyText));
