@@ -14,8 +14,17 @@
   </head>
   <body>
     <div id="ShowSocketList">
-      <div style="width: 100%; text-align: center;">
-        <input type="button" id="LoadSocketCmd" value="Load Socket."/>
+      <div style="width: 100%;">
+        <table width="100%" border="0">
+          <tr>
+            <td width="20%" align="left">
+              <input type="button" id="BackCmd" value="Back"/>
+            </td>
+            <td width="*" align="center">
+              <input type="button" id="LoadSocketCmd" value="Load Socket."/>
+            </td>
+          </tr>
+        </table>
       </div>
       <div id="SocketList"></div>
     </div>
@@ -43,6 +52,10 @@
     let wsUrl = 'wss://radconnext.info/' + userdata.username + '/' + userdata.hospitalId + '?type=monitor';
 	  wsm = new WebSocket(wsUrl);
     wsm.onmessage = onMessageEvt;
+
+    $('#BackCmd').on('click', (evt)=>{
+      window.location.replace('/staff.html');
+    });
 
     $('#LoadSocketCmd').on('click', (evt)=>{
       doLoadOnlineSocket(evt);
@@ -109,11 +122,20 @@
             });
 
             let clientReConnectCmd = undefined;
+            let clientCloseCmd = undefined;
+
             if (yourOrthancSockets.length > 0){
               clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
               $(clientReConnectCmd).on('click', async (evt)=>{
                 let reconnRes = await doReConnectSocket(sockets[i].id);
                 console.log(reconnRes);
+              });
+              $(cmdCol).append($(clientReConnectCmd));
+
+              clientCloseCmd = $('<input type="button" value="Close"/>');
+              $(clientCloseCmd).on('click', async (evt)=>{
+                let orthancData = {type: 'clientclose'}
+                wsm.send(JSON.stringify({type: 'orthanc', hospitalId: sockets[i].hospitalId, orthanc: orthancData}));
               });
               $(cmdCol).append($(clientReConnectCmd));
             } else {
