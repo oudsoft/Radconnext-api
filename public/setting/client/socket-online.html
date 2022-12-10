@@ -138,7 +138,7 @@
 
               let sendDataCmd = $('<input type="button" value="Send Data"/>');
               $(sendDataCmd).on('click', async (evt)=>{
-                let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."'}};
+                let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."': '"..."'}};
                 doOpenInputDataDialog(sockets[i], titleJSON);
               });
               $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
@@ -165,7 +165,7 @@
 
             let sendDataCmd = $('<input type="button" value="Send Data"/>');
             $(sendDataCmd).on('click', async (evt)=>{
-              let titleJSON = {type: 'orthanc', hospitalId: '"' + sockets[i].hospitalId + '"', data: {'"..."'}};
+              let titleJSON = {type: 'orthanc', hospitalId: '"' + sockets[i].hospitalId + '"', data: {'"..."': '"..."'}};
               doOpenInputDataDialog(sockets[i], titleJSON);
             });
             $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
