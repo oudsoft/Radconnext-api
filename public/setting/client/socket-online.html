@@ -122,7 +122,6 @@
             });
 
             let clientReConnectCmd = undefined;
-            let clientCloseCmd = undefined;
 
             if (yourOrthancSockets.length > 0){
               clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
@@ -132,12 +131,6 @@
               });
               $(cmdCol).append($(clientReConnectCmd));
 
-              clientCloseCmd = $('<input type="button" value="Close"/>');
-              $(clientCloseCmd).on('click', async (evt)=>{
-                let orthancData = {type: 'clientclose'}
-                wsm.send(JSON.stringify({type: 'orthanc', hospitalId: sockets[i].hospitalId, orthanc: orthancData}));
-              });
-              $(cmdCol).append($(clientCloseCmd));
             } else {
               //$(cmdCol).append($('<span></span>'));
             }
@@ -166,6 +159,14 @@
               doOpenInputDataDialog(sockets[i]);
             });
             $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
+
+            let clientCloseCmd = $('<input type="button" value="Close"/>');
+            $(clientCloseCmd).on('click', async (evt)=>{
+              let orthancData = {type: 'clientclose'}
+              wsm.send(JSON.stringify({type: 'orthanc', hospitalId: sockets[i].hospitalId, orthanc: orthancData}));
+            });
+            $(cmdCol).append($(clientCloseCmd).css({'margin-left': '10px'}));
+
           }
         }
         setTimeout(()=> {
