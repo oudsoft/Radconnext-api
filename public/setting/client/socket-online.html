@@ -135,14 +135,23 @@
               //$(cmdCol).append($('<span></span>'));
             }
             if (sockets[i].hospitalId != 1) {
+
+              let sendDataCmd = $('<input type="button" value="Send Data"/>');
+              $(sendDataCmd).on('click', async (evt)=>{
+                let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."'}};
+                doOpenInputDataDialog(sockets[i], titleJSON);
+              });
+              $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
+
               let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
               $(clientGetStateCmd).on('click', async (evt)=>{
                 let reconnRes = await doCallGetStateSocket(sockets[i].id, yourOrthancSockets.length);
                 console.log(reconnRes);
               });
-              $(cmdCol).append($(clientGetStateCmd));
+              $(cmdCol).append($(clientGetStateCmd).css({'margin-left': '10px'}));
+
               if (clientReConnectCmd) {
-                $(clientGetStateCmd).css({'margin-left': '10px'});
+                $(sendDataCmd).css({'margin-left': '10px'});
               }
             }
           } else {
@@ -156,7 +165,8 @@
 
             let sendDataCmd = $('<input type="button" value="Send Data"/>');
             $(sendDataCmd).on('click', async (evt)=>{
-              doOpenInputDataDialog(sockets[i]);
+              let titleJSON = {type: 'orthanc', hospitalId: '"' + sockets[i].hospitalId + '"', data: {'"..."'}};
+              doOpenInputDataDialog(sockets[i], titleJSON);
             });
             $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
 
