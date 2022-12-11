@@ -61,10 +61,10 @@ function RadconWebSocketServer (arg, db, log) {
 			if (!localSocket){
 				$this.clients.push(ws);
 			} else {
-				if ((localSocket.readyState != 0) && (localSocket.readyState != 1)) {
+				//if ((localSocket.readyState != 0) && (localSocket.readyState != 1)) {
 					await $this.removeNoneActiveSocket(localSocket.id, localSocket.hospitalId);
 					$this.clients.push(ws);
-				}
+				//}
 			}
 			allSocket = await $this.listClient();
 			log.info('allSocket after orthanc connect=> ' + JSON.stringify(allSocket));

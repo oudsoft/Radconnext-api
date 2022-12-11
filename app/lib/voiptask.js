@@ -23,7 +23,6 @@ function RadconVoipTask (socket, db, log) {
 
       let responseKEYs = [];
       let newTask = {caseId: Number(caseId), username: username, radioUsername: radioUsername, radioNameTH: radioNameTH, triggerAt: endDate, responseKEYs: responseKEYs, callFile: '', transactionId: '', msisdn: ''};
-      $this.voipTasks.push(newTask);
 
       resolve(newTask);
 
@@ -31,10 +30,12 @@ function RadconVoipTask (socket, db, log) {
       let task = cron.schedule(scheduleTrigger, function(){
         log.info('VoIP start trigger => ' + caseId);
         cb(caseId, socket, endDate);
+        //$this.removeTaskByCaseId(caseId);
       });
 
       newTask.task = task;
 
+      $this.voipTasks.push(newTask);
     });
   }
 
@@ -54,14 +55,15 @@ function RadconVoipTask (socket, db, log) {
           let remark = 'ระบบทำการยกเลิกสายเรียกของรังสีแพทย์ ' + task.radioNameTH;
           let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
           let curlData = JSON.stringify(newKeepLog);
-
+          /*
           let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
           let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
           let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
           log.info('keeplogReply on /case/event/nofify end point =>');
           log.info(JSON.stringify(keeplogReply))
-
+          */
           await db.radkeeplogs.create(newKeepLog);
+
           if ((task) && (task.task)) {
             task.task.stop();
           }
