@@ -41,19 +41,19 @@ function RadconVoipTask (socket, db, log) {
 
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
-      let thisTasks = await $this.selectTaskByCaseId(caseId);
+      let thisTask = await $this.selectTaskByCaseId(caseId);
       let anotherTasks = await $this.voipTasks.filter(async(task)=>{
-        if (Number(task.caseId) !== Number(caseId)) {
+        if (task.caseId != caseId) {
           return task;
         }
       });
       log.info('The Task that will remove=>');
-      log.info(JSON.stringify(thisTasks));
+      log.info(JSON.stringify(thisTask));
       //log.info('Number(caseId)=>' + Number(caseId));
       //log.info(Number(task.caseId) === Number(caseId));
-      if ((thisTasks) && (thisTasks.length > 0)) {
+      if (thisTask) {
         //doCall rwquest remove callFile from VOIP Server
-        let task = thisTasks[0];
+        let task = thisTask;
         if ((task.callFile) && ((task.callFile) !== '')) {
           let callDeleteCallFileRes = await $this.doCallDeleteCallFile(task.callFile);
         }
