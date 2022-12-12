@@ -78,7 +78,7 @@ function RadconVoipTask (socket, db, log) {
         }
       }
 
-      let nemoTasks = $this.getTasks(anotherTasks);
+      let nemoTasks = await $this.getTasks(anotherTasks);
       log.info('anotherTasks => ' + JSON.stringify(nemoTasks));
       $this.voipTasks = anotherTasks;
       resolve(anotherTasks);
