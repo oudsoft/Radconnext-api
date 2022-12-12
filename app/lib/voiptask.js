@@ -78,6 +78,8 @@ function RadconVoipTask (socket, db, log) {
         }
       }
 
+      let nemoTasks = $this.getTasks(anotherTasks);
+      log.info('anotherTasks => ' + JSON.stringify(nemoTasks));
       $this.voipTasks = anotherTasks;
       resolve(anotherTasks);
     });
@@ -131,11 +133,15 @@ function RadconVoipTask (socket, db, log) {
     });
   }
 
-  this.getTasks = function(){
+  this.getTasks = function(anyTasks){
     return new Promise(async function(resolve, reject) {
       let finalTasks = [];
-      await $this.voipTasks.forEach((item, i) => {
-        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs, callFile: item.callFile, transactionId: item.transactionId, msisdn: item.msisdn};
+      let someTasks = $this.voipTasks;
+      if (anyTasks) {
+        someTasks = anyTasks;
+      }
+      await someTasks.forEach((item, i) => {
+        let nwTask = {caseId: item.caseId, username: item.username, radioUsername: item.radioUsername, radioNameTH: item.radioNameTH, triggerAt: item.triggerAt, responseKEYs: item.responseKEYs, callFile: item.callFile, transactionId: item.transactionId, msisdn: item.msisdn};
         finalTasks.push(nwTask);
       });
       resolve(finalTasks);
