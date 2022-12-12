@@ -460,6 +460,7 @@ const doCreateTaskAction = function(tasks, caseId, userProfile, radioProfile, tr
 
 const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, triggerParam, baseCaseStatusId, caseData){
   return new Promise(async function(resolve, reject) {
+    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
     let newTask = await tasks.doCreateNewTaskVoip(caseId, userProfile.username, triggerParam, radioProfile.username, radioNameTH, async (caseId, socket, endDateTime)=>{
       let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
       log.info('VoIp Task nowcaseStatus => ' + JSON.stringify(nowcaseStatus));
@@ -529,9 +530,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
       }
     });
 
-    let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
-    newTask.radioNameTH = radioNameTH;
-    log.info('VoIp triggerAt => ' + newTask.triggerAt);
+    log.info('VoIp will be triggerAt => ' + newTask.triggerAt);
     resolve(newTask.triggerAt);
   });
 }
