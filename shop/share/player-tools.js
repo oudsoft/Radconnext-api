@@ -35,8 +35,8 @@ setTimeout(()=>{
 		});
 		$(myPBox).on('click', (evt)=>{
 			evt.stopPropagation();
-			//$(myPBox).focus();
-			$(this).focus();
+			$(myPBox).focus();
+			//$(this).focus();
 		});
 		$('body').append($(myPBox));
 		$(myPBox).focus();

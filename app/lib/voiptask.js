@@ -41,36 +41,41 @@ function RadconVoipTask (socket, db, log) {
 
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
+      let thisTask = await $this.selectTaskByCaseId(caseId);
       let anotherTasks = await $this.voipTasks.filter(async(task)=>{
         if (Number(task.caseId) !== Number(caseId)) {
           return task;
-        } else {
-          //doCall rwquest remove callFile from VOIP Server
-          if ((task.callFile) && ((task.callFile) !== '')) {
-            let callDeleteCallFileRes = await $this.doCallDeleteCallFile(task.callFile);
-          }
-          let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
-          let currentCaseStatusId = nowcaseStatus[0].casestatusId;
-          let systemId = 0;
-          let remark = 'ระบบทำการยกเลิกสายเรียกของรังสีแพทย์ ' + task.radioNameTH;
-          let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
-          let curlData = JSON.stringify(newKeepLog);
-          /*
-          let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
-          let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
-          let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
-          log.info('keeplogReply on /case/event/nofify end point =>');
-          log.info(JSON.stringify(keeplogReply))
-          */
-          await db.radkeeplogs.create(newKeepLog);
-
-          if ((task) && (task.task)) {
-            task.task.stop();
-          }
-
-          return;
         }
       });
+      log.info('The Task that will remove=>');
+      log.info(JSON.stringify(thisTask));
+      //log.info('Number(caseId)=>' + Number(caseId));
+      //log.info(Number(task.caseId) === Number(caseId));
+      if (thisTask) {
+        //doCall rwquest remove callFile from VOIP Server
+        let task = thisTask;
+        if ((task.callFile) && ((task.callFile) !== '')) {
+          let callDeleteCallFileRes = await $this.doCallDeleteCallFile(task.callFile);
+        }
+        let nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
+        let currentCaseStatusId = nowcaseStatus[0].casestatusId;
+        let systemId = 0;
+        let remark = 'ระบบทำการยกเลิกสายเรียกของรังสีแพทย์ ' + task.radioNameTH;
+        let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
+        let curlData = JSON.stringify(newKeepLog);
+        /*
+        let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
+        let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
+        let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
+        log.info('keeplogReply on /case/event/nofify end point =>');
+        log.info(JSON.stringify(keeplogReply))
+        */
+        await db.radkeeplogs.create(newKeepLog);
+
+        if ((task) && (task.task)) {
+          task.task.stop();
+        }
+      }
       $this.voipTasks = anotherTasks;
       resolve(anotherTasks);
     });
@@ -79,9 +84,6 @@ function RadconVoipTask (socket, db, log) {
   this.selectTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let theCase = await $this.voipTasks.find((task)=>{
-        //log.info('Number(task.caseId)=>' + Number(task.caseId));
-        //log.info('Number(caseId)=>' + Number(caseId));
-        //log.info(Number(task.caseId) === Number(caseId));
         if (Number(task.caseId) === Number(caseId)) {
           return task;
         }
