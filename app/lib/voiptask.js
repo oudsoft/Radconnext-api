@@ -64,7 +64,7 @@ function RadconVoipTask (socket, db, log) {
         let newKeepLog = { caseId : caseId,	userId : systemId, from : currentCaseStatusId, to : currentCaseStatusId, remark : remark};
 
         /*
-        let curlData = JSON.stringify(newKeepLog);        
+        let curlData = JSON.stringify(newKeepLog);
         let notifyCaseEventCmdFmt = 'curl -X POST -H "Content-Type: application/json" https://radconnext.info/api/keeplog/case/event/nofify -d \'%s\'';
         let notifyCaseEventCmd = uti.fmtStr(notifyCaseEventCmdFmt, curlData);
         let keeplogReply = await uti.runcommand(notifyCaseEventCmd);
@@ -77,6 +77,10 @@ function RadconVoipTask (socket, db, log) {
           task.task.stop();
         }
       }
+      log.info('anotherTasks=>');
+      log.info(JSON.stringify(anotherTasks));
+      log.info('$this.voipTasks=>');
+      log.info(JSON.stringify($this.voipTasks));
       $this.voipTasks = anotherTasks;
       resolve(anotherTasks);
     });
