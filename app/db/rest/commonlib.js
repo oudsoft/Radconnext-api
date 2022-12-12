@@ -471,6 +471,7 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         newTask.callFile = callReqResult.callFile;
         newTask.transactionId = callReqResult.transactionid;
         newTask.msisdn = callReqResult.msisdn;
+        newTask.radioNameTH = radioNameTH;
         //log.info('newTask => ' + JSON.stringify(newTask));
         let systemId = 0;
         let remark = 'ระบบทำการเรียกสายตามโปรไฟล์ของรังสีแพทย์ ' + radioNameTH;
