@@ -372,7 +372,6 @@
         let adjustW = imgSrcFullSizeWidth*settings.scale;
         $(imageSrc).css({'width': adjustW + 'px', 'height': 'auto'});
       });
-      console.log(settings);
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
       //$(imageSrc).css({'transform': 'scale('+ settings.scale + ')', 'top': '0px'});
@@ -581,7 +580,7 @@
         var dataURL = canvas.toDataURL("image/png", 1.0);
 
         doCreateImageTools(dataURL);
-        $('#ZoomResetCmd').click();
+        //$('#ZoomResetCmd').click();
         if (video.srcObject){
     			video.srcObject.getTracks().forEach(function(track) {
     				track.stop();
