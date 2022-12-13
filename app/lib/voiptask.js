@@ -42,7 +42,7 @@ function RadconVoipTask (socket, db, log) {
   this.removeTaskByCaseId = function (caseId) {
     return new Promise(async function(resolve, reject) {
       let thisTask = await $this.selectTaskByCaseId(caseId);
-      let anotherTasks = await $this.voipTasks.filter(async(task)=>{
+      let anotherTasks = await $this.voipTasks.filter((task)=>{
         if (task.caseId != caseId) {
           return task;
         }
@@ -93,7 +93,7 @@ function RadconVoipTask (socket, db, log) {
         }
       });
       if (theCase){
-        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, triggerAt: theCase.triggerAt, responseKEYs: theCase.responseKEYs, callFile: theCase.callFile, transactionId: theCase.transactionId, msisdn: theCase.msisdn};
+        let thisTask = {caseId: theCase.caseId, username: theCase.username, radioUsername: theCase.radioUsername, radioNameTH: theCase.radioNameTH, triggerAt: theCase.triggerAt, responseKEYs: theCase.responseKEYs, callFile: theCase.callFile, transactionId: theCase.transactionId, msisdn: theCase.msisdn};
         resolve(thisTask);
       } else {
         resolve();
