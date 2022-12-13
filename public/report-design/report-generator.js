@@ -128,10 +128,21 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     endResultAt += (endResultAt * eff);
     console.log('endResultAt=>' + endResultAt);
 
-
-
     let startUnderResultAt = endResultAt;
     console.log('startUnderResultAt=> ' + startUnderResultAt);
+
+    let atY = startUnderResultAt;
+
+    //const a4Height = 1256;
+
+    console.log('atY=> ' + atY);
+    let pages = Math.trunc(atY/a4Height);
+    console.log('pages with trunc=> ' + pages);
+    let rem = atY % a4Height;
+    if (rem > 0){
+      pages += 1;
+    }
+    console.log('pages=> ' + pages);
 
     let reportByElement = await elements.find((item)=>{
       if (item.field === 'report_by') {
@@ -148,7 +159,6 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
       doCreateElement(wrapper, item.elementType, item);
     });
 
-    let atY = startUnderResultAt;
     if (qrcodeLink) {
       let qrWidth = 100;
       let qrcodeElem = {url: qrcodeLink, x: 50, y: atY, width: qrWidth};
@@ -218,16 +228,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
       doCreateElement(wrapper, 'a', radioLinkElement);
 
     }
-    //const a4Height = 1256;
 
-    console.log('atY=> ' + atY);
-    let pages = Math.trunc(atY/a4Height);
-    console.log('pages with trunc=> ' + pages);
-    let rem = atY % a4Height;
-    if (rem > 0){
-      pages += 1;
-    }
-    console.log('pages=> ' + pages);
     setTimeout(()=> {
       cb($(wrapper).html(), pages);
     },500);
