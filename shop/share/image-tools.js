@@ -64,7 +64,8 @@
 
       settings.cropWidth = $('#WInput').val();
       settings.cropHeight = $('#HInput').val();
-
+      console.log(settings);
+      
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
