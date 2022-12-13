@@ -62,10 +62,14 @@
       $('#CropCanvas').remove();
       $('#ImageSrcBox').remove();
 
-      settings.cropWidth = $('#WInput').val();
-      settings.cropHeight = $('#HInput').val();
+      let w = $('#WInput').val();
+      let h = $('#HInput').val();
+      let z = $('#ZInput').val();
+      let factor = (1 - Number(z));
+      settings.cropWidth = Number(w) - (factor*Number(w));
+      settings.cropHeight = Number(h) - (factor*Number(h));
       console.log(settings);
-      
+
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
