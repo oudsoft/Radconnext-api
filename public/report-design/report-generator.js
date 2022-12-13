@@ -113,20 +113,12 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     console.log('resultHeigth=> ' + rsH);
     console.log('resultTopPosition=> ' + resultTopPosition);
 
-    /*
-    let adjustRSH = parseFloat(rsH) * (1 + 0.75);
-    console.log('adjustRSH=> ' + adjustRSH);
-
-    let endResultAt = adjustRSH + parseFloat(resultTopPosition); // 1380;
-    let pagerounds = Math.trunc(endResultAt/a4Height);
-    let eff = 0.1 + ((pagerounds - 1) * 0.6);
-    */
-
     let endResultAt = parseFloat(rsH) + parseFloat(resultTopPosition); // 1380;
+    console.log('endResultAt=>' + endResultAt);
     let eff = 0.23; // <-- 1 page
     //let eff = 0.428; // <-- 2 page
     endResultAt += (endResultAt * eff);
-    console.log('endResultAt=>' + endResultAt);
+    console.log('endResultAt new value modify =>' + endResultAt);
 
     let startUnderResultAt = endResultAt;
     console.log('startUnderResultAt=> ' + startUnderResultAt);
