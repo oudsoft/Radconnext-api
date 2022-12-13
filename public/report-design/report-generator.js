@@ -118,10 +118,14 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     let diff = a4Height - endResultAt;
     console.log('diff=>' + diff);
     let eff = 0.23; // <-- 1 page
-    //let eff = 0.428; // <-- 2 page
+    let pages = 1;
     if (diff < 120) {
+      // <-- 2 page
       eff = 0.56;
+      pages = 2
     }
+    console.log('pages=> ' + pages);
+        
     endResultAt += (endResultAt * eff);
     console.log('endResultAt new value modify =>' + endResultAt);
 
@@ -131,7 +135,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     let atY = startUnderResultAt;
 
     //const a4Height = 1256;
-
+    /*
     console.log('atY=> ' + atY);
     let pages = Math.trunc(atY/a4Height);
     console.log('pages with trunc=> ' + pages);
@@ -139,7 +143,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     if (rem > 0){
       pages += 1;
     }
-    console.log('pages=> ' + pages);
+    */
 
     let reportByElement = await elements.find((item)=>{
       if (item.field === 'report_by') {
