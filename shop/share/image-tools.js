@@ -61,6 +61,10 @@
       $('#CropBox').remove();
       $('#CropCanvas').remove();
       $('#ImageSrcBox').remove();
+
+      settings.cropWidth = $('#WInput').val();
+      settings.cropHeight = $('#HInput').val();
+
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
       let imageSrcBox = $('<div id="ImageSrcBox"></div>');
@@ -564,8 +568,6 @@
         imgSrcFullSizeWidth = vw;
         imgSrcFullSizeHeight = vh;
 
-        $('#WInput').val(400);
-        $('#HInput').val(600);
         $('#ZInput').val(1);
         $('#ApplyCmd').click();
 
