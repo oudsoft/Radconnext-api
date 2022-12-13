@@ -372,6 +372,7 @@
         let adjustW = imgSrcFullSizeWidth*settings.scale;
         $(imageSrc).css({'width': adjustW + 'px', 'height': 'auto'});
       });
+      console.log(settings);
       let layoutBox = doCreateLayoutBox();
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
       //$(imageSrc).css({'transform': 'scale('+ settings.scale + ')', 'top': '0px'});
