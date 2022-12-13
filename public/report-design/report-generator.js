@@ -120,7 +120,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     let eff = 0.23; // <-- 1 page
     //let eff = 0.428; // <-- 2 page
     if (diff > 120) {
-      eff = 0.86;
+      eff = 1.46;
     }
     endResultAt += (endResultAt * eff);
     console.log('endResultAt new value modify =>' + endResultAt);
