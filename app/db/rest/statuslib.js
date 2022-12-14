@@ -395,7 +395,8 @@ const onNewCaseEvent = function(caseId, options){
           let acceptedCaseStatus = await common.doCallCaseStatusByName('Accepted');
           let acceptedCaseStatusId = acceptedCaseStatus[0].id;
           let currentStatusId = newCase.casestatusId;
-          let remark = 'Change case status to accapted by auto Accept of Radio Profile';
+          //let remark = 'Change case status to accapted by auto Accept of Radio Profile';
+          let remark = undefined;
           let radioId = newCase.Case_RadiologistId
           let changeResult = await doChangeCaseStatus(currentStatusId, acceptedCaseStatusId, caseId, radioId, remark);
           /*
@@ -406,7 +407,8 @@ const onNewCaseEvent = function(caseId, options){
             await lineApi.pushConnect(radioProfile.lineUserId, menuQuickReply);
           }
           */
-          let newKeepLog = { caseId : caseId,	userId : 0, from : 1, to : 2, remark : 'รังสีแพทย์ ' + radioNameTH + ' สถานะ active รับเคสอัติโนมัติ'};
+          remark = 'รังสีแพทย์ ' + radioNameTH + ' สถานะ active รับเคสอัติโนมัติ';
+          let newKeepLog = {caseId: caseId,	userId: 0, from: 1, to: 2, remark: remark};
           await common.doCaseChangeStatusKeepLog(newKeepLog);
         } else {
           log.info('== But Radio Lock Screen ==');
@@ -711,11 +713,12 @@ const onCloseCaseEvent = function(caseId){
     let actions = await doGetControlStatusAt(targetCase.casestatusId);
     resolve(actions);
 
+    /*
     let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
-    let remark = 'เจ้าหน้าที ' + userNameTH + ' สั่งปิดเคส'
+    let remark = 'เจ้าหน้าที ' + userNameTH + ' สั่งปิดเคส';
     let newKeepLog = { caseId: caseId,	userId: userId, from: targetCase.casestatusId, to: targetCase.casestatusId, remark: remark};
     await common.doCaseChangeStatusKeepLog(newKeepLog);
-
+    */
   });
 }
 

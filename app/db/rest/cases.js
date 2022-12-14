@@ -289,12 +289,13 @@ app.post('/status/(:caseId)', async (req, res) => {
         const targetCases = await Case.findAll({ attributes: ['id', 'casestatusId', 'userId', 'Case_RadiologistId', 'Case_StudyDescription', 'Case_Modality', 'urgenttypeId', 'sumaseId'], include: caseInclude, where: {id: caseId}});
 
         const currentStatus = targetCases[0].casestatusId;
-        //const userId = targetCases[0].userId;
-        const userId = ur[0].id;
 
+        let userId = targetCases[0].userId;
         let radioId = targetCases[0].Case_RadiologistId;
-        let userProfile = await common.doLoadRadioProfile(radioId);
-        let radioNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+        let userProfile = await common.doLoadUserProfile(userId);
+        let radioProfile = await common.doLoadRadioProfile(radioId);
+        let userNameTH = userProfile.User_NameTH + ' ' + userProfile.User_LastNameTH;
+        let radioNameTH = radioProfile.User_NameTH + ' ' + radioProfile.User_LastNameTH;
 
         if ((currentStatus == 1) && (reqCaseStatusId == 2)) {
           let changeRes = await statusControl.doChangeCaseStatus(1, 2, caseId, userId);
@@ -339,6 +340,10 @@ app.post('/status/(:caseId)', async (req, res) => {
             newKeepLog.triggerAt = yymmddhhmnss;
           }
           await common.doCaseChangeStatusKeepLog(newKeepLog);
+        } else if ([5, 10, 11, 12, 13, 14].includes(currentStatus) && (reqCaseStatusId == 6)) {
+          let remark = 'เจ้าหน้าที ' + userNameTH + ' สั่งปิดเคส';
+          let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
+          res.json({status: {code: 200}, actions: changeResult.change.actiohs});
         } else {
           let changeResult = await statusControl.doChangeCaseStatus(currentStatus, reqCaseStatusId, caseId, userId, remark);
           res.json({status: {code: 200}, actions: changeResult.change.actiohs});
