@@ -78,7 +78,10 @@ function RadconWebSocketServer (arg, db, log) {
 
 		ws.send(JSON.stringify({type: 'test', message: ws.id + '[' + ws.hospitalId +'], You have Connected master websocket success.'}));
 
-		let unSendNewReports = await unsend.doLoadUnSendData(hospitalId);
+		let unSendNewReports = [];
+		if (hospitalId > 1) {
+			unSendNewReports = await unsend.doLoadUnSendData(hospitalId);
+		}
 		log.info('unSendNewReport of hospitalId => ' + hospitalId);
 		log.info(JSON.stringify(unSendNewReports));
 		if (unSendNewReports.length > 0) {
