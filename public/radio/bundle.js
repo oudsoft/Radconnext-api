@@ -617,7 +617,7 @@ module.exports = function ( jq ) {
 
   const pageLineStyle = {'width': '100%', 'border': '2px solid gray', /*'border-radius': '10px',*/ 'background-color': '#ddd', 'margin-top': '4px', 'padding': '2px'};
 	const headBackgroundColor = '#184175';
-	
+
 	const onSimpleEditorChange = function() {
 		util.doResetPingCounter();
 	}
@@ -1733,6 +1733,22 @@ module.exports = function ( jq ) {
 		return s4() + s4() + '-' + s4();
 	}
 
+	const onSimpleEditorCopy = function(evt){
+		console.log(evt);
+		let pathElems = evt.originalEvent.path;
+		let simpleEditorPath = pathElems.find((path)=>{
+			if (path.className === 'jqte_editor') {
+				return path;
+			}
+		});
+		if (simpleEditorPath) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			//let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+			//console.log(clipboardData);
+		}
+	}
+
 	const onSimpleEditorPaste = function(evt){
 		//console.log(evt);
 		let pathElems = evt.originalEvent.path;
@@ -1763,6 +1779,7 @@ module.exports = function ( jq ) {
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
 			} else {
 				if ((textPastedData) && (textPastedData !== '')) {
+					console.log(textPastedData);
 					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
 					document.execCommand('insertText', false, textPastedData);
 					let newContent = oldContent + textPastedData;
@@ -2049,6 +2066,7 @@ module.exports = function ( jq ) {
 		doShowStudyDescriptionLegentCmdClick,
 		doScrollTopPage,
 		genUniqueID,
+		onSimpleEditorCopy,
 		onSimpleEditorPaste,
 		doCallLoadStudyTags,
 		doReStructureDicom,
@@ -3030,7 +3048,8 @@ module.exports = function ( jq ) {
 	  wsm.onclose = function(event) {
 			setTimeout(()=>{
 				if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
-					window.location.reload();
+					//window.location.reload();
+					doConnectWebsocketMaster(username, usertype, hospitalId, connecttype, wsl);
 				} else if (usertype == 4) {
 					doConnectWebsocketMaster(username, usertype, hospitalId, connecttype, wsl);
 				}
@@ -3048,7 +3067,9 @@ module.exports = function ( jq ) {
 	const wslOnClose = function(event) {
 		console.log("Local WebSocket is closed now. with  event:=> ", event);
 		setTimeout(()=>{
-			window.location.reload();
+			//window.location.reload();
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			doConnectWebsocketLocal(userdata.username);
 			return false;
 		}, 60800);
 	}
@@ -3060,6 +3081,8 @@ module.exports = function ( jq ) {
 	const wslOnOpen = function () {
 		console.log('Local Websocket is connected to the signaling server')
 	}
+
+	let clientSocketLastCounterPing = 0;
 
 	const wslOnMessage = function (msgEvt) {
 		let data = JSON.parse(msgEvt.data);
@@ -3073,6 +3096,7 @@ module.exports = function ( jq ) {
 			if (modPingCounter == 0) {
 				wsl.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
+
 			if (!(data.clientSocketState.connected)) {
 				let ms = 60;
 				setTimeout(()=>{
@@ -3080,10 +3104,28 @@ module.exports = function ( jq ) {
 					let params = {};
 					$.get(callUrl, params).then((response) => {
 						console.log(response);
+						clientSocketLastCounterPing = 0;
 					});
 				}, (ms*1000));
 				doCreateWebSocketRetry(ms)
 			}
+			console.log(clientSocketLastCounterPing);
+			console.log(data.clientSocketState.counterping);
+			if (data.clientSocketState.counterping >= clientSocketLastCounterPing) {
+				clientSocketLastCounterPing = data.clientSocketState.counterping;
+			} else {
+				let ms = 60;
+				setTimeout(()=>{
+					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let params = {};
+					$.get(callUrl, params).then((response) => {
+						console.log(response);
+						clientSocketLastCounterPing = 0;
+					});
+				}, (ms*1000));
+				doCreateWebSocketRetry(ms)
+			}
+
 		} else if (data.type == 'result') {
 			$.notify(data.message, "success");
 		} else if (data.type == 'notify') {
@@ -3460,8 +3502,18 @@ module.exports = function ( jq, wsm, wsl) {
 		} else if (data.type == 'getsocketstate'){
 			if ((wsm) && (wsl)) {
 				let stateData = {state: wsl.clientSocketState.state};
-				let stateMsg = {type: 'web', from: userdata.username, to: data.from, data: {type: 'socketstate', state: wsl.clientSocketState.state, connected: wsl.clientSocketState.connected}}
+				let stateMsg = {type: 'web', from: userdata.username, to: data.from, data: {type: 'socketstate', state: wsl.clientSocketState.state, connected: wsl.clientSocketState.connected, orthancCount: data.data.orthancCount}}
 				wsm.send(JSON.stringify(stateMsg));
+				if ((wsl.clientSocketState.connected) && (data.data.orthancCount == 0)) {
+					setTimeout(()=>{
+						let ms = 5;
+						let callUrl = '/api/client/api/connect/cloud/reconnect';
+						let params = {};
+						$.get(callUrl, params).then((response) => {
+							console.log(response);
+						});
+					}, (ms*1000));
+				}
 			}
     } else {
 			console.log('Nothing Else');
@@ -4472,6 +4524,11 @@ function doLoadMainPage(){
 			});
 
 			doUseFullPage();
+
+      $('.mainfull').bind('copy', (evt)=>{
+        common.onSimpleEditorCopy(evt);
+        util.doResetPingCounter();
+      });
 
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
