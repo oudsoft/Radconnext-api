@@ -1742,7 +1742,9 @@ module.exports = function ( jq ) {
 			}
 		});
 		if (simpleEditorPath) {
-			evt.stopPropagation();
+			let selection = document.getSelection();
+			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+			clipboardData.setData('text/plain', selection.toString());
 			evt.preventDefault();
 			//let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			//console.log(clipboardData);
