@@ -1735,6 +1735,15 @@ module.exports = function ( jq ) {
 
 	const onSimpleEditorCopy = function(evt){
 		//console.log(evt);
+		let isHTML = function(str){
+	  	let a = document.createElement('div');
+	  	a.innerHTML = str;
+	  	for (let c = a.childNodes, i = c.length; i--; ) {
+	    	if (c[i].nodeType == 1) return true;
+	  	}
+	  	return false;
+		}
+
 		let pathElems = evt.originalEvent.path;
 		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
@@ -1743,11 +1752,23 @@ module.exports = function ( jq ) {
 		});
 		if (simpleEditorPath) {
 			let selection = document.getSelection();
-			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-			clipboardData.setData('text/plain', selection.toString());
+			let textTypeHtml = isHTML(selection.toString());
+			if (selection.rangeCount) {
+				let len = selection.rangeCount;
+				let container = document.createElement("div");
+				for (let i = 0; i < len; ++i) {
+					container.appendChild(selection.getRangeAt(i).cloneContents());
+				}
+				let html = container.innerHTML;
+				let textTypeHtml = isHTML(html);
+				let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+				if (textTypeHtml) {
+					clipboardData.setData('text/html', html);
+				} else {
+					clipboardData.setData('text/plain', selection.toString());
+				}
+			}
 			evt.preventDefault();
-			//let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-			//console.log(clipboardData);
 		}
 	}
 
