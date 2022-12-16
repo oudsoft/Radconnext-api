@@ -125,7 +125,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
       pages = 2
     }
     console.log('pages=> ' + pages);
-        
+
     endResultAt += (endResultAt * eff);
     console.log('endResultAt new value modify =>' + endResultAt);
 
@@ -145,6 +145,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
     }
     */
 
+    /*
     let reportByElement = await elements.find((item)=>{
       if (item.field === 'report_by') {
         return item;
@@ -154,6 +155,7 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
       reportByElement.y = startUnderResultAt;
       reportByElement.title = 'Report By : ' + reportByElement.title;
     }
+    */
 
     let formatedContents = elements;
     formatedContents.forEach((item, i) => {
@@ -177,13 +179,12 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
         doCreateElement(wrapper, 'a', qrlinkElem);
       }
     }
+    /*
     if (caseId) {
       const linkDisplayText = 'ติดต่อรังสีแพทย์';
-      //const linkUrl = 'https://radconnext.info/refer/callradio.html?caseId=' + caseId;
       const linkUrl = 'https://radconnext.info/refer/callrad.html?caseId=' + caseId;
       let radioContactElement = undefined;
       let radioLinkElement = undefined;
-      //let caseIdElement = undefined;
       if (reportByElement) {
         let reportByT = Number(reportByElement.y);
         let reportByH = Number(reportByElement.height);
@@ -227,9 +228,8 @@ function doMergeContent(elements, variable, qrcodeLink, caseId, rsH, cb){
 
       doCreateElement(wrapper, 'text', radioContactElement);
       doCreateElement(wrapper, 'a', radioLinkElement);
-
     }
-
+    */
     setTimeout(()=> {
       cb($(wrapper).html(), pages);
     },500);
