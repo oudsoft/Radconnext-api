@@ -106,8 +106,8 @@ const doLoadVariable = function(caseId, responseId, userId){
 const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 	return new Promise(async function(resolve, reject) {
 		const publicDir = path.normalize(__dirname + '/../../../public');
-		//const fs = require("fs");
 
+    /*
 		const qrgenerator = require('../../lib/qrcodegenerator.js');
 		const qrcontent = 'https://radconnext.info/portal?caseId=' + caseId;
 
@@ -119,6 +119,9 @@ const reportCreator = function(elements, variable, pdfFileName, caseId, rsH){
 
 		const qrcode = await qrgenerator(qrcontent, pdfFileName);
 		const qrlink = qrcode.qrlink;
+    */
+
+    const qrlink = undefined;
 
 		const fileNames = pdfFileName.split('.');
 		const usrPdfPath = publicDir + process.env.USRPDF_PATH;
