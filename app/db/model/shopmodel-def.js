@@ -245,6 +245,10 @@ const ShopTemplateDef = {
   PaperSize : {
     type: Sequelize.INTEGER, // <- 1=A4, 2=Slip
     defaultValue: 1
+  },
+  Options : {
+    type: Sequelize.JSONB,
+    defaultValue: {"ppqr": {"invoice": 1, "bill": 1, "taxinvoice": 1}}
   }
 };
 

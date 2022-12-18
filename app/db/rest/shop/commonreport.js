@@ -598,8 +598,9 @@ const doCreateReport = function(orderId, docType, shopId){
 		const rsT = parseFloat(reportVar.rsDimension.top);
 		const pdfFileName = reportVar.print_filename;
 		const shops = await db.shops.findAll({ attributes: ['Shop_PromptPayNo', 'Shop_PromptPayName'], where: {id: shopId}});
+		const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize', 'Options'], where: {shopId: shopId, TypeId: docType}});
 		let qr = undefined;
-		if ((docType == 1) || (docType == 2)) {
+		if ((docType == 1) || ((docType == 2) && (templates.length > 0) && (templates[0].Options.ppqr.bill == 1))) {
 			if ((shops.length > 0) && (shops[0].Shop_PromptPayNo !== '') && (shops[0].Shop_PromptPayName !== '')) {
 				let ppType = undefined;
 				if (shops[0].Shop_PromptPayNo.length == 10) {
@@ -620,7 +621,7 @@ const doCreateReport = function(orderId, docType, shopId){
 				}
 			}
 		}
-		const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
+
 		if (templates.length > 0) {
 	    let reportElements = templates[0].Content;
 	    let paperSize = templates[0].PaperSize;

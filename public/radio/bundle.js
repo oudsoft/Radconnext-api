@@ -3459,9 +3459,7 @@ module.exports = function ( jq, wsm, wsl) {
       }, 5000);
     } else if (data.type == 'run') {
 			/*************************/
-			/*
       wsl.send(JSON.stringify(data));
-			*/
     } else if (data.type == 'runresult') {
       //$('#RemoteDicom').dispatchEvent(new CustomEvent("runresult", {detail: { data: data.result, owner: data.owner, hospitalId: data.hospitalId }}));
       let evtData = { data: data.result, owner: data.owner, hospitalId: data.hospitalId };
@@ -4377,7 +4375,9 @@ function doLoadMainPage(){
 
 	$('#app').load(mainFile, function(){
 		$('#Menu').load(menuFile, function(){
-      //let logWin = util.doShowLogWindow();
+      $('.case-counter').hide();
+      $('.consult-counter').hide();
+
       $(document).on('openedituserinfo', (evt, data)=>{
 				userinfo.doShowUserProfile();
         util.doResetPingCounter();
@@ -4896,8 +4896,6 @@ function doAutoAcceptCase(autoSelectPage){
   const userdata = JSON.parse(localStorage.getItem('userdata'));
   const radioNameTH = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
   const autoAcc = userdata.userprofiles[0].Profile.activeState.autoAcc;
-  $('.case-counter').hide();
-  //console.log(autoAcc);
   if (autoAcc == 1){
     newcase.doCallMyNewCase().then(async (myNewCase)=>{
       console.log(myNewCase);
