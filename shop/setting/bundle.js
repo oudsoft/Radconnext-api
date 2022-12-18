@@ -935,12 +935,30 @@ module.exports = function ( jq ) {
 			let radAlertMsg = $('<div></div>');
 			$(radAlertMsg).append($(reportPdfDlgContent));
 			let ectAccessBox = undefined;
+			let newAcc = {};
+			if (!pdf.pngLink) {
+				let tpms = pdf.link.split('/');
+				let names = tpms[tpms.length-1].split('.');
+				newAcc.pngLink = '/shop/img/usr/pdf/' + names[0] + '.png';
+				//newAcc.ppLink =
+				//newAcc.qrLink = '/shop/img/usr/qrcode/' + names[0] + '.png';
+			}
 			if (pdf.pngLink) {
 				ectAccessBox = $('<div></div>');
 				let pngThumb = $('<img/>').attr('src', pdf.pngLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
 				$(ectAccessBox).append($(pngThumb))
 				$(pngThumb).on('click', (evt)=>{
 					window.open(pdf.pngLink, '_blank');
+				});
+			} else {
+				let tpms = pdf.link.split('/');
+				let names = tpms[tpms.length-1].split('.');
+				let newAccPngLink = '/shop/img/usr/pdf/' + names[0] + '.png';
+				ectAccessBox = $('<div></div>');
+				let pngThumb = $('<img/>').attr('src', newAccPngLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(pngThumb))
+				$(pngThumb).on('click', (evt)=>{
+					window.open(newAccPngLink, '_blank');
 				});
 			}
 			if (pdf.ppLink) {
@@ -5218,7 +5236,7 @@ module.exports = function ( jq ) {
     let layoutPage = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let layoutRow = $('<tr></tr>');
     let letfSideCell = $('<td width="15%" align="center" valign="middle"></td>');
-    let middleCell = $('<td width="70%" align="left" valign="middle"></td>');
+    let middleCell = $('<td width="70%" align="left" valign="middle" style="padding: 5px"></td>');
     let rightSideCell = $('<td width="*" align="center" valign="middle"></td>');
     $(letfSideCell).append($(shopLogoIconBox));
     $(middleCell).append($(shopName)).append($(shopAddress)).append($(shopTel));
