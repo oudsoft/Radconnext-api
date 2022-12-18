@@ -138,7 +138,8 @@
 
               let sendDataCmd = $('<input type="button" value="Send Data"/>');
               $(sendDataCmd).on('click', async (evt)=>{
-                let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."': '"..."'}};
+                //let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."': '"..."'}};
+                let titleJSON = {"type": "clientrun", "hospitalId": "2", "sender": "admin", "commandType": "LoadStudies", "commands": ["curl --user demo:demo http://localhost:8042/tools/find -d '{\"Level\":\"Study\",\"Query\":{\"StudyDate\":\"20221101-20221131\"}}'"]};
                 doOpenInputDataDialog(sockets[i], titleJSON);
               });
               $(cmdCol).append($(sendDataCmd).css({'margin-left': '10px'}));
