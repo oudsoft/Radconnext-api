@@ -226,7 +226,9 @@
           let removeStudyCmd = $('<input type="button" value=" Delete "/>');
           $(commandCell).append($(removeStudyCmd));
           $(removeStudyCmd).on('click', (evt)=>{
-
+            let deleteStudyCommand = {"type": "clientrun", "hospitalId": "2", "sender": "admin", "commands": ["curl --user demo:demo -X DELETE http://localhost:8042/studies/" + studies[x]]}
+            wsm.send(deleteStudyCommand);
+            $(row).css({'background-color': '#ddd'});
           });
         }
         setTimeout(()=> {
