@@ -151,7 +151,7 @@ function RadconWebSocketServer (arg, db, log) {
 						let hospitalId = data.hospitalId;
 						let sender = data.sender;
 						let result = data.results;
-						let resultMsg = {type: 'clientresult', result: result, hospitalId: hospitalId, owner: sender};
+						let resultMsg = {type: 'clientresult', result: result, hospitalId: hospitalId, owner: sender, commandType: data.commandType};
 						$this.sendMessage(resultMsg, sender);
 					break;
 					case "clientlog":
