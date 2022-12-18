@@ -295,36 +295,40 @@ const doCountTextLine = function(paperSize, goodItems){
 const doFindGooditemTableHight = function(shopId, docType, goodItems){
   return new Promise(async function(resolve, reject) {
     const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize'], where: {shopId: shopId, TypeId: docType}});
-    const reportElements = templates[0].Content;
-		const paperSize = templates[0].PaperSize;
-    const gooditemsTable = await reportElements.find((element)=>{
-      if (element.elementType == 'table'){
-        return element;
-      }
-    });
-		const tableTop = gooditemsTable.y;
-    const compensatValue = 6;
-    const gooditemRows = gooditemsTable.rows;
-		let tableHeight = 0;
-    let totalHeight = 0;
-    const promiseList = new Promise(async function(resolve2, reject2) {
-			let line = await doCountTextLine(paperSize, goodItems);
-      for (let i=0; i < gooditemRows.length; i++){
-        if (gooditemRows[i].id == 'dataRow') {
-					tableHeight += Number(gooditemRows[i].fields[0].height);
-          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue) * line;
-        } else {
-					tableHeight += Number(gooditemRows[i].fields[0].height);
-          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue);
-        }
-      }
-      setTimeout(()=> {
-        resolve2({top: tableTop, height: {real: totalHeight, template: tableHeight}});
-      },1800);
-    });
-    Promise.all([promiseList]).then((ob)=> {
-      resolve(ob[0]);
-    });
+		if (templates.length > 0) {
+	    const reportElements = templates[0].Content;
+			const paperSize = templates[0].PaperSize;
+	    const gooditemsTable = await reportElements.find((element)=>{
+	      if (element.elementType == 'table'){
+	        return element;
+	      }
+	    });
+			const tableTop = gooditemsTable.y;
+	    const compensatValue = 6;
+	    const gooditemRows = gooditemsTable.rows;
+			let tableHeight = 0;
+	    let totalHeight = 0;
+	    const promiseList = new Promise(async function(resolve2, reject2) {
+				let line = await doCountTextLine(paperSize, goodItems);
+	      for (let i=0; i < gooditemRows.length; i++){
+	        if (gooditemRows[i].id == 'dataRow') {
+						tableHeight += Number(gooditemRows[i].fields[0].height);
+	          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue) * line;
+	        } else {
+						tableHeight += Number(gooditemRows[i].fields[0].height);
+	          totalHeight += (Number(gooditemRows[i].fields[0].fontsize) + compensatValue);
+	        }
+	      }
+	      setTimeout(()=> {
+	        resolve2({top: tableTop, height: {real: totalHeight, template: tableHeight}});
+	      },1800);
+	    });
+	    Promise.all([promiseList]).then((ob)=> {
+	      resolve(ob[0]);
+	    });
+		} else {
+			resolve({top: 0, height: {real: 0, template: 0}})
+		}
   });
 }
 

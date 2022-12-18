@@ -927,19 +927,53 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doOpenReportPdfDlg = function(pdfUrl, title, closeCallback){
+	const doOpenReportPdfDlg = function(pdf, title, closeCallback){
     return new Promise(async function(resolve, reject) {
-			const pdfURL = pdfUrl + '?t=' + common.genUniqueID();
+			const pdfURL = pdf.link + '?t=' + common.genUniqueID();
       const reportPdfDlgContent = $('<object data="' + pdfURL + '" type="application/pdf" width="99%" height="380"></object>');
       $(reportPdfDlgContent).css({'margin-top': '10px'});
+			let radAlertMsg = $('<div></div>');
+			$(radAlertMsg).append($(reportPdfDlgContent));
+			let ectAccessBox = undefined;
+			if (pdf.pngLink) {
+				ectAccessBox = $('<div></div>');
+				let pngThumb = $('<img/>').attr('src', pdf.pngLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(pngThumb))
+				$(pngThumb).on('click', (evt)=>{
+					window.open(pdf.pngLink, '_blank');
+				});
+			}
+			if (pdf.ppLink) {
+				if (!ectAccessBox) {
+					ectAccessBox = $('<div></div>');
+				}
+				let ppThumb = $('<img/>').attr('src', pdf.ppLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(ppThumb))
+				$(ppThumb).on('click', (evt)=>{
+					window.open(pdf.ppLink, '_blank');
+				});
+			}
+			if (pdf.qrLink) {
+				if (!ectAccessBox) {
+					ectAccessBox = $('<div></div>');
+				}
+				let qrThumb = $('<img/>').attr('src', pdf.qrLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(qrThumb))
+				$(qrThumb).on('click', (evt)=>{
+					window.open(pdf.qrLink, '_blank');
+				});
+			}
+			if (ectAccessBox) {
+				$(radAlertMsg).append($(ectAccessBox));
+			}
       const reportformoption = {
   			title: title,
-  			msg: $(reportPdfDlgContent),
+  			msg: $(radAlertMsg),
   			width: '720px',
 				okLabel: ' เปิดหน้าต่างใหม่ ',
 				cancelLabel: ' ปิด ',
   			onOk: async function(evt) {
-					window.open(pdfUrl, '_blank');
+					window.open(pdf.link, '_blank');
           reportPdfDlgHandle.closeAlert();
 					if (closeCallback) {
 						closeCallback();
@@ -4044,7 +4078,7 @@ module.exports = function ( jq ) {
 				console.log(docRes);
 				if (docRes.status.code == 200) {
 					//window.open(docRes.result.link, '_blank');
-					closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'ใบแจ้งหนี้');
+					closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบแจ้งหนี้');
 					$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
 				} else if (docRes.status.code == 300) {
 					$.notify("ระบบไม่พบรูปแบบเอกสารใบแจ้งหนี้", "error");
@@ -4071,7 +4105,7 @@ module.exports = function ( jq ) {
 					console.log(docRes);
 					if (docRes.status.code == 200) {
 						//window.open(docRes.result.link, '_blank');
-						closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'บิลเงินสด/ใบเสร็จรับเงิน', ()=>{
+						closeorderdlg.doOpenReportPdfDlg(docRes.result, 'บิลเงินสด/ใบเสร็จรับเงิน', ()=>{
 							$(cancelCmd).click();
 						});
 						$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
@@ -4103,7 +4137,7 @@ module.exports = function ( jq ) {
 					console.log(docRes);
 					if (docRes.status.code == 200) {
 						//window.open(docRes.result.link, '_blank');
-						closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'ใบกำกับภาษี', ()=>{
+						closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบกำกับภาษี', ()=>{
 							$(cancelCmd).click();
 						});
 						$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
@@ -4480,12 +4514,11 @@ module.exports = function ( jq ) {
 							let openInvoicePdfCmd = $('<span>' + orders[i].invoice.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
 							$(openInvoicePdfCmd).on('click', async (evt)=>{
 								evt.stopPropagation();
-								//closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].invoice.Filename, 'ใบแจ้งหนี้');
 								let docParams = {orderId: orders[i].id, shopId: shopData.id};
 								let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 								console.log(docRes);
 								if (docRes.status.code == 200) {
-									closeorderdlg.doOpenReportPdfDlg(docRes.result.link, 'ใบแจ้งหนี้');
+									closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบแจ้งหนี้');
 									//const pdfURL = docRes.result.link + '?t=' + common.genUniqueID();
 									//const reportPdfDlgContent = $('<object data="' + pdfURL + '" type="application/pdf" width="99%" height="380"></object>');
 									$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
@@ -4509,7 +4542,7 @@ module.exports = function ( jq ) {
 								let openBillPdfCmd = $('<span>' + orders[i].bill.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
 								$(openBillPdfCmd).on('click', (evt)=>{
 									evt.stopPropagation();
-									closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].bill.Filename, 'บิลเงินสด/ใบเสร็จรับเงิน');
+									closeorderdlg.doOpenReportPdfDlg({link: '/shop/img/usr/pdf/' + orders[i].bill.Filename}, 'บิลเงินสด/ใบเสร็จรับเงิน');
 								});
 								let openBillQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
 								$(openBillQrCmd).on('click', (evt)=>{
@@ -4525,7 +4558,7 @@ module.exports = function ( jq ) {
 								let openTaxInvoicePdfCmd = $('<span>' + orders[i].taxinvoice.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
 								$(openTaxInvoicePdfCmd).on('click', (evt)=>{
 									evt.stopPropagation();
-									closeorderdlg.doOpenReportPdfDlg('/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename, 'ใบกำกับภาษี');
+									closeorderdlg.doOpenReportPdfDlg({link: '/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename}, 'ใบกำกับภาษี');
 								});
 								let openTaxInvoiceQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
 								$(openTaxInvoiceQrCmd).on('click', (evt)=>{
