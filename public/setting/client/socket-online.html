@@ -219,7 +219,7 @@
         let studyTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
         for (let x=0; x < studies.length; x++) {
           let row = $('<tr></tr>');
-          let studyIDCell = $('<td width="70%" align="left"></td>').text(studies[x]);
+          let studyIDCell = $('<td width="80%" align="left"></td>').text(studies[x]);
           let commandCell = $('<td width="*" align="center"></td>');
           $(row).append($(studyIDCell)).append($(commandCell));
           $(studyTable).append($(row));
@@ -245,7 +245,7 @@
     const radconfirmoption = {
       title: 'Local Dicom Study of ' + socketData.from,
       msg: $(radAlertMsg),
-      width: '520px',
+      width: '550px',
       onOk: function(evt) {
         radConfirmBox.closeAlert();
       }
