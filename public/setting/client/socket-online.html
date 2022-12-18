@@ -211,6 +211,22 @@
     //$(radConfirmBox.cancelCmd).hide();
   }
 
+  const doShowLocalDicomStudy = function(studies, socketData){
+    let radAlertMsg = $('<div></div>');
+    $(radAlertMsg).append($(studyText));
+    const radconfirmoption = {
+      title: 'Local Dicom Study of ' + socketData.from,
+      msg: $(radAlertMsg),
+      width: '520px',
+      onOk: function(evt) {
+        radConfirmBox.closeAlert();
+      }
+    }
+    let radConfirmBox = $('body').radalert(radconfirmoption);
+    $(radConfirmBox.cancelCmd).hide();
+    radConfirmBox.okCmdLabel = ' ปิด 'ว
+  }
+
   const onMessageEvt = function(msgEvt){
     let userdata = JSON.parse(localStorage.getItem('userdata'));
     let data = JSON.parse(msgEvt.data);
@@ -226,6 +242,16 @@
       console.log(data.data);
       if ((data.data.connected) && (data.data.state == 'open')) {
 
+      }
+    } else if (data.type == 'clientresult') {
+      if (data.commandType == 'LoadStudies') {
+        let studies = JSON.parse(data.result);
+        console.log(studies);
+        if (studies.length > 0) {
+          doShowLocalDicomStudy(studies, data);
+        } else {
+          alert('Client not found Dicom Study');
+        }
       }
     }
   }
