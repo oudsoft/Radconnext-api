@@ -964,8 +964,8 @@ module.exports = function ( jq ) {
 				});
 			}
 			if (ectAccessBox) {
-				$(ectAccessBox).css({'display': 'none', 'cursor': 'pointer', 'border': '2px solid grey', 'background-color': 'grey', 'width': '100%'});
-				let tggAccessCmd = $('<div>รูปภาพ</div>').css({'display': 'block', 'cursor': 'pointer', 'border': '2px solid grey', 'background-color': 'grey', 'width': '100%'});
+				$(ectAccessBox).css({'display': 'none', 'cursor': 'pointer', 'border': '2px solid grey', 'background-color': '#ddd', 'width': '100%'});
+				let tggAccessCmd = $('<div>รูปภาพ</div>').css({'display': 'block', 'cursor': 'pointer', 'border': '2px solid black', 'background-color': 'grey', 'width': '100%', 'text-align': 'center', 'line-height': '36px'});
 				$(tggAccessCmd).on('click', (evt)=>{
 					$(ectAccessBox).slideDown('slow');
 					$(tggAccessCmd).hide();
