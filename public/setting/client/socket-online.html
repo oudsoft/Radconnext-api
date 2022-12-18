@@ -243,7 +243,7 @@
 
   const doShowLocalDicomStudy = async function(studies, socketData){
     let radAlertMsg = $('<div></div>');
-    //$(radAlertMsg).append($(studyText));
+    console.log(socketData);
     const radconfirmoption = {
       title: 'Local Dicom Study of ' + socketData.from,
       msg: $(radAlertMsg),
