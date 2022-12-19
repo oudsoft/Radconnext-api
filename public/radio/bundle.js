@@ -8916,7 +8916,9 @@ module.exports = function ( jq ) {
 	const doResetPingCounterOnOpenCase = function() {
 		let main = require('../main.js');
 		let myWsm = main.doGetWsm();
-		myWsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+		if (myWsm) {
+			myWsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+		}
 	}
 
   return {
