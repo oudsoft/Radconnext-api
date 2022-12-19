@@ -4560,11 +4560,11 @@ function doLoadMainPage(){
       */
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        //util.doResetPingCounter();
+        util.doResetPingCounter();
       });
       $('#quickreply').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        //util.doResetPingCounter();
+        util.doResetPingCounter();
       });
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
@@ -8350,8 +8350,7 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
-				/*
-				if (keypressCount == 5){
+				if (keypressCount == 15){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
@@ -8360,7 +8359,6 @@ module.exports = function ( jq ) {
 				} else {
 					keypressCount += 1;
 				}
-				*/
 			}
 			$(simpleEditorBox).bind('keypress', function(evt) {
 				simpleEditorChangeEvt(evt);
