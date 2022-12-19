@@ -554,6 +554,7 @@
           $(radioOpenCaseCmd).on('click', (evt)=>{
             let token = localStorage.getItem('token');
             if (token) {
+              sessionStorage.removeItem('logged')
               let radioLink = '/radio/?caseId=' + cases[i].id + '&token=' + token;
               window.open(radioLink, '_blank');
             }
