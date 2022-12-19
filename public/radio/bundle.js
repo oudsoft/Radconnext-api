@@ -4637,13 +4637,13 @@ const onOpenCaseTrigger = function(caseData) {
     common.doScrollTopPage();
     util.doResetPingCounter();
     $.notify('เปิดเคส สำเร็จ', 'success');
-    /*
+
     let firstLink = '/images/case-incident-icon-3.png'
 		window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
       let url = window.URL.createObjectURL(blob);
       $(opencaseTitlePage).find('img').attr('src', url);
     });
-    */
+    
   }).catch(async (err)=>{
     if (err.error.code == 210){
       let rememberme = localStorage.getItem('rememberme');
@@ -8664,12 +8664,13 @@ module.exports = function ( jq ) {
 						reject({error: apiError});
 					}
 				}
-
+				/*
 				let firstLink = '/images/case-incident-icon-3.png'
 				window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
 		      let url = window.URL.createObjectURL(blob);
 		      $("#TitleContent").find('img').attr('src', url);
 		    });
+				*/
 			} else if (myOpenCase.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 			} else {
