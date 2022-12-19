@@ -1734,16 +1734,6 @@ module.exports = function ( jq ) {
 	}
 
 	const onSimpleEditorCopy = function(evt){
-		//console.log(evt);
-		let isHTML = function(str){
-	  	let a = document.createElement('div');
-	  	a.innerHTML = str;
-	  	for (let c = a.childNodes, i = c.length; i--; ) {
-	    	if (c[i].nodeType == 1) return true;
-	  	}
-	  	return false;
-		}
-
 		let pathElems = evt.originalEvent.path;
 		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
@@ -1751,25 +1741,12 @@ module.exports = function ( jq ) {
 			}
 		});
 		if (simpleEditorPath) {
+			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			let selection = document.getSelection();
-			let textTypeHtml = isHTML(selection.toString());
-			if (selection.rangeCount) {
-				let len = selection.rangeCount;
-				let container = document.createElement("div");
-				for (let i = 0; i < len; ++i) {
-					container.appendChild(selection.getRangeAt(i).cloneContents());
-				}
-				let html = container.innerHTML;
-				console.log(html);
-				let textTypeHtml = isHTML(html);
-				console.log(textTypeHtml);
-				let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-				if (textTypeHtml) {
-					clipboardData.setData('text/html', html);
-				} else {
-					clipboardData.setData('text/plain', selection.toString());
-				}
-			}
+			let container = document.createElement("div");
+			let selContent = selection.getRangeAt(0).cloneContents();
+			container.appendChild(selContent);
+			clipboardData.setData('text/html', container.innerHTML);
 			evt.preventDefault();
 		}
 	}
@@ -1783,20 +1760,18 @@ module.exports = function ( jq ) {
 			}
 		});
 		if (simpleEditorPath) {
-			evt.stopPropagation();
-			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-			let textPastedData = clipboardData.getData('text');
+			let textPastedData = clipboardData.getData('text/plain');
 			//console.log(textPastedData);
 			let htmlPastedData = clipboardData.getData('text/html');
 			//console.log(htmlPastedData);
-			let htmlFormat = htmlformat(htmlPastedData);
-
+			//let htmlFormat = htmlformat(htmlPastedData);
+			//console.log(htmlFormat);
 			let caseData = $('#SimpleEditorBox').data('casedata');
 			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
 			let oldContent = $(simpleEditor).val();
-			if ((htmlFormat) && (htmlFormat !== '')) {
-				htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
+			if ((htmlPastedData) && (htmlPastedData !== '')) {
+				let htmlFormat = doExtractHTMLFromAnotherSource(htmlPastedData);
 				document.execCommand('insertHTML', false, htmlFormat);
 				let newContent = oldContent + htmlFormat;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -1815,12 +1790,15 @@ module.exports = function ( jq ) {
 			}
 			//console.log(localStorage.getItem('draftbackup'));
 		}
+		evt.stopPropagation();
+		evt.preventDefault();
 	}
 
 	const doExtractHTMLFromAnotherSource = function(anotherText){
 		let startPointText = '<!--StartFragment-->';
 		let endPointText = '<!--EndFragment-->';
-		let tempToken = anotherText.replace('\n', '');
+		//let tempToken = anotherText.replace('\n', '');
+		let tempToken = anotherText;
 		let startPosition = tempToken.indexOf(startPointText);
 		if (startPosition >= 0) {
 			let endPosition = tempToken.indexOf(endPointText);
@@ -4574,19 +4552,19 @@ function doLoadMainPage(){
 			});
 
 			doUseFullPage();
-
+      /*
       $('.mainfull').bind('copy', (evt)=>{
         common.onSimpleEditorCopy(evt);
         util.doResetPingCounter();
       });
-
+      */
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        util.doResetPingCounter();
+        //util.doResetPingCounter();
       });
       $('#quickreply').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        util.doResetPingCounter();
+        //util.doResetPingCounter();
       });
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
@@ -8377,7 +8355,7 @@ module.exports = function ( jq ) {
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 					keypressCount = 0;
-					doResetPingCounterOnOpenCase();
+					//doResetPingCounterOnOpenCase();
 				} else {
 					keypressCount += 1;
 				}
