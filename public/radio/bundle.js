@@ -4202,6 +4202,35 @@ $( document ).ready(function() {
               $('body').append($(mySipPhoneIncomeBox));
             }
             */
+          } else if (userdata.usertypeId == 1){
+            let queryString = decodeURIComponent(window.location.search);
+            let params = new URLSearchParams(queryString);
+            let caseId = params.get('caseId');
+            let token = params.get('token');
+            if ((caseId) && (token)) {
+              let callURLTokenURL = '/api/tasks/case/open/data/' + caseId;
+              $.get(callURLTokenURL, {}, async function(data){
+                console.log(data);
+                if ((data) && (data.token)) {
+                  sessionStorage.setItem('logged', true);
+                  localStorage.setItem('token', data.token);
+                  localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
+                  let taskData = data.Records[0];
+                  quickCaseId = taskData.caseId;
+                  userdata = data.radioUserData;
+                  if (userdata.userprofiles.length == 0){
+                    userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
+                  }
+                  doLoadMainPage();
+                  let eventData = data.caseData;
+                  eventData.startDownload = 0;
+                  onOpenCaseTrigger(eventData);
+                  $('body').loading('stop');
+                }
+              });
+            } else {
+              alert('No!!!');
+            }
           } else {
             //$.notify('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน', 'error');
             alert('บัญชีใช้งานของคุณไม่สามารถเข้าใช้งานหน้านี้ได้ โปรด Login ใหม่เพื่อเปลี่ยนบัญชีใช้งาน');
@@ -4243,7 +4272,6 @@ $( document ).ready(function() {
               let eventData = data.caseData;
               eventData.startDownload = 1;
               onOpenCaseTrigger(eventData);
-
               $('body').loading('stop');
             } else {
     					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
