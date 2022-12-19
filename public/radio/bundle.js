@@ -4215,9 +4215,6 @@ $( document ).ready(function() {
                   sessionStorage.setItem('logged', true);
                   localStorage.setItem('token', data.token);
                   localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
-                  let taskData = data.Records[0];
-                  quickCaseId = taskData.caseId;
-                  userdata = data.radioUserData;
                   if (userdata.userprofiles.length == 0){
                     userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
                   }
