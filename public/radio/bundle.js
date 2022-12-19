@@ -7873,6 +7873,19 @@ module.exports = function ( jq ) {
       	resolve($(hrBox));
 			} else {
 				window.fetch(hrlinks[0].link, {method: 'GET'}).then(response => response.blob()).then(blob => {
+					let filePaths = hrlinks[0].link.split('/');
+					let fileNames = filePaths[filePaths.length-1];
+					let fileName = fileNames.split('.');
+					let fileExt = fileName[1];
+					let patientName = patientFullName.split(' ').join('_');
+					fileName = patientName + '-' + casedate + '.' + fileExt;
+					let url = window.URL.createObjectURL(blob);
+					let pom = document.createElement('a');
+					pom.href = url;
+					pom.download = fileName;
+					document.body.appendChild(pom);
+					pom.click();
+					pom.remove();
 					resolve($(hrBox));
 				});
 			}
