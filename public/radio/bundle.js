@@ -7068,7 +7068,6 @@ module.exports = function ( jq ) {
 
 	const doDownloadDicom = function(evt, caseDicomZipFilename) {
 		evt.preventDefault();
-		doResetPingCounterOnOpenCase();
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		/*
 		let pom = document.createElement('a');
@@ -7111,6 +7110,7 @@ module.exports = function ( jq ) {
       pom.remove();
 			$(downloadCmd).val(oldLabel);
 			$(downloadCmd).prop('disabled', false);
+			doResetPingCounterOnOpenCase();
 		});
 
 
@@ -7675,6 +7675,7 @@ module.exports = function ( jq ) {
 					$.notify("ไม่สามารถบันทึก Draft - Error โปรดติดต่อผู้ดูแลระบบ", "error");
 					$('body').loading('stop');
 				}
+				doResetPingCounterOnOpenCase();
 				resolve(draftResponseRes);
 			} else {
 				$.notify("โปรดพิมพ์ผลอ่านก่อนครับ", "warn");
@@ -8379,7 +8380,7 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
-				if (keypressCount == 15){
+				if (keypressCount == 7){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
@@ -8772,6 +8773,7 @@ module.exports = function ( jq ) {
 			if (isShowNewTemplateCmd === 'none') {
 				$('#AddNewTemplateCmd').show();
 			}
+			doResetPingCounterOnOpenCase();
 			resolve(draftbackup);
 		});
 	}
