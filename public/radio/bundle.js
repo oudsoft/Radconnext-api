@@ -7880,12 +7880,15 @@ module.exports = function ( jq ) {
 					let patientName = patientFullName.split(' ').join('_');
 					fileName = patientName + '-' + casedate + '.' + fileExt;
 					let url = window.URL.createObjectURL(blob);
+					console.log(url);
+					/*
 					let pom = document.createElement('a');
 					pom.href = url;
 					pom.download = fileName;
 					document.body.appendChild(pom);
 					pom.click();
 					pom.remove();
+					*/
 					resolve($(hrBox));
 				});
 			}
