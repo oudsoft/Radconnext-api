@@ -1760,7 +1760,9 @@ module.exports = function ( jq ) {
 					container.appendChild(selection.getRangeAt(i).cloneContents());
 				}
 				let html = container.innerHTML;
+				console.log(html);
 				let textTypeHtml = isHTML(html);
+				console.log(textTypeHtml);
 				let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 				if (textTypeHtml) {
 					clipboardData.setData('text/html', html);
