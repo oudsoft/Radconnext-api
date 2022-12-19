@@ -7869,7 +7869,13 @@ module.exports = function ( jq ) {
 					$(hrTable).append($(hrRow));
 	      });
 			}
-      resolve($(hrBox));
+			if (hrlinks.length == 0) {
+      	resolve($(hrBox));
+			} else {
+				window.fetch(hrlinks[0].link, {method: 'GET'}).then(response => response.blob()).then(blob => {
+					resolve($(hrBox));
+				});
+			}
     });
   }
 
