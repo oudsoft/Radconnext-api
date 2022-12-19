@@ -4636,6 +4636,13 @@ const onOpenCaseTrigger = function(caseData) {
           common.doScrollTopPage();
           util.doResetPingCounter();
           $.notify('เปิดเคส สำเร็จ', 'success');
+
+          let firstLink = '/images/case-incident-icon-3.png'
+          window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+            let url = window.URL.createObjectURL(blob);
+            $(opencaseTitlePage).find('img').attr('src', url);
+          });
+
         });
       } else {
         common.doUserLogout(util.wsm);
