@@ -123,6 +123,20 @@ const onNewCaseEvent = function(caseId, triggerParam, action){
   });
 }
 
+const doCreateCaseData = function(caseId) {
+  return new Promise(async function(resolve, reject) {
+    let targetCases = await db.cases.findAll({ attributes: ['id', 'patientId', 'hospitalId', 'casestatusId', 'Case_Modality', 'Case_StudyDescription', 'Case_ProtocolName', 'Case_RadiologistId'], where: {id: caseId}});
+    let caseItem = targetCases[0];
+    let caseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
+    caseData.Modality = caseItem.Case_Modality;
+    caseData.StudyDescription = caseItem.Case_StudyDescription;
+    caseData.ProtocolName = caseItem.Case_ProtocolName;
+    caseData.statusId = caseItem.casestatusId;
+    caseData.radioId = caseItem.Case_RadiologistId;
+    resolve(caseData);
+  });
+}
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -254,13 +268,7 @@ app.get('/find/transaction/(:transactionId)', (req, res) => {
       if ((radioUserData) && (radioUserData.length > 0)) {
         let radioNewToken = auth.doEncodeToken(radioUsername);
         let caseId = tasks[0].caseId;
-        let targetCases = await db.cases.findAll({ attributes: ['id', 'patientId', 'hospitalId', 'casestatusId', 'Case_Modality', 'Case_StudyDescription', 'Case_ProtocolName'], where: {id: caseId}});
-        let caseItem = targetCases[0];
-        let caseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
-        caseData.Modality = caseItem.Case_Modality;
-        caseData.StudyDescription = caseItem.Case_StudyDescription;
-        caseData.ProtocolName = caseItem.Case_ProtocolName;
-        caseData.statusId = caseItem.casestatusId;
+        let caseData = await doCreateCaseData(caseId);
         res.status(200).send({Result: "OK", Records: tasks, token: radioNewToken, radioUserData: radioUserData[0], caseData: caseData});
       } else {
         res.status(200).send({Result: "OK"});
@@ -298,6 +306,17 @@ app.post('/task/new/(:caseId)', (req, res) => {
       res.status(200).send({status: {code: 200}, Records: [thatCase]});
     }
   });
+});
+
+app.get('/case/open/data/(:caseId)', async (req, res) => {
+  let caseId = req.params.caseId;
+  let caseData = await doCreateCaseData(caseId);
+  let radioId = caseData.radioId;
+  let radioProfile = await common.doLoadRadioProfile(radioId);
+  let radioUsername = radioProfile.username;
+  let radioUserData = await auth.doExistUser(radioUsername);
+  let radioNewToken = auth.doEncodeToken(radioUsername);
+  res.status(200).send({Result: "OK", token: radioNewToken, radioUserData: radioUserData[0], caseData: caseData});
 });
 
 module.exports = ( taskCase, taskWarning, taskVoip, dbconn, monitor ) => {

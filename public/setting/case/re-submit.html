@@ -550,6 +550,15 @@
             });
             $(cmdCol).append($(showCaseReportCmd).css({'margin-left': '10px'}));
           }
+          let radioOpenCaseCmd = $('<input type="button" value="Radio"/>');
+          $(radioOpenCaseCmd).on('click', (evt)=>{
+            let token = localStorage.getItem('token');
+            if (token) {
+              let radioLink = '/radio/?caseId=' + cases[i].id + '&token=' + token;
+              window.open(radioLink, '_blank');
+            }
+          });
+          $(cmdCol).append($(radioOpenCaseCmd).css({'margin-left': '10px'}));
         }
         setTimeout(()=> {
           resolve2($(caseTable));
