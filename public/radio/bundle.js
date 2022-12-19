@@ -4270,9 +4270,11 @@ $( document ).ready(function() {
               sessionStorage.setItem('logged', true);
               localStorage.setItem('token', data.token);
               localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
+              /*
               if (userdata.userprofiles.length == 0){
                 userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
               }
+              */
               doLoadMainPage();
               let eventData = data.caseData;
               eventData.startDownload = 0;
