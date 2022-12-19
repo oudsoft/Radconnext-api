@@ -8350,15 +8350,17 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
+				/*
 				if (keypressCount == 5){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 					keypressCount = 0;
-					//doResetPingCounterOnOpenCase();
+					doResetPingCounterOnOpenCase();
 				} else {
 					keypressCount += 1;
 				}
+				*/
 			}
 			$(simpleEditorBox).bind('keypress', function(evt) {
 				simpleEditorChangeEvt(evt);
