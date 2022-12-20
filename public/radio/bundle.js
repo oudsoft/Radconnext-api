@@ -4610,18 +4610,20 @@ function doLoadMainPage(){
 }
 
 const onOpenCaseTrigger = function(caseData) {
+  $("#TitleContent").empty();
   let opencaseTitlePage = acccase.doCreateAccCaseTitlePage();
-  $("#TitleContent").empty().append($(opencaseTitlePage));
+  //$("#TitleContent").append($(opencaseTitlePage));
   opencase.doCreateOpenCasePage(caseData).then((opencasePage)=>{
-    $(".mainfull").empty().append($(opencasePage));
-    common.doScrollTopPage();
-    util.doResetPingCounter();
     $.notify('เปิดเคส สำเร็จ', 'success');
 
     let firstLink = '/images/case-incident-icon-3.png'
 		window.fetch(firstLink, {method: 'GET'}).then(response => response.blob()).then(blob => {
+      $(".mainfull").empty().append($(opencasePage));
+      common.doScrollTopPage();
+      util.doResetPingCounter();
       let url = window.URL.createObjectURL(blob);
       $(opencaseTitlePage).find('img').attr('src', url);
+      $("#TitleContent").append($(opencaseTitlePage));
     });
 
   }).catch(async (err)=>{
