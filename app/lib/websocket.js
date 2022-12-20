@@ -339,6 +339,7 @@ function RadconWebSocketServer (arg, db, log) {
 						ws.send(JSON.stringify({type: 'server-api-result', result: apiRes}));
 					break;
 					*/
+					
 					case "web":
 						let userSocket = await $this.findUserSocket(data.to);
 						if (userSocket){

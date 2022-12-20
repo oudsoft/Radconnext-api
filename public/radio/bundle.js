@@ -8382,7 +8382,7 @@ module.exports = function ( jq ) {
 			let keypressCount = 0;
 			/**********************************************/
 			const simpleEditorChangeEvt = function(evt){
-				if (keypressCount == 7){
+				if (keypressCount == 5){
 					let responseHTML = $('#SimpleEditor').val();
 					let draftbackup = {caseId: caseId, content: responseHTML, backupAt: new Date()};
 					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
