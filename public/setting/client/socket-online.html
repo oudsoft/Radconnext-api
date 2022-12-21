@@ -219,9 +219,10 @@
         let studyTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
         for (let x=0; x < studies.length; x++) {
           let row = $('<tr></tr>');
+          let noCell = $('<td width="5%" align="left"></td>').text((x+1));
           let studyIDCell = $('<td width="80%" align="left"></td>').text(studies[x]);
           let commandCell = $('<td width="*" align="center"></td>');
-          $(row).append($(studyIDCell)).append($(commandCell));
+          $(row).append($(noCell)).append($(studyIDCell)).append($(commandCell));
           $(studyTable).append($(row));
           let removeStudyCmd = $('<input type="button" value=" Delete "/>');
           $(commandCell).append($(removeStudyCmd));
