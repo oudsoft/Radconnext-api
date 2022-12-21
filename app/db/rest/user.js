@@ -274,7 +274,7 @@ app.post('/delete', (req, res) => {
 
 app.get('/test/add/profile', async (req, res) => {
   log.info(JSON.stringify(common.defaultRadioProfileV2));
-  let defaultProfile = JSON.parse(JSON.stringify(defaultRadioProfileV2));
+  let defaultProfile = JSON.parse(JSON.stringify(common.defaultRadioProfileV2));
   log.info(JSON.stringify(defaultProfile));
   let newUserProfile = {Profile: defaultProfile, userId: adUser.id};
   let adUserProfile = await db.userprofiles.create(newUserProfile);
