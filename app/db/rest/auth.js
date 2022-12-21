@@ -2,7 +2,7 @@ require('dotenv').config();
 const crypto = require('crypto');
 const jwt = require("jwt-simple");
 
-var db, User, Hospital, Usertype, Userstatus, Userinfo, UserProfile, log;
+var db, User, Hospital, Usertype, Userstatus, Userinfo, UserProfile, log, common;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -12,7 +12,17 @@ const doExistUser = function(username){
     try {
       const users = await User.findAll({ include: userInclude, attributes: excludeColumn, where: {	username: username}});
       if (users.length > 0) {
-        resolve(users);
+        if (users[0].usertypeId == 4) {
+          let parseUser = JSON.parse(JSON.stringify(users[0]));
+          let userprofiles = await UserProfile.findAll({attributes: ['Profile'], where: {userId: parseUser.id}});
+          if (userprofiles.length > 0) {
+            parseUser.userprofile = userprofiles[0];
+          } else {
+            parseUser.userprofile = {Profile: common.defaultRadioProfileV2};
+          }
+        } else {
+          resolve(users);
+        }
       } else {
         resolve([{id: undefined}]);
       }
@@ -129,6 +139,7 @@ const resetAdmin = async (username, newPassword) => {
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
+  common = require('./commonlib.js')(db, log);
 
   User = db.users;
   Hospital = db.hospitals;
