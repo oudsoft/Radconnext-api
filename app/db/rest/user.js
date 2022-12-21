@@ -171,7 +171,10 @@ app.post('/add', (req, res) => {
                       adUser.setUserstatus(userstatuses[0]);
                       adUser.setUserinfo(adUserinfo);
                       if (usertypeId == 4){
-                        let newUserProfile = {Profile: common.defaultRadioProfileV2, userId: adUser.id};
+                        log.info(JSON.stringify(common.defaultRadioProfileV2));
+                        let defaultProfile = JSON.parse(JSON.stringify(defaultRadioProfileV2));
+                        log.info(JSON.stringify(defaultProfile));
+                        let newUserProfile = {Profile: defaultProfile, userId: adUser.id};
                         let adUserProfile = await db.userprofiles.create(newUserProfile);
                         //await db.userprofiles.update({userId: adUser.id}, { where: { id: adUserProfile.id } });
                       }
@@ -267,6 +270,15 @@ app.post('/delete', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+});
+
+app.get('/test/add/profile', (req, res) => {
+  log.info(JSON.stringify(common.defaultRadioProfileV2));
+  let defaultProfile = JSON.parse(JSON.stringify(defaultRadioProfileV2));
+  log.info(JSON.stringify(defaultProfile));
+  let newUserProfile = {Profile: defaultProfile, userId: adUser.id};
+  let adUserProfile = await db.userprofiles.create(newUserProfile);
+  res.json({status: {code: 200}, result: adUserProfile});
 });
 
 module.exports = ( dbconn, monitor, casetask) => {
