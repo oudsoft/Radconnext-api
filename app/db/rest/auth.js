@@ -20,6 +20,7 @@ const doExistUser = function(username){
           } else {
             parseUser.userprofile = [{Profile: common.defaultRadioProfileV2}];
           }
+          parseUser.correctPassword = users[0].correctPassword;
           resolve([parseUser]);
         } else {
           resolve(users);
