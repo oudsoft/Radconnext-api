@@ -97,7 +97,7 @@ app.post('/add', (req, res) => {
         const nowCaseStatus = targetCases[0].casestatusId;
         if (nowCaseStatus == 8) {
           const next = 9;
-          const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+          const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
           const from = 8;
           let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
@@ -141,7 +141,7 @@ app.post('/update', (req, res) => {
         if (nowCaseStatus == 8) {
           const next = 9;
           let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-update]';
-          const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+          const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
           const from = 8;
           let radioNameTH = reqData.radioNameTH;
@@ -200,7 +200,7 @@ app.post('/save', (req, res) => {
           //let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-caseresponse-save-update]';
           if (nowCaseStatus == 8) {
             let next = 9;
-            let caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            let caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : next, remark : remark};
             await db.radkeeplogs.create(newKeepLog);
@@ -233,7 +233,7 @@ app.post('/save', (req, res) => {
           //log.info('nowCaseStatus on first save response => ' + nowCaseStatus);
           if (nowCaseStatus == 8) {
             const next = 9;
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : next, remark : remark};
             await db.radkeeplogs.create(newKeepLog);

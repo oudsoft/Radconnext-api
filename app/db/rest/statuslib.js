@@ -79,7 +79,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
       if (accessBy) {
         if (accessBy == 0) {
           //system access or admin access
-          const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+          const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
           await db.cases.update(caseStatusChange, { where: { id: caseId } });
           if (remark) {
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
@@ -90,7 +90,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
         } else if (accessBy == 2) {
           //technicial access
           //if (targetCases[0].userId == userId) {
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             if (remark) {
               let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
@@ -106,7 +106,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
           log.info('targetCases[0].Case_RadiologistId=>' + targetCases[0].Case_RadiologistId);
           log.info('userId=>' + userId);
           //if (targetCases[0].Case_RadiologistId == userId) {
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             let controlAction = await doActionAfterChange(from, next, caseId);
             let actions = controlAction.actions;
@@ -137,7 +137,7 @@ const doChangeCaseStatus = function(from, next, caseId, userId, remark){
         } else if (accessBy == 5) {
           //refer access
           if (targetCases[0].Case_RefferalId == userId) {
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            const caseStatusChange = { casestatusId: next/*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             if (remark) {
               let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};

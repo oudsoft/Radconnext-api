@@ -238,7 +238,7 @@ app.post('/radio/submitresult', (req, res) => {
           if (nowCaseStatusId == 8) {
             const next = 9;
             let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-aui-radio-submit]';
-            const caseStatusChange = { casestatusId: next, Case_DESC: remark};
+            const caseStatusChange = {casestatusId: next /*, Case_DESC: remark*/};
             await db.cases.update(caseStatusChange, { where: { id: caseId } });
             const from = 8;
             let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};

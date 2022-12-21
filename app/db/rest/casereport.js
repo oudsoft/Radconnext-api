@@ -120,7 +120,7 @@ app.post('/appendlog/(:caseId)', (req, res) => {
 					if (targetCases[0].casestatusId != 5){
 						let hospitalViewResultNote = 'Hospital open and print result report';
 						let reSuccessStatusId = 5;
-						let caseStatusChange = { casestatusId: reSuccessStatusId, Case_DESC: hospitalViewResultNote};
+						let caseStatusChange = { casestatusId: reSuccessStatusId/*, Case_DESC: hospitalViewResultNote*/};
 						await Case.update(caseStatusChange, { where: { id: caseId } });
 					}
           res.json({ status: {code: 200}});
