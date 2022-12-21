@@ -37,7 +37,7 @@ const doExistUser = function(username){
 
 const doVerifyUser = function (username, password) {
   return new Promise(function(resolve, reject) {
-    doExistUser(username).then((users) => {
+    doExistUser(username).then(async(users) => {
       if (users.length > 0) {
         if (users[0].username) {
           const findUsers = await User.findAll({ where: {	username: username}});
