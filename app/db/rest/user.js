@@ -272,7 +272,7 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.get('/test/add/profile', (req, res) => {
+app.get('/test/add/profile', async (req, res) => {
   log.info(JSON.stringify(common.defaultRadioProfileV2));
   let defaultProfile = JSON.parse(JSON.stringify(defaultRadioProfileV2));
   log.info(JSON.stringify(defaultProfile));
