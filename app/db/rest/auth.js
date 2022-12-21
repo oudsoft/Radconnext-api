@@ -40,7 +40,8 @@ const doVerifyUser = function (username, password) {
     doExistUser(username).then((users) => {
       if (users.length > 0) {
         if (users[0].username) {
-          const isCorect = users[0].correctPassword(password);
+          const findUsers = await User.findAll({ where: {	username: username}});
+          const isCorect = findUsers[0].correctPassword(password);
           resolve({ result: isCorect, data: users[0] });
         } else {
           resolve({ result: false, reson: 'Invalid username or password'});
