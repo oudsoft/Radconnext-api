@@ -55,8 +55,6 @@ const usertypes = sequelize.define('usertypes', Def.RadUserTypeDef);
 
 const userstatuses = sequelize.define('userstatuses', Def.RadUserStatusDef);
 
-const userprofiles = sequelize.define('userprofiles', Def.RadUserProfileDef);
-
 const users = sequelize.define('users', Def.RadUserDef);
 
 users.generateSalt = function() {
@@ -92,9 +90,9 @@ users.belongsTo(hospitals);
 users.belongsTo(usertypes);
 users.belongsTo(userstatuses);
 users.belongsTo(userinfoes);
-//users.belongsTo(userprofiles);
 
-//users.hasMany(userprofiles);
+const userprofiles = sequelize.define('userprofiles', Def.RadUserProfileDef);
+users.hasMany(userprofiles);
 //userprofiles.belongsTo(users);
 
 const orthancs = sequelize.define('orthancs', Def.RadOrthancDef);

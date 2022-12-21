@@ -213,7 +213,7 @@
     //$(radConfirmBox.cancelCmd).hide();
   }
 
-  const doCreateStudiesTable = function(studies){
+  const doCreateStudiesTable = function(studies, socket){
     return new Promise(async function(resolve, reject) {
       const promiseList = new Promise(async function(resolve2, reject2) {
         let studyTable = $('<table width="100%" border="1" cellpadding="0" cellspacing="0"></table>');
@@ -227,7 +227,7 @@
           $(commandCell).append($(removeStudyCmd));
           $(removeStudyCmd).on('click', (evt)=>{
             let deleteCommand = "curl --user demo:demo -X DELETE http://localhost:8042/studies/" + studies[x]
-            let deleteStudyCommand = {"type": "clientrun", "hospitalId": "2", "sender": "admin", "commands": [deleteCommand]};
+            let deleteStudyCommand = {"type": "clientrun", "hospitalId": socket.hospitalId, "sender": "admin", "commands": [deleteCommand]};
             console.log(deleteStudyCommand);
             wsm.send(JSON.stringify(deleteStudyCommand));
             $(row).css({'background-color': '#ddd'});
@@ -257,7 +257,7 @@
     let radConfirmBox = $('body').radalert(radconfirmoption);
     $(radConfirmBox.cancelCmd).hide();
     radConfirmBox.okCmdLabel = ' ปิด ';
-    let studiesTable = await doCreateStudiesTable(studies);
+    let studiesTable = await doCreateStudiesTable(studies, socketData);
     $(radAlertMsg).append($(studiesTable));
   }
 

@@ -2,29 +2,17 @@ require('dotenv').config();
 const crypto = require('crypto');
 const jwt = require("jwt-simple");
 
-var db, User, Hospital, Usertype, Userstatus, Userinfo, UserProfile, log, common;
+var db, User, Hospital, Usertype, Userstatus, Userinfo, UserProfile, log;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const doExistUser = function(username){
   return new Promise(async function(resolve, reject) {
-    const userInclude = [{ model: Hospital, attributes: excludeColumn}, {model: Usertype, attributes: excludeColumn}, {model: Userstatus, attributes: excludeColumn}, {model: Userinfo, attributes: excludeColumn}/*, {model: UserProfile, attributes: excludeColumn}*/];
+    const userInclude = [{ model: Hospital, attributes: excludeColumn}, {model: Usertype, attributes: excludeColumn}, {model: Userstatus, attributes: excludeColumn}, {model: Userinfo, attributes: excludeColumn}, {model: UserProfile, attributes: excludeColumn}];
     try {
       const users = await User.findAll({ include: userInclude, attributes: excludeColumn, where: {	username: username}});
       if (users.length > 0) {
-        if (users[0].usertypeId == 4) {
-          let parseUser = JSON.parse(JSON.stringify(users[0]));
-          let userprofiles = await UserProfile.findAll({attributes: ['Profile'], where: {userId: parseUser.id}});
-          if (userprofiles.length > 0) {
-            parseUser.userprofiles = userprofiles;
-          } else {
-            parseUser.userprofiles = [{Profile: common.defaultRadioProfileV2}];
-          }
-          parseUser.correctPassword = users[0].correctPassword;
-          resolve([parseUser]);
-        } else {
-          resolve(users);
-        }
+        resolve(users);
       } else {
         resolve([{id: undefined}]);
       }
@@ -37,11 +25,10 @@ const doExistUser = function(username){
 
 const doVerifyUser = function (username, password) {
   return new Promise(function(resolve, reject) {
-    doExistUser(username).then(async(users) => {
+    doExistUser(username).then((users) => {
       if (users.length > 0) {
         if (users[0].username) {
-          const findUsers = await User.findAll({ where: {	username: username}});
-          const isCorect = findUsers[0].correctPassword(password);
+          const isCorect = users[0].correctPassword(password);
           resolve({ result: isCorect, data: users[0] });
         } else {
           resolve({ result: false, reson: 'Invalid username or password'});
@@ -142,7 +129,6 @@ const resetAdmin = async (username, newPassword) => {
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
-  common = require('./commonlib.js')(db, log);
 
   User = db.users;
   Hospital = db.hospitals;
