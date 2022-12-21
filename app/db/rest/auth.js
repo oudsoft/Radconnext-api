@@ -16,10 +16,11 @@ const doExistUser = function(username){
           let parseUser = JSON.parse(JSON.stringify(users[0]));
           let userprofiles = await UserProfile.findAll({attributes: ['Profile'], where: {userId: parseUser.id}});
           if (userprofiles.length > 0) {
-            parseUser.userprofile = userprofiles[0];
+            parseUser.userprofile = userprofiles;
           } else {
-            parseUser.userprofile = {Profile: common.defaultRadioProfileV2};
+            parseUser.userprofile = [{Profile: common.defaultRadioProfileV2}];
           }
+          resolve([parseUser]);
         } else {
           resolve(users);
         }
