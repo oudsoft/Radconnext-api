@@ -171,9 +171,9 @@ app.post('/add', (req, res) => {
                       adUser.setUserstatus(userstatuses[0]);
                       adUser.setUserinfo(adUserinfo);
                       if (usertypeId == 4){
-                        let newUserProfile = {Profile: common.defaultRadioProfileV2};
+                        let newUserProfile = {Profile: common.defaultRadioProfileV2, userId: adUser.id};
                         let adUserProfile = await db.userprofiles.create(newUserProfile);
-                        await db.userprofiles.update({userId: adUser.id}, { where: { id: adUserProfile.id } });
+                        //await db.userprofiles.update({userId: adUser.id}, { where: { id: adUserProfile.id } });
                       }
                       const yourToken = auth.doEncodeToken(newUsername);
                       res.json({status: {code: 200}, token: yourToken });
