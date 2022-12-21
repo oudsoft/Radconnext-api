@@ -8,7 +8,7 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const doExistUser = function(username){
   return new Promise(async function(resolve, reject) {
-    const userInclude = [{ model: Hospital, attributes: excludeColumn}, {model: Usertype, attributes: excludeColumn}, {model: Userstatus, attributes: excludeColumn}, {model: Userinfo, attributes: excludeColumn}, {model: UserProfile, attributes: excludeColumn}];
+    const userInclude = [{ model: Hospital, attributes: excludeColumn}, {model: Usertype, attributes: excludeColumn}, {model: Userstatus, attributes: excludeColumn}, {model: Userinfo, attributes: excludeColumn}/*, {model: UserProfile, attributes: excludeColumn}*/];
     try {
       const users = await User.findAll({ include: userInclude, attributes: excludeColumn, where: {	username: username}});
       if (users.length > 0) {
