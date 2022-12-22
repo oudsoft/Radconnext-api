@@ -508,7 +508,7 @@ const doLoadCaseUrgent = function(sumaseId) {
 					resolve([result]);
 				}
 			} else {
-				let urgents = await db.sumases.findAll({ attributes: ['UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
+				let urgents = await db.sumases.findAll({ attributes: ['UGType', 'UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
 				resolve(urgents);
 			}
 		} else {
