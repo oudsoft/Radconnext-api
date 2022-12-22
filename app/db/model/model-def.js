@@ -130,6 +130,9 @@ const RadOrthancDef = {
 		};
 
 const RadSUMasDef = {
+			UGType : {
+				type: Sequelize.STRING(20)
+			},
 			UGType_Name : {
 				type: Sequelize.STRING(80)
 			},
