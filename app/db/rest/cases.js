@@ -1165,7 +1165,7 @@ app.post('/updatecase/trigger', async (req, res) => {
   if (!userId) {
     userId = 0;
   }
-  let isChangeRadio = req.body.isChangeRadio;
+  let radioId = req.body.radioId;
   let updateData = {Case_UploadedAt: new Date()};
   let casePatientHRLink = req.body.Case_PatientHRLink;
   if (casePatientHRLink) {
@@ -1181,11 +1181,11 @@ app.post('/updatecase/trigger', async (req, res) => {
   let actionAfterChange = {};
   let nowRadioId = targetCase.Case_RadiologistId;
   if (nowCaseStatus == 1) {
-    if (isChangeRadio) {
+    if (nowRadioId != radioId) {
       actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     }
   } else if ((nowCaseStatus == 2) || (nowCaseStatus == 8)) {
-    if (isChangeRadio) {
+    if (nowRadioId != radioId) {
       actionAfterChange = await statusControl.onNewCaseEvent(caseId);
     }
   } else if ((nowCaseStatus == 3) || (nowCaseStatus == 4) || (nowCaseStatus == 7)) {

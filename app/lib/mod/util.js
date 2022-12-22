@@ -492,6 +492,7 @@ const doLoadCaseUrgent = function(sumaseId) {
 				let urgents = await db.urgenttypes.findAll({ attributes: ['UGType_Name', 'UGType_AcceptStep', 'UGType_WorkingStep'], where: {id: sumaseId}});
 				if (urgents.length > 0) {
 					let result = {
+						UGType: urgents[0].UGType,
 						UGType_Name: urgents[0].UGType_Name,
 						UGType_AcceptStep: JSON.parse(urgents[0].UGType_AcceptStep),
 						UGType_WorkingStep: JSON.parse(urgents[0].UGType_WorkingStep)
@@ -499,6 +500,7 @@ const doLoadCaseUrgent = function(sumaseId) {
 					resolve([result]);
 				} else {
 					let result = {
+						UGType: 'standard',
 						UGType_Name: 'N/A',
 						UGType_AcceptStep: {dd:0, hh: 0, mn: 0},
 						UGType_WorkingStep: {dd:0, hh: 0, mn: 0}
