@@ -149,7 +149,8 @@
 			apiNameBox = $('<span id="ApiNameBar" style="color: white;">' + settings.apiname +'</span>');
 			progressValueBox = $('<div id="ProgressValueBox">' + settings.value +'%</div>');
 			progressBox = $('<div id="ProgressBox" style="text-align: center;"></div>');
-			$(progressBox).append($(progressValueBox)).append($(apiNameBox));
+			//$(progressBox).append($(progressValueBox)).append($(apiNameBox));
+			$(progressBox).append($(apiNameBox));
 			return $(progressBox);
 		}
 
@@ -161,7 +162,7 @@
 		const init = function() {
       overlay = doCreateOverlay();
       let progressWrapperBox = doCreateProgressBox(settings.value);
-			$(progressWrapperBox).find('#ProgressValueBox').css(settings.style);
+			//$(progressWrapperBox).find('#ProgressValueBox').css(settings.style);
       $(overlay).append($(progressWrapperBox));
       return $(overlay);
     }
