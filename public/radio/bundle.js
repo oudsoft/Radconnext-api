@@ -107,11 +107,14 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
+							
+							/*
               let loaded = evt.loaded;
               let total = evt.total;
               let prog = (loaded / total) * 100;
               let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
               $('body').find('#ProgressValueBox').text(perc + '%');
+							*/
             }
           };
           xhr.upload.onprogress = function (evt) {
@@ -126,46 +129,13 @@ module.exports = function ( jq ) {
 
           let apiItem = {api: apiurl};
           console.log(apiItem);
+					/*
           let logWin = $('body').find('#LogBox');
           $(logWin).simplelog(apiItem);
-
+					*/
           resolve(res)
         }, 1000);
       }).fail(function (err) {
-        /*
-        $(progBar.handle).find('#ApiNameBar').css({'color': 'red'});
-        $(progBar.progressValueBox).css({'color': 'red'});
-        $.notify('มีข้อผิดพลาดเกิดที่ระบบฯ', 'error');
-        const userdata = JSON.parse(localStorage.getItem('userdata'));
-        const { getFomateDateTime } = require('./utilmod.js')($);
-        let dt = new Date();
-        let bugDataReport = $('<div></div>');
-        $(bugDataReport).append($('<h2 style="text-align: center;"><b>ERROR REPORT</b></h2>'));
-        if ((err.responseJSON) && (err.responseJSON.error)){
-          $(bugDataReport).append('<h3>ERROR MESSAGE : ' + err.responseJSON.error + '</h3>');
-        } else {
-          $(bugDataReport).append('<h3>ERROR MESSAGE : ' + JSON.stringify(err) + '</h3>');
-        }
-        $(bugDataReport).append($('<h3>API : ' + apiurl + '</h3>'));
-        $(bugDataReport).append($('<h3>METHOD : POST</h3>'));
-        $(bugDataReport).append($('<h3>Date-Time : ' + getFomateDateTime(dt) + '</h3>'));
-        $(bugDataReport).append($('<h5>User Data : ' + JSON.stringify(userdata) + '</h5>'));
-        let bugParams = {email: adminEmailAddress, bugreport: bugDataReport.html()};
-        doCallReportBug(bugParams).then((reportRes)=>{
-          if (reportRes.status.code == 200) {
-            $.notify('ระบบฯ ได้รวบรวมข้อผิดพลาดที่เกิดขึ้นส่งไปให้ผู้ดูแลระบบทางอีเมล์แล้ว', 'warning');
-            //มีข้อผิดพลาด กรุณาแจ้งผู้ดูแลระบบ
-          } else if (reportRes.status.code == 500) {
-            $.notify('การรายงานข้อผิดพลาดทางอีเมล์เกิดข้อผิดพลาด @API', 'error');
-          } else {
-            $.notify('การรายงานข้อผิดพลาดทางอีเมล์เกิดข้อผิดพลาด @ไม่ทราบสาเหตุ', 'error');
-          }
-          setTimeout(()=>{
-            progBar.doCloseProgress();
-            reject(err);
-          }, 2500);
-        });
-        */
         reject(err);
       });
 		});
@@ -511,7 +481,7 @@ module.exports = function ( jq ) {
 
 		orthancProxyApi,
     adminEmailAddress,
-    
+
 		/*method*/
 		arrFilterValue,
 		doTestAjaxCallApi,
@@ -651,6 +621,7 @@ module.exports = function ( jq ) {
 			apiconnector.doGetApi(url, rqParams).then((response) => {
 				resolve(response);
 			}).catch((err) => {
+				console.log(url);
 				console.log(JSON.stringify(err));
 			})
 		});
@@ -669,11 +640,13 @@ module.exports = function ( jq ) {
           xhr.onprogress = function(evt) {
             if (evt.lengthComputable) {
               // For Download
+							/*
               let loaded = evt.loaded;
               let total = evt.total;
               let prog = (loaded / total) * 100;
               let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
               $('body').find('#ProgressValueBox').text(perc + '%');
+							*/
             }
           };
           xhr.upload.onprogress = function (evt) {
@@ -687,10 +660,12 @@ module.exports = function ( jq ) {
   				progBar.doCloseProgress();
           let apiItem = {api: apiurl};
           console.log(apiItem);
+					/*
           let logWin = $('body').find('#LogBox');
 					if (logWin) {
           	$(logWin).simplelog(apiItem);
 					}
+					*/
           resolve(res)
         }, 1000);
       }).fail(function (err) {
@@ -1021,7 +996,7 @@ module.exports = function ( jq ) {
 	}
 
   const doDownloadDicom = function(studyID, dicomFilename){
-		$('body').loading('start');
+		//$('body').loading('start');
 		/*
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
@@ -1043,12 +1018,12 @@ module.exports = function ( jq ) {
 		pom.setAttribute('target', '_blank');
 		pom.setAttribute('download', dicomFilename);
 		pom.click();
-		$('body').loading('stop');
+		//$('body').loading('stop');
   }
 
 	const doDownloadLocalDicom = function(studyID, dicomFilename){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 			const dicomUrl = '/api/orthanc/download/dicom/archive';
 			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID, UsrArchiveFileName: dicomFilename});
 			//console.log(dicomStudiesRes);
@@ -1057,17 +1032,17 @@ module.exports = function ( jq ) {
 			pom.setAttribute('download', dicomFilename);
 			pom.click();
 			resolve(dicomStudiesRes.result);
-			$('body').loading('stop');
+			//$('body').loading('stop');
 		});
 	}
 
 	const doDeleteLocalDicom = function(studyID){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 			const dicomUrl = '/api/orthanc/delete/study';
 			let dicomStudiesRes = await doCallLocalApi(dicomUrl, {StudyID: studyID});
 			resolve(dicomStudiesRes.result);
-			$('body').loading('stop');
+			//$('body').loading('stop');
 		});
 	}
 
@@ -3508,7 +3483,7 @@ module.exports = function ( jq, wsm, wsl) {
 				if ((wsl.clientSocketState.connected) && (data.data.orthancCount == 0)) {
 					setTimeout(()=>{
 						let ms = 5;
-						let callUrl = '/api/client/api/connect/cloud/reconnect';
+						let callUrl = '/api/client/api/connect/cloud/close';
 						let params = {};
 						$.get(callUrl, params).then((response) => {
 							console.log(response);
@@ -4223,7 +4198,7 @@ $( document ).ready(function() {
               let eventData = data.caseData;
               eventData.startDownload = 1;
               onOpenCaseTrigger(eventData);
-              $('body').loading('stop');
+              //$('body').loading('stop');
             } else {
     					$.notify('เกิดข้อผิดพลาด ไม่สามารถอัพเดทสถานะเคสได้ในขณะนี้', 'error');
     				}
@@ -4257,7 +4232,7 @@ $( document ).ready(function() {
               let eventData = data.caseData;
               eventData.startDownload = 0;
               onOpenCaseTrigger(eventData);
-              $('body').loading('stop');
+              //$('body').loading('stop');
             }
           });
         } else {
@@ -4344,8 +4319,9 @@ function doLoadMainPage(){
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
-  $('body').loading({overlay: $("#overlay"), stoppable: true});
+  //$('body').loading({overlay: $("#overlay"), stoppable: true});
 
+  /*
 	$('body').on('loading.start', function(event, loadingObj) {
 	  //console.log('=== loading show ===');
 	});
@@ -4353,7 +4329,8 @@ function doLoadMainPage(){
 	$('body').on('loading.stop', function(event, loadingObj) {
 	  //console.log('=== loading hide ===');
 	});
-
+  */
+  
   document.addEventListener("triggercounter", welcome.onCaseChangeStatusTrigger);
   //document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
   document.addEventListener("callzoominterrupt", welcome.doInterruptWebRTCCallEvt);
@@ -4448,7 +4425,7 @@ function doLoadMainPage(){
         });
       });
       $(document).on('opensearchcase', async (evt, data)=>{
-        $('body').loading('start');
+        //$('body').loading('start');
         let yesterDayFormat = util.getYesterdayDevFormat();
         let toDayFormat = util.getTodayDevFormat();
         let defaultSearchKey = {fromDateKeyValue: yesterDayFormat, toDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
@@ -4480,7 +4457,7 @@ function doLoadMainPage(){
                   $(".mainfull").empty().append('<h3>ระบบค้นหาเคสขัดข้อง โปรดแจ้งผู้ดูแลระบบ</h3>');
                 }
                 util.doResetPingCounter();
-                $('body').loading('stop');
+                //$('body').loading('stop');
               });
             } else {
               common.doUserLogout(util.wsm);
@@ -4489,7 +4466,7 @@ function doLoadMainPage(){
             $(".mainfull").empty().append('<h3>ระบบค้นหาเคสขัดข้อง โปรดแจ้งผู้ดูแลระบบ</h3>');
           }
           util.doResetPingCounter();
-          $('body').loading('stop');
+          //$('body').loading('stop');
         });
         util.doResetPingCounter();
       });
@@ -4695,7 +4672,7 @@ function doLoadDefualtPage(autoSelectPage) {
         }
       }
     }
-    $('body').loading('stop');
+    //$('body').loading('stop');
   }).catch(async (err)=>{
     if (err.error.code == 210){
       let rememberme = localStorage.getItem('rememberme');
@@ -4705,7 +4682,7 @@ function doLoadDefualtPage(autoSelectPage) {
         localStorage.setItem('userdata', JSON.stringify(newUserData.data));
         welcome.doSetupCounter().then((loadRes)=>{
           $(".mainfull").empty();
-          $('body').loading('stop');
+          //$('body').loading('stop');
         });
       } else {
         common.doUserLogout(util.wsm);
@@ -4924,7 +4901,7 @@ function doAutoAcceptCase(autoSelectPage){
           doLoadDefualtPage(autoSelectPage);
         }
       }
-      $('body').loading('stop');
+      //$('body').loading('stop');
     });
   } else {
     doLoadDefualtPage(autoSelectPage);
@@ -5244,7 +5221,7 @@ module.exports = function ( jq ) {
 
   const doCreateAccCasePage = function() {
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+      //$('body').loading('start');
       let myAccCase = await doCallMyAccCase();
 			let myTaksCase = await doCallMyTasksCase();
 			if (myAccCase.status.code == 200){
@@ -5270,7 +5247,7 @@ module.exports = function ( jq ) {
 					$('#AcceptedCaseCmd').find('.NavRowTextCell').find('.case-counter').hide();
 	      }
 	      resolve($(myAccCaseView));
-	      $('body').loading('stop');
+	      //$('body').loading('stop');
 			} else if (myAccCase.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 			} else {
@@ -5646,7 +5623,7 @@ module.exports = function ( jq ) {
       onOk: function(evt) {
         let newPassword = doVerifyNewPassword();
         if ((newPassword) && (newPassword !== '')) {
-          $('body').loading('start');
+          //$('body').loading('start');
           changePwdDlgBox.closeAlert();
           let userdata = JSON.parse(localStorage.getItem('userdata'));
           let userId = userdata.id;
@@ -5654,7 +5631,7 @@ module.exports = function ( jq ) {
           console.log(reqParams);
           $.post('/api/users/resetpassword', reqParams).then((response) => {
             console.log(response);
-            $('body').loading('stop');
+            //$('body').loading('stop');
             if (response) {
               $.notify('เปลี่ยน Password สำเร็จ', 'success');
             } else {
@@ -6060,7 +6037,7 @@ module.exports = function ( jq ) {
   }
 
 	const doUpdateReadyState = async function(state) {
-		$('body').loading('start');
+		//$('body').loading('start');
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		userdata.userprofiles[0].Profile.readyState = state;
 		userdata.userprofiles[0].Profile.readyBy = 'user';
@@ -6076,10 +6053,10 @@ module.exports = function ( jq ) {
 		}
 		if (profileRes.status.code == 200){
 			$.notify(onoffText + "รับงาน - Sucess", "success");
-			$('body').loading('stop');
+			//$('body').loading('stop');
 		} else {
 			$.notify('ไม่สามารถ' + onoffText + 'รับงาน - Error โปรดติดต่อผู้ดูแลระบบ', 'error');
-			$('body').loading('stop');
+			//$('body').loading('stop');
 		}
 	}
 
@@ -6493,7 +6470,7 @@ module.exports = function ( jq ) {
 
   const doCreateNewCasePage = function() {
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+      //$('body').loading('start');
       let myNewCase = await doCallMyNewCase();
 			let myTasks = await doCallMyTasksCase();
 			//console.log(myTasks);
@@ -6551,7 +6528,7 @@ module.exports = function ( jq ) {
 					$('#NewCaseCmd').find('.NavRowTextCell').find('.case-counter').hide();
 				}
 
-	      $('body').loading('stop');
+	      //$('body').loading('stop');
 	      resolve($(myCaseViewBox));
 			} else if (myNewCase.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
@@ -6635,14 +6612,14 @@ module.exports = function ( jq ) {
 	}
 
 	const doLoadSearchConsult = function(){
-		$('body').loading('start');
+		//$('body').loading('start');
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		let toDayFormat = util.getTodayDevFormat();
 
 		let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', caseStatusKeyValue: 6};
 		let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
 		common.doCallApi('/api/consult/search/key', defaultSearchParam).then(async(response)=>{
-			$('body').loading('stop');
+			//$('body').loading('stop');
 			if (response.status.code === 200) {
 				let searchResultViewDiv = $('<div id="SearchResultView"></div>');
 				$(".mainfull").append($(searchResultViewDiv));
@@ -6655,7 +6632,7 @@ module.exports = function ( jq ) {
 
 	const doShowSearchConsultCallback = function(response){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
 		  let userItemPerPage = userDefualtSetting.itemperpage;
 
@@ -6681,7 +6658,7 @@ module.exports = function ( jq ) {
 					totalItem: allCaseRecords.length,
 					styleClass : {'padding': '4px', "font-family": "THSarabunNew", "font-size": "20px"},
 					changeToPageCallback: async function(page){
-						$('body').loading('start');
+						//$('body').loading('start');
 						let toItemShow = 0;
 						if (page.toItem == 0) {
 							toItemShow = allCaseRecords.length;
@@ -6691,13 +6668,13 @@ module.exports = function ( jq ) {
 						showCases = await common.doExtractList(allCaseRecords, page.fromItem, toItemShow);
 						consultView = await doShowConsultView(showCases, response.key, doShowSearchConsultCallback);
 						$(".mainfull").find('#SearchResultView').empty().append($(consultView));
-						$('body').loading('stop');
+						//$('body').loading('stop');
 					}
 				};
 				let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
 				navigatoePage.toPage(1);
 			}
-			$('body').loading('stop');
+			//$('body').loading('stop');
 			resolve();
 		});
 	}
@@ -6827,7 +6804,7 @@ module.exports = function ( jq ) {
 				}
 			}
 			if (searchKey) {
-				$('body').loading('start');
+				//$('body').loading('start');
 				let userdata = JSON.parse(localStorage.getItem('userdata'));
 				let hospitalId = userdata.hospitalId;
 				let userId = userdata.id;
@@ -6842,7 +6819,7 @@ module.exports = function ( jq ) {
 
 				await doShowSearchConsultCallback(response);
 
-				$('body').loading('stop');
+				//$('body').loading('stop');
 
 			}
 		});
@@ -7310,8 +7287,11 @@ module.exports = function ( jq ) {
 					let causeValue = $(causeOption).val();
 					let otherValue = $(inputValue).val();
 					const userdata = JSON.parse(localStorage.getItem('userdata'));
+					/*
 					let main = require('../main.js');
 					let myWsm = main.doGetWsm();
+					*/
+					let myWsm = util.wsm;
 					let sendto = ownerCaseUser.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
@@ -7330,7 +7310,7 @@ module.exports = function ( jq ) {
 	}
 
   const onTemplateSelectorChange = async function(evt) {
-		$('body').loading('start');
+		//$('body').loading('start');
 		let yourResponse = $('#SimpleEditor').val();
 		let templateId = $(evt.currentTarget).val();
 		if ((templateId) && (templateId > 0)){
@@ -7353,7 +7333,7 @@ module.exports = function ( jq ) {
 				$.notify('ระบบฯ ไม่พบรายการ Template ของคุณ', 'warn');
 			}
 		}
-		$('body').loading('stop');
+		//$('body').loading('stop');
   }
 
 	const onCreateNewResponseCmdClick = async function(evt) {
@@ -7571,7 +7551,7 @@ module.exports = function ( jq ) {
 
 	const doSubmitResult = function(responseType, reportType, saveResponseData){
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 	    const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let caseId = saveResponseData.caseId
 			let userId = userdata.id;
@@ -7592,7 +7572,7 @@ module.exports = function ( jq ) {
 
 			if ((saveResponseRes.status.code == 200) || (saveResponseRes.status.code == 203)){
 				$.notify("ส่งผลอ่านเข้า cloud สำเร็จ", "success");
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				$('#quickreply').empty();
 				$('#quickreply').removeAttr('style');
 				$("#dialog").empty();
@@ -7616,7 +7596,7 @@ module.exports = function ( jq ) {
 			} else {
 				$.notify("ไม่สามารถส่งผลอ่าน - Error โปรดติดต่อผู้ดูแลระบบ", "error");
 				doReportBugOpenCase({params: params, url: '/api/uicommon/radio/submitresult'}, 'ไม่พบหมายเลขเคสของคุณ');
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				reject({errer: 'Submit Case Result Error'});
 			}
 		});
@@ -7660,7 +7640,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let responseHTML = $('#SimpleEditor').val();
 			if (responseHTML !== '') {
-				$('body').loading('start');
+				//$('body').loading('start');
 				const saveDraftResponseCmd = $(evt.currentTarget);
 		    const saveDraftResponseData = $(saveDraftResponseCmd).data('saveDraftResponseData');
 				let draftResponseRes = await doSaveDraft(saveDraftResponseData);
@@ -7672,10 +7652,10 @@ module.exports = function ( jq ) {
 						$.notify("เกิดความผิดพลาด Case Response API", "error");
 					}
 					$.notify("บันทึก Draft สำเร็จ", "success");
-					$('body').loading('stop');
+					//$('body').loading('stop');
 				} else {
 					$.notify("ไม่สามารถบันทึก Draft - Error โปรดติดต่อผู้ดูแลระบบ", "error");
-					$('body').loading('stop');
+					//$('body').loading('stop');
 				}
 				doResetPingCounterOnOpenCase();
 				resolve(draftResponseRes);
@@ -8500,9 +8480,9 @@ module.exports = function ( jq ) {
 			msg: $(radAlertMsg),
 			width: '420px',
 			onOk: function(evt) {
-				$('body').loading('start');
+				//$('body').loading('start');
 				$(summary).find('#SimpleEditor').jqteVal(cacheContent);
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				radConfirmBox.closeAlert();
 			},
 			onCancel: function(evt){
@@ -8899,7 +8879,7 @@ module.exports = function ( jq ) {
 			} else {
 				$.notify('การรายงานข้อผิดพลาดทางอีเมล์เกิดข้อผิดพลาด @ไม่ทราบสาเหตุ', 'error');
 			}
-			$('body').loading('stop');
+			//$('body').loading('stop');
 		});
 	}
 
@@ -8928,8 +8908,11 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounterOnOpenCase = function() {
+		/*
 		let main = require('../main.js');
 		let myWsm = main.doGetWsm();
+		*/
+		let myWsm = util.wsm;
 		if (myWsm) {
 			myWsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
 		}
@@ -8973,7 +8956,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
 /*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9407,7 +9390,7 @@ module.exports = function ( jq ) {
 
   const doCreateProfilePage = function(){
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+      //$('body').loading('start');
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let myProfileRes = await doCallMyProfile(userdata.id);
 			if (myProfileRes.status.code == 200){
@@ -9498,7 +9481,7 @@ module.exports = function ( jq ) {
 
 	      $(myProfilePage).append($(profileTable));
 	      resolve($(myProfilePage));
-	      $('body').loading('stop');
+	      //$('body').loading('stop');
 			} else if (myProfileRes.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 			} else {
@@ -9656,7 +9639,7 @@ module.exports = function ( jq ) {
 
 	const doCallSaveMyProfile = function(profileData){
     return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let radioId = userdata.id;
 			let rqParams = undefined;
@@ -9688,11 +9671,11 @@ module.exports = function ( jq ) {
         } else {
           $.notify("บันทึกการคั้งค่าไม่สำเร็จ", "error");
         }
-        $('body').loading('stop');
+        //$('body').loading('stop');
         resolve(response);
 			} catch(e) {
         $.notify("มีความผิดพลาดขณะบันทึกการคั้งค่า", "error");
-        $('body').loading('stop');
+        //$('body').loading('stop');
 	      reject(e);
     	}
 		});
@@ -9982,7 +9965,7 @@ module.exports = function ( jq ) {
         }
       }
       if (searchKey) {
-        $('body').loading('start');
+        //$('body').loading('start');
 				const userdata = JSON.parse(localStorage.getItem('userdata'));
         let hospitalId = userdata.hospitalId;
         let userId = userdata.id;
@@ -9997,7 +9980,7 @@ module.exports = function ( jq ) {
 
         await searchResultCallback(response);
 
-        $('body').loading('stop');
+        //$('body').loading('stop');
 
       }
     });
@@ -10151,7 +10134,7 @@ module.exports = function ( jq ) {
         - มากกว่า 0 ให้แสดง Navigator
         - เท่ากับ 0 ให้แสดงข้อความ ไม่พบรายการที่ค้นหา
       */
-      $('body').loading('start');
+      //$('body').loading('start');
 
 			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
 
@@ -10184,7 +10167,7 @@ module.exports = function ( jq ) {
           totalItem: allCaseRecords.length,
           styleClass : {'padding': '4px'/*, "font-family": "THSarabunNew", "font-size": "20px"*/},
           changeToPageCallback: async function(page){
-            $('body').loading('start');
+            //$('body').loading('start');
             let toItemShow = 0;
             if (page.toItem == 0) {
               toItemShow = allCaseRecords.length;
@@ -10194,13 +10177,13 @@ module.exports = function ( jq ) {
             showCases = await common.doExtractList(allCaseRecords, page.fromItem, toItemShow);
             caseView = await doShowCaseView(showCases, response.key, doShowSearchResultCallback);
             $(".mainfull").find('#SearchResultView').empty().append($(caseView));
-            $('body').loading('stop');
+            //$('body').loading('stop');
           }
         };
         let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
         navigatoePage.toPage(1);
       }
-      $('body').loading('stop');
+      //$('body').loading('stop');
       resolve();
     });
   }
@@ -10949,7 +10932,7 @@ module.exports = function ( jq ) {
 
   const doCreateTemplatePage = function(){
     return new Promise(async function(resolve, reject) {
-      $('body').loading('start');
+      //$('body').loading('start');
       let myTemplatePage = $('<div style="width: 100%;"></div>');
       let myTemplate = await doCallMyTemplate();
 			//console.log(myTemplate);
@@ -10959,7 +10942,7 @@ module.exports = function ( jq ) {
 				$(myTemplatePage).append($(addNewTemplateBox));
 				$(myTemplatePage).append($(myTemplateView));
 				resolve($(myTemplatePage));
-	      $('body').loading('stop');
+	      //$('body').loading('stop');
 			} else if (myTemplate.status.code == 210){
 				reject({error: {code: 210, cause: 'Token Expired!'}});
 			} else {
@@ -11322,7 +11305,7 @@ module.exports = function ( jq ) {
 
 	const doSetupCounter = function() {
 		return new Promise(async function(resolve, reject) {
-			$('body').loading('start');
+			//$('body').loading('start');
 			const userdata = JSON.parse(localStorage.getItem('userdata'));
 			let userId = userdata.id;
 			doLoadCaseForSetupCounter(userId).then(async (myList)=>{
@@ -11347,7 +11330,7 @@ module.exports = function ( jq ) {
 				});
 				//localStorage.setItem('dicomzipsync', JSON.stringify(dicomzipsync));
 				caseCounter.doShowCaseCounter(newstatusCases, accstatusCases, newConsult);
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				resolve(myList);
 			}).catch((err)=>{
 				reject(err);
@@ -11358,7 +11341,7 @@ module.exports = function ( jq ) {
 
 	/** Zoom Calle Event **/
 	const doInterruptZoomCallEvt = function(evt) {
-		$('body').loading('start');
+		//$('body').loading('start');
 		const main = require('../main.js');
 		let myWsm = main.doGetWsm();
 
@@ -11377,13 +11360,13 @@ module.exports = function ( jq ) {
 				//Say yes back to caller
 				let callZoomMsg = {type: 'callzoomback', sendTo: callData.sender, result: 1};
 				myWsm.send(JSON.stringify(callZoomMsg));
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				radConfirmBox.closeAlert();
 			},
 			onCancel: function(evt){
 				let callZoomMsg = {type: 'callzoomback', sendTo: callData.sender, result: 0};
 				myWsm.send(JSON.stringify(callZoomMsg));
-				$('body').loading('stop');
+				//$('body').loading('stop');
 				radConfirmBox.closeAlert();
 			}
 		}
@@ -11393,7 +11376,7 @@ module.exports = function ( jq ) {
 	let dlgContent = undefined;
 
 	const doInterruptWebRTCCallEvt = function(evt){
-		$('body').loading('start');
+		//$('body').loading('start');
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		const main = require('../main.js');
 		const wsm = main.doGetWsm();
@@ -11537,11 +11520,11 @@ module.exports = function ( jq ) {
 
 				setTimeout(() => {
 					wrtcCommon.doCreateOffer(wsm);
-					$('body').loading('stop');
+					//$('body').loading('stop');
 				}, 7500);
 			} else {
 				$.notify('เว็บบราวเซอร์ของคุณไม่รองรับการใช้งานฟังก์ชั่นนี้', 'error');
-				$('body').loading('stop');
+				//$('body').loading('stop');
 			}
 		});
 	}
