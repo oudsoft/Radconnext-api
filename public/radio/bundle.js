@@ -7062,24 +7062,27 @@ module.exports = function ( jq ) {
 		let downloadCmd = $(evt.currentTarget);
 		let oldLabel = $(downloadCmd).val();
 		$(downloadCmd).prop('disabled', true);
-		window.fetch(dicomZipLink, {method: 'GET'}).then(async (response) => {
-			let reader = response.body.getReader();
-			let contentLength = response.headers.get('Content-Length');
-			let receivedLength = 0;
-			let chunks = [];
-			while(true) {
-  			let {done, value} = await reader.read();
-			  if (done) {
-			    break;
-			  }
-				chunks.push(value);
-			  receivedLength += value.length;
-				let prog = (receivedLength / contentLength) * 100;
-				let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-				$(downloadCmd).val(oldLabel + '(' + perc + '%)');
-			}
-			let blob = new Blob(chunks);
-			return blob;
+		window.fetch(dicomZipLink, {method: 'GET'}).then((response) => {
+			return new Promise(async function(resolve, reject) {
+				let reader = response.body.getReader();
+				let contentLength = response.headers.get('Content-Length');
+				let receivedLength = 0;
+				let chunks = [];
+				while(true) {
+	  			let {done, value} = await reader.read();
+				  if (done) {
+				    break;
+				  }
+					chunks.push(value);
+				  receivedLength += value.length;
+					let prog = (receivedLength / contentLength) * 100;
+					let perc = prog.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+					$(downloadCmd).val(oldLabel + '(' + perc + '%)');
+				}
+				let blob = new Blob(chunks);
+				//return blob;
+				resolve(blob)
+			});
 		}).then((blob) => {
 			let url = window.URL.createObjectURL(blob);
 			let pom = document.createElement('a');
