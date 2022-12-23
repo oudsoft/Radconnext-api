@@ -4317,11 +4317,12 @@ function doLoadMainPage(){
   $('head').append('<script src="' + sipPhonePlugin + '"></script>');
 
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
+  
+  /*
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
-  //$('body').loading({overlay: $("#overlay"), stoppable: true});
+  $('body').loading({overlay: $("#overlay"), stoppable: true});
 
-  /*
 	$('body').on('loading.start', function(event, loadingObj) {
 	  //console.log('=== loading show ===');
 	});
@@ -4330,7 +4331,7 @@ function doLoadMainPage(){
 	  //console.log('=== loading hide ===');
 	});
   */
-  
+
   document.addEventListener("triggercounter", welcome.onCaseChangeStatusTrigger);
   //document.addEventListener("callzoominterrupt", welcome.doInterruptZoomCallEvt);
   document.addEventListener("callzoominterrupt", welcome.doInterruptWebRTCCallEvt);
