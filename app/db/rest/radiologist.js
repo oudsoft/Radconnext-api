@@ -287,7 +287,7 @@ app.post('/state/current', (req, res) => {
       if (ur.length > 0){
         try {
           const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
-          const radioUsers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {usertypeId: 4}, order: [['id', 'ASC']]});
+          const radioUsers = await db.users.findAll({ attributes: excludeColumn, include: userInclude, where: {usertypeId: 4, userstatusId: 1}, order: [['id', 'ASC']]});
           let currentStates = [];
           const promiseList = new Promise(async function(resolve, reject) {
             await radioUsers.forEach(async (radio, i) => {
