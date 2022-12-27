@@ -68,7 +68,7 @@
       let factor = (1 - Number(z));
       settings.cropWidth = Number(w) - (factor*Number(w));
       settings.cropHeight = Number(h) - (factor*Number(h));
-      console.log(settings);
+      //console.log(settings);
 
       let cropCanvas = $('<canvas id="CropCanvas"></canvas>').css({'display': 'none'});
       $this.append($(cropCanvas));
@@ -376,6 +376,28 @@
       $(imageSrcBox).append($(imageSrc)).append($(layoutBox));
       //$(imageSrc).css({'transform': 'scale('+ settings.scale + ')', 'top': '0px'});
       //$this.append($(imageSrcBox));
+
+      $(imageSrc).on('keypress',function(evt) {
+        evt.stopPropagation();
+        if(evt.which == 43) { // <== + key
+
+        } else if(evt.which == 45) { // <== - key
+          $(imageSrcBox).css({'border': '1px grey solid'});
+          let ww = imageSrc.width;
+          let hh = imageSrc.height;
+          console.log(ww, hh);
+          let newWW = (0.95) * imgSrcFullSizeWidth;
+          let newHH = (0.95) * imgSrcFullSizeHeight;
+          console.log(newWW, newHH);
+          let dumpCanvas = document.createElement("canvas");
+          let dumpCtx = dumpCanvas.getContext("2d");
+          dumpCtx.drawImage(imageSrc, 0, 0, imgSrcFullSizeWidth, imgSrcFullSizeHeight, 0, 0, newWW, newHH);
+          let dataUrl = dumpCanvas.toDataURL("image/png", 1.0);
+          imageSrc.src = dataUrl;
+          //imgSrcFullSizeWidth = ww;
+          //imgSrcFullSizeHeight = ww;
+        }
+      });
       $('body').append($(imageSrcBox));
       $('body').css({'width': '100%', 'heigth': '100%'});
       return $(imageSrcBox);
@@ -385,6 +407,7 @@
       let srcImg = new Image();
       srcImg.id = 'ImageSrc'
       srcImg.src = imageUrl;
+      srcImg.tabIndex = 1;
       srcImg.onload = function(x) {
         imgSrcFullSizeWidth = srcImg.width;
         imgSrcFullSizeHeight = srcImg.height;

@@ -47,7 +47,7 @@
   document.onpaste = function(pasteEvent) {
     //console.log(pasteEvent);
     let item = pasteEvent.clipboardData.items[0];
-    //console.log(item);
+    console.log(item);
     if (item.type.indexOf("image") === 0) {
       let blob = item.getAsFile();
       let reader = new FileReader();

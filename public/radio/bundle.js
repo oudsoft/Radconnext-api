@@ -3078,14 +3078,14 @@ module.exports = function ( jq ) {
 			if (!(data.clientSocketState.connected)) {
 				let ms = 60;
 				setTimeout(()=>{
-					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let callUrl = '/api/client/api/connect/cloud/close';
 					let params = {};
 					$.get(callUrl, params).then((response) => {
 						console.log(response);
 						clientSocketLastCounterPing = 0;
 					});
 				}, (ms*1000));
-				doCreateWebSocketRetry(ms)
+				//doCreateWebSocketRetry(ms)
 			}
 			console.log(clientSocketLastCounterPing);
 			console.log(data.clientSocketState.counterping);
@@ -3094,14 +3094,14 @@ module.exports = function ( jq ) {
 			} else {
 				let ms = 60;
 				setTimeout(()=>{
-					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let callUrl = '/api/client/api/connect/cloud/close';
 					let params = {};
 					$.get(callUrl, params).then((response) => {
 						console.log(response);
 						clientSocketLastCounterPing = 0;
 					});
 				}, (ms*1000));
-				doCreateWebSocketRetry(ms)
+				//doCreateWebSocketRetry(ms)
 			}
 
 		} else if (data.type == 'result') {
@@ -7049,7 +7049,6 @@ module.exports = function ( jq ) {
 	const doDownloadDicom = function(evt, caseDicomZipFilename) {
 		evt.preventDefault();
 		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
-		/*
 		let pom = document.createElement('a');
 		document.body.appendChild(pom);
 		pom.setAttribute('target', "_blank");
@@ -7057,8 +7056,13 @@ module.exports = function ( jq ) {
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
 		document.body.removeChild(pom);
-		*/
+		common.downloadDicomList.push(caseDicomZipFilename);
+		return common.downloadDicomList;
+	}
 
+	const doDownloadDicomShowProg = function(evt, caseDicomZipFilename) {
+		evt.preventDefault();
+		let dicomZipLink = '/img/usr/zip/' + caseDicomZipFilename;
 		let downloadCmd = $(evt.currentTarget);
 		let oldLabel = $(downloadCmd).val();
 		$(downloadCmd).prop('disabled', true);
@@ -7095,7 +7099,6 @@ module.exports = function ( jq ) {
 			$(downloadCmd).prop('disabled', false);
 			doResetPingCounterOnOpenCase();
 		});
-
 
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
