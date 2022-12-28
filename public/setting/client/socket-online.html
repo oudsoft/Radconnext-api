@@ -114,28 +114,15 @@
           $(itemRow).append($('<td align="center">' + sockets[i].state + '</td>'));
           let cmdCol = $('<td align="center"></td>');
           $(itemRow).append($(cmdCol));
-          if (sockets[i].id !== 'orthanc'){
-            let yourOrthancSockets = await sockets.filter((item)=>{
-              if ((item.id == 'orthanc') && (item.hospitalId == sockets[i].hospitalId)){
-                return item;
-              }
+          if (sockets[i].id !== 'orthanc'){      
+            let clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
+            $(clientReConnectCmd).on('click', async (evt)=>{
+              let reconnRes = await doReConnectSocket(sockets[i].id);
+              console.log(reconnRes);
             });
+            $(cmdCol).append($(clientReConnectCmd));
 
-            let clientReConnectCmd = undefined;
-
-            if (yourOrthancSockets.length > 0){
-              clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
-              $(clientReConnectCmd).on('click', async (evt)=>{
-                let reconnRes = await doReConnectSocket(sockets[i].id);
-                console.log(reconnRes);
-              });
-              $(cmdCol).append($(clientReConnectCmd));
-
-            } else {
-              //$(cmdCol).append($('<span></span>'));
-            }
             if (sockets[i].hospitalId != 1) {
-
               let sendDataCmd = $('<input type="button" value="Send Data"/>');
               $(sendDataCmd).on('click', async (evt)=>{
                 //let titleJSON = {type: 'web', from: 'admin', to: '"' + sockets[i].id + '"', data: {'"..."': '"..."'}};
