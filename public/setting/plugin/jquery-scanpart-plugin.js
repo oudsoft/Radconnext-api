@@ -293,6 +293,8 @@
 
           if (!haveList) {
             $this.selectedMainJson.push(targetItem.foundItem);
+          } else if (haveList.Code === '44140') {
+            $this.selectedMainJson.push(targetItem.foundItem);
           }
 
           doRemoveItemFromMainAt(targetItem.foundIndex);

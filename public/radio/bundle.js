@@ -7294,11 +7294,11 @@ module.exports = function ( jq ) {
 					let causeValue = $(causeOption).val();
 					let otherValue = $(inputValue).val();
 					const userdata = JSON.parse(localStorage.getItem('userdata'));
-					/*
+
 					let main = require('../main.js');
 					let myWsm = main.doGetWsm();
-					*/
-					let myWsm = util.wsm;
+					
+					//let myWsm = util.wsm;
 					let sendto = ownerCaseUser.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
@@ -8963,7 +8963,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":1,"../../case/mod/commonlib.js":2,"../../case/mod/utilmod.js":7,"../main.js":11,"./ai-lib.js":13,"./chatmanager.js":15,"./templatelib.js":21}],19:[function(require,module,exports){
 /*profilelibV2.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
