@@ -479,9 +479,11 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
         if (radioProfile.phoneRetry.noactioncasestatus == 3) { /* caseStatusId=3 = Reject Case */
 
           const doCallClearVoipTask = async function(){
+            /*
             nowcaseStatus = await db.cases.findAll({ attributes: ['casestatusId'], where: {id: caseId}});
             log.info('VoIp Task nowcaseStatus After Call => ' + JSON.stringify(nowcaseStatus));
             if (nowcaseStatus[0].casestatusId === baseCaseStatusId) {
+            */
               let callDeposRes = await doRequestCallDeposition(newTask.transactionId, newTask.msisdn, newTask.callFile);
               log.info('callDeposRes=>' + JSON.stringify(callDeposRes));
               let deposResult = JSON.parse(callDeposRes.res.body);
@@ -496,9 +498,11 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
               } else {
                 await tasks.removeTaskByCaseId(caseId);
               }
+            /*
             } else {
               await tasks.removeTaskByCaseId(caseId);
             }
+            */
           }
 
           let callDelaySecond = undefined;
@@ -524,8 +528,6 @@ const doCreateTaskVoip = function(tasks, caseId, userProfile, radioProfile, trig
             }
           }
 
-        } else {
-          //await tasks.removeTaskByCaseId(caseId);
         }
       }
     });

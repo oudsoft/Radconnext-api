@@ -8717,15 +8717,33 @@ module.exports = function ( jq ) {
 		$(downloadDicomZipCmd).val(' DL/Open ');
 		$(downloadDicomZipCmd).removeClass('action-btn');
 		$(downloadDicomZipCmd).addClass('special-action-btn');
+		let downloadData = $(downloadDicomZipCmd).data('downloadData');
+		let dicomzipfilename = downloadData.dicomzipfilename;
+
 		$(downloadDicomZipCmd).on('click', async (evt)=>{
 			if (evt.ctrlKey) {
 				// Ctrl Click start open third party dicom view
-				onOpenThirdPartyCmdClick();
+				//onOpenThirdPartyCmdClick();
+
+				let foundItem = await common.downloadDicomList.find((item, i) =>{
+					if (item === dicomzipfilename) {
+						return item;
+					}
+				});
+				if ((foundItem) && (foundItem === dicomzipfilename)) {
+					let msgDiv = $('<p></p>').text(dicomzipfilename + ' completed.')
+					let msgBox = doCreateCustomNotify('ประวัติการดาวน์โหลด', msgDiv, ()=>{
+						onOpenThirdPartyCmdClick();
+					});
+					$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
+				} else {
+					//let dwnList = doDownloadDicom(evt, downloadData.dicomzipfilename);
+					let dwnRes = await doStartAutoDownloadDicom(dicomzipfilename);
+				}
+
 			} else {
 				//normal click normal download
 				//dwnRes = await onDownloadCmdClick(downloadDicomZipCmd);
-				let downloadData = $(downloadDicomZipCmd).data('downloadData');
-				let dicomzipfilename = downloadData.dicomzipfilename;
 				let downloadList = doDownloadDicom(evt, dicomzipfilename);
 			}
 		});
