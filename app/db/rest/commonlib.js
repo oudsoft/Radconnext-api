@@ -777,10 +777,10 @@ const doSelectCaseById = function(caseId){
         }
         const refUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.Case_RefferalId}});
         const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
-        const referData = {id: refes[0].id, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH, username: refUser[0].username};
-        const ownerUser = await db.users.findAll({ attributes: ['username', 'userinfoId'], where: {id: item.userId}});
-        const owners = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: ownerUser[0].userinfoId}});
-        const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, username: ownerUser[0].username};
+        const referData = {id: refes[0].id, User_NameTH: refes[0].User_NameTH, User_LastNameTH: refes[0].User_LastNameTH, User_Phone: refes[0].User_Phone, User_Mail: refes[0].User_Mail, username: refUser[0].username};
+        const ownerUser = await db.users.findAll({ attributes: ['id', 'username', 'userinfoId', 'usertypeId'], where: {id: item.userId}});
+        const owners = await db.userinfoes.findAll({where: {id: ownerUser[0].userinfoId}});
+        const ownerData = {id: owners[0].id, User_NameTH: owners[0].User_NameTH, User_LastNameTH: owners[0].User_LastNameTH, User_Phone: owners[0].User_Phone, User_Mail: owners[0].User_Mail, username: ownerUser[0].username};
         const studyTags = await db.dicomtransferlogs.findAll({ attributes: ['StudyTags'], where: {ResourceID: item.Case_OrthancStudyID}});
         const urgents = await uti.doLoadCaseUrgent(item.sumaseId);
         const newItem = JSON.parse(JSON.stringify(item));

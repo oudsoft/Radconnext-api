@@ -4317,7 +4317,7 @@ function doLoadMainPage(){
   $('head').append('<script src="' + sipPhonePlugin + '"></script>');
 
   $('head').append('<link rel="stylesheet" href="../case/css/scanpart.css" type="text/css" />');
-  
+
   /*
   $('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
@@ -4602,6 +4602,7 @@ const onOpenCaseTrigger = function(caseData) {
       let url = window.URL.createObjectURL(blob);
       $(opencaseTitlePage).find('img').attr('src', url);
       $("#TitleContent").append($(opencaseTitlePage));
+      common.downloadDicomList = [];
     });
 
   }).catch(async (err)=>{
@@ -7250,17 +7251,20 @@ module.exports = function ( jq ) {
 	const onMisstakeCaseNotifyCmdClick = function(evt){
 		let misstakeCaseData = $(evt.currentTarget).data('misstakeCaseData');
 		console.log(misstakeCaseData);
-		let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
-    common.doGetApi(getUserInfoUrl, {}).then(async(response)=>{
-			console.log(response.Record);
-      let ownerCaseInfo = response.Record.info;
-			let ownerCaseUser = response.Record.user;
+		//let getUserInfoUrl = '/api/user/' + misstakeCaseData.userId;
+    //common.doGetApi(getUserInfoUrl, {}).then(async(response)=>{
+			//console.log(response.Record);
+      //let ownerCaseInfo = response.Record.info;
+			//let ownerCaseUser = response.Record.user;
+
+			let owner = misstakeCaseData.Owner;
+
 			let ownerCaseInfoBox = $('<div></div>');
 			$(ownerCaseInfoBox).append($('<h4>ข้อมูลผู้ส่งเคส</h4>').css({'text-align': 'center', 'line-height': '14px'}));
-			$(ownerCaseInfoBox).append($('<p>ชื่อ ' + ownerCaseInfo.User_NameTH + ' ' + ownerCaseInfo.User_LastNameTH + '</p>').css({'line-height': '14px'}));
-			$(ownerCaseInfoBox).append($('<p>โทร. ' + ownerCaseInfo.User_Phone + '</p>').css({'line-height': '14px'}));
-			if (ownerCaseInfo.User_Mail) {
-				$(ownerCaseInfoBox).append($('<p>อีเมล์. ' + ownerCaseInfo.User_Mail + '</p>').css({'line-height': '14px'}));
+			$(ownerCaseInfoBox).append($('<p>ชื่อ ' + owner.User_NameTH + ' ' + owner.User_LastNameTH + '</p>').css({'line-height': '14px'}));
+			$(ownerCaseInfoBox).append($('<p>โทร. ' + owner.User_Phone + '</p>').css({'line-height': '14px'}));
+			if (owner.User_Mail) {
+				$(ownerCaseInfoBox).append($('<p>อีเมล์. ' + owner.User_Mail + '</p>').css({'line-height': '14px'}));
 			}
 			let notifyMessageBox = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
 			let optionRow = $('<tr></tr>');
@@ -7297,7 +7301,10 @@ module.exports = function ( jq ) {
 
 					let main = require('../main.js');
 					let myWsm = main.doGetWsm();
-					
+					if (!myWsm) {
+						util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+						myWsm = util.wsm;
+					}
 					//let myWsm = util.wsm;
 					let sendto = ownerCaseUser.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
@@ -7313,7 +7320,7 @@ module.exports = function ( jq ) {
 	      }
 	    }
 	    let radConfirmBox = $('body').radalert(radconfirmoption);
-    });
+    //});
 	}
 
   const onTemplateSelectorChange = async function(evt) {
@@ -8122,6 +8129,7 @@ module.exports = function ( jq ) {
 		downloadData.caseScanParts = selectedCase.case.Case_ScanPart;
 		downloadData.patientFullName = patientFullName;
 		downloadData.patientHN = patientHN;
+		downloadData.Owner = selectedCase.Owner;
 
 		let ownerCaseFullName = selectedCase.Owner.User_NameTH + ' ' + selectedCase.Owner.User_LastNameTH;
 		let ownerCaseFullNameLink = $('<a></a>').text(ownerCaseFullName).css({'color': 'blue', 'text-decoration': 'underline', 'cursor': 'pointer'});
@@ -8218,6 +8226,8 @@ module.exports = function ( jq ) {
 			downloadData.caseScanParts = caseScanParts;
 			downloadData.patientFullName = patientFullName;
 			downloadData.patientHN = patientHN;
+			downloadData.Owner = selectedCase.Owner;
+
 			$(downloadCmd).attr('title', 'Download zip file of ' + patientFullName);
 			$(downloadCmd).data('downloadData', downloadData);
 			$(downloadCmd).on('click', async (evt)=>{

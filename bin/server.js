@@ -112,6 +112,7 @@ mainApp.get('/', (req, res) => {
   log.info('hostname = ' + hostname);
   log.info('rootname = ' + rootname);
   log.info('METHODE = ' + req.method);
+	res.redirect('/index.html');
 })
 
 mainApp.get('/sse/events', sseEventsHandler);
