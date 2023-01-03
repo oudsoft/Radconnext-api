@@ -7306,7 +7306,7 @@ module.exports = function ( jq ) {
 						myWsm = util.wsm;
 					}
 					//let myWsm = util.wsm;
-					let sendto = ownerCaseUser.username;
+					let sendto = owner.username;
 					let userfullname = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
 					let from = {userId: userdata.id, username: userdata.username, userfullname: userfullname};
 					let msg = {cause: causeValue, other: otherValue, caseData: misstakeCaseData};
