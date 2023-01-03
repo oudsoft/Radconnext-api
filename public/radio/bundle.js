@@ -4233,6 +4233,7 @@ $( document ).ready(function() {
               eventData.startDownload = 0;
               onOpenCaseTrigger(eventData);
               //$('body').loading('stop');
+              util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             }
           });
         } else {
