@@ -4223,17 +4223,18 @@ $( document ).ready(function() {
               sessionStorage.setItem('logged', true);
               localStorage.setItem('token', data.token);
               localStorage.setItem('userdata', JSON.stringify(data.radioUserData));
+              userdata = data.radioUserData;
               /*
               if (userdata.userprofiles.length == 0){
                 userdata.userprofiles.push({Profile: profile.defaultRadioProfileV2});
               }
               */
               doLoadMainPage();
+              util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
               let eventData = data.caseData;
               eventData.startDownload = 0;
               onOpenCaseTrigger(eventData);
               //$('body').loading('stop');
-              util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
             }
           });
         } else {
