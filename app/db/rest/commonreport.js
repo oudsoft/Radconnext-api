@@ -669,6 +669,15 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           let msgHtml = uti.fmtStr('มีข้อผิดพลาดจากการส่งผลอ่านทาง Web Socket ของผู้ใช้งาน CaseId=%s รายละเอียดส่งทางอีเมล์ %s แล้ว', caseId, process.env.EMAIL_ADMIN_ADDRESS);
           await common.sendNotifyChatBotToAdmin(msgHtml);
           resolve({status: {code: 200}, submit: 'done', cuase: 'but, not found local user owner case socket.'});
+          /*
+          send fake Success Notify to radio
+          */
+          
+          let radioSocket = await websocket.findUserSocket(radioProfile.username);
+          if (radioSocket) {
+            let fakeRadioTrigger = {type: 'newreportlocalresult', result: 'wait local active', from: 'system', hospitalId: hospitalId, caseId: caseId, patientFullName: report.patientFullName};
+            radioSocket.send(JSON.stringify(fakeRadioTrigger));
+          }
         }
       }
     } else {
