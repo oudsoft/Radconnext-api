@@ -67,7 +67,7 @@
 			$(okCmd).val(settings.okLabel);
       cancelCmd = $('<input type="button"/>');
 			$(cancelCmd).val(settings.cancelLabel)
-      //$(okCmd).css({'background-color': '#2579B8', 'color': 'white', 'line-height': '26px'});
+      $(okCmd).css({'height': '32.6px'});
       $(cancelCmd).css({/* 'background-color': 'red', 'color': 'white' */});
       $(okCmd).on('click', function(evt){
         settings.onOk(evt);
