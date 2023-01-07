@@ -7059,6 +7059,7 @@ module.exports = function ( jq ) {
 		pom.setAttribute('download', caseDicomZipFilename);
 		pom.click();
 		document.body.removeChild(pom);
+		common.downloadDicomList = [];
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
@@ -7102,7 +7103,7 @@ module.exports = function ( jq ) {
 			$(downloadCmd).prop('disabled', false);
 			doResetPingCounterOnOpenCase();
 		});
-
+		common.downloadDicomList = [];
 		common.downloadDicomList.push(caseDicomZipFilename);
 		return common.downloadDicomList;
 	}
@@ -7120,6 +7121,7 @@ module.exports = function ( jq ) {
 			let existDicomFileRes = await apiconnector.doCallDicomArchiveExist(dicomzipfilename);
 			if (existDicomFileRes.link){
 				doDownloadZipBlob(downloadCmd, dicomzipfilepath, dicomzipfilename, ()=>{
+					common.downloadDicomList = [];
 					common.downloadDicomList.push(dicomzipfilename);
 					resolve(existDicomFileRes);
 				});
@@ -7127,6 +7129,7 @@ module.exports = function ( jq ) {
 				let existOrthancFileRes = await apiconnector.doCallDicomArchiveExist(orthanczipfilename);
 				if (existOrthancFileRes.link){
 					doDownloadZipBlob(downloadCmd, orthanczipfilepath, dicomzipfilename, ()=>{
+						common.downloadDicomList = [];
 						common.downloadDicomList.push(dicomzipfilename);
 						resolve(existOrthancFileRes);
 					});
@@ -7136,6 +7139,7 @@ module.exports = function ( jq ) {
 					apiconnector.doCallDownloadDicom(studyID, hospitalId).then((response) => {
 						setTimeout(()=>{
 							doDownloadZipBlob(downloadCmd, response.link, dicomzipfilename, ()=>{
+								common.downloadDicomList = [];
 								common.downloadDicomList.push(dicomzipfilename);
 								resolve(response);
 							});
@@ -8740,7 +8744,7 @@ module.exports = function ( jq ) {
 					$('body').append($(msgBox).css({'position': 'absolute', 'top': '50px', 'right': '2px', 'width' : '260px', 'border': '2px solid black', 'background-color': '#184175', 'color': 'white', 'padding': '5px'}))
 				} else {
 					//let dwnList = doDownloadDicom(evt, downloadData.dicomzipfilename);
-					let dwnRes = await doStartAutoDownloadDicom(dicomzipfilename);
+					let dwnRes = await doStartAutoDownloadDicom(downloadDicomZipCmd);
 				}
 
 			} else {
