@@ -25,8 +25,8 @@ const casestatusFlowTable = [
     {now: 5, next: [6, 10, 11, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'editR', 'logH']},
     {now: 6, next: [12, 14], actions: ['printH', 'editR', 'logH']},
     {now: 7, next: [1], actions: ['renewH', 'deleteH', 'updH', 'changeH', 'logH']},
-    {now: 8, next: [4, 9, 5, 13], actions: ['draftR', 'replyR', 'logH']}, // <- Open
-    {now: 9, next: [9, 5, 13], actions: ['replyR', 'editR', 'logH']}, // <- Draft
+    {now: 8, next: [4, 9, 5, 13], actions: ['draftR', 'replyR', 'logH', 'updH']}, // <- Open
+    {now: 9, next: [9, 5, 13], actions: ['replyR', 'editR', 'logH', 'updH']}, // <- Draft
     {now: 10, next: [11, 14], actions: ['viewH', 'printH', 'convertH', 'callzoomH', 'editR', 'logH']}, // <- Owner Case View
     {now: 11, next: [6, 12, 14], actions: ['viewH', 'printH', 'convertH', 'closeH', 'editR', 'callzoomH', 'logH']},
     {now: 12, next: [6, 10, 11, 13, 14], actions: ['editR', 'viewH', 'printH', 'convertH', 'closeH', 'callzoomH', 'logH']},
