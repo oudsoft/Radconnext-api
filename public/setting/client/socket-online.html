@@ -134,7 +134,7 @@
               let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
               $(clientGetStateCmd).on('click', async (evt)=>{
                 console.log(sockets[i]);
-                let reconnRes = await doCallGetStateSocket(sockets[i].id, yourOrthancSockets.length);
+                let reconnRes = await doCallGetStateSocket(sockets[i].id, /*yourOrthancSockets.length*/ 1);
                 console.log(reconnRes);
               });
               $(cmdCol).append($(clientGetStateCmd).css({'margin-left': '10px'}));
