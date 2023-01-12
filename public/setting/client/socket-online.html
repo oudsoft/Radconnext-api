@@ -114,7 +114,7 @@
           $(itemRow).append($('<td align="center">' + sockets[i].state + '</td>'));
           let cmdCol = $('<td align="center"></td>');
           $(itemRow).append($(cmdCol));
-          if (sockets[i].id !== 'orthanc'){      
+          if (sockets[i].id !== 'orthanc'){
             let clientReConnectCmd = $('<input type="button" value="Re-Connect"/>');
             $(clientReConnectCmd).on('click', async (evt)=>{
               let reconnRes = await doReConnectSocket(sockets[i].id);
@@ -133,6 +133,7 @@
 
               let clientGetStateCmd = $('<input type="button" value="Get-State"/>');
               $(clientGetStateCmd).on('click', async (evt)=>{
+                console.log(sockets[i]);
                 let reconnRes = await doCallGetStateSocket(sockets[i].id, yourOrthancSockets.length);
                 console.log(reconnRes);
               });
