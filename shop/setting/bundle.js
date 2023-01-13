@@ -3958,15 +3958,21 @@ module.exports = function ( jq ) {
 						}
 					} else {
 						params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
-	          orderRes = await common.doCallApi('/api/shop/order/add', params);
-	          if (orderRes.status.code == 200) {
-	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
-							orderObj.id = orderRes.Records[0].id;
-							orderData = orderRes.Records[0];
-							doShowCloseOrderDlg();
-	          } else {
-	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
-	          }
+						console.log(params);
+						if (orderObj.gooditems.length > 0) {
+							params.data.Items = orderObj.gooditems;
+							orderRes = await common.doCallApi('/api/shop/order/add', params);
+		          if (orderRes.status.code == 200) {
+		            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+								orderObj.id = orderRes.Records[0].id;
+								orderData = orderRes.Records[0];
+								doShowCloseOrderDlg();
+		          } else {
+		            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+		          }
+						} else {
+							$.notify("โปรดใส่รายการสินค้าอย่างน้อย 1 รายการ", "error");
+						}
 					}
 				} else {
 	        $.notify("ยังไม่พบรายการสินค้าเพื่อคิดเงิน โปรดใส่รายการสินค้า", "error");
@@ -4021,14 +4027,20 @@ module.exports = function ( jq ) {
             $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
           }
         } else {
-          params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
-          orderRes = await common.doCallApi('/api/shop/order/add', params);
-          if (orderRes.status.code == 200) {
-            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
-            await doShowOrderList(shopData, workAreaBox, selectDate);
-          } else {
-            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
-          }
+          params = {data: {Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
+					console.log(params);
+					if (orderObj.gooditems.length > 0) {
+						params.data.Items = orderObj.gooditems;
+						orderRes = await common.doCallApi('/api/shop/order/add', params);
+	          if (orderRes.status.code == 200) {
+	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+	            await doShowOrderList(shopData, workAreaBox, selectDate);
+	          } else {
+	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+	          }
+					} else {
+						$.notify("โปรดใส่รายการสินค้าอย่างน้อย 1 รายการ", "error");
+					}
         }
       } else {
         $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
