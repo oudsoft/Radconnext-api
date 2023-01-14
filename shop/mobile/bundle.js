@@ -13511,19 +13511,81 @@ module.exports = function ( jq ) {
     });
   }
 
-	const doOpenReportPdfDlg = function(pdfUrl, title, closeCallback){
+	const doOpenReportPdfDlg = function(pdf, title, closeCallback){
     return new Promise(async function(resolve, reject) {
-			const pdfURL = pdfUrl + '?t=' + common.genUniqueID();
+			const pdfURL = pdf.link + '?t=' + common.genUniqueID();
       const reportPdfDlgContent = $('<object data="' + pdfURL + '" type="application/pdf" width="99%" height="380"></object>');
       $(reportPdfDlgContent).css({'margin-top': '10px'});
+			let radAlertMsg = $('<div></div>');
+			$(radAlertMsg).append($(reportPdfDlgContent));
+			let ectAccessBox = undefined;
+			let newAcc = {};
+			if (!pdf.pngLink) {
+				let tpms = pdf.link.split('/');
+				let names = tpms[tpms.length-1].split('.');
+				newAcc.pngLink = '/shop/img/usr/pdf/' + names[0] + '.png';
+				//newAcc.ppLink =
+				//newAcc.qrLink = '/shop/img/usr/qrcode/' + names[0] + '.png';
+			}
+			if (pdf.pngLink) {
+				ectAccessBox = $('<div></div>');
+				let pngThumb = $('<img/>').attr('src', pdf.pngLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(pngThumb))
+				$(pngThumb).on('click', (evt)=>{
+					window.open(pdf.pngLink, '_blank');
+				});
+			} else {
+				let tpms = pdf.link.split('/');
+				let names = tpms[tpms.length-1].split('.');
+				let newAccPngLink = '/shop/img/usr/pdf/' + names[0] + '.png';
+				ectAccessBox = $('<div></div>');
+				let pngThumb = $('<img/>').attr('src', newAccPngLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer'});
+				$(ectAccessBox).append($(pngThumb))
+				$(pngThumb).on('click', (evt)=>{
+					window.open(newAccPngLink, '_blank');
+				});
+			}
+			if (pdf.ppLink) {
+				if (!ectAccessBox) {
+					ectAccessBox = $('<div></div>');
+				}
+				let ppThumb = $('<img/>').attr('src', pdf.ppLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer', 'margin-left': '20px'});
+				$(ectAccessBox).append($(ppThumb))
+				$(ppThumb).on('click', (evt)=>{
+					window.open(pdf.ppLink, '_blank');
+				});
+			}
+			if (pdf.qrLink) {
+				if (!ectAccessBox) {
+					ectAccessBox = $('<div></div>');
+				}
+				let qrThumb = $('<img/>').attr('src', pdf.qrLink).css({'width': '60px', 'height': 'auto', 'display': 'inline-block', 'cursor': 'pointer', 'margin-left': '20px'});
+				$(ectAccessBox).append($(qrThumb))
+				$(qrThumb).on('click', (evt)=>{
+					window.open(pdf.qrLink, '_blank');
+				});
+			}
+			if (ectAccessBox) {
+				$(ectAccessBox).css({'display': 'none', 'cursor': 'pointer', 'border': '2px solid grey', 'background-color': '#ddd', 'width': '100%'});
+				let tggAccessCmd = $('<div>รูปภาพ</div>').css({'display': 'block', 'cursor': 'pointer', 'border': '2px solid black', 'background-color': 'grey', 'width': '100%', 'text-align': 'center', 'line-height': '36px'});
+				$(tggAccessCmd).on('click', (evt)=>{
+					$(ectAccessBox).slideDown('slow');
+					$(tggAccessCmd).hide();
+				})
+				$(ectAccessBox).on('click', (evt)=>{
+					$(ectAccessBox).slideUp('slow');
+					$(tggAccessCmd).show();
+				})
+				$(radAlertMsg).append($(tggAccessCmd)).append($(ectAccessBox));
+			}
       const reportformoption = {
   			title: title,
-  			msg: $(reportPdfDlgContent),
+  			msg: $(radAlertMsg),
   			width: '720px',
 				okLabel: ' เปิดหน้าต่างใหม่ ',
 				cancelLabel: ' ปิด ',
   			onOk: async function(evt) {
-					window.open(pdfUrl, '_blank');
+					window.open(pdf.link, '_blank');
           reportPdfDlgHandle.closeAlert();
 					if (closeCallback) {
 						closeCallback();
@@ -13929,14 +13991,15 @@ module.exports = function ( jq ) {
   const doShowAddGooditemForm = function(shopData, successCallback, cancelCallback){
     let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let formRow = $('<tr></tr>');
-    let nameCell = $('<td width="20%" align="left"></td>');
-    let priceCell = $('<td width="15%" align="left"></td>');
-    let unitCell = $('<td width="15%" align="left"></td>');
-    let groupCell = $('<td width="20%" align="left"></td>');
-    let commandCell = $('<td width="*" align="left"></td>');
-    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '50px'});
-    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '30px'});
-    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '40px'});
+		let commandRow = $('<tr></tr>');
+    let nameCell = $('<td width="35%" align="left"></td>');
+    let priceCell = $('<td width="20%" align="left"></td>');
+    let unitCell = $('<td width="25%" align="left"></td>');
+    let groupCell = $('<td width="*" align="left"></td>');
+    let commandCell = $('<td colspan="4" align="center"></td>');
+    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '120px'});
+    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '50px'});
+    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '70px'});
     let groupSelect = $('<select></select>').css({'width': '80px'});
     let menugroups = JSON.parse(localStorage.getItem('menugroups'));
     menugroups.forEach((item, i) => {
@@ -13980,7 +14043,7 @@ module.exports = function ( jq ) {
       }
     });
 
-		let cancelCmd = $('<input type="button" value="ยกเลิก" style="margin-left: 2px;"/>');
+		let cancelCmd = $('<input type="button" value="ยกเลิก" style="margin-left: 5px;"/>');
     $(cancelCmd).on('click', (evt)=>{
 			cancelCallback();
 		});
@@ -13990,8 +14053,13 @@ module.exports = function ( jq ) {
     $(unitCell).append($(unitInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
     $(groupCell).append($(groupSelect));
     $(commandCell).append($(saveCmd)).append($(cancelCmd));
-    $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell)).append($(commandCell));
-    return $(form).append($(formRow));
+    $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell))/*.append($(commandCell))*/;
+		$(commandRow).append($(commandCell))
+    $(form).append($(formRow));
+
+		$(form).append($('<tr><td colspan="4"></td></tr>').css({'height': '30px'}));
+		$(form).append($(commandRow))
+		return $(form).css({'border': '2px grey solid', 'padding': '2px'});
   }
 
 	const doShowGooditemPopup = function(gooditem) {

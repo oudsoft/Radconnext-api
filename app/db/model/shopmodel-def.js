@@ -139,7 +139,9 @@ const ShopCustomerDef = {
 };
 const ShopOrderDef = {
   Items : {
-    type: Sequelize.JSONB
+    type: Sequelize.JSONB,
+    allowNull: false,
+    defaultValue: []
   },
   Status : {
     type: Sequelize.INTEGER, // <- 0=cancel, 1=active, 2=onInvoice, 3=onBill, 4=Acrchive

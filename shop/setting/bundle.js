@@ -2621,11 +2621,12 @@ module.exports = function ( jq ) {
   const doShowAddGooditemForm = function(shopData, successCallback, cancelCallback){
     let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let formRow = $('<tr></tr>');
+		let commandRow = $('<tr></tr>');
     let nameCell = $('<td width="20%" align="left"></td>');
     let priceCell = $('<td width="15%" align="left"></td>');
     let unitCell = $('<td width="15%" align="left"></td>');
-    let groupCell = $('<td width="20%" align="left"></td>');
-    let commandCell = $('<td width="*" align="left"></td>');
+    let groupCell = $('<td width="*" align="left"></td>');
+    let commandCell = $('<td colspan="4" align="center"></td>');
     let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '50px'});
     let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '30px'});
     let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '40px'});
@@ -2672,7 +2673,7 @@ module.exports = function ( jq ) {
       }
     });
 
-		let cancelCmd = $('<input type="button" value="ยกเลิก" style="margin-left: 2px;"/>');
+		let cancelCmd = $('<input type="button" value="ยกเลิก" style="margin-left: 5px;"/>');
     $(cancelCmd).on('click', (evt)=>{
 			cancelCallback();
 		});
@@ -2682,8 +2683,9 @@ module.exports = function ( jq ) {
     $(unitCell).append($(unitInput)).append($('<span>*</span>').css({'margin-left': '5px', 'color': 'red'}));
     $(groupCell).append($(groupSelect));
     $(commandCell).append($(saveCmd)).append($(cancelCmd));
-    $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell)).append($(commandCell));
-    return $(form).append($(formRow));
+    $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell))/*.append($(commandCell))*/;
+		$(commandRow).append($(commandCell))
+    return $(form).append($(formRow)).append($(commandRow));
   }
 
 	const doShowGooditemPopup = function(gooditem) {
@@ -3959,20 +3961,16 @@ module.exports = function ( jq ) {
 					} else {
 						params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
 						console.log(params);
-						if (orderObj.gooditems.length > 0) {
-							params.data.Items = orderObj.gooditems;
-							orderRes = await common.doCallApi('/api/shop/order/add', params);
-		          if (orderRes.status.code == 200) {
-		            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
-								orderObj.id = orderRes.Records[0].id;
-								orderData = orderRes.Records[0];
-								doShowCloseOrderDlg();
-		          } else {
-		            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
-		          }
-						} else {
-							$.notify("โปรดใส่รายการสินค้าอย่างน้อย 1 รายการ", "error");
-						}
+						params.data.Items = orderObj.gooditems;
+						orderRes = await common.doCallApi('/api/shop/order/add', params);
+	          if (orderRes.status.code == 200) {
+	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+							orderObj.id = orderRes.Records[0].id;
+							orderData = orderRes.Records[0];
+							doShowCloseOrderDlg();
+	          } else {
+	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+	          }
 					}
 				} else {
 	        $.notify("ยังไม่พบรายการสินค้าเพื่อคิดเงิน โปรดใส่รายการสินค้า", "error");
@@ -4029,18 +4027,14 @@ module.exports = function ( jq ) {
         } else {
           params = {data: {Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
 					console.log(params);
-					if (orderObj.gooditems.length > 0) {
-						params.data.Items = orderObj.gooditems;
-						orderRes = await common.doCallApi('/api/shop/order/add', params);
-	          if (orderRes.status.code == 200) {
-	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
-	            await doShowOrderList(shopData, workAreaBox, selectDate);
-	          } else {
-	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
-	          }
-					} else {
-						$.notify("โปรดใส่รายการสินค้าอย่างน้อย 1 รายการ", "error");
-					}
+					params.data.Items = orderObj.gooditems;
+					orderRes = await common.doCallApi('/api/shop/order/add', params);
+          if (orderRes.status.code == 200) {
+            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+            await doShowOrderList(shopData, workAreaBox, selectDate);
+          } else {
+            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+          }
         }
       } else {
         $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
