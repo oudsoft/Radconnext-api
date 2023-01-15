@@ -630,14 +630,22 @@ const doCreateReport = function(orderId, docType, shopId){
 	    let reportElements = templates[0].Content;
 	    let paperSize = templates[0].PaperSize;
 			let docReport = undefined;
-			let advertElem = doCreateAdvertElelment('/shop/img/usr/doubleclick-05.png', '**', '**', '400', '**');
+
+			let fileNames = pdfFileName.split('.');
+			let fileName = fileNames[0];
+			let docLinkUrl = '/shop' + process.env.USRQRCODE_PATH + '/' + fileName + '.png'
+			let docLinkElem = doCreateDocLinkElement(docLinkUrl, '***', '***', '180', '180');
+			let advertImgUrl = '/shop/img/usr/doubleclick-05.png';
+			let advertElem = doCreateAdvertElelment(advertImgUrl, '**', '**', '400', '**');
 			if (qr) {
 				let qrElem = doCreatePPQRElelment(qr.qrLink, '*', '*', '*', '*');
 				reportElements.push(qrElem);
 				reportElements.push(advertElem);
+				reportElements.push(docLinkElem);
 				docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			} else {
 				reportElements.push(advertElem);
+				reportElements.push(docLinkElem);
 	    	docReport = await reportCreator(reportElements, reportVar, pdfFileName, orderId, rsH, rsT, paperSize);
 			}
 
@@ -683,6 +691,7 @@ const doCreatePPQR = function(ppfData){
 		}
 	});
 }
+
 const doCreatePPQRElelment = function(qrUrl, top, left, width, height){
 	let qrElem = {
 		elementType: "image",
@@ -717,6 +726,24 @@ const doCreateAdvertElelment = function(adImgUrl, top, left, width, height){
 		refresh: ""
 	};
 	return advertElem;
+}
+
+const doCreateDocLinkElement = function(qrImgUrl, top, left, width, height){
+	let docLinkElem = {
+		elementType: "image",
+		type: "dynamic",
+		x: left,
+		y: top,
+		width: width,
+		height: height,
+		id: "image-element-DocLink",
+		url: qrImgUrl,
+		elementselect: "",
+		elementdrop: "",
+		elementresizestop: "",
+		refresh: ""
+	};
+	return docLinkElem;
 }
 
 module.exports = (dbconn, monitor) => {

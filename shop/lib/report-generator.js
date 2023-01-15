@@ -288,6 +288,7 @@ function doMapContent(elements, variable, paperSize){
         return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x === '*') && (item.y === '*'))
       });
       if (imageDynamicIndex >= 0) {
+        //element.id === 'image-element-PPQR'
         doMapImageAtLeftBottomPage(successElements[imageDynamicIndex], maxTop, paperSize)
       }
       imageDynamicIndex = await successElements.findIndex((item)=>{
@@ -297,12 +298,20 @@ function doMapContent(elements, variable, paperSize){
         //element.id === 'image-element-Advert'
         doMapImageAtRightBottomPage(successElements[imageDynamicIndex], maxTop, paperSize, 400, variable.rsDimension);
       }
+      imageDynamicIndex = await successElements.findIndex((item)=>{
+        return ((item.elementType === 'image') && (item.type === 'dynamic') && (item.x === '***') && (item.y === '***'))
+      });
+      if (imageDynamicIndex >= 0) {
+        //element.id === 'image-element-DocLink'
+        doMapDocLinkImage(successElements[imageDynamicIndex], maxTop, paperSize, 160, variable.rsDimension);
+      }
       resolve(successElements);
     });
   });
 }
 
 function doMapImageAtLeftBottomPage(element, maxTop, paperSize) {
+  /* setup x position only */
   let w = 240;
   let h = 267;
   let x = 0;
@@ -322,6 +331,7 @@ function doMapImageAtLeftBottomPage(element, maxTop, paperSize) {
 }
 
 function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth, rsDimension) {
+  /* setup x position only */
   let w = 0;
   let h = 123;
   let x = 0;
@@ -342,7 +352,28 @@ function doMapImageAtRightBottomPage(element, top, paperSize, imageWidth, rsDime
   return element;
 }
 
+function doMapDocLinkImage(element, top, paperSize, imageWidth, rsDimension) {
+  /* setup x position only */
+  let w = imageWidth;
+  let h = imageWidth;
+  let x = 0;
+  let y = 0;
+  if (paperSize == 1) {
+    x = A4Width - w - 10;
+    y = A4Height - h - 90;
+  } else if (paperSize == 2) {
+    x = (SlipWidth/2) - (w/2);
+    y = top;
+  }
+  element.x = x;
+  element.y = y;
+  element.width = w;
+  element.height = h;
+  return element;
+}
+
 function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, cb){
+  /* setup y position only */
   let wrapper = $("#report-wrapper").empty();
   let formatedContents = elements;
   doMapContent(elements, variable, paperSize).then(async (formatedContents)=>{
@@ -357,25 +388,52 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
       }
     });
 
+    let advertImageElem = $(wrapper).find('#image-element-Advert');
+    let ppqrImageElem = $(wrapper).find('#image-element-PPQR');
+    let doclinkImageElem = $(wrapper).find('#image-element-DocLink');
+
     console.log('rsDimension=>' + JSON.stringify(variable.rsDimension));
+
     if (paperSize == 1) {
       let realH = Number(variable.rsDimension.top) + Number(variable.rsDimension.height.real);
       let diff = A4Height - realH;
       console.log('diff=' + diff); //1410
       if (diff > 220) {
-        $(wrapper).find('#image-element-Advert').css({'top': 1340 + 'px'});
-        $(wrapper).find('#image-element-PPQR').css({'top': 1190 + 'px'});
+        $(advertImageElem).css({'top': 1340 + 'px'});
+        $(ppqrImageElem).css({'top': 1190 + 'px'});
       } else {
-        $(wrapper).find('#image-element-Advert').css({'top': (maxTop + 50)+'px'});
-        $(wrapper).find('#image-element-PPQR').css({'top': (maxTop + 50)+'px'});
+        $(advertImageElem).css({'top': (maxTop + 50)+'px'});
+        $(ppqrImageElem).css({'top': (maxTop + 50)+'px'});
       }
     } else if (paperSize == 2) {
-      maxTop = maxTop + 80;
-      $(wrapper).find('#image-element-Advert').css({'top': (maxTop)+'px'});
-      maxTop = maxTop + 100;
-      $(wrapper).find('#image-element-PPQR').css({'top': (maxTop)+'px'});
-      maxTop = maxTop + 300;
-      $(wrapper).css({'heigth' : (maxTop)+'px'});
+      console.log('maxTop=>' + maxTop);
+      if ((advertImageElem) && (advertImageElem.length > 0)) {
+        maxTop = maxTop + 80;
+        $(advertImageElem).css({'top': (maxTop)+'px'});
+      }
+      if ((ppqrImageElem) && (ppqrImageElem.length > 0)) {
+        maxTop = maxTop + 90;
+        $(ppqrImageElem).css({'top': (maxTop)+'px'});
+        if ((doclinkImageElem) && (doclinkImageElem.length > 0)) {
+          maxTop = maxTop + 220 + 70;
+          $(doclinkImageElem).css({'top': (maxTop)+'px'});
+          maxTop = maxTop + 160;
+          $(wrapper).css({'heigth' : (maxTop)+'px'});
+        } else {
+          maxTop = maxTop + 70;
+          $(wrapper).css({'heigth' : (maxTop)+'px'});
+        }
+      } else {
+        if ((doclinkImageElem) && (doclinkImageElem.length > 0)) {
+          maxTop = maxTop + 70;
+          $(doclinkImageElem).css({'top': (maxTop)+'px'});
+          maxTop = maxTop + 200;
+          $(wrapper).css({'heigth' : (maxTop)+'px'});
+        } else {
+          maxTop = maxTop + 70;
+          $(wrapper).css({'heigth' : (maxTop)+'px'});
+        }
+      }
     }
     console.log('maxTop=>' + maxTop);
     cb($(wrapper).html(), maxTop);
@@ -437,6 +495,8 @@ function doCreateElement(wrapper, elemType, elem, paperSize, rsDimension){
       $(element).append(newImage);
       $(element).css({"width": Number(elem.width)*newRatio + "px", "height": "auto"});
       if (elem.id === 'image-element-Advert') {
+        $(element).css({"right": Number(elem.x)*newRatio + "px" });
+      } else if (elem.id === 'image-element-Advert') {
         $(element).css({"right": Number(elem.x)*newRatio + "px" });
       } else {
         $(element).css({"left": Number(elem.x)*newRatio + "px"});
