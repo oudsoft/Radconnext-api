@@ -1384,7 +1384,7 @@ module.exports = function ( jq ) {
 			const doControlItemDisplayPage = function() {
 				console.log(customerItems.length <= itemPerPage);
 				if (customerItems.length <= itemPerPage) {
-					customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems, newCustomerCmdBox, pOp);
+					customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems, newCustomerCmdBox);
 		      $(workAreaBox).append($(customerTable));
 				} else {
 					let pOp = {from: 0, to: (itemPerPage-1)};
@@ -2622,14 +2622,14 @@ module.exports = function ( jq ) {
     let form = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
     let formRow = $('<tr></tr>');
 		let commandRow = $('<tr></tr>');
-    let nameCell = $('<td width="20%" align="left"></td>');
-    let priceCell = $('<td width="15%" align="left"></td>');
-    let unitCell = $('<td width="15%" align="left"></td>');
+    let nameCell = $('<td width="35%" align="left"></td>');
+    let priceCell = $('<td width="20%" align="left"></td>');
+    let unitCell = $('<td width="25%" align="left"></td>');
     let groupCell = $('<td width="*" align="left"></td>');
     let commandCell = $('<td colspan="4" align="center"></td>');
-    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '50px'});
-    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '30px'});
-    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '40px'});
+    let nameInput = $('<input type="text" placeholder="ชื่อรายการสินค้า"/>').css({'width': '120px'});
+    let priceInput = $('<input type="text" placeholder="ราคา"/>').css({'width': '50px'});
+    let unitInput = $('<input type="text" placeholder="หน่วยขาย"/>').css({'width': '70px'});
     let groupSelect = $('<select></select>').css({'width': '80px'});
     let menugroups = JSON.parse(localStorage.getItem('menugroups'));
     menugroups.forEach((item, i) => {
@@ -2685,7 +2685,11 @@ module.exports = function ( jq ) {
     $(commandCell).append($(saveCmd)).append($(cancelCmd));
     $(formRow).append($(nameCell)).append($(priceCell)).append($(unitCell)).append($(groupCell))/*.append($(commandCell))*/;
 		$(commandRow).append($(commandCell))
-    return $(form).append($(formRow)).append($(commandRow));
+    $(form).append($(formRow));
+
+		$(form).append($('<tr><td colspan="4"></td></tr>').css({'height': '30px'}));
+		$(form).append($(commandRow))
+		return $(form).css({'border': '2px grey solid', 'padding': '2px'});
   }
 
 	const doShowGooditemPopup = function(gooditem) {
