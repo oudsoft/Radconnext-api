@@ -4150,6 +4150,8 @@ const softphone = require('../case/mod/softphonelib.js')($);
 
 const modalLockScreenStyle = { 'position': 'fixed', 'z-index': '41', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto', 'background-color': '#ccc'};
 
+
+
 $( document ).ready(function() {
   const initPage = function() {
     let logined = sessionStorage.getItem('logged');
@@ -4607,6 +4609,42 @@ function doLoadMainPage(){
           }
         }
       });
+
+      let idleTime = 0;
+
+      let idleTimerIncrement = function() {
+        idleTime = idleTime + 1;
+        let userdata = doGetUserData();
+        userdata = JSON.parse(userdata);
+        if ((userdata.userprofiles) && (userdata.userprofiles.length> 0) && (userdata.userprofiles[0].Profile)) {
+          let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
+          let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
+          if (idleTime > minuteLockScreen) {
+            let eventName = 'lockscreen';
+            let evtData = {};
+            let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+            document.dispatchEvent(event);
+          }
+          if (minuteLogout > 0){
+            if (idleTime == minuteLogout) {
+              let eventName = 'autologout';
+              let evtData = {};
+              let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
+              document.dispatchEvent(event);
+            }
+          }
+        }
+      }
+
+      let idleInterval = setInterval(idleTimerIncrement, 60000); // 1 minute
+
+      $('#app').on('mousemove', (evt)=> {
+        idleTime = 0;
+      });
+      $('#app').on('keypress', (evt)=> {
+        idleTime = 0;
+      });
+
     });
   });
 }
@@ -11108,7 +11146,7 @@ module.exports = function ( jq, wsm) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			/*
 			if ((userdata.userprofiles) && (userdata.userprofiles.length > 0)) {
 				let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
 				let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
@@ -11132,10 +11170,11 @@ module.exports = function ( jq, wsm) {
 			      document.dispatchEvent(event);
 					}
 				}
-				let modPingCounter = Number(data.counterping) % 10;
-				if (modPingCounter == 0) {
-					wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-				}
+			}
+			*/
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
