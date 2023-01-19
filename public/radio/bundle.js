@@ -1726,47 +1726,51 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	const onSimpleEditorPaste = function(evt){
-		console.log(evt);
-		/*
-		let pathElems = evt.originalEvent.path;
-		let pathElems = evt.target.className;
-		let simpleEditorPath = pathElems.find((path)=>{
-			if (path.className === 'jqte_editor') {
-				return path;
-			}
-		});
-		*/
-		if (evt.target.className === 'jqte_editor') {
-			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-			let textPastedData = clipboardData.getData('text/plain');
-			//console.log(textPastedData);
-			let htmlPastedData = clipboardData.getData('text/html');
-			//console.log(htmlPastedData);
-			//let htmlFormat = htmlformat(htmlPastedData);
-			//console.log(htmlFormat);
-			let caseData = $('#SimpleEditorBox').data('casedata');
-			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
-			let oldContent = $(simpleEditor).val();
-			if ((htmlPastedData) && (htmlPastedData !== '')) {
-				let htmlFormat = doExtractHTMLFromAnotherSource(htmlPastedData);
-				document.execCommand('insertHTML', false, htmlFormat);
-				let newContent = oldContent + htmlFormat;
+	const simpleEditorPaste = function(evt){
+		let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+		let textPastedData = clipboardData.getData('text/plain');
+		//console.log(textPastedData);
+		let htmlPastedData = clipboardData.getData('text/html');
+		//console.log(htmlPastedData);
+		//let htmlFormat = htmlformat(htmlPastedData);
+		//console.log(htmlFormat);
+		let caseData = $('#SimpleEditorBox').data('casedata');
+		let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
+		let oldContent = $(simpleEditor).val();
+		if ((htmlPastedData) && (htmlPastedData !== '')) {
+			let htmlFormat = doExtractHTMLFromAnotherSource(htmlPastedData);
+			document.execCommand('insertHTML', false, htmlFormat);
+			let newContent = oldContent + htmlFormat;
+			let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
+			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+			$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
+		} else {
+			if ((textPastedData) && (textPastedData !== '')) {
+				console.log(textPastedData);
+				textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
+				document.execCommand('insertText', false, textPastedData);
+				let newContent = oldContent + textPastedData;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
 				localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
-			} else {
-				if ((textPastedData) && (textPastedData !== '')) {
-					console.log(textPastedData);
-					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
-					document.execCommand('insertText', false, textPastedData);
-					let newContent = oldContent + textPastedData;
-					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
-					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
-					$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
-				}
 			}
-			//console.log(localStorage.getItem('draftbackup'));
+		}
+	}
+
+	const onSimpleEditorPaste = function(evt){
+		console.log(evt);
+		let pathElems = evt.originalEvent.path;
+		if (pathElems) {
+			let simpleEditorPath = pathElems.find((path)=>{
+				if (path.className === 'jqte_editor') {
+					return path;
+				}
+			});
+			if (simpleEditorPath) {
+				simpleEditorPaste(evt);
+			}
+		} else if (evt.target.className === 'jqte_editor') {
+			simpleEditorPaste(evt);
 		}
 		evt.stopPropagation();
 		evt.preventDefault();
