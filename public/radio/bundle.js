@@ -1727,14 +1727,17 @@ module.exports = function ( jq ) {
 	}
 
 	const onSimpleEditorPaste = function(evt){
-		//console.log(evt);
+		console.log(evt);
+		/*
 		let pathElems = evt.originalEvent.path;
+		let pathElems = evt.target.className;
 		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
 				return path;
 			}
 		});
-		if (simpleEditorPath) {
+		*/
+		if (evt.target.className === 'jqte_editor') {
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			let textPastedData = clipboardData.getData('text/plain');
 			//console.log(textPastedData);
