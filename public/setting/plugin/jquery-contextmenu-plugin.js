@@ -3,7 +3,7 @@
   $.fn.contextmenu = function( options ) {
 
     var settings = $.extend({
-      menuItems = [];
+      menuItems: [];
     }, options );
 
     let $this = this;
