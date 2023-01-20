@@ -4657,6 +4657,13 @@ function doLoadMainPage(){
 }
 
 const onOpenCaseTrigger = function(caseData) {
+  let caseBK = localStorage.getItem('draftbackup');
+  if (caseBK) {
+    caseBK = JSON.parse(caseBK);
+    if ((caseBK) && (caseBK.caseId != caseData.caseId)) {
+      localStorage.removeItem('draftbackup');
+    }
+  }
   $("#TitleContent").empty();
   let opencaseTitlePage = acccase.doCreateAccCaseTitlePage();
   //$("#TitleContent").append($(opencaseTitlePage));
