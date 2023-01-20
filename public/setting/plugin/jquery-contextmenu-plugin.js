@@ -27,21 +27,27 @@
     }
 
     const init = function() {
+      /*
       let containerBox = $('<div></div>');
       $(containerBox).css(containerStyle);
+      */
       if (settings.menuItems.length > 0) {
         for (let i=0; i<settings.menuItems.length; i++) {
           let menuItem = settings.menuItems[i];
           doAddMenuItem(menuItem);
         }
       }
+      /*
       return $(containerBox).append($(containerFrame));
+      */
+      return $(containerFrame);
     }
 
     let container = init();
     this.append($(container));
 
     let output = {
+      menuStyle: containerStyle,
       addNewItem: doAddMenuItem
     }
 
