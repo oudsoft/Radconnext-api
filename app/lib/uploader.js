@@ -231,15 +231,16 @@ module.exports = function (app) {
 
 		var readStream = fs.createReadStream(archivePath);
 		var writeStream = fs.createWriteStream(newPath);
-		readStream.pipe(writeStream).on('close', async function () {
-		//setTimeout(async()=>{
-			var command = parseStr('rm %s', archivePath);
-			console.log('Remove Temp File Command => ' + command);
-			let out = await runcommand(command);
+		readStream.pipe(writeStream).on('close', function () {
+			setTimeout(async()=>{
+				var command = parseStr('rm %s', archivePath);
+				console.log('Remove Temp File Command => ' + command);
+				let out = await runcommand(command);
+			}, 1000);
+
 			let archive = {name: req.file.originalname, link: process.env.USRARCHIVE_PATH + '/' + req.file.originalname};
 			console.log('New Archive => ' + JSON.stringify(archive));
 			res.status(200).send({status: {code: 200}, archive: archive});
-		//}, 1000);
 		});
 	});
 
