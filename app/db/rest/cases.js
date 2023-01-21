@@ -1178,22 +1178,25 @@ app.post('/updatecase/trigger', async (req, res) => {
   let newKeepLog = { caseId : caseId,	userId : userId, from : nowCaseStatus, to : nowCaseStatus, remark : 'แก้ไขเคส อัพโหลด สำเร็จ'};
   await common.doCaseChangeStatusKeepLog(newKeepLog);
 
+  let isChangeRadio = false;
   let actionAfterChange = {};
   let nowRadioId = targetCase.Case_RadiologistId;
   if (nowCaseStatus == 1) {
     if (nowRadioId != radioId) {
       actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+      isChangeRadio = true;
     }
   } else if ((nowCaseStatus == 2) || (nowCaseStatus == 8)) {
     if (nowRadioId != radioId) {
       actionAfterChange = await statusControl.onNewCaseEvent(caseId);
+      isChangeRadio = true;
     }
   } else if ((nowCaseStatus == 3) || (nowCaseStatus == 4) || (nowCaseStatus == 7)) {
     actionAfterChange = await statusControl.onNewCaseEvent(caseId);
   } else {
     log.error('Case Update Error')
   }
-  res.json({status: {code: 200}, result: actionAfterChange});
+  res.json({status: {code: 200}, result: actionAfterChange, isChangeRadio: isChangeRadio});
 });
 
 app.post('/updatezipfilename', async (req, res) => {
