@@ -1759,6 +1759,7 @@ module.exports = function ( jq ) {
 
 	const onSimpleEditorPaste = function(evt){
 		console.log(evt);
+		/*
 		let pathElems = evt.originalEvent.path;
 		if (pathElems) {
 			let simpleEditorPath = pathElems.find((path)=>{
@@ -1772,6 +1773,10 @@ module.exports = function ( jq ) {
 		} else if (evt.target.className === 'jqte_editor') {
 			simpleEditorPaste(evt);
 		}
+		*/
+		
+		simpleEditorPaste(evt);
+
 		evt.stopPropagation();
 		evt.preventDefault();
 	}
