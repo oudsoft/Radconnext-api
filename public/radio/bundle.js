@@ -1738,7 +1738,10 @@ module.exports = function ( jq ) {
 		let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
 		let oldContent = $(simpleEditor).val();
 		if ((htmlPastedData) && (htmlPastedData !== '')) {
-			let htmlFormat = doExtractHTMLFromAnotherSource(htmlPastedData);
+			//console.log(htmlPastedData);
+			let htmlFormat = htmlformat(htmlPastedData);
+			htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
+			//console.log(htmlFormat);
 			document.execCommand('insertHTML', false, htmlFormat);
 			let newContent = oldContent + htmlFormat;
 			let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -1774,7 +1777,7 @@ module.exports = function ( jq ) {
 			simpleEditorPaste(evt);
 		}
 		*/
-		
+
 		simpleEditorPaste(evt);
 
 		evt.stopPropagation();
@@ -4576,11 +4579,11 @@ function doLoadMainPage(){
       */
       $('.mainfull').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        util.doResetPingCounter();
+        //util.doResetPingCounter();
       });
       $('#quickreply').bind('paste', (evt)=>{
         common.onSimpleEditorPaste(evt);
-        util.doResetPingCounter();
+        //util.doResetPingCounter();
       });
       $(document).on('draftbackupsuccess', async (evt, data)=>{
         //Paste ครั้งแรก ของการเปิด case ให้เซฟทันที
@@ -8437,11 +8440,6 @@ module.exports = function ( jq ) {
           $(templateSelector).append('<option value="' + item.Value + '">' + item.DisplayText + '</option>');
         });
       }
-			/*
-			1. เอา Content ที่รับ ไปวางใน simpleEditor
-			2. เพิ่ม option "Template ทั้งหมด" value = "0" ลงใน $(templateSelector) กรณี มี templateOptions
-			3. ปรับ api ให้ 2. เมื่อ $(templateSelector) onChange val == 0
-			*/
 
       $(templateSelector).on('change', onTemplateSelectorChange);
       $(templateSelector).appendTo($(summaryFourthLine));
