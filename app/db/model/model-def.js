@@ -84,7 +84,8 @@ const RadUserInfoDef = {
 //User_ID
 const RadUserProfileDef = {
 			Profile : {
-				type: Sequelize.JSON
+				type: Sequelize.JSON,
+				defaultValue: []
 			}
 		};
 
