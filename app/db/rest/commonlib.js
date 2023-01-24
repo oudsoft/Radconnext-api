@@ -71,7 +71,7 @@ const casestatusRightAccessTable = [
 ];
 
 //usertypeId=2 can edit/update case data
-const casestatusCanUpdate = [1, 2, 3, 4, 7, 8];
+const casestatusCanUpdate = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14];
 const newResponseStatus = [2, 8, 9, 13];
 const editResponseStatus = [5, 6, 10, 11, 12, 14];
 

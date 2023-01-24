@@ -1179,6 +1179,9 @@ app.post('/updatecase/trigger', async (req, res) => {
   await common.doCaseChangeStatusKeepLog(newKeepLog);
 
   let isChangeRadio = false;
+  if (req.body.isChangeRadio) {
+    isChangeRadio = req.body.isChangeRadio;
+  }
   let actionAfterChange = {};
   let nowRadioId = targetCase.Case_RadiologistId;
   if (nowCaseStatus == 1) {
@@ -1194,7 +1197,7 @@ app.post('/updatecase/trigger', async (req, res) => {
   } else if ((nowCaseStatus == 3) || (nowCaseStatus == 4) || (nowCaseStatus == 7)) {
     actionAfterChange = await statusControl.onNewCaseEvent(caseId);
   } else {
-    log.error('Case Update Error')
+    log.info('Can not Create Action after edit Case, When casestatusId=>'+nowCaseStatus);
   }
   res.json({status: {code: 200}, result: actionAfterChange, isChangeRadio: isChangeRadio});
 });
