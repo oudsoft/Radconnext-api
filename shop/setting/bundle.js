@@ -3517,6 +3517,7 @@ module.exports = function ( jq ) {
 				fromDate = new Date();
 			  fromDate.setDate(fromDate.getDate() - 30);
 				fromDateTime = (new Date(fromDate)).getTime();
+				fromDate = common.doFormatDateStr(fromDate);
 			}
 			orderHistoryItems = await orderHistoryItems.filter((item, i) => {
 				let orderDateTime = (new Date(item.createdAt)).getTime();
