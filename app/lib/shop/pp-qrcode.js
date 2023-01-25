@@ -118,7 +118,7 @@ const doCreatePPQRCodeAddAdv = function(ppData) {
 		const ctx = imageCanvas.getContext('2d');
 		ctx.globalAlpha = 0.8;
 		ctx.fillStyle = "yellow";
-		ctx.fillRect(0, 0, maxW, maxH);
+		ctx.fillRect(0, 0, maxW, maxHH);
 		ctx.fill();
 		/* Stamp Logo + Ad */
 		const imageSrcDir = shopDir + '/favposicon.png'
@@ -129,17 +129,17 @@ const doCreatePPQRCodeAddAdv = function(ppData) {
 		const imageWidth = srcImage.width;
 		const imageHeight = srcImage.height;
 
-		ctx.drawImage(srcImage, 20, (maxH+10), 45, 45);
+		ctx.drawImage(srcImage, 30, (maxH+10), 45, 45);
 		ctx.font = 'bold 40px "EkkamaiStandard"';
 		ctx.textAlign = 'left';
 		ctx.fillStyle = 'black';
 		//let textAd = 'สร้างพร้อมเพย์คิวอาร์โค้ดแบบรายครั้งได้ฟรีที่';
 		let textAd = 'สร้างฟรี ที่';
-		ctx.fillText(textAd, 90, 450);
+		ctx.fillText(textAd, 100, 450);
 		ctx.font = 'bold 40px "EkkamaiStandard"';
 		ctx.textAlign = 'left';
 		let linkAd = 'radconnext.tech/shop';
-		ctx.fillText(linkAd, 0, 490);
+		ctx.fillText(linkAd, 5, 490);
 
 		/* Stamp Logo + Ad */
 
