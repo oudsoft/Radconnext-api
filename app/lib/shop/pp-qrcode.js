@@ -9,6 +9,7 @@ const {registerFont, createCanvas, createImageData} = require('canvas');
 const shopDir = path.normalize(__dirname + '/../../../shop');
 
 registerFont(shopDir + '/font/THSarabunNew.ttf', { family: 'THSarabunNew' });
+registerFont(shopDir + '/font/EkkamaiStandard-Light.ttf', { family: 'EkkamaiStandard' });
 
 var log, ppText;
 
@@ -107,10 +108,95 @@ const doCreatePPQRCode = function(ppData) {
   });
 }
 
+const doCreatePPQRCodeAddAdv = function(ppData) {
+  return new Promise(async function(resolve, reject) {
+    log.info('ppData ==> ' + JSON.stringify(ppData));
+    const maxHH = 500;
+		const maxH = 400;
+		const maxW = 360;
+		const imageCanvas = createCanvas(maxW, maxHH);
+		const ctx = imageCanvas.getContext('2d');
+		ctx.globalAlpha = 0.8;
+		ctx.fillStyle = "yellow";
+		ctx.fillRect(0, 0, maxW, maxH);
+		ctx.fill();
+		/* Stamp Logo + Ad */
+		const imageSrcDir = shopDir + '/favposicon.png'
+		const srcCanvas = require('canvas');
+		const srcImage = new srcCanvas.Image;
+		srcImage.src = imageSrcDir;
+
+		const imageWidth = srcImage.width;
+		const imageHeight = srcImage.height;
+
+		ctx.drawImage(srcImage, 20, (maxH+10), 45, 45);
+		ctx.font = 'bold 40px "EkkamaiStandard"';
+		ctx.textAlign = 'left';
+		ctx.fillStyle = 'black';
+		//let textAd = 'สร้างพร้อมเพย์คิวอาร์โค้ดแบบรายครั้งได้ฟรีที่';
+		let textAd = 'สร้างฟรี ที่';
+		ctx.fillText(textAd, 90, 450);
+		ctx.font = 'bold 40px "EkkamaiStandard"';
+		ctx.textAlign = 'left';
+		let linkAd = 'radconnext.tech/shop';
+		ctx.fillText(linkAd, 0, 490);
+
+		/* Stamp Logo + Ad */
+
+    const qrcodeText =  ppText.ppTextCreator(ppData.ppaytype, ppData.ppayno, ppData.netAmount);
+    const qrcodeCanvas = createCanvas(200, 200);
+    qrCode.toCanvas(qrcodeCanvas, qrcodeText, function (error) {
+			ctx.font = 'bold 40px "THSarabunNew"'
+			ctx.fillStyle = 'black';
+			ctx.textAlign = 'center';
+			//ctx.fillText("สแกนเพื่อชำระเงิน", 200, 340);
+			ctx.fillText("สแกนเพื่อชำระเงิน", 180, 40);
+
+      let qrH = 200;
+			ctx.drawImage(qrcodeCanvas, 80, 60, qrH, qrH);
+
+			ctx.font = 'bold 30px "THSarabunNew"'
+			ctx.textAlign = 'left';
+
+			let textFormater = util.format("หมายเลขพร้อมเพย์ %s ", ppData.ppayno);
+			ctx.fillText(textFormater, 20, 290);
+
+			textFormater = util.format("ชื่อบัญชี  %s %s", ppData.fname, ppData.lname);
+			ctx.fillText(textFormater, 20, 320);
+
+			textFormater = util.format("จำนวนเงิน %s บาท", Number(ppData.netAmount).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
+			ctx.fillText(textFormater, 20, 350);
+
+			ctx.font = 'bold 25px "THSarabunNew"'
+			ctx.textAlign = 'left';
+			let today = new Date();
+			textFormater = util.format("วันที่ : %s เวลา : %s" ,  formatCustomerDate(today), formatCustomerTime(today));
+			ctx.fillText(textFormater, 20, (maxH-10));
+
+      let imageFileName = "PPQR-" + ppData.ppayno + "-" + today.getTime();
+
+			let imageFileExName = '.png';
+
+      let imageLink = '/img/usr/qrcode/' + imageFileName + imageFileExName;
+			let imagePath =  shopDir + imageLink;
+
+			log.info('imagePath ==> ' + imagePath);
+
+			const out = fs.createWriteStream(imagePath);
+			const stream = imageCanvas.createPNGStream();
+			stream.pipe(out);
+			out.on('finish', () =>  {
+				resolve({qrLink: '/shop' + imageLink, qrPath: imagePath, qrFileName: imageFileName});
+			});
+    });
+  });
+}
+
 module.exports = (monitor) => {
   log = monitor;
   ppText = require('./promptpaytext.js')(log);
   return {
-    doCreatePPQRCode
+    doCreatePPQRCode,
+		doCreatePPQRCodeAddAdv
   }
 }

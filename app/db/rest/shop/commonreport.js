@@ -684,8 +684,14 @@ const doCreatePPQR = function(ppfData){
 				fname: ppNames[0],
 				lname: ppNames[1],
 			}
-			qr = await ppQRgen.doCreatePPQRCode(ppData);
-			resolve(qr);
+			let qr = undefined;
+			if (ppfData.showAd) {
+				qr = await ppQRgen.doCreatePPQRCodeAddAdv(ppData);
+				resolve(qr);
+			} else {
+				qr = await ppQRgen.doCreatePPQRCode(ppData);
+				resolve(qr);
+			}
 		} else {
 			reject({error: 'not found PPPtype'})
 		}

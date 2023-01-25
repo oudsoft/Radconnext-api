@@ -155,9 +155,9 @@ module.exports = function ( jq ) {
 	}
 
 	const calendarOptions = {
-		lang:"th",
-		years:"2020-2030",
-		sundayFirst:false,
+		lang: "th",
+		years: "2020-2030",
+		sundayFirst: true,
 	};
 
 	const genUniqueID = function () {
@@ -676,6 +676,7 @@ const doStartTestPPQC = function(evt, shopData){
           Shop_PromptPayNo: shopData.Shop_PromptPayNo,
           Shop_PromptPayName: shopData.Shop_PromptPayName,
           netAmount: newValue,
+          showAd: true
         };
         let shopRes = await common.doCallApi('/api/shop/shop/create/ppqrcode', params);
         if (shopRes.status.code == 200) {
@@ -685,7 +686,7 @@ const doStartTestPPQC = function(evt, shopData){
             evt.stopPropagation();
             window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
           });
-          $(ppQRBox).empty().append($(ppqrImage));
+          $(ppQRBox).empty().append($(ppqrImage)).css({'height': 'auto'});
           $(dlgHandle.cancelCmd).show();
           $(dlgHandle.cancelCmd).val(' ตกลง ');
           $(dlgHandle.okCmd).hide();
