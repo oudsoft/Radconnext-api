@@ -28,7 +28,7 @@ const formatCustomerDate = function (fullDataTime) {
 	if(mm<10) {
 		mm = '0'+mm
 	}
-	return dd + "/" + mm + "/" + yyyy;
+	return dd + "-" + mm + "-" + yyyy;
 }
 
 const formatCustomerTime = function (fullDataTime) {
@@ -49,7 +49,7 @@ const formatCustomerTime = function (fullDataTime) {
 const doCreatePPQRCode = function(ppData) {
   return new Promise(async function(resolve, reject) {
     log.info('ppData ==> ' + JSON.stringify(ppData));
-    const maxH = 400;
+    const maxH = 370;
 		const maxW = 360;
 		const imageCanvas = createCanvas(maxW, maxH);
 		const ctx = imageCanvas.getContext('2d');
@@ -74,20 +74,20 @@ const doCreatePPQRCode = function(ppData) {
 			ctx.font = 'bold 30px "THSarabunNew"'
 			ctx.textAlign = 'left';
 
-			let textFormater = util.format("หมายเลขพร้อมเพย์ %s ", ppData.ppayno);
-			ctx.fillText(textFormater, 20, 290);
+			//let textFormater = util.format("หมายเลขพร้อมเพย์ %s ", ppData.ppayno);
+			//ctx.fillText(textFormater, 20, 290);
 
 			textFormater = util.format("ชื่อบัญชี  %s %s", ppData.fname, ppData.lname);
-			ctx.fillText(textFormater, 20, 320);
+			ctx.fillText(textFormater, 20, 290);
 
 			textFormater = util.format("จำนวนเงิน %s บาท", Number(ppData.netAmount).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
-			ctx.fillText(textFormater, 20, 350);
+			ctx.fillText(textFormater, 20, 320);
 
 			ctx.font = 'bold 25px "THSarabunNew"'
 			ctx.textAlign = 'left';
 			let today = new Date();
 			textFormater = util.format("วันที่ : %s เวลา : %s" ,  formatCustomerDate(today), formatCustomerTime(today));
-			ctx.fillText(textFormater, 20, (maxH-10));
+			ctx.fillText(textFormater, 20, (maxH-20));
 
       let imageFileName = "PPQR-" + ppData.ppayno + "-" + today.getTime();
 
@@ -112,7 +112,7 @@ const doCreatePPQRCodeAddAdv = function(ppData) {
   return new Promise(async function(resolve, reject) {
     log.info('ppData ==> ' + JSON.stringify(ppData));
     const maxHH = 500;
-		const maxH = 400;
+		const maxH = 370;
 		const maxW = 360;
 		const imageCanvas = createCanvas(maxW, maxHH);
 		const ctx = imageCanvas.getContext('2d');
@@ -129,7 +129,7 @@ const doCreatePPQRCodeAddAdv = function(ppData) {
 		const imageWidth = srcImage.width;
 		const imageHeight = srcImage.height;
 
-		ctx.drawImage(srcImage, 30, (maxH+10), 45, 45);
+		ctx.drawImage(srcImage, 30, 410, 45, 45);
 		ctx.font = 'bold 40px "EkkamaiStandard"';
 		ctx.textAlign = 'left';
 		ctx.fillStyle = 'black';
@@ -158,20 +158,20 @@ const doCreatePPQRCodeAddAdv = function(ppData) {
 			ctx.font = 'bold 30px "THSarabunNew"'
 			ctx.textAlign = 'left';
 
-			let textFormater = util.format("หมายเลขพร้อมเพย์ %s ", ppData.ppayno);
-			ctx.fillText(textFormater, 20, 290);
+			//let textFormater = util.format("หมายเลขพร้อมเพย์ %s ", ppData.ppayno);
+			//ctx.fillText(textFormater, 20, 290);
 
 			textFormater = util.format("ชื่อบัญชี  %s %s", ppData.fname, ppData.lname);
-			ctx.fillText(textFormater, 20, 320);
+			ctx.fillText(textFormater, 20, 290);
 
 			textFormater = util.format("จำนวนเงิน %s บาท", Number(ppData.netAmount).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,'));
-			ctx.fillText(textFormater, 20, 350);
+			ctx.fillText(textFormater, 20, 320);
 
 			ctx.font = 'bold 25px "THSarabunNew"'
 			ctx.textAlign = 'left';
 			let today = new Date();
 			textFormater = util.format("วันที่ : %s เวลา : %s" ,  formatCustomerDate(today), formatCustomerTime(today));
-			ctx.fillText(textFormater, 20, (maxH-10));
+			ctx.fillText(textFormater, 20, (maxH-20));
 
       let imageFileName = "PPQR-" + ppData.ppayno + "-" + today.getTime();
 
