@@ -108,6 +108,12 @@ taxinvoices.belongsTo(userinfoes);
 const templates = sequelize.define('templates', Def.ShopTemplateDef);
 templates.belongsTo(shops);
 
+const stockings = sequelize.define('stockings', Def.ShopStockingDef);
+stockings.belongsTo(shops);
+stockings.belongsTo(orders);
+stockings.belongsTo(users);
+stockings.belongsTo(menuitems);
+
 module.exports =  {
   sequelize,
   Op,
@@ -125,5 +131,6 @@ module.exports =  {
   invoices,
   bills,
   taxinvoices,
-  templates
+  templates,
+  stockings
 }

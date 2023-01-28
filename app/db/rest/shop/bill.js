@@ -137,6 +137,23 @@ app.post('/add', async (req, res) => {
           let adbill = await db.bills.create(newBillData);
           await db.bills.update({shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, userinfoId: req.body.userinfoId}, {where: {id: adbill.id}});
           res.json({Result: "OK", status: {code: 200}, Record: adbill});
+
+          let shopData = req.body.shopData;
+          if (parseInt(shopData.Shop_StockingOption) == 1) {
+            const orders = await db.orders.findAll({attributes: ['Items'], where: {id: req.body.orderId}});
+            if (orders.length > 0) {
+              const menuItems = orders[0].Items;
+              for (let i=0; i < menuItems.length; i++){
+                let stockingOption = menuItems[i].StockingOption;
+                if (parseInt(stockingOption) == 1) {
+                  let newStockOut = {Direction: '-', Qty: parseFloat(menuItems[i].Qty), Price: parseFloat(menuItems[i].Price), StockedAt: new Date()};
+                  let adStock = await db.stockings.create(newStockOut);
+                  await db.stockings.update({shopId: req.body.shopId, orderId: req.body.orderId, userId: req.body.userId, menuitemId: menuItems[i].id}, {where: {id: adStock.id}});
+                }
+              }
+            }
+          }
+
         } catch(error) {
           log.error('Bill Add Error=>' + JSON.stringify(error))
         }

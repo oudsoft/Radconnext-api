@@ -1102,7 +1102,7 @@ module.exports = function ( jq ) {
 
 		const billCallback = async function(newBillData, paymentData){
 			$(pageHandle.toggleMenuCmd).click();
-			let billParams = {data: newBillData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
+			let billParams = {data: newBillData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
 			let billRes = await common.doCallApi('/api/shop/bill/add', billParams);
 			if (billRes.status.code == 200) {
 				let billId = billRes.Record.id;
@@ -1148,7 +1148,7 @@ module.exports = function ( jq ) {
 
 		const taxinvoiceCallback = async function(newTaxInvoiceData, paymentData){
 			$(pageHandle.toggleMenuCmd).click();
-			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
+			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
 			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
 
 			if (taxinvoiceRes.status.code == 200) {
@@ -14145,8 +14145,26 @@ module.exports = function ( jq ) {
 		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'center', inputSize: '30', verify: true, showHeader: true}
   ];
 
+	const doCreateStockOptionSelect = function() {
+		let optionSelector = $('<select id="StockingOption"></select>');
+		$(optionSelector).append($('<option value="0">ไม่ตัดสต็อค</option>'));
+		$(optionSelector).append($('<option value="1">ตัดสต็อค</option>'));
+		return $(optionSelector);
+	}
+
   const doShowMenuitemItem = function(shopData, workAreaBox, groupId){
     return new Promise(async function(resolve, reject) {
+			let stockingOptionIndex = await menuitemTableFields.findIndex((item) =>{
+				return (item.fieldName == 'StockingOption');
+			});
+			if (stockingOptionIndex > -1) {
+				menuitemTableFields.splice(stockingOptionIndex, 1);
+			}
+
+			if (parseInt(shopData.Shop_StockingOption) == 1) {
+				menuitemTableFields.push({fieldName: 'StockingOption', displayName: 'Stock', width: '5%', align: 'center', inputSize: '30', verify: true, showHeader: true});
+			}
+
       let menugroupRes = await common.doCallApi('/api/shop/menugroup/options/' + shopData.id, {});
       let menugroups = menugroupRes.Options;
       localStorage.setItem('menugroups', JSON.stringify(menugroups));
@@ -14352,7 +14370,12 @@ module.exports = function ( jq ) {
   			let fieldRow = $('<tr></tr>');
   			let labelField = $('<td width="40%" align="left">' + menuitemTableFields[i].displayName + (menuitemTableFields[i].verify?' <span style="color: red;">*</span>':'') + '</td>').css({'padding': '5px'});
   			let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
-  			let inputValue = $('<input type="text" id="' + menuitemTableFields[i].fieldName + '" size="' + menuitemTableFields[i].inputSize + '"/>');
+  			let inputValue = undefined;
+				if (menuitemTableFields[i].fieldName === 'StockingOption') {
+					inputValue = doCreateStockOptionSelect();
+				} else {
+					inputValue = $('<input type="text" id="' + menuitemTableFields[i].fieldName + '" size="' + menuitemTableFields[i].inputSize + '"/>');
+				}
   			if ((menuitemData) && (menuitemData[menuitemTableFields[i].fieldName])) {
   				$(inputValue).val(menuitemData[menuitemTableFields[i].fieldName]);
   			}

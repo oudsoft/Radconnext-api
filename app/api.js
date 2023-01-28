@@ -126,6 +126,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const shopbill = require('./db/rest/shop/bill.js')(shopdb, log);
 	const shoptaxinvoice = require('./db/rest/shop/taxinvoice.js')(shopdb, log);
 	const shoptemplate = require('./db/rest/shop/template.js')(shopdb, log);
+	const shopstocking = require('./db/rest/shop/stocking.js')(shopdb, log);
 	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
 
 	apiApp.use('/external', externalapiproxy);
@@ -185,6 +186,7 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/shop/bill', shopbill);
 	apiApp.use('/shop/taxinvoice', shoptaxinvoice);
 	apiApp.use('/shop/template', shoptemplate);
+	apiApp.use('/shop/stocking', shopstocking);
 
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;

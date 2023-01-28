@@ -89,6 +89,10 @@ const ShopShopDef = {
   },
   Shop_PromptPayName : {
     type: Sequelize.STRING(30)
+  },
+  Shop_StockingOption : {
+    type: Sequelize.STRING(1), // <- 0=Not Open Stocking Option, 1=Open Stocking Option
+    defaultValue: '0'
   }
 };
 const ShopMenuGroupDef = {
@@ -120,6 +124,10 @@ const ShopMenuItemDef = {
   },
   Desc : {
     type: Sequelize.STRING
+  },
+  StockingOption : {
+    type: Sequelize.STRING(1), // <- 0=Not Run Stocking Option, 1=Run Stocking Option
+    defaultValue: '0'
   }
 };
 const ShopCustomerDef = {
@@ -253,6 +261,21 @@ const ShopTemplateDef = {
   }
 };
 
+const ShopStockingDef = {
+  Direction : {
+    type: Sequelize.STRING(1) // <- + = Stocking in direction,  - = Stocking out direction
+  },
+  Qty : {
+    type: Sequelize.FLOAT
+  },
+  Price : {
+    type: Sequelize.FLOAT
+  },
+  StockedAt : {
+    type: Sequelize.DATE
+  }
+};
+
 module.exports = {
   ShopUserTypeDef,
   ShopUserDef,
@@ -267,5 +290,6 @@ module.exports = {
   ShopTaxInvoiceDef,
   ShopPaytypeDef,
   ShopPaymentDef,
-  ShopTemplateDef
+  ShopTemplateDef,
+  ShopStockingDef
 }
