@@ -5720,7 +5720,7 @@ module.exports = function ( jq ) {
       			},()=>{
       				$(stockDateBox).css({'border': '3px solid grey'});
       			});
-						$(stockDateBox).attr('tooltip', 'แก้ไขวันที่นำเข้าสต็อค');
+						$(stockDateBox).attr('title', 'แก้ไขวันที่นำเข้าสต็อค');
             $(stockDateCol).append($(stockDateBox));
           } else {
             let stockDateBox = $('<span></span>').text(stockDate).css({'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px'});
