@@ -393,6 +393,19 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const findCutoffDateFromDateOption = function(dUnit) {
+    let d = dUnit.substring(0, dUnit.length - 1);
+    let u = dUnit.substring(dUnit.length - 1);
+    let now = new Date();
+    if (u === 'D') {
+      return now.setDate(now.getDate() - parseInt(d));
+    } else if (u === 'M') {
+      return now.setMonth(now.getMonth() - parseInt(d));
+    } else if (u === 'Y') {
+      return now.setFullYear(now.getFullYear() - parseInt(d));
+    }
+  }
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
@@ -415,7 +428,8 @@ module.exports = function ( jq ) {
 		doResetSensitiveWord,
 		doConnectWebsocketMaster,
 		doPopupOrderChangeLog,
-		isMobileDeviceCheck
+		isMobileDeviceCheck,
+		findCutoffDateFromDateOption
 	}
 }
 
@@ -3129,7 +3143,7 @@ module.exports = function ( jq ) {
 				$('#StockTable').remove();
 				$('#NavigBar').remove();
 				let cutoffDateValue = $(cutoffDateSelector).val();
-				let cutoffDate = stock.findCutoffDateFromDateOption(cutoffDateValue);
+				let cutoffDate = common.findCutoffDateFromDateOption(cutoffDateValue);
 				let orderDateFmt = common.doFormatDateStr(new Date(cutoffDate));
 				cutoffDate = new Date(cutoffDate);
 				let params = {cutoffDate: cutoffDate};
@@ -4402,6 +4416,8 @@ module.exports = function ( jq ) {
 
   const doRenderGoodItemTable = function(orderData, gooditemWorkingBox){
     return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let shopData = userdata.shop;
       let goodItemForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
       let goodItemHeadFormRow = $('<tr></tr>').css({'background-color': 'grey', 'color': 'white', 'height': '42px'});
       let goodItemHeadNumberCell = $('<td width="5%" align="center"><b>#</b></td>');
@@ -4543,6 +4559,28 @@ module.exports = function ( jq ) {
 						if ([1, 2].includes(orderData.Status)) {
             	$(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
 						}
+
+						if ((parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
+							 let stockInfoCmd = common.doCreateImageCmd('../../images/stock-icon.png', 'เช็คสต็อค');
+							 $(stockInfoCmd).on('click', async (evt)=>{
+								 let cutoffDateValue = '1D';
+								 let cutoffDate = common.findCutoffDateFromDateOption(cutoffDateValue);
+								 let orderDateFmt = common.doFormatDateStr(new Date(cutoffDate));
+								 cutoffDate = new Date(cutoffDate);
+								 let params = {cutoffDate: cutoffDate};
+
+								 let stockRes = await common.doCallApi('/api/shop/stocking/list/by/menuitem/' + goodItems[i].id, params);
+								 let sum = stockRes.sumQty.Qty;
+								 if (stockRes.Records.length > 0) {
+									 for (let k=0; k < stockRes.Records.length; k++) {
+										 sum = sum + stockRes.Records[k].Qty;
+									 }
+								 }
+								 doShowStockInfo(goodItems[i], sum);
+							 });
+							 $(commandCell).append($(stockInfoCmd))
+						}
+
             $(goodItemForm).append($(goodItemRow));
 						itenNoCells.push($(itenNoCell));
           }
@@ -4970,6 +5008,61 @@ module.exports = function ( jq ) {
 			});
 			resolve();
 		});
+	}
+
+	const doRenderGooditemInfo = function(goodItemData, sum){
+		let mainBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'height': 'auto'});
+		let gooditemNameBox = $('<div></div>').append($('<h2></h2>').text(goodItemData.MenuName)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'center'});
+		$(mainBox).append($(gooditemNameBox));
+		if (goodItemData.MenuPicture !== '') {
+			let goodItemImage = $('<img width="140" height="auto"/>').attr('src', goodItemData.MenuPicture).css({'cursor': 'pointer'});
+			$(goodItemImage).on('click', (evt)=>{
+				window.open(goodItemData.MenuPicture, '_blank');
+			});
+			let gooditemPictureBox = $('<div></div>').append($(goodItemImage)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'center'});
+			$(mainBox).append($(gooditemPictureBox));
+		}
+		if (goodItemData.Desc !== '') {
+			let gooditemDescBox = $('<div></div>').append($('<p></p>').text(goodItemData.Desc)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+			$(mainBox).append($(gooditemDescBox));
+		}
+		let gooditemPriceBox = $('<div></div>').append($('<p></p>').html('<span>ราคา(ขาย)</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.Price + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemPriceBox));
+		let gooditemUnitBox = $('<div></div>').append($('<p></p>').html('<span>หน่วย(ขาย)</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.Unit + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemUnitBox));
+		let gooditemGroupNameBox = $('<div></div>').append($('<p></p>').html('<span>กลุ่ม</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.menugroup.GroupName + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemGroupNameBox));
+		if ((sum==0) || (sum>0) || (sum<0)) {
+			let gooditemSumStockBox = $('<div></div>').append($('<p></p>').html('<span>ยอดสต็อคสุทธิ</span><span style="margin-left: 5px; font-weight: bold;">' + common.doFormatQtyNumber(sum) + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#ddd'});
+			if (sum > 0) {
+				$(gooditemSumStockBox).css({'border': '2px solid green'});
+			} else {
+				$(gooditemSumStockBox).css({'border': '2px solid red'});
+			}
+			$(mainBox).append($(gooditemSumStockBox));
+		} else {
+			let gooditemSumStockBox = $('<div></div>').append($('<p></p>').html('<span>ยังไม่เปิดใช้งานเชื่อมต่อระบบสต็อค</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#ddd'});
+			$(gooditemSumStockBox).css({'border': '2px solid black'});
+			$(mainBox).append($(gooditemSumStockBox));
+		}
+		return $(mainBox);
+	}
+
+	const doShowStockInfo = function(goodItemData, sum){
+		let goodItemInfoBox = doRenderGooditemInfo(goodItemData, sum);
+		let editDlgOption = {
+			title: 'ข้อมูลสินค้า',
+			msg: $(goodItemInfoBox),
+			width: '420px',
+			onOk: async function(evt) {
+				dlgHandle.closeAlert();
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		$(dlgHandle.okCmd).hide();
 	}
 
   return {
@@ -5608,19 +5701,6 @@ module.exports = function ( jq ) {
 		});
 	}
 
-  const findCutoffDateFromDateOption = function(dUnit) {
-    let d = dUnit.substring(0, dUnit.length - 1);
-    let u = dUnit.substring(dUnit.length - 1);
-    let now = new Date();
-    if (u === 'D') {
-      return now.setDate(now.getDate() - parseInt(d));
-    } else if (u === 'M') {
-      return now.setMonth(now.getMonth() - parseInt(d));
-    } else if (u === 'Y') {
-      return now.setFullYear(now.getFullYear() - parseInt(d));
-    }
-  }
-
   const doRenderCutoffStockTable = function(workAreaBox, viewPage, startRef, fromDate, stockRes, menuitemData) {
     return new Promise(async function(resolve, reject) {
       console.log(stockRes);
@@ -6001,7 +6081,6 @@ module.exports = function ( jq ) {
 
   return {
     doOpenStockInForm,
-    findCutoffDateFromDateOption,
     doRenderCutoffStockTable
   }
 }
