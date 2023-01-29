@@ -5701,7 +5701,7 @@ module.exports = function ( jq ) {
                 //console.log(selectDate);
                 let params = {data: {StockedAt: date}, stockingId: stockPageItem.id};
                 console.log(params);
-                let stockRes = await common.doCallApi('/api/shop/stocking/edit/createdate', params);
+                let stockRes = await common.doCallApi('/api/shop/stocking/edit/stockeddate', params);
                 if (stockRes.status.code == 200) {
                   $.notify("แก้ไขวันที่นำเข้า " + menuitemData.MenuName + " สำเร็จ", "success");
                   $('#StockCutoffDateOption').change();
@@ -5720,6 +5720,7 @@ module.exports = function ( jq ) {
       			},()=>{
       				$(stockDateBox).css({'border': '3px solid grey'});
       			});
+						$(stockDateBox).attr('tooltip', 'แก้ไขวันที่นำเข้าสต็อค');
             $(stockDateCol).append($(stockDateBox));
           } else {
             let stockDateBox = $('<span></span>').text(stockDate).css({'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px'});

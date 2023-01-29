@@ -10,7 +10,47 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 var db, log, auth;
 
+const offset = 7;
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
+const { QueryTypes } = require('sequelize');
+
+const formatDateTimeToStrWithoutTimeZone = function(dt){
+	let d = new Date(dt);
+	//สำหรับ timezone = Etc/UTC
+	let utc = d.getTime();
+	d = new Date(utc - (3600000 * offset));
+	//สำหรับ timezone = Asia/Bangkok
+	//d.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+	var yy, mm, dd, hh, mn, ss;
+	yy = d.getFullYear();
+	if (d.getMonth() + 1 < 10) {
+		mm = '0' + (d.getMonth() + 1);
+	} else {
+		mm = '' + (d.getMonth() + 1);
+	}
+	if (d.getDate() < 10) {
+		dd = '0' + d.getDate();
+	} else {
+		dd = '' + d.getDate();
+	}
+	if (d.getHours() < 10) {
+		hh = '0' + d.getHours();
+	} else {
+		 hh = '' + d.getHours();
+	}
+	if (d.getMinutes() < 10){
+		 mn = '0' + d.getMinutes();
+	} else {
+		mn = '' + d.getMinutes();
+	}
+	if (d.getSeconds() < 10) {
+		 ss = '0' + d.getSeconds();
+	} else {
+		ss = '' + d.getSeconds();
+	}
+	var td = `${yy}-${mm}-${dd} ${hh}:${mn}:${ss}`;
+	return td;
+}
 
 const summaryToCutoffDate = function(menuitemId, cutoffDate) {
   return new Promise(async function(resolve, reject) {
@@ -19,9 +59,9 @@ const summaryToCutoffDate = function(menuitemId, cutoffDate) {
     let fromDateWithZ = new Date(cutoffDate);
     fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7));
 
-    fromDateWithZ.setDate(fromDateWithZ.getDate() + 2);
+    fromDateWithZ.setDate(fromDateWithZ.getDate() + 1);
 
-    whereCluase.createdAt = { [db.Op.lt]: new Date(fromDateWithZ)};
+    whereCluase.StockedAt = { [db.Op.lt]: new Date(fromDateWithZ)};
     const stocks = await db.stockings.findAll({where: whereCluase, order: orderby});
     let sum = 0;
     const promiseList = new Promise(async function(resolve2, reject2) {
@@ -110,29 +150,29 @@ app.post('/update', async (req, res) => {
   }
 });
 
-//Update CreatedAt Stocking API
-app.post('/edit/createdate', async (req, res) => {
+//Update StockedAt Stocking API
+app.post('/edit/stockeddate', async (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         let stockingId = req.body.stockingId;
+        log.info('stockingId=>'+stockingId);
         let updateStock = req.body.data;
         log.info('updateStock=>'+JSON.stringify(updateStock));
         try {
           let fromDateWithZ = new Date(updateStock.StockedAt);
-          //fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7));
+          log.info('fromDateWithZ=>'+ fromDateWithZ);
+          let fromDateWithoutZ = formatDateTimeToStrWithoutTimeZone(fromDateWithZ);
+          log.info('fromDateWithoutZ=>'+ fromDateWithoutZ);
 
-          //let updateCreatedAt = {StockedAt: new Date()};
-          let updateCreatedAt = {StockedAt: new Date(fromDateWithZ.getTime() - (3600000 * 7))};
-          log.info('updateCreatedAt=>'+ JSON.stringify(updateCreatedAt));
-          await db.stockings.update(updateCreatedAt, {where: {id: stockingId}});
-          //db.stockings.set('StockedAt', new Date(fromDateWithZ.getTime() - (3600000 * 7)));
-          //db.stockings.set('StockedAt', new Date(updateStock.StockedAt));
-          //await db.stockings.save();
-          res.json({Result: "OK", status: {code: 200}, Record: updateStockIn});
+          let sqlCmd = 'update stockings set "StockedAt"=to_timestamp(\'' + fromDateWithoutZ + '\', \'yyyy-mm-dd hh24:mi\') where id=' + stockingId;
+          log.info('sqlCmd=>'+ sqlCmd);
+
+          await db.sequelize.query(sqlCmd, {type: QueryTypes.UPDATE});
+          res.json({Result: "OK", status: {code: 200}});
         } catch(error) {
-          log.error('Stocking Update CreatedAt Error=>' + JSON.stringify(error));
+          log.error('Stocking Update StockedAt Error=>' + JSON.stringify(error));
           res.json({Result: "ERROR", status: {code: 400}, Error: error});
         }
       } else if (ur.token.expired){
@@ -181,7 +221,7 @@ app.post('/list/by/menuitem/(:menuitemId)', async (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        const orderby = [['createdAt', 'ASC']];
+        const orderby = [['StockedAt', 'ASC']];
         let menuitemId = req.params.menuitemId;
         log.info('menuitemId=>'+menuitemId);
         let cutoffDate = req.body.cutoffDate;
@@ -196,7 +236,7 @@ app.post('/list/by/menuitem/(:menuitemId)', async (req, res) => {
         toDateWithZ.setDate(toDateWithZ.getDate() + 1);
 
         const whereCluase = {menuitemId: menuitemId};
-        whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+        whereCluase.StockedAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
         const stocks = await db.stockings.findAll({where: whereCluase, order: orderby});
         res.json({ status: {code: 200}, Records: stocks, sumQty: sumQty, menuitemId: menuitemId, cutoffDate: cutoffDate});
       } else if (ur.token.expired){
