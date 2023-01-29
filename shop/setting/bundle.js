@@ -5062,7 +5062,7 @@ module.exports = function ( jq ) {
 			}
 		}
 		let dlgHandle = $('body').radalert(editDlgOption);
-		$(dlgHandle.okCmd).hide();
+		$(dlgHandle.cancelCmd).hide();
 	}
 
   return {
