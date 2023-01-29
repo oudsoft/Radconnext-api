@@ -5728,7 +5728,7 @@ module.exports = function ( jq ) {
           }
           $(dataRow).append($(stockDateCol));
           $(dataRow).append($('<td align="center"></td>').text(stockPageItem.Direction).css({'font-weight': 'bold'}));
-          $(dataRow).append($('<td align="right"></td>').text(common.doFormatQtyNumber(stockPageItem.Qty)).css({'padding-right': '2px'}));
+          $(dataRow).append($('<td align="right"></td>').text(stockPageItem.Direction + common.doFormatQtyNumber(stockPageItem.Qty)).css({'padding-right': '2px'}));
           $(dataRow).append($('<td align="right"></td>').text(common.doFormatNumber(stockPageItem.Price)).css({'padding-right': '2px'}));
           $(dataRow).append($('<td align="right"></td>').text(common.doFormatQtyNumber(sum)).css({'padding-right': '2px'}));
           let cmdItemCol = $('<td align="center" class="row-cmd"></td>');
