@@ -100,7 +100,7 @@ var toAsciidoc = function (string) {
     function traverse(string) {
         var ELEMENTS = [
             {
-                patterns: ["script", "iframe", "meta", "embed"],
+                patterns: ["script", "iframe", "meta", "embed", "style"],
                 replacement: function (str, attrs, innerHTML) {
                     return "";
                 }
