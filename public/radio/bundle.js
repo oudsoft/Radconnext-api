@@ -5271,7 +5271,8 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId, statusId: common.caseResultWaitStatus};
 			let apiUrl = '/api/cases/filter/radio';
 			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				//let response = await common.doCallApi(apiUrl, rqParams);
         resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -5287,7 +5288,8 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId, username: username, statusId: common.caseReadWaitStatus};
 			let apiUrl = '/api/tasks/filter/radio/' + userId;
 			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				//let response = await common.doCallApi(apiUrl, rqParams);
         resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -6133,7 +6135,8 @@ module.exports = function ( jq ) {
 		localStorage.setItem('userdata', JSON.stringify(userdata));
 		let rqParams = {data: userdata.userprofiles[0].Profile, userId: userdata.id};
 		console.log(rqParams);
-		let profileRes = await common.doCallApi('/api/userprofile/update', rqParams);
+		let profileRes = await apiconnector.doCallApiDirect('/api/userprofile/update', rqParams);
+		//let profileRes = await common.doCallApi('/api/userprofile/update', rqParams);
 		let onoffText = undefined;
 		if (state==1) {
 			onoffText = 'เปิด';
@@ -6369,7 +6372,8 @@ module.exports = function ( jq ) {
 
 	const doCreateConsultItemRow = function(consultItem){
 		return new Promise(async function(resolve, reject) {
-			let consultTask = await common.doCallApi('/api/consult/tasks/select/'+ consultItem.id, {});
+			//let consultTask = await common.doCallApi('/api/consult/tasks/select/'+ consultItem.id, {});
+			let consultTask = await apiconnector.doCallApiDirect('/api/consult/tasks/select/'+ consultItem.id, {});
 			let consultDate = util.formatDateTimeStr(consultItem.createdAt);
 			let consultdatetime = consultDate.split(' ');
 			let consultdateSegment = consultdatetime[0].split('-');
@@ -6509,7 +6513,8 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId, statusId: common.caseReadWaitStatus};
 			let apiUrl = '/api/cases/filter/radio';
 			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				//let response = await common.doCallApi(apiUrl, rqParams);
         resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -6525,7 +6530,8 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId, username: username, statusId: common.caseReadWaitStatus};
 			let apiUrl = '/api/tasks/filter/radio/' + userId;
 			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				//let response = await common.doCallApi(apiUrl, rqParams);
         resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -6549,7 +6555,8 @@ module.exports = function ( jq ) {
 			let rqParams = {userId: userId, statusId: [1 ,2]};
 			let apiUrl = '/api/consult/filter/radio';
 			try {
-				let response = await common.doCallApi(apiUrl, rqParams);
+				let response = await apiconnector.doCallApiDirect(apiUrl, rqParams);
+				//let response = await common.doCallApi(apiUrl, rqParams);
         resolve(response);
 			} catch(e) {
 	      reject(e);
@@ -6707,7 +6714,8 @@ module.exports = function ( jq ) {
 
 		let defaultSearchKey = {fromDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', caseStatusKeyValue: 6};
 		let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
-		common.doCallApi('/api/consult/search/key', defaultSearchParam).then(async(response)=>{
+		//common.doCallApi('/api/consult/search/key', defaultSearchParam).then(async(response)=>{
+		apiconnector.doCallApiDirect('/api/consult/search/key', defaultSearchParam).then(async(response)=>{
 			//$('body').loading('stop');
 			if (response.status.code === 200) {
 				let searchResultViewDiv = $('<div id="SearchResultView"></div>');
@@ -6901,7 +6909,8 @@ module.exports = function ( jq ) {
 
 				let searchParam = {key: searchKey, hospitalId: hospitalId, userId: userId, usertypeId: usertypeId};
 
-				let response = await common.doCallApi('/api/consult/search/key', searchParam);
+				let response = await apiconnector.doCallApiDirect('/api/consult/search/key', searchParam);
+				//let response = await common.doCallApi('/api/consult/search/key', searchParam);
 
 				$(".mainfull").find('#SearchResultView').empty();
         $(".mainfull").find('#NavigBar').empty();
@@ -11422,7 +11431,8 @@ module.exports = function ( jq ) {
 			let newList = await common.doCallApi(loadUrl, rqParams);
 			if (newList.status.code == 200){
 			*/
-			let allStatusList = await common.doCallApi(loadUrl, rqParams);
+			let allStatusList = await apiconnector.doCallApiDirect(loadUrl, rqParams);
+			//let allStatusList = await common.doCallApi(loadUrl, rqParams);
 			if (allStatusList.status.code == 200){
 				/*
 				rqParams.casestatusIds = [2, 8, 9, 13, 14];
@@ -11431,7 +11441,8 @@ module.exports = function ( jq ) {
 				loadUrl = '/api/consult/load/list/by/status/radio';
 				rqParams = {userId: userId};
 				rqParams.casestatusIds = [1];
-				let newConsultList = await common.doCallApi(loadUrl, rqParams);
+				let newConsultList = await apiconnector.doCallApiDirect(loadUrl, rqParams);
+				//let newConsultList = await common.doCallApi(loadUrl, rqParams);
 				resolve({newList: allStatusList.Records[0], accList:allStatusList.Records[1], newConsultList});
 			} else 	if (allStatusList.status.code == 210) {
 				reject({error: {code: 210, cause: 'Token Expired!'}});
