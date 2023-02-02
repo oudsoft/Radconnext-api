@@ -272,6 +272,8 @@ app.post('/radio/submitresult', (req, res) => {
             db.radchatlogs.update({topicStatus: 0}, {where: { caseId: caseId }});
           }
           //res.json(submitRes);
+          log.info('responseId=>' + responseId);
+          log.info('Response_Text=>' + report.Response_Text);
         } catch(error) {
           log.info('==Radio Submit Result with Error==');
           log.error(error);

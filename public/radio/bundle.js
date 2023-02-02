@@ -7683,6 +7683,8 @@ module.exports = function ( jq ) {
 				report: saveResponseData.report,
 			};
 
+			params.report.Response_Text = saveResponseData.patientFullName + '\n====================\n' + saveResponseData.Response_Text;
+
 			let saveResponseRes = await doCallSubmitResult(params);
 			//Uri = '/api/uicommon/radio/submitresult';
 			console.log(saveResponseRes);
