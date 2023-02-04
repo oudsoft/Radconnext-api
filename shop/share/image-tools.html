@@ -126,12 +126,21 @@
     $(closeOrderTable).append($(dataRow));
     dataRow = $('<tr></tr>').css({'height': '40px'});
     $(dataRow).append($('<td width="50%" align="left"><b>Font Color</b></td>'));
-    let waterMarkFontColorInput = $('<input id="WaterMarkFontColor" type="text"/>').css({'width': '80px'}).val(trigerData.waterMarkFontColor);
     let waterMarkFontColorInputCell = $('<td align="left"></td>');
-    $(waterMarkFontColorInputCell).append($(waterMarkFontColorInput));
+    //let waterMarkFontColorInput = $('<input id="WaterMarkFontColor" type="text"/>').css({'width': '80px'}).val(trigerData.waterMarkFontColor);
+    let waterMarkFontColorSelect = $('<select id="WaterMarkFontColor"></select>').css({'width': '80px'}).val(trigerData.waterMarkFontColor);
+    $(waterMarkFontColorInputCell).append($(waterMarkFontColorSelect));
+    $(waterMarkFontColorSelect).append($('<option value="white">white</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="yellow">yellow</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="green">green</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="blue">blue</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="brow">brow</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="red">red</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="grey">grey</option>'));
+    $(waterMarkFontColorSelect).append($('<option value="black">black</option>'));
     $(dataRow).append($(waterMarkFontColorInputCell));
     $(closeOrderTable).append($(dataRow));
-    callback(waterMarkTextInput, waterMarkFontSizeInput, waterMarkFontColorInput);
+    callback(waterMarkTextInput, waterMarkFontSizeInput, waterMarkFontColorSelect);
     return $(wrapperBox).append($(closeOrderTable));
   }
 </script>
