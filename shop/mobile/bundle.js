@@ -393,6 +393,19 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const findCutoffDateFromDateOption = function(dUnit) {
+    let d = dUnit.substring(0, dUnit.length - 1);
+    let u = dUnit.substring(dUnit.length - 1);
+    let now = new Date();
+    if (u === 'D') {
+      return now.setDate(now.getDate() - parseInt(d));
+    } else if (u === 'M') {
+      return now.setMonth(now.getMonth() - parseInt(d));
+    } else if (u === 'Y') {
+      return now.setFullYear(now.getFullYear() - parseInt(d));
+    }
+  }
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
@@ -415,7 +428,8 @@ module.exports = function ( jq ) {
 		doResetSensitiveWord,
 		doConnectWebsocketMaster,
 		doPopupOrderChangeLog,
-		isMobileDeviceCheck
+		isMobileDeviceCheck,
+		findCutoffDateFromDateOption
 	}
 }
 
@@ -618,6 +632,8 @@ const doCreateUserInfoBox = function(){
 }
 
 const doCreatePPInfoBox = function(shopData) {
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  let mainBox = $('<div style="width: 97%; text-align: left; padding: 5px; border: 2px solid grey;"></div>');
   let ppTitleBox = $('<div style="width: 100%; text-align: left;"></div>');
   $(ppTitleBox).append($('<p>ข้อมูลพร้อมเพย์ที่จะออกคิวอาร์โค้ด</p>'));
   let ppNameBox = $('<div></div>');
@@ -626,13 +642,17 @@ const doCreatePPInfoBox = function(shopData) {
   let ppNumberBox = $('<div></div>');
   $(ppNumberBox).append($('<p>หมายเลขพร้อมเพย์ :</p>'));
   $(ppNumberBox).append($('<p></p>').text(shopData.Shop_PromptPayNo).css({'font-weight': 'bold', 'font-size': '22px'}));
-  let ppFooterBox = $('<div style="width: 100%; text-align: left;"></div>');
-  $(ppFooterBox).append($('<p>หากข้อมูลไม่ถูกต้องโปรดแก้ไข โดยคลิกปุ่ม <b style="font-size: 22px;">แก้ไขข้อมูลพร้อมเพย์</b></p>'));
-  let mainBox = $('<div style="width: 97%; text-align: left; padding: 5px; border: 2px solid grey;"></div>');
-  return $(mainBox).append($(ppTitleBox)).append($(ppNameBox)).append($(ppNumberBox)).append($(ppFooterBox));
+  if ([1, 2, 3].includes(userdata.usertypeId)) {
+    let ppFooterBox = $('<div style="width: 100%; text-align: left;"></div>');
+    $(ppFooterBox).append($('<p>หากข้อมูลไม่ถูกต้องโปรดแก้ไข โดยคลิกปุ่ม <b style="font-size: 22px;">แก้ไขข้อมูลพร้อมเพย์</b></p>'));
+    return $(mainBox).append($(ppTitleBox)).append($(ppNameBox)).append($(ppNumberBox)).append($(ppFooterBox));
+  } else {
+    return $(mainBox).append($(ppTitleBox)).append($(ppNameBox)).append($(ppNumberBox));
+  }
 }
 
 const doStartTestPPQC = function(evt, shopData){
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
   let editInput = $('<input type="number"/>').val(common.doFormatNumber(100)).css({'width': '100px', 'margin-left': '20px'});
   $(editInput).on('keyup', (evt)=>{
     if (evt.keyCode == 13) {
@@ -646,24 +666,32 @@ const doStartTestPPQC = function(evt, shopData){
 
   if ((shopData.Shop_PromptPayNo !== '') && (shopData.Shop_PromptPayName !== '')) {
     let ppInfoBox = doCreatePPInfoBox(shopData);
-    settingPPDataCmd = common.doCreateTextCmd('แก้ไขข้อมูลพร้อมเพย์', 'green', 'white');
-    $(ppInfoBox).append($('<div style="width: 100%; text-align: center; margin-bottom: 20px;"></div>').append($(settingPPDataCmd)));
+    if ([1, 2, 3].includes(userdata.usertypeId)) {
+      settingPPDataCmd = common.doCreateTextCmd('แก้ไขข้อมูลพร้อมเพย์', 'green', 'white');
+      $(ppInfoBox).append($('<div style="width: 100%; text-align: center; margin-bottom: 20px;"></div>').append($(settingPPDataCmd)));
+    }
     ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
     $(ppQRBox).append($(ppInfoBox));
     $(ppQRBox).append($('<div style="width: 100%; margin-top: 40px;"></div>').append('<p>แก้ไขจำนวนเงินที่ต้องการแล้วคลิกปุ่ม <b style="font-size: 22px;">ตกลง</b></p>'));
     $(ppQRBox).append($(editLabel)).append($(editInput));
   } else {
-    settingPPDataCmd = common.doCreateTextCmd('ตั้งค่าข้อมูลพร้อมเพย์', 'orange', 'white');
-    ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
-    $(ppQRBox).append($('<span>คุณยังไม่ได้ตั้งค่าข้อมูลพร้อมเพย์ของร้าน</span>'));
-    $(ppQRBox).append($('<br/>')).append($('<span>คลิกที่ปุ่ม <b>ตั้งค่าข้อมูลพร้อมเพย์</b> เพื่อตั้งค่าก่อนออกคิวอาร์โค้ด</span>'));
-    $(ppQRBox).append($('<div style="width: 100%; text-align: center; margin-top: 50px;"></div>').append($(settingPPDataCmd)));
+    if ([1, 2, 3].includes(userdata.usertypeId)) {
+      settingPPDataCmd = common.doCreateTextCmd('ตั้งค่าข้อมูลพร้อมเพย์', 'orange', 'white');
+      ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
+      $(ppQRBox).append($('<span>คุณยังไม่ได้ตั้งค่าข้อมูลพร้อมเพย์ของร้าน</span>'));
+      $(ppQRBox).append($('<br/>')).append($('<span>คลิกที่ปุ่ม <b>ตั้งค่าข้อมูลพร้อมเพย์</b> เพื่อตั้งค่าก่อนออกคิวอาร์โค้ด</span>'));
+      $(ppQRBox).append($('<div style="width: 100%; text-align: center; margin-top: 50px;"></div>').append($(settingPPDataCmd)));
+    } else {
+      ppQRBox = $('<div></div>').css({'width': '100%', 'height': '480px', 'margin-top': '20px'});
+      $(ppQRBox).append($('<span>คุณยังไม่ได้ตั้งค่าข้อมูลพร้อมเพย์ของร้าน</span>'));
+    }
   }
   $(settingPPDataCmd).on('click', (evt)=>{
     evt.stopPropagation();
     dlgHandle.closeAlert();
     doOpenPPDataForm(evt, shopData);
   });
+
   let editDlgOption = {
     title: 'สร้างพร้อมเพย์คิวอาร์โค้ด',
     msg: $(ppQRBox),
@@ -1548,7 +1576,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":10,"../../setting/admin/mod/customer-dlg.js":11,"../../setting/admin/mod/gooditem-dlg.js":12,"../../setting/admin/mod/menuitem-mng.js":13,"./style-common-lib.js":8}],6:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":11,"../../setting/admin/mod/customer-dlg.js":12,"../../setting/admin/mod/gooditem-dlg.js":13,"../../setting/admin/mod/menuitem-mng.js":14,"./style-common-lib.js":8}],6:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1963,7 +1991,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":10,"../../setting/admin/mod/order-merge-dlg.js":14,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":11,"../../setting/admin/mod/order-merge-dlg.js":15,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
 /* order-proc-lib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -13282,6 +13310,22 @@ module.exports = function ( jq ) {
 
   const common = require('../../../home/mod/common-lib.js')($);
 
+  const doCreateCalendar = function(calendarOptions){
+    let calendareBox = $('<div id="CalendarBox"></div>');
+    return $(calendareBox).ionCalendar(calendarOptions);
+  }
+
+  return {
+    doCreateCalendar
+	}
+}
+
+},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+  const common = require('../../../home/mod/common-lib.js')($);
+
   String.prototype.lpad = function(padString, length) {
       var str = this;
       while (str.length < length)
@@ -13628,7 +13672,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],11:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -13780,7 +13824,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],12:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -14129,20 +14173,21 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}],13:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2}],14:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
   const common = require('../../../home/mod/common-lib.js')($);
+	const stock = require('./stock-cutoff.js')($);
 
   const menuitemTableFields = [
 		{fieldName: 'MenuName', displayName: 'ชื่อเมนู', width: '20%', align: 'left', inputSize: '30', verify: true, showHeader: true},
 		{fieldName: 'Desc', displayName: 'รายละเอียด', width: '20%', align: 'left', inputSize: '30', verify: false, showHeader: true},
-		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '15%', align: 'center', inputSize: '30', verify: false, showHeader: true},
-    {fieldName: 'Price', displayName: 'ราคา', width: '10%', align: 'right', inputSize: '20', verify: true, showHeader: true},
-		{fieldName: 'Unit', displayName: 'หน่วย', width: '15%', align: 'center', inputSize: '30', verify: true, showHeader: true}
+		{fieldName: 'MenuPicture', displayName: 'รูปเมนู', width: '10%', align: 'center', inputSize: '30', verify: false, showHeader: true},
+    {fieldName: 'Price', displayName: 'ราคา', width: '6%', align: 'right', inputSize: '20', verify: true, showHeader: true},
+		{fieldName: 'Unit', displayName: 'หน่วย', width: '10%', align: 'center', inputSize: '30', verify: true, showHeader: true}
 	];
   const menugroupTableFields = [
-		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '20%', align: 'center', inputSize: '30', verify: true, showHeader: true}
+		{fieldName: 'GroupName', displayName: 'กลุ่ม', width: '10%', align: 'center', inputSize: '30', verify: true, showHeader: true}
   ];
 
 	const doCreateStockOptionSelect = function() {
@@ -14150,6 +14195,78 @@ module.exports = function ( jq ) {
 		$(optionSelector).append($('<option value="0">ไม่ตัดสต็อค</option>'));
 		$(optionSelector).append($('<option value="1">ตัดสต็อค</option>'));
 		return $(optionSelector);
+	}
+
+	const doCreateStockInCmd = function(shopData, workAreaBox, menuitem) {
+		let stockInCmd = $('<input type="button" value=" นำเข้า " class="action-btn"/>');
+		$(stockInCmd).on('click', (evt)=>{
+			stock.doOpenStockInForm(shopData, workAreaBox, menuitem);
+		});
+		return $(stockInCmd);
+	}
+
+	const doCreateStockCutoffDateOptionSelect = function() {
+		let optionSelector = $('<select id="StockCutoffDateOption"></select>');
+		$(optionSelector).append($('<option value="1D">1 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="2D">2 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="3D">3 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="5D">5 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="7D">7 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="10D">10 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="15D">15 วันที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="1M">1 เดือนที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="2M">2 เดือนที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="3M">3 เดือนที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="6M">6 เดือนที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="1Y">1 ปีที่แล้ว</option>'));
+		return $(optionSelector);
+	}
+
+	const doCreateCheckStockCmd = function(shopData, workAreaBox, menuitem, row) {
+		let checkCtockCmd = $('<input type="button" value=" เช็ค " class="action-btn"/>');
+		$(checkCtockCmd).on('click', (evt)=>{
+			$('#TitlePageBox').text('เช็คสต็อครายการสินค้า');
+			$('#NewMenuitemCmdBox').hide();
+			$('.menuitem-row').hide();
+			$(row).show();
+			$(row).css({'background-color': 'gray', 'color': 'white'});
+			$(row).find('input[type="button"]').hide();
+			let commandCell = $(row).find('#CommandCell');
+			$(commandCell).find('img').hide();
+
+			let cutoffDateBox = $('<div id="CutoffDateBox"></div>');
+			let cutoffDateSelector = doCreateStockCutoffDateOptionSelect();
+			let fromDateText = $('<span>ตั้งแต่</span>');
+			$(cutoffDateBox).append($(fromDateText)).append($(cutoffDateSelector).css({'margin-left': '4px'}));
+			$(cutoffDateSelector).on('change', async (evt)=>{
+				$('#StockTable').remove();
+				$('#NavigBar').remove();
+				let cutoffDateValue = $(cutoffDateSelector).val();
+				let cutoffDate = common.findCutoffDateFromDateOption(cutoffDateValue);
+				let orderDateFmt = common.doFormatDateStr(new Date(cutoffDate));
+				cutoffDate = new Date(cutoffDate);
+				let params = {cutoffDate: cutoffDate};
+				let stockRes = await common.doCallApi('/api/shop/stocking/list/by/menuitem/' + menuitem.id, params);
+				let stockTable = await stock.doRenderCutoffStockTable(workAreaBox, 0, 0, cutoffDate, stockRes, menuitem);
+			});
+
+			let backMenuitemCmd = $('<input type="button" value=" Back " class="action-btn"/>').css({'margin-top': '4px'});
+			$(backMenuitemCmd).on('click', (evt)=>{
+				$(cutoffDateBox).remove();
+				$(backMenuitemCmd).remove();
+				$('#StockTable').remove();
+				$('#TitlePageBox').text('รายการสินค้าของร้าน');
+				$('#NewMenuitemCmdBox').show();
+				$('.menuitem-row').show();
+				$(row).css({'background-color': '', 'color': ''});
+				$(row).find('input[type="button"]').show();
+				$(commandCell).find('img').show();
+			});
+
+			$(commandCell).append($(cutoffDateBox)).append($(backMenuitemCmd));
+			$(cutoffDateSelector).change();
+		});
+		return $(checkCtockCmd);
 	}
 
   const doShowMenuitemItem = function(shopData, workAreaBox, groupId){
@@ -14162,7 +14279,7 @@ module.exports = function ( jq ) {
 			}
 
 			if (parseInt(shopData.Shop_StockingOption) == 1) {
-				menuitemTableFields.push({fieldName: 'StockingOption', displayName: 'Stock', width: '5%', align: 'center', inputSize: '30', verify: true, showHeader: true});
+				menuitemTableFields.push({fieldName: 'StockingOption', displayName: 'Stock', width: '10%', align: 'center', inputSize: '30', verify: true, showHeader: true});
 			}
 
       let menugroupRes = await common.doCallApi('/api/shop/menugroup/options/' + shopData.id, {});
@@ -14176,9 +14293,9 @@ module.exports = function ( jq ) {
 			}
       let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, listParams);
 			let menuitemItems = menuitemRes.Records;
-      let titlePageBox = $('<div style="padding: 4px;">รายการเมนูของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+      let titlePageBox = $('<div id="TitlePageBox" style="padding: 4px;">รายการสินค้าของร้าน</viv>').css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
       $(workAreaBox).append($(titlePageBox));
-      let newMenuitemCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+      let newMenuitemCmdBox = $('<div id="NewMenuitemCmdBox" style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
       let newMenuitemCmd = $('<input type="button" value=" + New Menu " class="action-btn"/>');
       $(newMenuitemCmd).on('click', (evt)=>{
         doOpenNewMenuitemForm(shopData, workAreaBox, groupId);
@@ -14219,13 +14336,28 @@ module.exports = function ( jq ) {
 			$(menuitemTable).append($(headerRow));
 
       for (let x=0; x < menuitemItems.length; x++) {
-				let itemRow = $('<tr></tr>');
+				let itemRow = $('<tr class="menuitem-row"></tr>');
 				$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 				let item = menuitemItems[x];
 				for (let i=0; i < menuitemTableFields.length; i++) {
 					let field = $('<td align="' + menuitemTableFields[i].align + '"></td>');
 					if (menuitemTableFields[i].fieldName !== 'MenuPicture') {
-						$(field).text(item[menuitemTableFields[i].fieldName]);
+						if (menuitemTableFields[i].fieldName !== 'StockingOption') {
+							$(field).text(item[menuitemTableFields[i].fieldName]);
+						} else {
+							let stockingOption = item[menuitemTableFields[i].fieldName];
+							let stockStateText = $('<div></div>');
+							if (parseInt(stockingOption) == 0) {
+								$(stockStateText).text('ไม่ตัดสต็อค');
+								$(field).append($(stockStateText));
+							} else if (parseInt(stockingOption) == 1) {
+								$(stockStateText).text('ตัดสต็อค');
+								$(field).append($(stockStateText));
+								let stockInCmd = doCreateStockInCmd(shopData, workAreaBox, item);
+								let checkStockCmd = doCreateCheckStockCmd(shopData, workAreaBox, item, itemRow);
+								$(field).append($(stockInCmd)).append($(checkStockCmd).css({'margin-left': '4px'}));
+							}
+						}
 						$(itemRow).append($(field));
 					} else {
 						let menuitemLogoIcon = new Image();
@@ -14312,7 +14444,7 @@ module.exports = function ( jq ) {
 				});
 				let menuitemBtnBox = $('<div></div>').css({'text-align': 'center'}).append($(editMenuitemCmd)).append($(deleteMenuitemCmd));
 
-				let commandCell = $('<td align="center"></td>');
+				let commandCell = $('<td id="CommandCell" align="center"></td>');
 				$(commandCell).append($(menuitemQRCodeBox));
 				$(commandCell).append($(menuitemBtnBox));
 				$(itemRow).append($(commandCell));
@@ -14463,12 +14595,12 @@ module.exports = function ( jq ) {
 						let params = {data: newMenuitemFormObj, shopId: shopData.id, groupId: newMenuitemFormObj.groupId};
             let menuitemRes = await common.doCallApi('/api/shop/menuitem/add', params);
             if (menuitemRes.status.code == 200) {
-              $.notify("เพิ่มรายการเมนูสำเร็จ", "success");
+              $.notify("เพิ่มรายการสินค้าสำเร็จ", "success");
               await doShowMenuitemItem(shopData, workAreaBox, groupId)
             } else if (menuitemRes.status.code == 201) {
-              $.notify("ไม่สามารถเพิ่มรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+              $.notify("ไม่สามารถเพิ่มรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
             } else {
-              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการเมนูได้", "error");
+              $.notify("เกิดข้อผิดพลาด ไม่สามารถเพิ่มรายการสินค้าได้", "error");
             }
           }else {
             $.notify("ข้อมูลไม่ถูกต้อง", "error");
@@ -14501,12 +14633,12 @@ module.exports = function ( jq ) {
 						let params = {data: editMenuitemFormObj, id: menuitemData.id};
 						let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
 						if (menuitemRes.status.code == 200) {
-							$.notify("แก้ไขรายการเมนูสำเร็จ", "success");
+							$.notify("แก้ไขรายการสินค้าสำเร็จ", "success");
 							await doShowMenuitemItem(shopData, workAreaBox, groupId)
 						} else if (menuitemRes.status.code == 201) {
-							$.notify("ไม่สามารถแก้ไขรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+							$.notify("ไม่สามารถแก้ไขรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 						} else {
-							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการเมนูได้", "error");
+							$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการสินค้าได้", "error");
 						}
 					}else {
 						$.notify("ข้อมูลไม่ถูกต้อง", "error");
@@ -14535,12 +14667,12 @@ module.exports = function ( jq ) {
 				radConfirmBox.closeAlert();
 				let menuitemRes = await common.doCallApi('/api/shop/menuitem/delete', {id: menuitemId});
 				if (menuitemRes.status.code == 200) {
-					$.notify("ลบรายการเมนูสำเร็จ", "success");
+					$.notify("ลบรายการสินค้าสำเร็จ", "success");
 					await doShowMenuitemItem(shopData, workAreaBox, groupId);
 				} else if (menuitemRes.status.code == 201) {
-					$.notify("ไม่สามารถลบรายการเมนูได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					$.notify("ไม่สามารถลบรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
-					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการเมนูได้", "error");
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการสินค้าได้", "error");
 				}
 			},
 			onCancel: function(evt){
@@ -14569,6 +14701,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
+
   return {
     doShowMenuitemItem,
 		doCreateNewMenuitemForm,
@@ -14576,7 +14709,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../home/mod/common-lib.js":2}],14:[function(require,module,exports){
+},{"../../../home/mod/common-lib.js":2,"./stock-cutoff.js":17}],15:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -14670,4 +14803,1608 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../../home/mod/common-lib.js":2}]},{},[4]);
+},{"../../../home/mod/common-lib.js":2}],16:[function(require,module,exports){
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	//const welcome = require('./welcome.js')($);
+	//const login = require('./login.js')($);
+  const common = require('../../../home/mod/common-lib.js')($);
+  const customerdlg = require('./customer-dlg.js')($);
+  const gooditemdlg = require('./gooditem-dlg.js')($);
+	const closeorderdlg = require('./closeorder-dlg.js')($);
+	const calendardlg = require('./calendar-dlg.js')($);
+	const mergeorderdlg = require('./order-merge-dlg.js')($);
+
+  const doShowOrderList = function(shopData, workAreaBox, orderDate){
+    return new Promise(async function(resolve, reject) {
+      let customerRes = await common.doCallApi('/api/shop/customer/list/by/shop/' + shopData.id, {});
+      let menugroupRes = await common.doCallApi('/api/shop/menugroup/list/by/shop/' + shopData.id, {});
+      let menuitemRes = await common.doCallApi('/api/shop/menuitem/list/by/shop/' + shopData.id, {});
+      let customers = customerRes.Records;
+      localStorage.setItem('customers', JSON.stringify(customers));
+      let menugroups = menugroupRes.Records;
+      localStorage.setItem('menugroups', JSON.stringify(menugroups));
+      let menuitems = menuitemRes.Records;
+      localStorage.setItem('menuitems', JSON.stringify(menuitems));
+
+      $(workAreaBox).empty();
+
+			let selectDate = undefined;
+			if (orderDate) {
+				selectDate = common.doFormatDateStr(new Date(orderDate));
+			} else {
+				selectDate = common.doFormatDateStr(new Date());
+			}
+      let titlePageBox = $('<div style="padding: 4px;"></viv>').css({'width': '99.1%', 'height': '75px', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+			let titleTextBox = $('<div></div>').append('รายการ<span class="sensitive-word" id="titleTextBox">ออร์เดอร์</span>ของร้าน วันที่ ');
+			let orderDateBox = $('<span></span>').text(selectDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
+			$(orderDateBox).on('click', (evt)=>{
+				common.calendarOptions.onClick = async function(date){
+					selectDate = common.doFormatDateStr(new Date(date));
+					$(orderDateBox).text(selectDate);
+					calendarHandle.closeAlert();
+					$('#OrderListBox').remove();
+					let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
+					$(workAreaBox).append($(orderListBox));
+				}
+				let calendarHandle = doShowCalendarDlg(common.calendarOptions);
+			});
+			$(orderDateBox).hover(()=>{
+				$(orderDateBox).css({'border': '3px solid black'});
+			},()=>{
+				$(orderDateBox).css({'border': '3px solid grey'});
+			});
+
+			$(titlePageBox).append($(titleTextBox).append($(orderDateBox)));
+
+			$(workAreaBox).append($(titlePageBox));
+			//let newOrderCmdBox = $('<div></div>').css({'position': 'absolute', 'text-align': 'right', 'padding': '4px', 'margin-bottom': '4px'});
+			//let newOrderCmd = $('<input type="button" value=" เปิดออร์เดอร์ใหม่ " class="action-btn"/>');
+			let newOrderCmd = common.doCreateTextCmd('เปิดออร์เดอร์ใหม', 'green', 'white');
+			$(newOrderCmd).addClass('sensitive-word');
+			$(newOrderCmd).attr('id', 'newOrderCmd');
+			$(newOrderCmd).on('click', (evt)=>{
+				doOpenOrderForm(shopData, workAreaBox);
+			});
+			if (common.shopSensitives.includes(shopData.id)) {
+				let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+				$(newOrderCmd).text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'newOrderCmd') return item}).customWord);
+				$(titleTextBox).find('#titleTextBox').text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'titleTextBox') return item}).customWord) ;
+			}
+
+			let canceledOrderHiddenToggleCmd = common.doCreateTextCmd('ซ่อนรายการที่ถูกยกเลิก', 'grey', 'white');
+			$(canceledOrderHiddenToggleCmd).on('click', (evt)=>{
+				let displayStatus = $('.canceled-order').css('display');
+				if (displayStatus === 'none') {
+					$('.canceled-order').css('display', 'block');
+					$(canceledOrderHiddenToggleCmd).text('ซ่อนรายการที่ถูกยกเลิก');
+				} else {
+					$('.canceled-order').css('display', 'none');
+					$(canceledOrderHiddenToggleCmd).text('แสดงรายการที่ถูกยกเลิก');
+				}
+			});
+
+			$(titlePageBox).append($(newOrderCmd).css({'float': 'right', 'margin-right': '5px', 'margin-top': '10px'})).append($(canceledOrderHiddenToggleCmd).css({'float': 'right', 'margin-right': '10px', 'margin-top': '10px'}));
+
+
+			$('#OrderListBox').remove();
+			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
+			$(workAreaBox).append($(orderListBox));
+			//console.log($(orderListBox).find('.canceled-order').length);
+			if ($(orderListBox).find('.canceled-order')){
+				$(canceledOrderHiddenToggleCmd).show();
+			} else {
+				$(canceledOrderHiddenToggleCmd).hide();
+			}
+      resolve();
+    });
+  }
+
+	const doShowCalendarDlg = function(calendarOptions) {
+		let calendarContent = calendardlg.doCreateCalendar(calendarOptions);
+		const calendarDlgOption = {
+			title: 'เลือกวันที่บนปฎิทิน',
+			msg: $(calendarContent),
+			width: '220px',
+			onOk: function(evt) {
+				calendarDlgHandle.closeAlert();
+			},
+			onCancel: function(evt){
+				calendarDlgHandle.closeAlert();
+			}
+		}
+		let calendarDlgHandle = $('body').radalert(calendarDlgOption);
+		$(calendarDlgHandle.okCmd).hide();
+		return calendarDlgHandle;
+	}
+
+  const doOpenOrderForm = async function(shopData, workAreaBox, orderData, selectDate){
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let userId = userdata.id;
+		let userinfoId = userdata.userinfoId;
+
+    let orderObj = {};
+    $(workAreaBox).empty();
+    let titleText = $('<div>เปิด<span id="titleOrderForm" class="sensitive-word">ออร์เดอร์</span>ใหม่</div>');
+    if (orderData) {
+      titleText = $('<div>แก้ไข<span id="titleOrderForm" class="sensitive-word">ออร์เดอร์</span></div>');
+			orderObj.id = orderData.id;
+			orderObj.Status = orderData.Status
+    } else {
+			orderObj.Status = 1;
+		}
+    let titlePageBox = $('<div style="padding: 4px;"></viv>').append($(titleText)).css({'width': '99.1%', 'text-align': 'center', 'font-size': '22px', 'border': '2px solid black', 'border-radius': '5px', 'background-color': 'grey', 'color': 'white'});
+    let customerWokingBox = $('<div id="OrderCustomer" style="padding: 4px; width: 99.1%;"></viv>');
+    let itemlistWorkingBox = $('<div id="OrderItemList" style="padding: 4px; width: 99.1%;"></viv>');
+    let saveNewOrderCmdBox = $('<div></div>').css({'width': '99.1%', 'text-align': 'center'});
+    $(workAreaBox).append($(titlePageBox)).append($(customerWokingBox)).append($(itemlistWorkingBox)).append($(saveNewOrderCmdBox));
+
+    let customerForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let customerFormRow = $('<tr></tr>');
+    let customerContent = $('<td width="85%" align="left"></tf>');
+    let customerControlCmd = $('<td width="*" align="right" valign="middle"></tf>');
+    $(customerFormRow).append($(customerContent)).append($(customerControlCmd));
+    $(customerForm).append($(customerFormRow));
+    $(customerWokingBox).append($(customerForm));
+
+    let editCustomerCmd = $('<input type="button" class="action-btn"/>');
+
+    let customerDataBox = undefined;
+    if ((orderData) && (orderData.customer)) {
+      orderObj.customer = orderData.customer;
+      customerDataBox = doRenderCustomerContent(orderData.customer);
+      $(customerContent).empty().append($(customerDataBox));
+      $(editCustomerCmd).val('แก้ไขลูกค้า');
+    } else {
+      $(editCustomerCmd).val('ใส่ลูกค้า');
+      $(customerContent).append($('<h2>ข้อมูลลูกค้า</h2>'));
+    }
+    if ((orderData) && (orderData.gooditems)) {
+			if (orderData.BeforeItems) {
+				await orderData.gooditems.forEach(async(srcItem, i) => {
+					let foundItem = await orderData.BeforeItems.find((destItem) => {
+						if (destItem.id === srcItem.id) {
+							return destItem;
+						}
+					});
+					srcItem.ItemStatus = foundItem.ItemStatus;
+				});
+				orderObj.gooditems = orderData.gooditems;
+			} else {
+      	orderObj.gooditems = orderData.gooditems;
+			}
+    } else {
+      orderObj.gooditems = [];
+    }
+
+		console.log(orderObj);
+
+    let dlgHandle = undefined;
+
+    $(editCustomerCmd).on('click', async (evt)=>{
+      dlgHandle = await doOpenCustomerMngDlg(shopData, customerSelectedCallback);
+    });
+		$(customerControlCmd).append($(editCustomerCmd));
+
+		let addNewGoodItemCmd = undefined;
+		//if (orderObj.Status == 1) {
+		if ([1, 2].includes(orderObj.Status)) {
+			addNewGoodItemCmd = common.doCreateTextCmd('เพิ่มรายการ', 'green', 'white');
+	    $(addNewGoodItemCmd).on('click', async (evt)=>{
+	      dlgHandle = await doOpenGoodItemMngDlg(shopData, orderObj.gooditems, gooditemSelectedCallback);
+	    });
+		}
+
+		let doShowCloseOrderDlg = async function() {
+			let total = await doCalOrderTotal(orderObj.gooditems);
+			if (total > 0) {
+				dlgHandle = await doOpenCreateCloseOrderDlg(shopData, total, orderObj, invoiceCallback, billCallback, taxinvoiceCallback);
+			} else {
+				$.notify("ออร์เดอร์ยังไม่สมบูรณ์โปรดเพิ่มรายการสินค้าก่อน", "error");
+			}
+		}
+
+		let callCreateCloseOrderCmd = common.doCreateTextCmd(' คิดเงิน ', '#F5500E', 'white', '#5D6D7E', '#FF5733');
+		$(callCreateCloseOrderCmd).on('click', async (evt)=>{
+			if (orderObj.customer) {
+				if ((orderObj.gooditems) && (orderObj.gooditems.length > 0)) {
+					let params = undefined;
+					let orderRes = undefined;
+					if ((orderData) && (orderData.id)) {
+						params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
+						orderRes = await common.doCallApi('/api/shop/order/update', params);
+						if (orderRes.status.code == 200) {
+							$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
+							doShowCloseOrderDlg();
+						} else {
+							$.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+						}
+					} else {
+						params = {data: {Items: orderObj.gooditems, Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
+						console.log(params);
+						params.data.Items = orderObj.gooditems;
+						orderRes = await common.doCallApi('/api/shop/order/add', params);
+	          if (orderRes.status.code == 200) {
+	            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+							orderObj.id = orderRes.Records[0].id;
+							orderData = orderRes.Records[0];
+							doShowCloseOrderDlg();
+	          } else {
+	            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+	          }
+					}
+				} else {
+	        $.notify("ยังไม่พบรายการสินค้าเพื่อคิดเงิน โปรดใส่รายการสินค้า", "error");
+	      }
+			} else {
+        $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
+      }
+    });
+
+    if ((orderObj) && (orderObj.gooditems)){
+      let goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
+			let lastCell = $(goodItemTable).children(":first").children(":last");
+			if (addNewGoodItemCmd) {
+				$(lastCell).append($(addNewGoodItemCmd));
+			}
+			if ([1, 2].includes(orderObj.Status)) {
+				lastCell = $(goodItemTable).children(":last").children(":last");
+				$(lastCell).append($(callCreateCloseOrderCmd));
+			}
+      $(itemlistWorkingBox).append($(goodItemTable));
+    }
+
+    let cancelCmd = $('<input type="button" value=" กลับ "/>').css({'margin-left': '10px'});
+    $(cancelCmd).on('click', async(evt)=>{
+			if (evt.ctrlKey) {
+				let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+				let logIndex = changelogs.findIndex((item, i)=>{
+					if (item.orderId == orderObj.id) {
+						return item;
+					}
+				});
+				changelogs[logIndex].status = 'New';
+				localStorage.setItem('changelogs', JSON.stringify(changelogs));
+      	common.doPopupOrderChangeLog(orderObj.id);
+			} else {
+				await doShowOrderList(shopData, workAreaBox, selectDate);
+			}
+    });
+    let saveNewOrderCmd = $('<input type="button" value=" บันทึก " class="action-btn"/>');;
+		$(saveNewOrderCmdBox).append($(saveNewOrderCmd));
+    $(saveNewOrderCmd).on('click', async(evt)=>{
+      if (orderObj.customer) {
+        let params = undefined;
+        let orderRes = undefined;
+        if (orderData) {
+          params = {data: {Items: orderObj.gooditems, Status: 1, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
+          orderRes = await common.doCallApi('/api/shop/order/update', params);
+          if (orderRes.status.code == 200) {
+            $.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
+            await doShowOrderList(shopData, workAreaBox, selectDate);
+          } else {
+            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+          }
+        } else {
+          params = {data: {Status: 1}, shopId: shopData.id, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId};
+					console.log(params);
+					params.data.Items = orderObj.gooditems;
+					orderRes = await common.doCallApi('/api/shop/order/add', params);
+          if (orderRes.status.code == 200) {
+            $.notify("เพิ่มรายการออร์เดอร์สำเร็จ", "success");
+            await doShowOrderList(shopData, workAreaBox, selectDate);
+          } else {
+            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+          }
+        }
+      } else {
+        $.notify("โปรดระบุข้อมูลลูกค้าก่อนบันทึกออร์เดอร์", "error");
+      }
+    });
+		if (orderObj.id) {
+			let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+			if (changelogs) {
+				let newMsgCounts = await changelogs.filter((item, i) =>{
+					if ((item.orderId == orderObj.id) && (item.status === 'New')) {
+						return item;
+					}
+				});
+				if (newMsgCounts.length > 0) {
+					let viewLogCmd = $('<input type="button" value=" การเปลี่ยนแปลง " class="action-btn"/>').css({'margin-left': '10px'});
+					$(viewLogCmd).on('click', (evt)=>{
+						common.doPopupOrderChangeLog(orderObj.id);
+					});
+					$(saveNewOrderCmdBox).append($(viewLogCmd));
+				}
+			}
+		}
+    $(saveNewOrderCmdBox).append($(cancelCmd));
+
+		//if (orderObj.Status != 1) {
+		if ([3, 4].includes(orderObj.Status)) {
+			$(editCustomerCmd).hide();
+			$(saveNewOrderCmd).hide();
+		}
+
+		$('#App').find('#SummaryBox').remove();
+
+		if (common.shopSensitives.includes(shopData.id)) {
+			let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+			common.delay(500).then(async ()=>{
+				await common.doResetSensitiveWord(sensitiveWordJSON);
+			});
+		}
+
+    const customerSelectedCallback = function(customerSelected){
+      orderObj.customer = customerSelected;
+      customerDataBox = doRenderCustomerContent(customerSelected);
+      $(customerContent).empty().append($(customerDataBox));
+			$(editCustomerCmd).val('แก้ไขลูกค้า');
+      if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+    }
+
+    const gooditemSelectedCallback = async function(gooditemSelected){
+      orderObj.gooditems.push(gooditemSelected);
+      goodItemTable = await doRenderGoodItemTable(orderObj, itemlistWorkingBox);
+			let lastCell = $(goodItemTable).children(":first").children(":last");
+			if (addNewGoodItemCmd) {
+				$(lastCell).append($(addNewGoodItemCmd));
+			}
+			if ([1, 2].includes(orderObj.Status)) {
+				lastCell = $(goodItemTable).children(":last").children(":last");
+				$(lastCell).append($(callCreateCloseOrderCmd));
+			}
+      $(itemlistWorkingBox).empty().append($(goodItemTable));
+    }
+
+		const invoiceCallback = async function(newInvoiceData){
+			if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+			let invoiceParams = {data: newInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
+			let invoiceRes = await common.doCallApi('/api/shop/invoice/add', invoiceParams);
+
+			if (invoiceRes.status.code == 200) {
+				let invoiceId = invoiceRes.Record.id;
+				let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
+				let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
+				console.log(docRes);
+				if (docRes.status.code == 200) {
+					//window.open(docRes.result.link, '_blank');
+					closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบแจ้งหนี้');
+					$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
+				} else if (docRes.status.code == 300) {
+					$.notify("ระบบไม่พบรูปแบบเอกสารใบแจ้งหนี้", "error");
+				}
+			} else {
+				$.notify("บันทึกใบแจ้งหนี้ไม่สำเร็จ", "error");
+			}
+		}
+
+		const billCallback = async function(newBillData, paymentData){
+			if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+			let billParams = {data: newBillData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
+			let billRes = await common.doCallApi('/api/shop/bill/add', billParams);
+
+			if (billRes.status.code == 200) {
+				let billId = billRes.Record.id;
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
+				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
+				if (paymentRes.status.code == 200) {
+					let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newBillData.Filename, No: newBillData.No*/};
+					let docRes = await common.doCallApi('/api/shop/bill/create/report', docParams);
+					console.log(docRes);
+					if (docRes.status.code == 200) {
+						//window.open(docRes.result.link, '_blank');
+						closeorderdlg.doOpenReportPdfDlg(docRes.result, 'บิลเงินสด/ใบเสร็จรับเงิน', ()=>{
+							$(cancelCmd).click();
+						});
+						$.notify("ออกบิลเงินสด/ใบเสร็จรับเงินสำเร็จ", "sucess");
+					} else if (docRes.status.code == 300) {
+						$.notify("ระบบไม่พบรูปแบบเอกสารบิลเงินสด/ใบเสร็จรับเงิน", "error");
+					}
+				} else {
+					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
+				}
+			} else {
+				$.notify("บันทึกบิลไม่สำเร็จ", "error");
+			}
+		}
+
+		const taxinvoiceCallback = async function(newTaxInvoiceData, paymentData){
+			if (dlgHandle) {
+        dlgHandle.closeAlert();
+      }
+			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
+			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
+
+			if (taxinvoiceRes.status.code == 200) {
+				let taxinvoiceId = taxinvoiceRes.Record.id;
+				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
+				let paymentRes = await common.doCallApi('/api/shop/payment/add', paymentParams);
+				if (paymentRes.status.code == 200) {
+					let docParams = {orderId: orderObj.id, shopId: shopData.id/*, filename: newInvoiceData.Filename, No: newInvoiceData.No*/};
+					let docRes = await common.doCallApi('/api/shop/taxinvoice/create/report', docParams);
+					console.log(docRes);
+					if (docRes.status.code == 200) {
+						//window.open(docRes.result.link, '_blank');
+						closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบกำกับภาษี', ()=>{
+							$(cancelCmd).click();
+						});
+						$.notify("ออกใบกำกับภาษีสำเร็จ", "sucess");
+					} else if (docRes.status.code == 300) {
+						$.notify("ระบบไม่พบรูปแบบเอกสารใบกำกับภาษี", "error");
+					}
+				} else {
+					$.notify("บันทึกข้อมูลการชำระเงินไม่สำเร็จ", "error");
+				}
+			} else {
+				$.notify("บันทึกใบกำกับภาษีไม่สำเร็จ", "error");
+			}
+		}
+  }
+
+  const doOpenCustomerMngDlg = function(shopData, callback) {
+    return new Promise(async function(resolve, reject) {
+      const customerDlgContent = await customerdlg.doCreateFormDlg(shopData, callback);
+      $(customerDlgContent).css({'margin-top': '10px'});
+      const customerformoption = {
+  			title: 'เลือกรายการลูกค้า',
+  			msg: $(customerDlgContent),
+  			width: '520px',
+				cancelLabel: ' ปิด ',
+  			onOk: async function(evt) {
+          customerFormBoxHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				customerFormBoxHandle.closeAlert();
+  			}
+  		}
+  		let customerFormBoxHandle = $('body').radalert(customerformoption);
+      $(customerFormBoxHandle.okCmd).hide();
+      resolve(customerFormBoxHandle)
+    });
+  }
+
+  const doOpenGoodItemMngDlg = function(shopData, gooditemSeleted, callback){
+    return new Promise(async function(resolve, reject) {
+      const gooditemDlgContent = await gooditemdlg.doCreateFormDlg(shopData, gooditemSeleted, callback);
+			$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
+      $(gooditemDlgContent).css({'margin-top': '10px'});
+      const gooditemformoption = {
+  			title: 'เลือกรายการสินค้า',
+  			msg: $(gooditemDlgContent),
+  			width: '580px',
+				cancelLabel: ' ปิด ',
+  			onOk: async function(evt) {
+          gooditemFormBoxHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				gooditemFormBoxHandle.closeAlert();
+  			}
+  		}
+  		let gooditemFormBoxHandle = $('body').radalert(gooditemformoption);
+      $(gooditemFormBoxHandle.okCmd).hide();
+      resolve(gooditemFormBoxHandle)
+    });
+  }
+
+	const doOpenCreateCloseOrderDlg = function(shopData, orderTotal, orderObj, invoiceCallback, billCallback, taxinvoiceCallback) {
+		return new Promise(async function(resolve, reject) {
+      const closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(shopData, orderTotal, orderObj, invoiceCallback, billCallback, taxinvoiceCallback);
+      $(closeOrderDlgContent).css({'margin-top': '10px'});
+      const closeOrderformoption = {
+  			title: 'ป้อนข้อมูลเพื่อเตรียมออกใบแจ้งหนี้ หรือ เก็บเงิน',
+  			msg: $(closeOrderDlgContent),
+  			width: '420px',
+  			onOk: async function(evt) {
+          closeOrderFormBoxHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				closeOrderFormBoxHandle.closeAlert();
+  			}
+  		}
+  		let closeOrderFormBoxHandle = $('body').radalert(closeOrderformoption);
+      $(closeOrderFormBoxHandle.okCmd).hide();
+      resolve(closeOrderFormBoxHandle)
+    });
+	}
+
+  const doRenderCustomerContent = function(customerData){
+    let customerDataTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
+    let dataRow = $('<tr></tr>');
+    let avatarCell = $('<td width="30%" rowspan="3" align="center" valign="middle"></td>');
+    let nameCell = $('<td width="*" align="left"><b>ชื่อลูกค้า</b> ' + customerData.Name + '</td>');
+    let addressCell = $('<td><b>ที่อยู่</b> ' + customerData.Address + '</td>');
+    let telCell = $('<td><b>โทรศัพท์</b> ' + customerData.Tel + '</td>');
+    let avatarIcon = $('<img src="../../images/avatar-icon.png"/>').css({'width': '95px', 'height': 'auto'});
+    $(avatarCell).append($(avatarIcon));
+    $(dataRow).append($(avatarCell)).append($(nameCell));
+    $(customerDataTable).append($(dataRow));
+    dataRow = $('<tr></tr>');
+    $(dataRow).append($(addressCell));
+    $(customerDataTable).append($(dataRow));
+    dataRow = $('<tr></tr>');
+    $(dataRow).append($(telCell));
+    $(customerDataTable).append($(dataRow));
+    return $(customerDataTable);
+  }
+
+  const doRenderGoodItemTable = function(orderData, gooditemWorkingBox){
+    return new Promise(async function(resolve, reject) {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let shopData = userdata.shop;
+      let goodItemForm = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+      let goodItemHeadFormRow = $('<tr></tr>').css({'background-color': 'grey', 'color': 'white', 'height': '42px'});
+      let goodItemHeadNumberCell = $('<td width="5%" align="center"><b>#</b></td>');
+      let goodItemHeadNameCell = $('<td width="30%" align="center"><b>รายการ</b></td>');
+      let goodItemHeadQtyCell = $('<td width="7%" align="center"><b>จำนวน</b></td>');
+      let goodItemHeadUnitCell = $('<td width="10%" align="center"><b>หน่วย</b></td>');
+      let goodItemHeadPriceCell = $('<td width="15%" align="center"><b>ราคาต่อหน่วย</b></td>');
+      let goodItemHeadSubTotalCell = $('<td width="15%" align="center"><b>รวม</b></td>');
+      let goodItemHeadControlCmd = $('<td width="*" align="center" valign="middle"></td>');
+      $(goodItemHeadFormRow).append($(goodItemHeadNumberCell)).append($(goodItemHeadNameCell)).append($(goodItemHeadQtyCell)).append($(goodItemHeadUnitCell))
+      $(goodItemHeadFormRow).append($(goodItemHeadPriceCell)).append($(goodItemHeadSubTotalCell)).append($(goodItemHeadControlCmd));
+      $(goodItemForm).append($(goodItemHeadFormRow));
+      let totalLabelCell = $('<td colspan="5" align="center" valign="middle"><b>ยอดรวม</b></td>');
+      let totalValueCell = $('<td align="right" valign="middle"></td>');
+			let totalRow = $('<tr></tr>').css({'background-color': '#ddd', 'height': '42px'});
+			$(totalRow).append($(totalLabelCell)).append($(totalValueCell)).append($('<td align="center"></td>'));
+
+      if ((orderData) && (orderData.gooditems) && (orderData.gooditems.length > 0)) {
+        let	promiseList = new Promise(async function(resolve2, reject2){
+          let total = 0;
+          let goodItems = orderData.gooditems;
+					let itenNoCells = [];
+          for (let i=0; i < goodItems.length; i++) {
+						let menuNameFrag = $('<span></span>').text(goodItems[i].MenuName).attr('title', goodItems[i].Desc);
+						let priceFrag = $('<span></span>').text(common.doFormatNumber(Number(goodItems[i].Price)));
+						let qtyFrag = $('<span></span>').text(common.doFormatQtyNumber(goodItems[i].Qty));
+						if ([1, 2].includes(orderData.Status)) {
+							//$(menuNameFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							$(menuNameFrag).on('click', (evt)=>{
+								doEditMenuNameOnTheFly(evt, orderData.gooditems, i, async(newName)=>{
+									orderData.gooditems[i].MenuName = newName;
+									$(menuNameFrag).text(orderData.gooditems[i].MenuName);
+								});
+							});
+							//$(priceFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							$(priceFrag).on('click', (evt)=>{
+								doEditPriceOnTheFly(evt, orderData.gooditems, i, async(newPrice)=>{
+									orderData.gooditems[i].Price = newPrice;
+									$(priceFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Price)));
+									subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
+									$(subTotalCell).empty().append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}));
+									total = await doCalOrderTotal(orderData.gooditems);
+				          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+								});
+							});
+							//$(qtyFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
+							$(qtyFrag).on('click', (evt)=>{
+								doEditQtyOnTheFly(evt, orderData.gooditems, i, async(newQty)=>{
+									orderData.gooditems[i].Qty = newQty;
+									$(qtyFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Qty)));
+									subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
+									$(subTotalCell).empty().append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}));
+									total = await doCalOrderTotal(orderData.gooditems);
+				          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+								});
+							});
+							$(menuNameFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px'});
+							$(priceFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px'});
+							$(qtyFrag).css({'cursor': 'pointer', 'background-color': '#dddd', 'color': 'black', 'padding': '2px 10px 2px 10px'});
+							$(menuNameFrag).hover(()=>{
+								$(menuNameFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(menuNameFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
+							});
+							$(priceFrag).hover(()=>{
+								$(priceFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(priceFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
+							});
+							$(qtyFrag).hover(()=>{
+								$(qtyFrag).css({'background-color': 'grey', 'color': 'white', 'border': '1px solid black'});
+							},()=>{
+								$(qtyFrag).css({'background-color': '#dddd', 'color': 'black', 'border': ''});
+							});
+						}
+            let goodItemRow = $('<tr></tr>');
+						let itenNoCell = $('<td align="center">' + (i+1) + '</td>');
+            $(goodItemRow).append($(itenNoCell));
+            $(goodItemRow).append($('<td align="left"></td>').append($(menuNameFrag)));
+            let goodItemQtyCell = $('<td align="center"></td>').append($(qtyFrag));
+            $(goodItemRow).append($(goodItemQtyCell));
+            $(goodItemRow).append($('<td align="center">' + goodItems[i].Unit + '</td>'));
+            $(goodItemRow).append($('<td align="center"></td>').append($(priceFrag)));
+            let subTotal = Number(goodItems[i].Price) * Number(goodItems[i].Qty);
+            let subTotalCell = $('<td align="right"></td>');
+						$(subTotalCell).append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}))
+            $(goodItemRow).append($(subTotalCell));
+            let commandCell = $('<td align="center"></td>');
+            $(goodItemRow).append($(commandCell));
+
+            let increaseBtnCmd = common.doCreateImageCmd('../../images/plus-sign-icon.png', 'เพิ่มจำนวน');
+            $(increaseBtnCmd).on('click', async(evt)=>{
+              let oldQty = $(goodItemQtyCell).text();
+              oldQty = Number(oldQty);
+              let newQty = oldQty + 1;
+              $(goodItemQtyCell).text(common.doFormatQtyNumber(newQty));
+              goodItems[i].Qty = newQty;
+              subTotal = Number(goodItems[i].Price) * newQty;
+              $(subTotalCell).empty().append($('<span><b>' + common.doFormatNumber(subTotal) + '</b></span>').css({'margin-right': '4px'}));
+              let total = await doCalOrderTotal(orderData.gooditems);
+              $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+            });
+            let decreaseBtnCmd = common.doCreateImageCmd('../../images/minus-sign-icon.png', 'ลดจำนวน');
+            $(decreaseBtnCmd).on('click', async(evt)=>{
+              let oldQty = $(goodItemQtyCell).text();
+              oldQty = Number(oldQty);
+              let newQty = oldQty - 1;
+              if (newQty > 0) {
+                $(goodItemQtyCell).text(common.doFormatQtyNumber(newQty));
+                goodItems[i].Qty = newQty;
+                subTotal = Number(goodItems[i].Price) * newQty;
+                $(subTotalCell).empty().append($('<span><b>' + common.doFormatNumber(subTotal) + '</b></span>').css({'margin-right': '4px'}));
+                let total = await doCalOrderTotal(orderData.gooditems);
+                $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+              } else {
+                $.notify("ไม่สามารถลดจำนวนสินค้าได้น้อยไปกว่านี้", "error");
+              }
+            });
+
+            let deleteGoodItemCmd = common.doCreateImageCmd('../../images/cross-red-icon.png', 'ลบรายการ');
+            $(deleteGoodItemCmd).on('click', async (evt)=>{
+							$(goodItemRow).remove();
+              let newGoodItems = await doDeleteGoodItem(i, orderData);
+              orderData.gooditems = newGoodItems;
+							itenNoCells = await itenNoCells.filter((item)=>{
+								if ($(item).text() !== $(itenNoCell).text()) {
+									if ($(item).text() > $(itenNoCell).text()) {
+										let value = $(item).text();
+										value = Number(value) - 1;
+										return $(item).text(value);
+									} else {
+										return $(item);
+									}
+								}
+							})
+              let total = await doCalOrderTotal(orderData.gooditems);
+              $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+            });
+						if ([1, 2].includes(orderData.Status)) {
+            	$(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
+						}
+
+						if ((parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
+							 let stockInfoCmd = common.doCreateImageCmd('../../images/stock-icon.png', 'เช็คสต็อค');
+							 $(stockInfoCmd).on('click', async (evt)=>{
+								 let cutoffDateValue = '1D';
+								 let cutoffDate = common.findCutoffDateFromDateOption(cutoffDateValue);
+								 let orderDateFmt = common.doFormatDateStr(new Date(cutoffDate));
+								 cutoffDate = new Date(cutoffDate);
+								 let params = {cutoffDate: cutoffDate};
+
+								 let stockRes = await common.doCallApi('/api/shop/stocking/list/by/menuitem/' + goodItems[i].id, params);
+								 let sum = stockRes.sumQty.Qty;
+								 if (stockRes.Records.length > 0) {
+									 for (let k=0; k < stockRes.Records.length; k++) {
+											if (stockRes.Records[k].Direction == '+') {
+												sum = sum + stockRes.Records[k].Qty;
+											} else if (stockRes.Records[k].Direction == '-') {
+												sum = sum - stockRes.Records[k].Qty;
+											}
+									 }
+								 }
+								 doShowStockInfo(goodItems[i], sum);
+							 });
+							 $(commandCell).append($(stockInfoCmd))
+						}
+
+            $(goodItemForm).append($(goodItemRow));
+						itenNoCells.push($(itenNoCell));
+          }
+          total = await doCalOrderTotal(orderData.gooditems);
+          $(totalValueCell).empty().append($('<span><b>' + common.doFormatNumber(total) + '</b></span>').css({'margin-right': '4px'}));
+          $(goodItemForm).append($(totalRow));
+          setTimeout(()=>{
+            resolve2($(goodItemForm));
+          }, 500);
+        });
+        Promise.all([promiseList]).then((ob)=>{
+          resolve(ob[0]);
+        });
+      } else {
+				$(totalValueCell).empty().append($('<span><b>0.00</b></span>').css({'margin-right': '4px'}));
+				$(goodItemForm).append($(totalRow));
+        resolve($(goodItemForm));
+      }
+    });
+  }
+
+  const doDeleteGoodItem = function(goodItemIndex, orderData) {
+    return new Promise(async function(resolve, reject) {
+      let anotherItems = await orderData.gooditems.filter((item, i)=>{
+        if (i != goodItemIndex) {
+          return item;
+        }
+      });
+      resolve(anotherItems);
+    });
+  }
+
+  const doCalOrderTotal = function(gooditems){
+    return new Promise(async function(resolve, reject) {
+      let total = 0;
+      await gooditems.forEach((item, i) => {
+        total += Number(item.Price) * Number(item.Qty);
+      });
+      resolve(total);
+    });
+  }
+
+  const doCreateOrderList = function(shopData, workAreaBox, orderDate){
+    return new Promise(async function(resolve, reject) {
+			let orderReqParams = {};
+			if (orderDate) {
+				orderReqParams = {orderDate: orderDate};
+			}
+
+      let orderRes = await common.doCallApi('/api/shop/order/list/by/shop/' + shopData.id, orderReqParams);
+      let orders = orderRes.Records;
+      console.log(orders);
+
+			let yellowOrders = [];
+			let orangeOrders = [];
+			let greenOrders = [];
+			let greyOrders = [];
+
+      let orderListBox = $('<div id="OrderListBox"></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px', 'overflow': 'auto'});
+      if ((orders) && (orders.length > 0)) {
+        let	promiseList = new Promise(async function(resolve2, reject2){
+          for (let i=0; i < orders.length; i++) {
+            //console.log(orders[i]);
+            let total = await doCalOrderTotal(orders[i].Items);
+            let orderDate = new Date(orders[i].createdAt);
+            let fmtDate = common.doFormatDateStr(orderDate);
+            let fmtTime = common.doFormatTimeStr(orderDate);
+            let ownerOrderFullName = orders[i].userinfo.User_NameTH + ' ' + orders[i].userinfo.User_LastNameTH;
+            let orderBox = $('<div class="order-box"></div>').css({'width': '125px', 'position': 'relative', 'min-height': '150px', 'border': '2px solid black', 'border-radius': '5px', 'display': 'inline-block', /*'float': 'left', 'clear': 'left',*/ 'cursor': 'pointer', 'padding': '5px', 'margin-left': '8px', 'margin-top': '10px'});
+            $(orderBox).append($('<div><b>ลูกค้า :</b> ' + orders[i].customer.Name + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b><span id ="opennerOrderLabel" class="sensitive-word">ผู้รับออร์เดอร์</span> :</b> ' + ownerOrderFullName + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b>ยอดรวม :</b> ' + common.doFormatNumber(total) + '</div>').css({'width': '100%'}));
+            $(orderBox).append($('<div><b>วันที่-เวลา :</b> ' + fmtDate + ' : ' + fmtTime + '</div>').css({'width': '100%'}));
+						$(orderBox).data('orderData', {id: orders[i].id});
+						$(orderBox).append($('<span id="NotifyIndicator">0</span>').css({'display': 'none', 'position': 'absolute', 'top': '1px', 'right': '1px', 'color': 'white', 'background-color': 'red', 'height': '25px', 'width': '25px', 'line-height': '25px', 'border-radius': '50%', 'text-align': 'center'}));
+						let mergeOrderCmdBox = undefined;
+						let cancelOrderCmdBox = undefined;
+
+						if (orders[i].Status == 1) {
+							$(orderBox).css({'background-color': 'yellow'});
+							mergeOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
+							$(mergeOrderCmdBox).append($('<span id ="mergeOrderCmd" class="sensitive-word">ยุบรวมออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(mergeOrderCmdBox).on('click', async (evt)=>{
+								evt.stopPropagation();
+								mergeorderdlg.doMergeOrder(orders, i, async (newOrders, destIndex)=>{
+									let params = {data: {Status: 0, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[i].id};
+									let orderRes = await common.doCallApi('/api/shop/order/update', params);
+									if (orderRes.status.code == 200) {
+										$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
+										params = {data: {Items: orders[destIndex].Items, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[destIndex].id};
+					          orderRes = await common.doCallApi('/api/shop/order/update', params);
+					          if (orderRes.status.code == 200) {
+					            $.notify("ยุบรวมรายการออร์เดอร์สำเร็จ", "success");
+											common.delay(500).then(async()=>{
+												$('#OrderListBox').remove();
+												let newOrderListBox = await doCreateOrderList(shopData, workAreaBox, orderReqParams.orderDate);
+												$(workAreaBox).append($(newOrderListBox));
+											});
+					          } else {
+					            $.notify("ระบบไม่สามารถบันทึกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+					          }
+									} else {
+										$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+									}
+								});
+							});
+							$(orderBox).append($(mergeOrderCmdBox));
+							cancelOrderCmdBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'center', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px', 'border': '1px solid black'});
+							$(cancelOrderCmdBox).append($('<span id ="cancelOrderCmd" class="sensitive-word">ยกเลิกออร์เดอร์</span>').css({'font-weight': 'bold'}));
+							$(cancelOrderCmdBox).on('click', async (evt)=>{
+								evt.stopPropagation();
+								let params = {data: {Status: 0, userId: orders[i].userId, userinfoId: orders[i].userinfoId}, id: orders[i].id};
+								let orderRes = await common.doCallApi('/api/shop/order/update', params);
+								if (orderRes.status.code == 200) {
+									$.notify("ยกเลิกรายการออร์เดอร์สำเร็จ", "success");
+									common.delay(500).then(async()=>{
+										$('#OrderListBox').remove();
+										let newOrderListBox = await doCreateOrderList(shopData, workAreaBox, orderReqParams.orderDate);
+										$(workAreaBox).append($(newOrderListBox));
+									});
+								} else {
+									$.notify("ระบบไม่สามารถยกเลิกออร์เดอร์ได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "error");
+								}
+							});
+							$(orderBox).append($(cancelOrderCmdBox));
+							yellowOrders.push(orders[i]);
+						} else if (orders[i].Status == 2) {
+							$(orderBox).css({'background-color': 'orange'});
+							let invoiceBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'left', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+							let openInvoicePdfCmd = $('<span>' + orders[i].invoice.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
+							$(openInvoicePdfCmd).on('click', async (evt)=>{
+								evt.stopPropagation();
+								let docParams = {orderId: orders[i].id, shopId: shopData.id};
+								let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
+								console.log(docRes);
+								if (docRes.status.code == 200) {
+									closeorderdlg.doOpenReportPdfDlg(docRes.result, 'ใบแจ้งหนี้');
+									//const pdfURL = docRes.result.link + '?t=' + common.genUniqueID();
+									//const reportPdfDlgContent = $('<object data="' + pdfURL + '" type="application/pdf" width="99%" height="380"></object>');
+									$.notify("ออกใบแจ้งหนี้่สำเร็จ", "sucess");
+								} else if (docRes.status.code == 300) {
+									$.notify("ระบบไม่พบรูปแบบเอกสารใบแจ้งหนี้", "error");
+								}
+							});
+							let openInvoiceQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
+							$(openInvoiceQrCmd).on('click', (evt)=>{
+								evt.stopPropagation();
+								let shareCode = orders[i].invoice.Filename.split('.')[0];
+								window.open('/shop/share/?id=' + shareCode, '_blank');
+							});
+							$(invoiceBox).append($(openInvoicePdfCmd)).append($(openInvoiceQrCmd));
+							$(orderBox).append($(invoiceBox));
+							orangeOrders.push(orders[i]);
+						} else if ((orders[i].Status == 3) || (orders[i].Status == 4)) {
+							$(orderBox).css({'background-color': 'green'});
+							if (orders[i].bill){
+								let billBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'left', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+								let openBillPdfCmd = $('<span>' + orders[i].bill.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
+								$(openBillPdfCmd).on('click', (evt)=>{
+									evt.stopPropagation();
+									closeorderdlg.doOpenReportPdfDlg({link: '/shop/img/usr/pdf/' + orders[i].bill.Filename}, 'บิลเงินสด/ใบเสร็จรับเงิน');
+								});
+								let openBillQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
+								$(openBillQrCmd).on('click', (evt)=>{
+									evt.stopPropagation();
+									let shareCode = orders[i].bill.Filename.split('.')[0];
+									window.open('/shop/share/?id=' + shareCode, '_blank');
+								});
+								$(billBox).append($(openBillPdfCmd)).append($(openBillQrCmd));
+								$(orderBox).append($(billBox));
+							}
+							if (orders[i].taxinvoice){
+								let taxinvoiceBox = $('<div></div>').css({'width': '100%', 'background-color': 'white', 'color': 'black', 'text-align': 'left', 'cursor': 'pointer', 'z-index': '210', 'line-height': '30px'});
+								let openTaxInvoicePdfCmd = $('<span>' + orders[i].taxinvoice.No + '</span>').css({'font-weight': 'bold', 'margin-left': '5px'});
+								$(openTaxInvoicePdfCmd).on('click', (evt)=>{
+									evt.stopPropagation();
+									closeorderdlg.doOpenReportPdfDlg({link: '/shop/img/usr/pdf/' + orders[i].taxinvoice.Filename}, 'ใบกำกับภาษี');
+								});
+								let openTaxInvoiceQrCmd = $('<img src="/shop/img/usr/myqr.png"/>').css({'position': 'absolute', 'margin-left': '8px', 'margin-top': '2px', 'width': '25px', 'height': 'auto'});
+								$(openTaxInvoiceQrCmd).on('click', (evt)=>{
+									evt.stopPropagation();
+									let shareCode = orders[i].taxinvoice.Filename.split('.')[0];
+									window.open('/shop/share/?id=' + shareCode, '_blank');
+								});
+								$(taxinvoiceBox).append($(openTaxInvoicePdfCmd)).append($($(openTaxInvoiceQrCmd)));
+								$(orderBox).append($(taxinvoiceBox));
+							}
+							greenOrders.push(orders[i]);
+						} else if (orders[i].Status == 0) {
+							$(orderBox).css({'background-color': 'grey'});
+							$(orderBox).addClass('canceled-order');
+							greyOrders.push(orders[i]);
+						}
+            $(orderBox).on('click', (evt)=>{
+							evt.stopPropagation();
+              let orderData = {customer: orders[i].customer, gooditems: orders[i].Items, id: orders[i].id, Status: orders[i].Status};
+              $(orderListBox).remove();
+              doOpenOrderForm(shopData, workAreaBox, orderData, orderDate);
+            });
+
+						if (common.shopSensitives.includes(shopData.id)) {
+							let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+							$(orderBox).find("#opennerOrderLabel").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'opennerOrderLabel') return item}).customWord) ;
+							if (mergeOrderCmdBox) {
+								$(mergeOrderCmdBox).find("#mergeOrderCmd").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'mergeOrderCmd') return item}).customWord) ;
+							}
+							if (cancelOrderCmdBox) {
+								$(cancelOrderCmdBox).find("#cancelOrderCmd").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'cancelOrderCmd') return item}).customWord) ;
+							}
+						}
+
+            $(orderListBox).append($(orderBox));
+          }
+          setTimeout(()=>{
+            resolve2($(orderListBox));
+          }, 500);
+        });
+        Promise.all([promiseList]).then((ob)=>{
+          $(workAreaBox).append($(ob[0]));
+					$('#App').find('#SummaryBox').remove();
+					let summaryData = {yellowOrders, orangeOrders, greenOrders, greyOrders};
+					let summaryBox = $('<div id="SummaryBox"></div>').css({'position': 'relative', 'width': '99%', 'min-height': '60px', 'cursor': 'pointer', 'font-size': '18px', 'text-align': 'center', 'background-color': ' #dddd', 'border': '2px solid grey', 'margin-top': '45px', 'overflow': 'auto'});
+					$(summaryBox).append($('<span><b>สรุป</b></span>').css({'line-height': '60px'}));
+					$(summaryBox).data('summaryData', summaryData);
+					$(summaryBox).on('click', (evt)=>{
+						doShowSummaryOrder(evt);
+						$(summaryBox).off('click');
+					});
+					$('#App').append($(summaryBox).css({'padding': '5px'}));
+					resolve(ob[0]);
+        });
+      } else {
+				let notFoundOrderDatbox = $('<div>ไม่พบรายการ<span id="notFoundOrderDatbox" class="sensitive-word">ออร์เดอร์</span>ของวันที่ ' + orderDate + '</div>');
+				if (common.shopSensitives.includes(shopData.id)) {
+					let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
+					$(notFoundOrderDatbox).find("#notFoundOrderDatbox").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'notFoundOrderDatbox') return item}).customWord) ;
+				}
+				$(orderListBox).append($(notFoundOrderDatbox));
+        resolve($(orderListBox));
+      }
+    });
+  }
+
+	const doEditPriceOnTheFly = function(event, gooditems, index, successCallback){
+		let editInput = $('<input type="number"/>').val(common.doFormatNumber(Number(gooditems[index].Price))).css({'width': '100px', 'margin-left': '20px'});
+		$(editInput).on('keyup', (evt)=>{
+			if (evt.keyCode == 13) {
+				$(dlgHandle.okCmd).click();
+			}
+		});
+		let editLabel = $('<label>ราคา:</label>').attr('for', $(editInput)).css({'width': '100%'})
+		let editDlgOption = {
+			title: 'แก้ไขราคา',
+			msg: $('<div></div>').css({'width': '100%', 'height': '70px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput)),
+			width: '220px',
+			onOk: async function(evt) {
+				let newValue = $(editInput).val();
+				if(newValue !== '') {
+					$(editInput).css({'border': ''});
+					let params = {data: {Price: newValue}, id: gooditems[index].id};
+					let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+					if (menuitemRes.status.code == 200) {
+						$.notify("แก้ไขรายการสินค้าสำเร็จ", "success");
+						dlgHandle.closeAlert();
+						successCallback(newValue);
+					} else if (menuitemRes.status.code == 201) {
+						$.notify("ไม่สามารถแก้ไขรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการสินค้าได้", "error");
+					}
+				} else {
+					$.notify('ราคาสินค้าต้องไม่ว่าง', 'error');
+					$(editInput).css({'border': '1px solid red'});
+				}
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		return dlgHandle;
+	}
+
+	const doEditMenuNameOnTheFly = function(event, gooditems, index, successCallback){
+		let editInput = $('<input type="text"/>').val(gooditems[index].MenuName).css({'width': '200px', 'margin-left': '20px'});
+		$(editInput).on('keyup', (evt)=>{
+			if (evt.keyCode == 13) {
+				$(dlgHandle.okCmd).click();
+			}
+		});
+		let editLabel = $('<label>ชื่อสินค้า:</label>').attr('for', $(editInput)).css({'width': '100%'})
+		let editDlgOption = {
+			title: 'แก้ไขชื่อสินค้า',
+			msg: $('<div></div>').css({'width': '100%', 'height': '70px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput)),
+			width: '320px',
+			onOk: async function(evt) {
+				let newValue = $(editInput).val();
+				if(newValue !== '') {
+					$(editInput).css({'border': ''});
+					let params = {data: {MenuName: newValue}, id: gooditems[index].id};
+					let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+					if (menuitemRes.status.code == 200) {
+						$.notify("แก้ไขรายการสินค้าสำเร็จ", "success");
+						dlgHandle.closeAlert();
+						successCallback(newValue);
+					} else if (menuitemRes.status.code == 201) {
+						$.notify("ไม่สามารถแก้ไขรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการสินค้าได้", "error");
+					}
+				} else {
+					$.notify('ชื่อสินค้าต้องไม่ว่าง', 'error');
+					$(editInput).css({'border': '1px solid red'});
+				}
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		return dlgHandle;
+	}
+
+	const doEditQtyOnTheFly = function(event, gooditems, index, successCallback){
+		let editInput = $('<input type="number"/>').val(common.doFormatNumber(Number(gooditems[index].Qty))).css({'width': '100px', 'margin-left': '20px'});
+		$(editInput).on('keyup', (evt)=>{
+			if (evt.keyCode == 13) {
+				$(dlgHandle.okCmd).click();
+			}
+		});
+		let editLabel = $('<label>จำนวน:</label>').attr('for', $(editInput)).css({'width': '100%'})
+		let editDlgOption = {
+			title: 'แก้ไขจำนวน',
+			msg: $('<div></div>').css({'width': '100%', 'height': '70px', 'margin-top': '20px'}).append($(editLabel)).append($(editInput)),
+			width: '220px',
+			onOk: async function(evt) {
+				let newValue = $(editInput).val();
+				if(newValue !== '') {
+					$(editInput).css({'border': ''});
+					let params = {data: {Qty: newValue}, id: gooditems[index].id};
+					let menuitemRes = await common.doCallApi('/api/shop/menuitem/update', params);
+					if (menuitemRes.status.code == 200) {
+						$.notify("แก้ไขรายการสินค้าสำเร็จ", "success");
+						dlgHandle.closeAlert();
+						successCallback(newValue);
+					} else if (menuitemRes.status.code == 201) {
+						$.notify("ไม่สามารถแก้ไขรายการสินค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขรายการสินค้าได้", "error");
+					}
+				} else {
+					$.notify('จำนวนสินค้าต้องไม่ว่าง', 'error');
+					$(editInput).css({'border': '1px solid red'});
+				}
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		return dlgHandle;
+	}
+
+	const doShowSummaryOrder = function(evt){
+		return new Promise(async function(resolve, reject) {
+			//let summaryData = {yellowOrders, orangeOrders, greenOrders, greyOrders};
+			let summaryBox = $(evt.currentTarget);
+			let summaryData = $(summaryBox).data('summaryData');
+			let summaryTable = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
+			let summaryRow = $('<div style="display: table-row; width: 100%;"></div>');
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"><b>ประเภท</b></span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"><b>จำนวน</b></span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"><b>มูลค่ารวม</b></span>'));
+			$(summaryTable).append($(summaryRow));
+			let cancelAmount = 0;
+			for (let i=0; i < summaryData.greyOrders.length; i++){
+				cancelAmount += await doCalOrderTotal(summaryData.greyOrders[i].Items);
+			}
+			let newAmount = 0;
+			for (let i=0; i < summaryData.yellowOrders.length; i++){
+				newAmount += await doCalOrderTotal(summaryData.yellowOrders[i].Items);
+			}
+			let invoiceAmount = 0;
+			for (let i=0; i < summaryData.orangeOrders.length; i++){
+				invoiceAmount += await doCalOrderTotal(summaryData.orangeOrders[i].Items);
+			}
+			let successAmount = 0;
+			for (let i=0; i < summaryData.greenOrders.length; i++){
+				successAmount += await doCalOrderTotal(summaryData.greenOrders[i].Items);
+			}
+
+			summaryRow = $('<div style="display: table-row; width: 100%; background-color: grey;"></div>');
+			$(summaryRow).append($('<span style="display: table-cell; text-align: left;">ยกเลิก</span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"></span>').text(summaryData.greyOrders.length));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: right;"></span>').text(common.doFormatNumber(cancelAmount)));
+			$(summaryTable).append($(summaryRow));
+
+			summaryRow = $('<div style="display: table-row; width: 100%; background-color: yellow;"></div>');
+			$(summaryRow).append($('<span style="display: table-cell; text-align: left;">ออร์เดอร์ใหม่</span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"></span>').text(summaryData.yellowOrders.length));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: right;"></span>').text(common.doFormatNumber(newAmount)));
+			$(summaryTable).append($(summaryRow));
+
+			summaryRow = $('<div style="display: table-row; width: 100%; background-color: orange;"></div>');
+			$(summaryRow).append($('<span style="display: table-cell; text-align: left;">รอเก็บเงิน</span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"></span>').text(summaryData.orangeOrders.length));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: right;"></span>').text(common.doFormatNumber(invoiceAmount)));
+			$(summaryTable).append($(summaryRow));
+
+			summaryRow = $('<div style="display: table-row; width: 100%; background-color: green;"></div>');
+			$(summaryRow).append($('<span style="display: table-cell; text-align: left;">เก็บเงินแล้ว</span>'));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: center;"></span>').text(summaryData.greenOrders.length));
+			$(summaryRow).append($('<span style="display: table-cell; text-align: right;"></span>').text(common.doFormatNumber(successAmount)));
+			$(summaryTable).append($(summaryRow));
+
+			$(summaryBox).empty().append($(summaryTable));
+
+			$(summaryBox).on('click', (evt)=>{
+				$(summaryBox).off('click');
+				$(summaryBox).empty().append($('<span><b>สรุป</b></span>').css({'line-height': '60px'}));
+				$(summaryBox).on('click', (evt)=>{
+					$(summaryBox).off('click');
+					doShowSummaryOrder(evt);
+				});
+			});
+			resolve();
+		});
+	}
+
+	const doRenderGooditemInfo = function(goodItemData, sum){
+		let mainBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'height': 'auto'});
+		let gooditemNameBox = $('<div></div>').append($('<h2></h2>').text(goodItemData.MenuName)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'center'});
+		$(mainBox).append($(gooditemNameBox));
+		if (goodItemData.MenuPicture !== '') {
+			let goodItemImage = $('<img width="140" height="auto"/>').attr('src', goodItemData.MenuPicture).css({'cursor': 'pointer'});
+			$(goodItemImage).on('click', (evt)=>{
+				window.open(goodItemData.MenuPicture, '_blank');
+			});
+			let gooditemPictureBox = $('<div></div>').append($(goodItemImage)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'center'});
+			$(mainBox).append($(gooditemPictureBox));
+		}
+		if (goodItemData.Desc !== '') {
+			let gooditemDescBox = $('<div></div>').append($('<p></p>').text(goodItemData.Desc)).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+			$(mainBox).append($(gooditemDescBox));
+		}
+		let gooditemPriceBox = $('<div></div>').append($('<p></p>').html('<span>ราคา(ขาย)</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.Price + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemPriceBox));
+		let gooditemUnitBox = $('<div></div>').append($('<p></p>').html('<span>หน่วย(ขาย)</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.Unit + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemUnitBox));
+		let gooditemGroupNameBox = $('<div></div>').append($('<p></p>').html('<span>กลุ่ม</span><span style="margin-left: 5px; font-weight: bold;">' + goodItemData.menugroup.GroupName + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left'});
+		$(mainBox).append($(gooditemGroupNameBox));
+		if ((sum==0) || (sum>0) || (sum<0)) {
+			let gooditemSumStockBox = $('<div></div>').append($('<p></p>').html('<span>ยอดสต็อคสุทธิ</span><span style="margin-left: 5px; font-weight: bold;">' + common.doFormatQtyNumber(sum) + '</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#ddd'});
+			if (sum > 0) {
+				$(gooditemSumStockBox).css({'border': '2px solid green'});
+			} else {
+				$(gooditemSumStockBox).css({'border': '2px solid red'});
+			}
+			$(mainBox).append($(gooditemSumStockBox));
+		} else {
+			let gooditemSumStockBox = $('<div></div>').append($('<p></p>').html('<span>ยังไม่เปิดใช้งานเชื่อมต่อระบบสต็อค</span>')).css({'position': 'relative', 'width': '100%', 'height': 'auto', 'text-align': 'left', 'background-color': '#ddd'});
+			$(gooditemSumStockBox).css({'border': '2px solid black'});
+			$(mainBox).append($(gooditemSumStockBox));
+		}
+		return $(mainBox);
+	}
+
+	const doShowStockInfo = function(goodItemData, sum){
+		let goodItemInfoBox = doRenderGooditemInfo(goodItemData, sum);
+		let editDlgOption = {
+			title: 'ข้อมูลสินค้า',
+			msg: $(goodItemInfoBox),
+			width: '420px',
+			onOk: async function(evt) {
+				dlgHandle.closeAlert();
+			},
+			onCancel: function(evt){
+				dlgHandle.closeAlert();
+			}
+		}
+		let dlgHandle = $('body').radalert(editDlgOption);
+		$(dlgHandle.cancelCmd).hide();
+	}
+
+  return {
+    doShowOrderList,
+		doShowCalendarDlg,
+		doOpenOrderForm
+	}
+}
+
+},{"../../../home/mod/common-lib.js":2,"./calendar-dlg.js":10,"./closeorder-dlg.js":11,"./customer-dlg.js":12,"./gooditem-dlg.js":13,"./order-merge-dlg.js":15}],17:[function(require,module,exports){
+/*stock-cutoff.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+  const common = require('../../../home/mod/common-lib.js')($);
+  const order = require('./order-mng.js')($);
+
+  const doExtractList = function(originList, from, to) {
+		return new Promise(async function(resolve, reject) {
+			let exResults = [];
+			let	promiseList = new Promise(function(resolve2, reject2){
+				for (let i = (from-1); i < to; i++) {
+					if (originList[i]){
+						exResults.push(originList[i]);
+					}
+				}
+				setTimeout(()=>{
+          resolve2(exResults);
+        }, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+  const doRenderCutoffStockTable = function(workAreaBox, viewPage, startRef, fromDate, stockRes, menuitemData) {
+    return new Promise(async function(resolve, reject) {
+      console.log(stockRes);
+      $('body').loading('start');
+      let stocks = stockRes.Records;
+      let titleText = 'เช็คสต็อค';
+      let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+      let userItemPerPage = userDefualtSetting.itemperpage;
+
+      let cutoffDate = common.doFormatDateStr(fromDate);
+      titleText += ' ตั้งแต่วันที่ ' + cutoffDate;
+
+      let stockPageItems = stocks;
+
+      let totalItem = stockPageItems.length;
+
+      if (userItemPerPage != 0) {
+        if (startRef > 0) {
+          stockPageItems = await doExtractList(stocks, (startRef+1), (startRef+userItemPerPage));
+        } else {
+          stockPageItems = await doExtractList(stocks, 1, userItemPerPage);
+        }
+      }
+
+      let stockTable = $('<table id="StockTable" width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+
+      let titleRow = $('<tr></tr>').css({'background-color': 'gray', 'color': 'white'});
+      let titleCol = $('<td colspan="7" align="center"></td>');
+      $(titleCol).append($('<h3></h3>').text(titleText).css({'font-weight': 'bold'}));
+      $(titleRow).append($(titleCol));
+      $(stockTable).append($(titleRow));
+
+      let sumBeforeText = 'ยอดคงเหลือยกมา ' + common.doFormatQtyNumber(stockRes.sumQty.Qty) + ' ' + menuitemData.Unit;
+      let sumBeforeRow = $('<tr></tr>');
+      let sumBeforeCol = $('<td colspan="7" align="center"></td>');
+      $(sumBeforeCol).append($('<h3></h3>').text(sumBeforeText).css({'font-weight': 'bold'}));
+      $(sumBeforeRow).append($(sumBeforeCol));
+      $(stockTable).append($(sumBeforeRow));
+
+      let headerRow = $('<tr></tr>');
+      $(headerRow).append($('<td width="4%" align="center"><b>#</b></td>'));
+      $(headerRow).append($('<td width="15%" align="center"><b>วันที่</b></td>'));
+      let dirCol = $('<td width="10%" align="center"><b>เข้า/ออก</b></td>');
+      $(headerRow).append($(dirCol));
+      let qtyCol = $('<td width="10%" align="center"><b>จำนวน</b></td>');
+      $(headerRow).append($(qtyCol));
+			let priceCol = $('<td width="10%" align="center"><b>ราคา</b></td>');
+			$(headerRow).append($(priceCol));
+      let sumCol = $('<td width="10%" align="center"><b>คงเหลือ</b></td>');
+      $(headerRow).append($(sumCol));
+      let cmdCol = $('<td width="*" align="center" class="row-cmd"><b>คำสั่ง</b></td>');
+      $(headerRow).append($(cmdCol));
+      $(stockTable).append($(headerRow));
+
+      let promiseList = new Promise(async function(resolve2, reject2){
+        let sum = stockRes.sumQty.Qty;
+        for (let i=0; i < stockPageItems.length; i++) {
+          let no = (i + 1 + startRef);
+          let stockPageItem = stockPageItems[i];
+          let stockDate = common.doFormatDateStr(new Date(stockPageItem.StockedAt));
+          let dataRow = $('<tr></tr>');
+          if (stockPageItem.Direction == '+') {
+            $(dataRow).css({'background-color': '#ddd'});
+            sum = sum + stockPageItem.Qty;
+          } else if (stockPageItem.Direction == '-'){
+            $(dataRow).css({'background-color': ''});
+            sum = sum - stockPageItem.Qty;
+          }
+          $(dataRow).append($('<td align="center"></td>').text(no));
+          let stockDateCol = $('<td align="left"></td>');
+
+          if (stockPageItem.Direction == '+') {
+            let stockDateBox = $('<span></span>').text(stockDate).css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px', 'border': '3px solid grey'});
+      			$(stockDateBox).on('click', (evt)=>{
+      				common.calendarOptions.onClick = async function(date){
+                console.log(date);
+      					//selectDate = common.doFormatDateStr(new Date(date));
+                //console.log(selectDate);
+                let params = {data: {StockedAt: date}, stockingId: stockPageItem.id};
+                console.log(params);
+                let stockRes = await common.doCallApi('/api/shop/stocking/edit/stockeddate', params);
+                if (stockRes.status.code == 200) {
+                  $.notify("แก้ไขวันที่นำเข้า " + menuitemData.MenuName + " สำเร็จ", "success");
+                  $('#StockCutoffDateOption').change();
+                } else if (stockRes.status.code == 201) {
+                  $.notify("ไม่สามารถแก้ไขวันที่นำเข้าสต็อคได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+                } else {
+                  $.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขวันที่นำเข้าสต็อคได้", "error");
+                  console.log(stockRes);
+                }
+                calendarHandle.closeAlert();
+      				}
+      				let calendarHandle = order.doShowCalendarDlg(common.calendarOptions);
+      			});
+      			$(stockDateBox).hover(()=>{
+      				$(stockDateBox).css({'border': '3px solid black'});
+      			},()=>{
+      				$(stockDateBox).css({'border': '3px solid grey'});
+      			});
+						$(stockDateBox).attr('title', 'แก้ไขวันที่นำเข้าสต็อค');
+            $(stockDateCol).append($(stockDateBox));
+          } else {
+            let stockDateBox = $('<span></span>').text(stockDate).css({'position': 'relative', 'margin': '-3px 5px 0px 10px', 'padding': '4px', 'font-size': '16px'});
+            $(stockDateCol).append($(stockDateBox));
+          }
+          $(dataRow).append($(stockDateCol));
+          $(dataRow).append($('<td align="center"></td>').text(stockPageItem.Direction).css({'font-weight': 'bold'}));
+          $(dataRow).append($('<td align="right"></td>').text(stockPageItem.Direction + common.doFormatQtyNumber(stockPageItem.Qty)).css({'padding-right': '2px'}));
+          $(dataRow).append($('<td align="right"></td>').text(common.doFormatNumber(stockPageItem.Price)).css({'padding-right': '2px'}));
+          $(dataRow).append($('<td align="right"></td>').text(common.doFormatQtyNumber(sum)).css({'padding-right': '2px'}));
+          let cmdItemCol = $('<td align="center" class="row-cmd"></td>');
+          $(dataRow).append($(cmdItemCol));
+          $(stockTable).append($(dataRow));
+          if (stockPageItem.Direction == '+') {
+            let editStockInValueCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
+            $(editStockInValueCmd).on('click', (evt)=>{
+              doUpdateStockInValue(menuitemData, stockPageItem, ()=>{
+                $('#StockCutoffDateOption').change();
+              });
+            });
+            $(cmdItemCol).append($(editStockInValueCmd));
+
+            let deleteStockInValueCmd = $('<input type="button" value=" Delete " class="action-btn"/>');
+            $(deleteStockInValueCmd).on('click', (evt)=>{
+              doDeleteStockInValue(menuitemData, stockPageItem, ()=>{
+                $('#StockCutoffDateOption').change();
+              });
+            });
+            $(cmdItemCol).append($(deleteStockInValueCmd).css({'margin-left': '5px'}));
+          } else if (stockPageItem.Direction == '-') {
+            // Open Order
+            let openOrderCmd = $('<input type="button" value=" Open " class="action-btn"/>');
+            $(openOrderCmd).on('click', async (evt)=>{
+              let userdata = JSON.parse(localStorage.getItem('userdata'));
+              let shopData = userdata.shop;
+              let selectDate = stockPageItem.StockedAt;
+              let params = {};
+              let orderRes = await common.doCallApi('/api/shop/order/select/' + stockPageItem.orderId, params);
+              let orderData = {customer: orderRes.Record.customer, gooditems: orderRes.Record.Items, id: orderRes.Record.id, Status: orderRes.Record.Status};
+              order.doOpenOrderForm(shopData, workAreaBox, orderData, selectDate);
+            });
+            $(cmdItemCol).append($(openOrderCmd));
+          }
+        }
+
+        let sumAfterText = 'ยอดคงเหลือสุทธิ ';
+        let sumAfterRow = $('<tr></tr>').css({'background-color': 'grey', 'color': 'white'});
+        let sumAfterCol = $('<td colspan="5" align="center"></td>');
+        let sumQtyCol = $('<td align="right"></td>').css({'padding-right': '2px'});
+        let sumCmdCol = $('<td align="center" class="row-cmd"></td>')
+        $(sumQtyCol).append($('<h3></h3>').text(common.doFormatQtyNumber(sum)).css({'font-weight': 'bold'}));
+        $(sumAfterCol).append($('<h3></h3>').text(sumAfterText).css({'font-weight': 'bold'}));
+        $(sumAfterRow).append($(sumAfterCol)).append($(sumQtyCol)).append($(sumCmdCol));
+        $(stockTable).append($(sumAfterRow));
+
+        let exportCmdIcon = $('<img src="../../images/excel-icon.png"/>');
+    		$(exportCmdIcon).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer'});
+    		$(exportCmdIcon).on('click', async(evt)=>{
+    			$('body').loading('start');
+          $('.row-cmd').hide();
+          let wsName = 'StockingRecord'+ menuitemData.id;
+          $(workAreaBox).excelexportjs({
+    			  containerid: 'StockTable',
+    			  datatype: 'table',
+    				encoding: "utf-8",
+    				locale: 'th-TH',
+    				worksheetName: wsName
+    			});
+          $('.row-cmd').show();
+          $('body').loading('stop');
+        });
+        $(sumCmdCol).append($(exportCmdIcon));
+
+        let printCmdIcon = $('<img src="../../images/print-icon.png"/>');
+        $(printCmdIcon).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'margin-left': '10px'});
+        $(printCmdIcon).on('click', async(evt)=>{
+          $('body').loading('start');
+          $('.row-cmd').hide();
+          printJS('StockTable', 'html');
+          $('.row-cmd').show();
+          $('body').loading('stop');
+        });
+        $(sumCmdCol).append($(printCmdIcon));
+
+        setTimeout(()=> {
+          resolve2(stockTable);
+        },1200);
+      });
+
+      Promise.all([promiseList]).then((ob)=> {
+        let stockTable = ob[0];
+        $(workAreaBox).append($(stockTable).css({'margin-top': '20px'}));
+
+        let showPage = 1;
+        if ((viewPage) && (viewPage > 0)){
+          showPage = viewPage;
+        }
+
+        let pageNavigator = doCreatePageNavigatorBox(showPage, userItemPerPage, totalItem, async function(page){
+          console.log(page);
+          $('body').loading('start');
+          $('#StockTable').remove();
+          $('#NavigBar').remove();
+          userDefualtSetting.itemperpage = page.perPage;
+          localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
+
+          let toPage = Number(page.toPage);
+          let newStartRef = Number(page.fromItem);
+          stockTable = await doRenderCutoffStockTable(workAreaBox, toPage, newStartRef, fromDate, stockRes, menuitemData);
+          $('body').loading('stop');
+        })
+        $(workAreaBox).append($(pageNavigator).css({'margin-top': '2px'}));
+
+        resolve(stockTable);
+        $('body').loading('stop');
+      });
+    });
+  }
+
+  const doCreatePageNavigatorBox = function(showPage, userItemPerPage, totalItem, callback) {
+    let navigBarBox = $('<div id="NavigBar"></div>');
+    let navigBarOption = {
+      currentPage: showPage,
+      itemperPage: userItemPerPage,
+      totalItem: totalItem,
+      styleClass : {'padding': '4px', 'margin-top': '60px'},
+      changeToPageCallback: callback
+    };
+    let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
+    //navigatoePage.toPage(1);
+    return $(navigBarBox);
+  }
+
+  const doCreateStockInMenuitemForm = function(menuitemData, stockInData){
+    let stockInFormTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="1"></table>');
+  	let fieldRow = $('<tr></tr>');
+		let labelField = $('<td width="40%" align="left">จำนวน<span style="color: red;">*</span></td>').css({'padding': '5px'});
+		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+		let inputQtyValue = $('<input type="number" id="StockiInQty" size="10"/>');
+    if (stockInData && stockInData.Qty) {
+      $(inputQtyValue).val(stockInData.Qty);
+    }
+		$(inputField).append($(inputQtyValue));
+		$(fieldRow).append($(labelField)).append($(inputField));
+		$(stockInFormTable).append($(fieldRow));
+
+		fieldRow = $('<tr></tr>');
+		labelField = $('<td width="40%" align="left">ราคา(รับ)<span style="color: red;">*</span></td>').css({'padding': '5px'});
+		inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
+		let inputPriceValue = $('<input type="number" id="StockiInPrice" size="10"/>');
+    if (stockInData && stockInData.Price) {
+      $(inputPriceValue).val(stockInData.Price);
+    }
+		$(inputField).append($(inputPriceValue));
+		$(fieldRow).append($(labelField)).append($(inputField));
+		$(stockInFormTable).append($(fieldRow));
+		return $(stockInFormTable);
+  }
+
+  const doVerifyStockInForm = function(form) {
+		let qty = $(form).find('#StockiInQty').val();
+		if (parseFloat(qty) >= 0) {
+			$(form).find('#StockiInQty').css({'border': ''});
+			let price = $(form).find('#StockiInPrice').val();
+			if (parseFloat(price) >= 0) {
+				$(form).find('#StockiInPrice').css({'border': ''});
+				let newStockIn = {Direction: '+', Qty: qty, Price: price};
+				return newStockIn;
+			} else {
+				$.notify("ข้อมูลราคารับเพื่อนำเข้าไม่ภูกต้อง", "error");
+				$(form).find('#StockiInPrice').css({'border': '1px solid red'});
+				return;
+			}
+		} else {
+			$.notify("ข้อมูลจำนวนนำเข้าไม่ภูกต้อง", "error");
+			$(form).find('#StockiInQty').css({'border': '1px solid red'});
+			return;
+		}
+	}
+
+	const doOpenStockInForm = function(shopData, workAreaBox, menuitemData){
+    let stockInForm = doCreateStockInMenuitemForm(menuitemData);
+		let stockInFormBox = $('<div></div>');
+		$(stockInFormBox).append($(stockInForm));
+		const stockInformoption = {
+			title: 'นำเข้า ' + menuitemData.MenuName,
+			msg: $(stockInFormBox),
+			width: '520px',
+			onOk: async function(evt) {
+				let stockInObj = doVerifyStockInForm(stockInForm);
+				if (stockInObj) {
+					stockIn.closeAlert();
+					let userdata = JSON.parse(localStorage.getItem('userdata'));
+					let params = {data: stockInObj, shopId: shopData.id, userId: userdata.id, orderId: 0, menuitemId: menuitemData.id};
+					let stockRes = await common.doCallApi('/api/shop/stocking/add', params);
+					if (stockRes.status.code == 200) {
+						$.notify("นำเข้า " + menuitemData.MenuName + " สำเร็จ", "success");
+					} else if (stockRes.status.code == 201) {
+						$.notify("ไม่สามารถนำเข้าสต็อคได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถนำเข้าสต็อคได้", "error");
+						console.log(stockRes);
+					}
+				}else {
+					$.notify("ข้อมูลไม่ถูกต้อง", "error");
+				}
+			},
+			onCancel: function(evt){
+				stockIn.closeAlert();
+			}
+		}
+		let stockIn = $('body').radalert(stockInformoption);
+  }
+
+  const doUpdateStockInValue = function(menuitemData, stockItemData, callback) {
+    let stockInForm = doCreateStockInMenuitemForm(menuitemData, stockItemData);
+    let stockInFormBox = $('<div></div>');
+    $(stockInFormBox).append($(stockInForm));
+    const stockInformoption = {
+      title: 'แก้ไข การนำเข้า ' + menuitemData.MenuName,
+      msg: $(stockInFormBox),
+      width: '520px',
+      onOk: async function(evt) {
+				let stockInObj = doVerifyStockInForm(stockInForm);
+        if (stockInObj) {
+          stockIn.closeAlert();
+          let userdata = JSON.parse(localStorage.getItem('userdata'));
+          let params = {data: stockInObj, shopId: userdata.shopId, userId: userdata.id, orderId: 0, menuitemId: menuitemData.id, stockingId: stockItemData.id};
+          console.log(params);
+					let stockRes = await common.doCallApi('/api/shop/stocking/update', params);
+					if (stockRes.status.code == 200) {
+						$.notify("แก้ไขการนำเข้า " + menuitemData.MenuName + " สำเร็จ", "success");
+            callback();
+					} else if (stockRes.status.code == 201) {
+						$.notify("ไม่สามารถแก้ไขการนำเข้าสต็อคได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+					} else {
+						$.notify("เกิดข้อผิดพลาด ไม่สามารถแก้ไขการนำเข้าสต็อคได้", "error");
+						console.log(stockRes);
+					}
+        }
+      },
+      onCancel: function(evt){
+        stockIn.closeAlert();
+      }
+    }
+    let stockIn = $('body').radalert(stockInformoption);
+  }
+
+  const doDeleteStockInValue = function(menuitemData, stockItemData, callback){
+    let stockInConfirmBox = $('<div></div>');
+    let stockInConfirm = $('<p></p>').text('โปรดยืนยันการลบโดยคลิกปุ่ม ตกลง');
+    $(stockInConfirmBox).append($(stockInConfirm));
+    const stockInconfirmoption = {
+      title: 'ยืนยันการลบรายการนำเข้าสต็อค ' + menuitemData.MenuName,
+      msg: $(stockInConfirmBox),
+      width: '420px',
+      onOk: async function(evt) {
+        stockIn.closeAlert();
+        let params = {stockingId: stockItemData.id};
+        console.log(params);
+				let stockRes = await common.doCallApi('/api/shop/stocking/delete', params);
+				if (stockRes.status.code == 200) {
+					$.notify("ลบรายการนำเข้า " + menuitemData.MenuName + " สำเร็จ", "success");
+          callback();
+				} else if (stockRes.status.code == 201) {
+					$.notify("ไม่สามารถลบรายการนำเข้าสต็อคได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
+				} else {
+					$.notify("เกิดข้อผิดพลาด ไม่สามารถลบรายการนำเข้าสต็อคได้", "error");
+					console.log(stockRes);
+				}
+      },
+      onCancel: function(evt){
+        stockIn.closeAlert();
+      }
+    }
+    let stockIn = $('body').radalert(stockInconfirmoption);
+  }
+
+  return {
+    doOpenStockInForm,
+    doRenderCutoffStockTable
+  }
+}
+
+},{"../../../home/mod/common-lib.js":2,"./order-mng.js":16}]},{},[4]);
