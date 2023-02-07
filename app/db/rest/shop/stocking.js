@@ -59,7 +59,8 @@ const summaryToCutoffDate = function(menuitemId, cutoffDate) {
     let fromDateWithZ = new Date(cutoffDate);
     fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7));
 
-    fromDateWithZ.setDate(fromDateWithZ.getDate() + 1);
+    //fromDateWithZ.setDate(fromDateWithZ.getDate() + 1);
+		fromDateWithZ.setDate(fromDateWithZ.getDate());
 
     whereCluase.StockedAt = { [db.Op.lt]: new Date(fromDateWithZ)};
     const stocks = await db.stockings.findAll({where: whereCluase, order: orderby});
