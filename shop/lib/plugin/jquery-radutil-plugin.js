@@ -246,7 +246,7 @@
   		let slider = $('<span class="slider"></span>');
   		$(toggleSwitch).append($(input));
   		$(toggleSwitch).append($(slider));
-      switchText = $('<span style="margin-left: 5px; margin-top: 5px;"></span>');
+      switchText = $('<span style="margin-left: 5px; margin-top: 10px;"></span>');
   		$(input).on('click', (evt)=>{
   			let isOn = $(input).prop('checked');
   			if (isOn) {
