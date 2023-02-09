@@ -48,7 +48,8 @@ const replyConnect = (token, messages)=>{
 			if (!err) {
 				resolve({code: 200, response: body});
 			} else {
-				reject({code: 500, error: error});
+				reject({code: 500, error: err});
+        log.error('Reply Error =>' + json.stringify(err));
 			}
 		});
 	});
