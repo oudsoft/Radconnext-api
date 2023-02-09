@@ -49,7 +49,7 @@
     userdata = JSON.parse(localStorage.getItem('userdata'));
     console.log(userdata);
 
-    let wsUrl = 'wss://radconnext.info/' + userdata.username + '/' + userdata.hospitalId + '?type=monitor';
+    let wsUrl = 'wss://radconnext.tech/' + userdata.username + '/' + userdata.hospitalId + '?type=monitor';
 	  wsm = new WebSocket(wsUrl);
     wsm.onmessage = onMessageEvt;
 

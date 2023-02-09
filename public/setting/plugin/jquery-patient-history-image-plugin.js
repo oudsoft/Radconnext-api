@@ -93,17 +93,17 @@ $.widget( "custom.imageitem", {
     if (this.options.fileType) {
       if (!validImageTypes.includes(this.options.fileType)) {
         if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
-          hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
+          hsImage.src = 'https://radconnext.tech/images/pdf-icon.png';
         } else if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
-          hsImage.src = 'https://radconnext.info/images/zip-icon.png';
+          hsImage.src = 'https://radconnext.tech/images/zip-icon.png';
         } else {
-          hsImage.src = 'https://radconnext.info/images/otherfile-icon.png';
+          hsImage.src = 'https://radconnext.tech/images/otherfile-icon.png';
         }
       } else {
         if ((this.options.fileType.toUpperCase() === 'APPLICATION/ZIP') || (this.options.fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
-          hsImage.src = 'https://radconnext.info/images/zip-icon.png';
+          hsImage.src = 'https://radconnext.tech/images/zip-icon.png';
         } else if (this.options.fileType.toUpperCase() === 'APPLICATION/PDF') {
-          hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
+          hsImage.src = 'https://radconnext.tech/images/pdf-icon.png';
         } else {
           hsImage.src = this.options.imgUrl;
         }
@@ -122,9 +122,9 @@ $.widget( "custom.imageitem", {
       }
       console.log(fileType);
       if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
-        hsImage.src = 'https://radconnext.info/images/zip-icon.png';
+        hsImage.src = 'https://radconnext.tech/images/zip-icon.png';
       } else if (fileType.toUpperCase() === 'APPLICATION/PDF') {
-        hsImage.src = 'https://radconnext.info/images/pdf-icon.png';
+        hsImage.src = 'https://radconnext.tech/images/pdf-icon.png';
       } else {
         hsImage.src = this.options.imgUrl;
       }
@@ -218,7 +218,7 @@ $.widget( "custom.imagehistory", {
   },
   uploadClick: function(e, imageListBox){
     let $this = this;
-    let simpleUploadPluginUrl = "https://radconnext.info/lib/simpleUpload.min.js";
+    let simpleUploadPluginUrl = "https://radconnext.tech/lib/simpleUpload.min.js";
 		this.cachedScript( simpleUploadPluginUrl ).done(function( script, textStatus ) {
       $this.doOpenSelectFile(imageListBox);
 		});
@@ -257,7 +257,7 @@ $.widget( "custom.imagehistory", {
     let $this = this;
     let uploadUrl = $this.options.attachFileUploadApiUrl;
     if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
-      //uploadUrl = 'https://radconnext.info/api/transfer/archive';
+      //uploadUrl = 'https://radconnext.tech/api/transfer/archive';
       uploadUrl = '/api/transfer/archive';
     }
     $(fileBrowser).simpleUpload(uploadUrl, {
@@ -274,9 +274,9 @@ $.widget( "custom.imagehistory", {
           if (window.location.hostname == 'localhost') {
             let dwnLink = undefined;
             if ((fileType.toUpperCase() === 'APPLICATION/ZIP') || (fileType.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
-              dwnLink = 'https://radconnext.info' + data.archive.link;
+              dwnLink = 'https://radconnext.tech' + data.archive.link;
             } else {
-              dwnLink = 'https://radconnext.info' + data.link;
+              dwnLink = 'https://radconnext.tech' + data.link;
             }
             data.link = dwnLink;
           }
@@ -325,7 +325,7 @@ $.widget( "custom.imagehistory", {
   },
   scannerClick: function(e, imageListBox){
     let $this = this;
-    let scannerPluginUrl = "https://radconnext.info/lib/scanner.js";
+    let scannerPluginUrl = "https://radconnext.tech/lib/scanner.js";
     this.cachedScript( scannerPluginUrl ).done(function( script, textStatus ) {
       scanner.scan($this.displayImagesOnPage, {
 				"use_asprise_dialog": false,
@@ -353,7 +353,7 @@ $.widget( "custom.imagehistory", {
     let uploadImageUrl = $this.options.scannerUploadApiUrl;
     $.post(uploadImageUrl, params, function(data){
       if (window.location.hostname == 'localhost') {
-        data.link = 'https://radconnext.info' + data.link;
+        data.link = 'https://radconnext.tech' + data.link;
       }
       let fileType = undefined;
       let tmps = data.link.split('.');
@@ -396,10 +396,10 @@ $.widget( "custom.imagehistory", {
   doLoadEditorPlugin: function(){
     let $this = this;
     return new Promise(async function(resolve, reject) {
-      let fabricUrl = "https://radconnext.info/lib/fabric.js"
-      let codeSnippetUrl = "https://radconnext.info/lib/tui-code-snippet.min.js"
-      let colorPickerUrl = "https://radconnext.info/lib/tui-color-picker.js"
-      let tuiEditorPluginUrl = "https://radconnext.info/lib/tui-image-editor.min.js";
+      let fabricUrl = "https://radconnext.tech/lib/fabric.js"
+      let codeSnippetUrl = "https://radconnext.tech/lib/tui-code-snippet.min.js"
+      let colorPickerUrl = "https://radconnext.tech/lib/tui-color-picker.js"
+      let tuiEditorPluginUrl = "https://radconnext.tech/lib/tui-image-editor.min.js";
       let fubric = await $this.cachedScript(fabricUrl);
       let codeSnippet = await $this.cachedScript(codeSnippetUrl);
       let colorPicker = await $this.cachedScript(colorPickerUrl);
@@ -593,7 +593,7 @@ $.widget( "custom.imagehistory", {
         fileType = 'application/pdf';
       } else if (type === 'zip') {
         formData.append('archiveupload', blob);
-        uploadUrl = 'https://radconnext.info/api/transfer/archive';
+        uploadUrl = 'https://radconnext.tech/api/transfer/archive';
         fileType = 'application/zip';
       }
       $.ajax({
@@ -606,9 +606,9 @@ $.widget( "custom.imagehistory", {
           if (window.location.hostname == 'localhost') {
             let dwnLink = undefined;
             if (type === 'zip') {
-              dwnLink = 'https://radconnext.info' + data.archive.link;
+              dwnLink = 'https://radconnext.tech' + data.archive.link;
             } else {
-              dwnLink = 'https://radconnext.info' + data.link;
+              dwnLink = 'https://radconnext.tech' + data.link;
             }
             data.link = dwnLink;
           }
