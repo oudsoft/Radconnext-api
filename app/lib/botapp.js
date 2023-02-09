@@ -616,73 +616,78 @@ app.post('/', async function(req, res) {
   var usertypeId;
 
   let userEvent = req.body.events[0];
-  let replyToken = userEvent.replyToken;
-	let userId = userEvent.source.userId;
-	let destination = req.body.destination;
-  let radUser = await doCallUserType(userId);
-  if ((radUser) && (radUser.username)) {
-    username = radUser.username;
-  } else if ((radUser) && (radUser.usertypeId)) {
-    usertypeId = radUser.usertypeId;
-  } else {
-    radUser = {username: '', usertypeId: 0};
-  }
+  if (userEvent) {
+    let replyToken = userEvent.replyToken;
+  	let userId = userEvent.source.userId;
+  	let destination = req.body.destination;
+    let radUser = await doCallUserType(userId);
+    if ((radUser) && (radUser.username)) {
+      username = radUser.username;
+    } else if ((radUser) && (radUser.usertypeId)) {
+      usertypeId = radUser.usertypeId;
+    } else {
+      radUser = {username: '', usertypeId: 0};
+    }
 
-  switch (userEvent.type) {
-    case 'message':
-      let userMessageType = userEvent.message.type;
-      switch (userMessageType) {
-        case 'text':
-          var userText = userEvent.message.text;
-          await textMessageHandle(userId, replyToken, userText, radUser);
-        break;
-        case 'image':
-          var imageId = userEvent.message.id;
-          var unSupportMsg = 'ต้องขออภัยระบบยังไม่รองรับฟังก์ชั่นนี้ในขณะนี้\nโปรดใช้เมนูจากด้านล่างครับ';
+    switch (userEvent.type) {
+      case 'message':
+        let userMessageType = userEvent.message.type;
+        switch (userMessageType) {
+          case 'text':
+            var userText = userEvent.message.text;
+            await textMessageHandle(userId, replyToken, userText, radUser);
+          break;
+          case 'image':
+            var imageId = userEvent.message.id;
+            var unSupportMsg = 'ต้องขออภัยระบบยังไม่รองรับฟังก์ชั่นนี้ในขณะนี้\nโปรดใช้เมนูจากด้านล่างครับ';
+            var action = 'quick';
+            if (usertypeId==2){
+              await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.techMainMenu));
+            } else if (usertypeId==4){
+              await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.radioMainMenu));
+            } else if (usertypeId==6){
+              await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
+            } else {
+              await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
+            }
+          break;
+        }
+      break;
+      case 'postback':
+        var cmds = userEvent.postback.data.split("&");
+        await postbackMessageHandle(userId, replyToken, cmds, radUser);
+      break;
+      case 'follow':
+        try {
+          userdata = await lineApi.getUserProfile(userId);
+          userProfile = JSON.parse(userdata);
+          log.info('User Follow Profile => ' + JSON.stringify(userProfile));
+          displayName = userProfile.displayName;
+          var intro = "Welcome to RadconnextV2 " + displayName;
           var action = 'quick';
-          if (usertypeId==2){
-            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.techMainMenu));
-          } else if (usertypeId==4){
-            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.radioMainMenu));
-          } else if (usertypeId==6){
-            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
-          } else {
-            await replyAction(replyToken, lineApi.createBotMenu(unSupportMsg, action, lineApi.mainMenu));
-          }
-        break;
-      }
-    break;
-    case 'postback':
-      var cmds = userEvent.postback.data.split("&");
-      await postbackMessageHandle(userId, replyToken, cmds, radUser);
-    break;
-    case 'follow':
-      try {
-        userdata = await lineApi.getUserProfile(userId);
-        userProfile = JSON.parse(userdata);
-        log.info('User Follow Profile => ' + JSON.stringify(userProfile));
-        displayName = userProfile.displayName;
-        var intro = "Welcome to RadconnextV2 " + displayName;
-        var action = 'quick';
-        await replyAction(replyToken, lineApi.createBotMenu(intro, action, lineApi.mainMenu));
-      } catch (err) {
-        log.info('User Follow Error => ' + JSON.stringify(err));
-      }
-    break;
-    case 'unfollow':
-      try {
-        /*
-        userdata = await lineApi.getUserProfile(userId);
-        userProfile = JSON.parse(userdata);
-        displayName = userProfile.displayName;
-        var replyUnfollowMsg = "RadconnextV2 ขอบพระคุณ คุณ " + displayName;
-        replyUnfollowMsg += "\nเป็นอย่างสูงที่ไดมีโอกาส้รับใช้คุณ\nคุณสามารถกลับมาใช้บริการได้ใหม่ทุกเมื่อเลยครับ";
-        await pushAction(userId, replyUnfollowMsg);
-        */
-      } catch (err) {
-        log.info('User Unfollow Error => ' + JSON.stringify(err));
-      }
-    break;
+          await replyAction(replyToken, lineApi.createBotMenu(intro, action, lineApi.mainMenu));
+        } catch (err) {
+          log.info('User Follow Error => ' + JSON.stringify(err));
+        }
+      break;
+      case 'unfollow':
+        try {
+          /*
+          userdata = await lineApi.getUserProfile(userId);
+          userProfile = JSON.parse(userdata);
+          displayName = userProfile.displayName;
+          var replyUnfollowMsg = "RadconnextV2 ขอบพระคุณ คุณ " + displayName;
+          replyUnfollowMsg += "\nเป็นอย่างสูงที่ไดมีโอกาส้รับใช้คุณ\nคุณสามารถกลับมาใช้บริการได้ใหม่ทุกเมื่อเลยครับ";
+          await pushAction(userId, replyUnfollowMsg);
+          */
+        } catch (err) {
+          log.info('User Unfollow Error => ' + JSON.stringify(err));
+        }
+      break;
+    }
+  } else {
+    log.info('req.body => ' + JSON.stringify(req.body));
+    res.status(200).send("OK");
   }
 });
 

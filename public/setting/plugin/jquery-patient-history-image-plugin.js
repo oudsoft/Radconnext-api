@@ -219,6 +219,7 @@ $.widget( "custom.imagehistory", {
   uploadClick: function(e, imageListBox){
     let $this = this;
     let simpleUploadPluginUrl = "https://radconnext.tech/lib/simpleUpload.min.js";
+    console.log(simpleUploadPluginUrl);
 		this.cachedScript( simpleUploadPluginUrl ).done(function( script, textStatus ) {
       $this.doOpenSelectFile(imageListBox);
 		});
