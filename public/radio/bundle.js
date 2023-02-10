@@ -1743,8 +1743,9 @@ module.exports = function ( jq ) {
 		if ((htmlPastedData) && (htmlPastedData !== '')) {
 			//console.log(htmlPastedData);
 			let htmlFormat = htmlformat(htmlPastedData); //<-- ถ้าเป็น full html จะสกัดเอาเฉพาะใน body ของ html
+			console.log(htmlFormat);
 			htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
-			//console.log(htmlFormat);
+			console.log(htmlFormat);
 			document.execCommand('insertHTML', false, htmlFormat);
 			let newContent = oldContent + htmlFormat;
 			let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -1764,25 +1765,7 @@ module.exports = function ( jq ) {
 	}
 
 	const onSimpleEditorPaste = function(evt){
-		console.log(evt);
-		/*
-		let pathElems = evt.originalEvent.path;
-		if (pathElems) {
-			let simpleEditorPath = pathElems.find((path)=>{
-				if (path.className === 'jqte_editor') {
-					return path;
-				}
-			});
-			if (simpleEditorPath) {
-				simpleEditorPaste(evt);
-			}
-		} else if (evt.target.className === 'jqte_editor') {
-			simpleEditorPaste(evt);
-		}
-		*/
-
 		simpleEditorPaste(evt);
-
 		evt.stopPropagation();
 		evt.preventDefault();
 	}
@@ -1797,12 +1780,12 @@ module.exports = function ( jq ) {
 			let endPosition = tempToken.indexOf(endPointText);
 			tempToken = tempToken.slice((startPosition+20), (endPosition));
 		}
-		/*
-		tempToken = tempToken.split(startPointText).join('<div>');
-		tempToken = tempToken.split(endPointText).join('</div>');
-		*/
 		tempToken = tempToken.replace(startPointText, '<div>');
 		tempToken = tempToken.replace(endPointText, '</div>');
+
+		let regex = new RegExp('<'+'font'+'[^><]*>|<.'+'font'+'[^><]*>','gi')
+		tempToken = tempToken.replace(regex, '');
+
 		return tempToken;
 	}
 
