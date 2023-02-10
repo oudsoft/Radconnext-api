@@ -354,6 +354,8 @@ const dicomConvertor = function(studyID, modality, fileCode, hospitalId, hostnam
             }
 
             //command += ' -k "Modality=OT" -v';
+            command += uti.fmtStr(' -k "SeriesDescription=%s"', 'Radiologist Result');
+
       			command += uti.fmtStr(' -k "Modality=%s" -v', modality);
 
       			//command += ' && storescu';
@@ -672,7 +674,7 @@ const doSubmitReport = function(caseId, responseId, userId, hospitalId, reportTy
           /*
           send fake Success Notify to radio
           */
-          
+
           let radioSocket = await websocket.findUserSocket(radioProfile.username);
           if (radioSocket) {
             let fakeRadioTrigger = {type: 'newreportlocalresult', result: 'wait local active', from: 'system', hospitalId: hospitalId, caseId: caseId, patientFullName: report.patientFullName};
