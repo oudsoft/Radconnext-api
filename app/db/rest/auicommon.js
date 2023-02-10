@@ -235,21 +235,35 @@ app.post('/radio/submitresult', (req, res) => {
           /*
           let nextStatus = common.nextCaseStausOnResponseChange(nowStatusId, responseType, reportType);
           */
+          let remark =  undefined;
+          let next = undefined;
+          let from = undefined;
+          let caseStatusChange = undefined;
           if (nowCaseStatusId == 8) {
-            const next = 9;
-            let remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ [api-aui-radio-submit]';
-            const caseStatusChange = {casestatusId: next /*, Case_DESC: remark*/};
-            await db.cases.update(caseStatusChange, { where: { id: caseId } });
-            const from = 8;
-            let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
-            //await common.doCaseChangeStatusKeepLog(newKeepLog);
-            await db.radkeeplogs.create(newKeepLog);
+            from = 8;
+            next = 9;
+            remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ ใหม่ [api-aui-radio-submit]';
+            caseStatusChange = {casestatusId: next /*, Case_DESC: remark*/};
+          } else if (nowCaseStatusId == 9) {
+            from = 9;
+            next = 5;
+            remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ ใหม่ [api-aui-radio-submit]';
+            caseStatusChange = {casestatusId: next /*, Case_DESC: remark*/};
+          } else {
+            from = nowCaseStatusId;
+            next = 5;
+            remark = 'รังสีแพทย์ ' + radioNameTH + ' บันทึกผลอ่านสำเร็จ แก้ไข [api-aui-radio-submit]';
+            caseStatusChange = {casestatusId: next /*, Case_DESC: remark*/};
           }
+
+          await db.cases.update(caseStatusChange, { where: { id: caseId } });
+          let newKeepLog = { caseId : caseId,	userId : userId, from : from, to : next, remark : remark};
+          await db.radkeeplogs.create(newKeepLog);
 
           let responseType = 'normal';
           let nowStatusId = 9;
           let nextStatus = 5;
-          let remark = 'รังสีแพทย์ ' + radioNameTH + ' ส่งผลอ่าน (Submit) สำเร็จ';
+          remark = 'รังสีแพทย์ ' + radioNameTH + ' ส่งผลอ่าน (Submit) สำเร็จ';
           let changeResult = await statusControl.doChangeCaseStatus(nowStatusId, nextStatus, caseId, userId, remark);
           //res.json({submit: submitRes, change: changeResult});
           log.info('==' + remark + '==');
@@ -263,8 +277,12 @@ app.post('/radio/submitresult', (req, res) => {
 
           res.json({status: {code: 200}, submit: 'done',});
 
-          let submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
-
+          let submitRes = undefined;
+          if ([8, 9].includes(nowCaseStatusId)) {
+            submitRes = await commonReport.doSubmitReport(caseId, responseId, userId, hospitalId, reportType, hostname, report);
+          } else {
+            submitRes = await commonReport.doReSubmitReport(caseId, hostname);
+          }
           //log.info('\n\ncreate report result on submit result event => ');
           //log.info(JSON.stringify(submitRes));
           //log.info('=============\n\n');

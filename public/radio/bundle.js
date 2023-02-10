@@ -92,7 +92,7 @@ module.exports = function ( jq ) {
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
       let apiURL = apiurl;
       if (window.location.hostname == 'localhost') {
-        apiURL = 'https://radconnext.info' + apiurl;
+        apiURL = 'https://radconnext.tech' + apiurl;
       }
       $.ajax({
         url: apiURL,
@@ -107,7 +107,7 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
-							
+
 							/*
               let loaded = evt.loaded;
               let total = evt.total;
@@ -145,7 +145,7 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
       let apiURL = apiurl;
       if (window.location.hostname == 'localhost') {
-        apiURL = 'https://radconnext.info' + apiurl;
+        apiURL = 'https://radconnext.tech' + apiurl;
       }
 			$.get(apiURL, params, function(data){
 				resolve(data);
@@ -1014,7 +1014,7 @@ module.exports = function ( jq ) {
 			$('body').loading('stop');
 		});
 		*/
-		let downloadURL = 'https://radconnext.info/img/usr/zip/' + dicomFilename;
+		let downloadURL = 'https://radconnext.tech/img/usr/zip/' + dicomFilename;
 		console.log(downloadURL);
 		let pom = document.createElement('a');
 		pom.setAttribute('href', downloadURL);
@@ -1366,7 +1366,7 @@ module.exports = function ( jq ) {
 			let hospitalId = userdata.hospitalId;
 			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
-			let apiUrl = 'https://radconnext.info/api/scanpartaux/select';
+			let apiUrl = 'https://radconnext.tech/api/scanpartaux/select';
 			try {
 				/*
 				let response = await doCallApi(apiUrl, rqParams);
@@ -3040,11 +3040,11 @@ module.exports = function ( jq ) {
 
 		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
 		if (hostname == 'localhost') {
-			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+			wsUrl = 'wss://radconnext.tech/' + username + '/' + hospitalId + '?type=' + connecttype;
 		}
 		*/
 
-		let wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		let wsUrl = 'wss://radconnext.tech/' + username + '/' + hospitalId + '?type=' + connecttype;
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -7699,7 +7699,7 @@ module.exports = function ( jq ) {
 					resolve(saveResponseRes);
 					let responseTextFilename = saveResponseData.patientFullName.split(' ').join('_') + '.txt';
 					//console.log(responseTextFilename);
-					doSaveResponseTextToLocalFile(saveResponseData.Response_Text, responseTextFilename);
+					//doSaveResponseTextToLocalFile(saveResponseData.Response_Text, responseTextFilename);
 					setTimeout(()=>{
 						$('#AcceptedCaseCmd').click();
 					}, 1800);
@@ -7715,7 +7715,7 @@ module.exports = function ( jq ) {
 					$("#dialog").append($(resultPDFDialog));
 					resolve(pdfReportLink);
 					let responseTextFilename = saveResponseData.patientFullName.split(' ').join('_') + '.txt';
-					doSaveResponseTextToLocalFile(saveResponseData.Response_Text, responseTextFilename);
+					//doSaveResponseTextToLocalFile(saveResponseData.Response_Text, responseTextFilename);
 				}
 			} else {
 				$.notify("ไม่สามารถส่งผลอ่าน - Error โปรดติดต่อผู้ดูแลระบบ", "error");
