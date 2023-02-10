@@ -176,6 +176,9 @@ app.post('/add', (req, res) => {
                         let adUserProfile = await db.userprofiles.create(newUserProfile);
                         await db.userprofiles.update({userId: adUser.id}, { where: { id: adUserProfile.id } });
                         */
+                        let defaultProfile = JSON.parse(JSON.stringify(common.defaultRadioProfileV2));
+                        let newUserProfile = {Profile: defaultProfile, userId: adUser.id};
+                        let adUserProfile = await db.userprofiles.create(newUserProfile);
                       }
                       const yourToken = auth.doEncodeToken(newUsername);
                       res.json({status: {code: 200}, token: yourToken });
