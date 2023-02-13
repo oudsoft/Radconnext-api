@@ -624,11 +624,18 @@ const doCreateUserInfoBox = function(){
     $(pageHandle.toggleMenuCmd).click();
     doStartTestPPQC(evt, userdata.shop);
   });
+  let calculatorCmd = $('<div>เครื่องคิดเลข</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '10px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
+  $(calculatorCmd).on('click', (evt)=>{
+    evt.stopPropagation();
+    $(pageHandle.toggleMenuCmd).click();
+    doOpenCalculatorCallBack(evt, userdata.shop);
+  });
   let userLogoutCmd = $('<div>ออกจากระบบ</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '10px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userLogoutCmd).on('click', (evt)=>{
     common.doUserLogout();
   });
-  return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userPPQRTestCmd)).append($(userLogoutCmd));
+
+  return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userPPQRTestCmd)).append($(calculatorCmd)).append($(userLogoutCmd));
 }
 
 const doCreatePPInfoBox = function(shopData) {
@@ -787,6 +794,29 @@ const doOpenPPDataForm = function(evt, shopData) {
       $(ppNameInput).css({'border': '1px solid red'});
     }
   });
+}
+
+const doOpenCalculatorCallBack = function(evt, shopData){
+  let calcBox = $('<div id="root"></div>');
+  let calcDlgOption = {
+    title: 'เครื่องคิดเลข',
+    msg: $(calcBox),
+    width: '365px',
+    onOk: function(evt) {
+      $(calcScript).remove();
+      dlgHandle.closeAlert();
+    },
+    onCancel: function(evt) {
+      $(calcScript).remove();
+      dlgHandle.closeAlert();
+    }
+  }
+  let dlgHandle = $('body').radalert(calcDlgOption);
+  $(dlgHandle.cancelCmd).hide();
+  let calcScript = document.createElement("script");
+  calcScript.type = "text/javascript";
+  calcScript.src = "../lib/calculator.js";
+  $("head").append($(calcScript));
 }
 
 },{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){
