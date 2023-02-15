@@ -3169,6 +3169,7 @@ module.exports = function ( jq ) {
 				$(cutoffDateBox).remove();
 				$(backMenuitemCmd).remove();
 				$('#StockTable').remove();
+				$('#NavigBar').remove();
 				$('#TitlePageBox').text('รายการสินค้าของร้าน');
 				$('#NewMenuitemCmdBox').show();
 				$('.menuitem-row').show();
