@@ -397,7 +397,7 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
     if (paperSize == 1) {
       let realH = Number(variable.rsDimension.top) + Number(variable.rsDimension.height.real);
       let diff = A4Height - realH;
-      console.log('diff=' + diff); //1410
+      console.log('diff=>' + diff); //1410
       if (diff > 220) {
         $(advertImageElem).css({'top': 1340 + 'px'});
         $(ppqrImageElem).css({'top': 1190 + 'px'});
