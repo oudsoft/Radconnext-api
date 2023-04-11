@@ -6351,7 +6351,7 @@ module.exports = function ( jq ) {
   }
 
 	const doLoadCommandAction = function(){
-    $("#add-item-cmd").prop('disabled', true);
+    $("#add-item-cmd").prop('disabled', false);
     $("#remove-item-cmd").prop('disabled', true);
     $("#text-element-cmd").data({type: "text"});
     $("#hr-element-cmd").data({type: "hr"});
