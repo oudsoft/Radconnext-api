@@ -6313,6 +6313,7 @@ module.exports = function ( jq ) {
 		$(addTextElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
+			console.log(elemData);
 			if (elemData.customTdelement) {
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'text');
