@@ -6323,7 +6323,8 @@ module.exports = function ( jq ) {
 		$(addTextElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
-			if (elemData.customTdelement) {
+			//console.log(elemData);
+			if (elemData && elemData.customTdelement) {
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'text');
 				} else {
@@ -6336,7 +6337,7 @@ module.exports = function ( jq ) {
 		$(addHrElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
-			if (elemData.customTdelement) {
+			if (elemData && elemData.customTdelement) {
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'hr');
 				} else {
@@ -6349,7 +6350,7 @@ module.exports = function ( jq ) {
 		$(addImageElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
-			if (elemData.customTdelement) {
+			if (elemData && elemData.customTdelement) {
 				//console.log(elemData.customTdelement.options);
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'image');
