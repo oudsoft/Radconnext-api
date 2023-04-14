@@ -1718,6 +1718,7 @@ module.exports = function ( jq ) {
   }
 
 	const doCreateElement = function(wrapper, elemType, prop){
+		//doFindMaxYWrapper(wrapper);
     let defHeight = 50;
     switch (elemType) {
       case "text":
@@ -1748,7 +1749,7 @@ module.exports = function ( jq ) {
 				return $(textbox).css({'position': 'absolute'});
       break;
       case "hr":
-        var hrTypeLength = $(".hrElement").length;
+        var hrTypeLength = $(".textElement").length;
         var oProp;
         if (prop) {
           oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id};
@@ -1770,7 +1771,7 @@ module.exports = function ( jq ) {
 				return $(hrbox).css({'position': 'absolute'});
       break;
       case "image":
-        var imageTypeLength = $(".imageElement").length;
+        var imageTypeLength = $(".textElement").length;
         var oProp;
         if (prop) {
           oProp = {x: prop.x, y: prop.y, width: prop.width, height: prop.height, id: prop.id, url: prop.url};
@@ -2426,6 +2427,15 @@ module.exports = function ( jq ) {
     return $(formbox);
   }
 
+	const doFindMaxYWrapper = function(wrapper) {
+		let maxY = 0;
+		$(wrapper).each(function() {
+  		//let options = parseFloat($(this).data());
+			let options = $(this).data();
+			console.log(options);
+  		//maximum = (value > maximum) ? value : maximum;
+		});
+	}
 
   return {
 		resetActive,
@@ -2436,8 +2446,8 @@ module.exports = function ( jq ) {
 		elementResizeStop,
 		doCreateElement,
 
-  	createElementPropertyForm
-
+  	createElementPropertyForm,
+		doFindMaxYWrapper
 	}
 }
 
@@ -4614,7 +4624,7 @@ module.exports = function ( jq ) {
             	$(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
 						}
 
-						if ((orderData.Status > 0) && (parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
+						if (/*(orderData.Status > 0)*/ [1, 2].includes(orderData.Status) && (parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
 							 let stockInfoCmd = common.doCreateImageCmd('../../images/stock-icon.png', 'เช็คสต็อค');
 							 $(stockInfoCmd).on('click', async (evt)=>{
 								 let cutoffDateValue = '1D';
@@ -6313,13 +6323,14 @@ module.exports = function ( jq ) {
 		$(addTextElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
-			console.log(elemData);
 			if (elemData.customTdelement) {
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'text');
 				} else {
 					elementProperty.doCreateElement(reportcontainerBox, 'text');
 				}
+			} else {
+				elementProperty.doCreateElement(reportcontainerBox, 'text');
 			}
 		});
 		$(addHrElementCmd).on('click', (evt)=>{
@@ -6331,20 +6342,23 @@ module.exports = function ( jq ) {
 				} else {
 					elementProperty.doCreateElement(reportcontainerBox, 'hr');
 				}
+			} else {
+				elementProperty.doCreateElement(reportcontainerBox, 'hr');
 			}
 		});
 		$(addImageElementCmd).on('click', (evt)=>{
 			let elemAc = $(reportcontainerBox).find('.elementActive');
 			let elemData = $(elemAc).data();
-			console.log(elemData.customTdelement);
 			if (elemData.customTdelement) {
-				console.log(elemData.customTdelement.options);
+				//console.log(elemData.customTdelement.options);
 				if (elemData.customTdelement.options.elementType == 'td') {
 					elementProperty.doCreateElement(elemAc, 'image');
 					console.log('ok');
 				} else {
 					elementProperty.doCreateElement(reportcontainerBox, 'image');
 				}
+			} else {
+				elementProperty.doCreateElement(reportcontainerBox, 'image');
 			}
 		});
 
