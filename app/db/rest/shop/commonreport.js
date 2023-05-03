@@ -604,7 +604,7 @@ const doCreateReport = function(orderId, docType, shopId){
 		const shops = await db.shops.findAll({ attributes: ['Shop_PromptPayNo', 'Shop_PromptPayName'], where: {id: shopId}});
 		const templates = await db.templates.findAll({ attributes: ['TypeId', 'Content', 'PaperSize', 'Options'], where: {shopId: shopId, TypeId: docType}});
 		let qr = undefined;
-		if ((docType == 1) || ((docType == 2) && (templates.length > 0) && (templates[0].Options.ppqr.bill == 1))) {
+		if ((docType == 1) || ((docType == 2) && (templates.length > 0) && (templates[0].Options.ppqr.bill == 1)) || ((docType == 3) && (templates.length > 0) && (templates[0].Options.ppqr.taxinvoice == 1))) {
 			if ((shops.length > 0) && (shops[0].Shop_PromptPayNo !== '') && (shops[0].Shop_PromptPayName !== '')) {
 				let ppType = undefined;
 				if (shops[0].Shop_PromptPayNo.length == 10) {
