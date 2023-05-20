@@ -599,19 +599,18 @@ const doCreatePageLayout = function(){
     if ($(toggleMenuCmd).css('left') == '10px') {
       $(toggleMenuCmd).animate({left: '90%'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/cross-mark-icon.png');
-      $(menuContent).empty();
     } else {
       $(toggleMenuCmd).animate({left: '10px'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/bill-icon.png');
     }
   });
-  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent, userInfoBox};
+  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent};
   return handle;
 }
 
 const doCreateUserInfoBox = function(){
   let userdata = JSON.parse(localStorage.getItem('userdata'));
-  let userInfoBox = $('<div id="UserInfoBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
+  let userInfoBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
   let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
   $(userPictureBox).on('click', (evt)=>{
     $(userInfo).toggle('slow', 'swing', ()=>{
@@ -913,7 +912,6 @@ module.exports = function ( jq ) {
 			$(customerDlgContent).find('input[type="text"]').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
 			$(pageHandle.menuContent).empty().append($(customerDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 			$(pageHandle.toggleMenuCmd).click();
-			$(pageHandle.userInfoBox).hide();
     });
 		$(customerControlCmd).append($(editCustomerCmd));
 
@@ -926,7 +924,6 @@ module.exports = function ( jq ) {
 				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '180px', 'background': 'url("../../images/search-icon.png") right center / 12% 100% no-repeat'});
 				$(pageHandle.menuContent).empty().append($(gooditemDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
-				$(pageHandle.userInfoBox).hide();
 	    }).css({'display': 'inline-block', 'width': '80px'});
 		}
 
@@ -936,14 +933,12 @@ module.exports = function ( jq ) {
 				let closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(userdata.shop, total, orderObj, invoiceCallback, billCallback, taxinvoiceCallback);
 				$(pageHandle.menuContent).empty().append($(closeOrderDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
-				$(pageHandle.userInfoBox).hide();
 				if (orderObj.Status == 2) {
 					let middleActionCmdCell = $(closeOrderDlgContent).find('#MiddleActionCmdCell');
 					let createInvoiceCmd = $(middleActionCmdCell).find('#CreateInvoiceCmd');
 
 					let textCmdCallback = async function(evt){
 						$(pageHandle.toggleMenuCmd).click();
-						$(pageHandle.userInfoBox).hide();
 						let docParams = {orderId: orderObj.id, shopId: shopId};
 						let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 						console.log(docRes);
@@ -963,7 +958,6 @@ module.exports = function ( jq ) {
 						let shareCode = orderObj.invoice.Filename.split('.')[0];
 						window.open('/shop/share/?id=' + shareCode, '_blank');
 						$(pageHandle.toggleMenuCmd).click();
-						$(pageHandle.userInfoBox).hide();
 					}
 					let invoiceBox = common.doCreateReportDocButtonCmd(orderObj.invoice.No, textCmdCallback, qrCmdCallback);
 					$(middleActionCmdCell).append($(invoiceBox).css({'margin-left': '4px'}));
@@ -1122,7 +1116,6 @@ module.exports = function ( jq ) {
       $(customerContent).empty().append($(customerDataBox));
 			$(editCustomerCmd).val('แก้ไขลูกค้า');
 			$(pageHandle.toggleMenuCmd).click();
-			$(pageHandle.userInfoBox).hide();
     }
 
     const gooditemSelectedCallback = async function(gooditemSelected){
@@ -1135,6 +1128,7 @@ module.exports = function ( jq ) {
 			let closeOrderCmdBox = $(goodItemTable).find('#CloseOrderCmdBox');
 			$(closeOrderCmdBox).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).empty().append($(goodItemTable));
+			//$(pageHandle.toggleMenuCmd).click();
     }
 
 		const invoiceCallback = async function(newInvoiceData){
@@ -1386,7 +1380,6 @@ module.exports = function ( jq ) {
 							});
 							$(pageHandle.menuContent).empty().append($(gooditemForm).css({'position': 'relative', 'margin-top': '15px', 'width': '91%'}));
 							$(pageHandle.toggleMenuCmd).click();
-							$(pageHandle.userInfoBox).hide();
 						});
 					}
 					total = await doCalOrderTotal(orderData.gooditems);
@@ -1623,7 +1616,7 @@ module.exports = function ( jq ) {
 
   const orderForm = require('./order-form-lib.js')($);
 	const styleCommon = require('./style-common-lib.js')($);
-	//const closeorderdlg = require('../../setting/admin/mod/closeorder-dlg.js')($);
+	const closeorderdlg = require('../../setting/admin/mod/closeorder-dlg.js')($);
 	const mergeorderdlg = require('../../setting/admin/mod/order-merge-dlg.js')($);
 
   let pageHandle = undefined;
@@ -1670,7 +1663,6 @@ module.exports = function ( jq ) {
         let calendar = doCreateCalendar(common.calendarOptions);
         $(pageHandle.menuContent).empty().append($(calendar).css({'position': 'relative', 'margin-top': '15px'}));
         $(pageHandle.toggleMenuCmd).click();
-				$(pageHandle.userInfoBox).hide();
       });
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
@@ -2031,7 +2023,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/order-merge-dlg.js":15,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":11,"../../setting/admin/mod/order-merge-dlg.js":15,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
 /* order-proc-lib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2141,7 +2133,6 @@ module.exports = function ( jq ) {
           let selectDate = common.doFormatDateStr(new Date(date));
           $(orderDateBox).text(selectDate);
           $(pageHandle.toggleMenuCmd).click();
-					$(pageHandle.userInfoBox).hide();
 					$('#OrderListBox').remove();
 					let activeSheet = $(tabSheetBoxHandle).find('.tabcontent:visible');
 					let activeId = $(activeSheet).get(0).id;
@@ -2164,7 +2155,6 @@ module.exports = function ( jq ) {
         let calendar = doCreateCalendar(common.calendarOptions);
         $(pageHandle.menuContent).empty().append($(calendar).css({'position': 'relative', 'margin-top': '15px'}));
         $(pageHandle.toggleMenuCmd).click();
-				$(pageHandle.userInfoBox).hide();
       });
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
