@@ -599,18 +599,19 @@ const doCreatePageLayout = function(){
     if ($(toggleMenuCmd).css('left') == '10px') {
       $(toggleMenuCmd).animate({left: '90%'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/cross-mark-icon.png');
+      $(menuContent).empty();
     } else {
       $(toggleMenuCmd).animate({left: '10px'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/bill-icon.png');
     }
   });
-  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent};
+  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent, userInfoBox};
   return handle;
 }
 
 const doCreateUserInfoBox = function(){
   let userdata = JSON.parse(localStorage.getItem('userdata'));
-  let userInfoBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
+  let userInfoBox = $('<div id="UserInfoBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
   let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
   $(userPictureBox).on('click', (evt)=>{
     $(userInfo).toggle('slow', 'swing', ()=>{
@@ -912,6 +913,7 @@ module.exports = function ( jq ) {
 			$(customerDlgContent).find('input[type="text"]').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
 			$(pageHandle.menuContent).empty().append($(customerDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
     });
 		$(customerControlCmd).append($(editCustomerCmd));
 
@@ -924,6 +926,7 @@ module.exports = function ( jq ) {
 				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '180px', 'background': 'url("../../images/search-icon.png") right center / 12% 100% no-repeat'});
 				$(pageHandle.menuContent).empty().append($(gooditemDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
 	    }).css({'display': 'inline-block', 'width': '80px'});
 		}
 
@@ -933,12 +936,14 @@ module.exports = function ( jq ) {
 				let closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(userdata.shop, total, orderObj, invoiceCallback, billCallback, taxinvoiceCallback);
 				$(pageHandle.menuContent).empty().append($(closeOrderDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
 				if (orderObj.Status == 2) {
 					let middleActionCmdCell = $(closeOrderDlgContent).find('#MiddleActionCmdCell');
 					let createInvoiceCmd = $(middleActionCmdCell).find('#CreateInvoiceCmd');
 
 					let textCmdCallback = async function(evt){
 						$(pageHandle.toggleMenuCmd).click();
+						$(pageHandle.userInfoBox).hide();
 						let docParams = {orderId: orderObj.id, shopId: shopId};
 						let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 						console.log(docRes);
@@ -958,6 +963,7 @@ module.exports = function ( jq ) {
 						let shareCode = orderObj.invoice.Filename.split('.')[0];
 						window.open('/shop/share/?id=' + shareCode, '_blank');
 						$(pageHandle.toggleMenuCmd).click();
+						$(pageHandle.userInfoBox).hide();
 					}
 					let invoiceBox = common.doCreateReportDocButtonCmd(orderObj.invoice.No, textCmdCallback, qrCmdCallback);
 					$(middleActionCmdCell).append($(invoiceBox).css({'margin-left': '4px'}));
@@ -1116,6 +1122,7 @@ module.exports = function ( jq ) {
       $(customerContent).empty().append($(customerDataBox));
 			$(editCustomerCmd).val('แก้ไขลูกค้า');
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
     }
 
     const gooditemSelectedCallback = async function(gooditemSelected){
@@ -1128,7 +1135,6 @@ module.exports = function ( jq ) {
 			let closeOrderCmdBox = $(goodItemTable).find('#CloseOrderCmdBox');
 			$(closeOrderCmdBox).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).empty().append($(goodItemTable));
-			//$(pageHandle.toggleMenuCmd).click();
     }
 
 		const invoiceCallback = async function(newInvoiceData){
@@ -1380,6 +1386,7 @@ module.exports = function ( jq ) {
 							});
 							$(pageHandle.menuContent).empty().append($(gooditemForm).css({'position': 'relative', 'margin-top': '15px', 'width': '91%'}));
 							$(pageHandle.toggleMenuCmd).click();
+							$(pageHandle.userInfoBox).hide();
 						});
 					}
 					total = await doCalOrderTotal(orderData.gooditems);
@@ -1616,7 +1623,7 @@ module.exports = function ( jq ) {
 
   const orderForm = require('./order-form-lib.js')($);
 	const styleCommon = require('./style-common-lib.js')($);
-	const closeorderdlg = require('../../setting/admin/mod/closeorder-dlg.js')($);
+	//const closeorderdlg = require('../../setting/admin/mod/closeorder-dlg.js')($);
 	const mergeorderdlg = require('../../setting/admin/mod/order-merge-dlg.js')($);
 
   let pageHandle = undefined;
@@ -1663,6 +1670,7 @@ module.exports = function ( jq ) {
         let calendar = doCreateCalendar(common.calendarOptions);
         $(pageHandle.menuContent).empty().append($(calendar).css({'position': 'relative', 'margin-top': '15px'}));
         $(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
       });
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
@@ -2023,7 +2031,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/closeorder-dlg.js":11,"../../setting/admin/mod/order-merge-dlg.js":15,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
+},{"../../home/mod/common-lib.js":2,"../../setting/admin/mod/order-merge-dlg.js":15,"./order-form-lib.js":5,"./style-common-lib.js":8}],7:[function(require,module,exports){
 /* order-proc-lib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -2133,6 +2141,7 @@ module.exports = function ( jq ) {
           let selectDate = common.doFormatDateStr(new Date(date));
           $(orderDateBox).text(selectDate);
           $(pageHandle.toggleMenuCmd).click();
+					$(pageHandle.userInfoBox).hide();
 					$('#OrderListBox').remove();
 					let activeSheet = $(tabSheetBoxHandle).find('.tabcontent:visible');
 					let activeId = $(activeSheet).get(0).id;
@@ -2155,6 +2164,7 @@ module.exports = function ( jq ) {
         let calendar = doCreateCalendar(common.calendarOptions);
         $(pageHandle.menuContent).empty().append($(calendar).css({'position': 'relative', 'margin-top': '15px'}));
         $(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
       });
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
@@ -13388,13 +13398,23 @@ module.exports = function ( jq ) {
         }
       }
 
+			const checkboxVatClick = function(evt) {
+				let check = $(checkboxVat).prop('checked');
+				if (check == true){
+					$(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+				} else {
+					$(vatInput).val('0');
+				}
+				keyChangeValue(evt);
+			}
+
       let wrapperBox = $('<div></div>');
       let closeOrderTable = $('<table width="100%" cellspacing="0" cellpadding="0" border="0"></table>');
-      let dataRow = $('<tr></tr>').css({'height': '40px'});
+      let dataRow = $('<tr class="first-step"></tr>').css({'height': '40px'});
       $(dataRow).append($('<td width="40%" align="left"><b>ยอดรวมค่าสินค้า</b></td>'));
       $(dataRow).append($('<td width="*" align="right"><b>' + common.doFormatNumber(orderTotal) + '</b></td>'));
       $(closeOrderTable).append($(dataRow));
-      dataRow = $('<tr></tr>').css({'height': '40px'});
+      dataRow = $('<tr class="first-step"></tr>').css({'height': '40px'});
       $(dataRow).append($('<td align="left">ส่วนลด</td>'));
       let discountInputCell = $('<td align="right"></td>');
       let discountInput = $('<input type="number" value="0"/>').css({'width': '80px'});
@@ -13403,15 +13423,20 @@ module.exports = function ( jq ) {
       $(dataRow).append($(discountInputCell));
       $(closeOrderTable).append($(dataRow));
 
-      let vatInput = $('<input type="number" value="0"/>').css({'width': '80px'});
+      let vatInput = $('<input type="number" value="0"/>').css({'width': '80px', 'margin-left': '4px'});
+			let checkboxVat = $('<input type="checkbox"/>').css({'transform': 'scale(1.5)'});
       if (shopData.Shop_VatNo !== '') {
+				$(checkboxVat).attr('checked', true);
+				$(checkboxVat).on('click', checkboxVatClick);
         $(vatInput).on('keyup', keyChangeValue);
-        dataRow = $('<tr></tr>').css({'height': '40px'});
+        dataRow = $('<tr class="first-step"></tr>').css({'height': '40px'});
         $(dataRow).append($('<td align="left">ภาษีมูลค่าเพิ่ม (7%)</td>'));
         $(vatInput).val(common.doFormatNumber(0.07*orderTotal));
-        $(dataRow).append($('<td align="right"></td>').append($(vatInput)));
+        $(dataRow).append($('<td align="right"></td>').append($(checkboxVat)).append($(vatInput)));
         $(closeOrderTable).append($(dataRow));
-      }
+      } else {
+				$(checkboxVat).attr('checked', false);
+			}
       dataRow = $('<tr></tr>').css({'background-color': '#ddd', 'height': '40px'});
       $(dataRow).append($('<td width="55%" align="left"><b>รวมทั้งสิ้น</b></td>'));
       let discountValue = $(discountInput).val();
@@ -13458,12 +13483,16 @@ module.exports = function ( jq ) {
 	      let closeOrderCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
 	      $(closeOrderCmd).css({'margin-left': '10px'});
 	      $(closeOrderCmd).on('click', async(evt)=>{
+					$('.first-step').hide();
 	        let paytypeRes = await common.doCallApi('/api/shop/paytype/options', {});
 	        $(middleActionCmdRow).remove();
 	        let paytypeSelect = $('<select></select>');
 	        paytypeRes.Options.forEach((item, i) => {
 	          $(paytypeSelect).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
 	        });
+					let discountValue = $(discountInput).val();
+					let vatValue = $(vatInput).val();
+					let grandTotal = (Number(orderTotal) - Number(discountValue)) + Number(vatValue);
 	        payAmountInput = $('<input type="number" value="0"/>').css({'width': '120px'});
 	        $(payAmountInput).val(grandTotal);
 	        dataRow = $('<tr></tr>').css({'height': '40px'});
@@ -13506,44 +13535,47 @@ module.exports = function ( jq ) {
 	        $(finalActionCmdRow).append($(finalCommandCell));
 	        $(closeOrderTable).append($(finalActionCmdRow));
 
-	        let createBillCmd = common.doCreateTextCmd('พิมพ์ใบเสร็จ', 'green', 'white');
-	        $(finalCommandCell).append($(createBillCmd));
+					let checkVat = $(checkboxVat).prop('checked');
 
-	        $(createBillCmd).on('click', async(evt)=>{
-	          let shopId = shopData.id;
-	          let nextBillNo = '000000001';
-						let filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
-						let discountValue = parseFloat($(discountInput).val());
-						let vatValue = parseFloat($(vatInput).val());
+					if (checkVat == false) {
+						let createBillCmd = common.doCreateTextCmd('พิมพ์ใบเสร็จ', 'green', 'white');
+		        $(finalCommandCell).append($(createBillCmd));
+	        	$(createBillCmd).on('click', async(evt)=>{
+		          let shopId = shopData.id;
+		          let nextBillNo = '000000001';
+							let filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
+							let discountValue = parseFloat($(discountInput).val());
+							let vatValue = parseFloat($(vatInput).val());
 
-						let payAmountValue = parseFloat($(payAmountInput).val());
-						let payType = parseInt($(paytypeSelect).val());
-						let paymentData = {Amount: payAmountValue, PayType: payType};
-						let hasHiddenRemarkBox = ($(remarkBox).css('display') == 'none');
-	          let lastbillnoRes = await common.doCallApi('/api/shop/bill/find/last/billno/' + shopId, {});
-						console.log(lastbillnoRes);
-	          if (lastbillnoRes.Records.length > 0) {
-	            let lastbillno = lastbillnoRes.Records[0].No;
-	            let nextNo = Number(lastbillno);
-	            nextNo = nextNo + 1;
-	            nextBillNo = nextNo.toString().lpad("0", 9);
-	            filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
-	            let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
-							if (!hasHiddenRemarkBox) {
-								billData.Remark = $(remarkBox).val();
+							let payAmountValue = parseFloat($(payAmountInput).val());
+							let payType = parseInt($(paytypeSelect).val());
+							let paymentData = {Amount: payAmountValue, PayType: payType};
+							let hasHiddenRemarkBox = ($(remarkBox).css('display') == 'none');
+		          let lastbillnoRes = await common.doCallApi('/api/shop/bill/find/last/billno/' + shopId, {});
+							console.log(lastbillnoRes);
+		          if (lastbillnoRes.Records.length > 0) {
+		            let lastbillno = lastbillnoRes.Records[0].No;
+		            let nextNo = Number(lastbillno);
+		            nextNo = nextNo + 1;
+		            nextBillNo = nextNo.toString().lpad("0", 9);
+		            filename = shopId.toString().lpad("0", 5) + '-2-' + nextBillNo + '.pdf';
+		            let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
+								if (!hasHiddenRemarkBox) {
+									billData.Remark = $(remarkBox).val();
+								}
+								billSuccessCallback(billData, paymentData);
+		          } else {
+								let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
+								if (!hasHiddenRemarkBox) {
+									billData.Remark = $(remarkBox).val();
+								}
+								billSuccessCallback(billData, paymentData);
 							}
-							billSuccessCallback(billData, paymentData);
-	          } else {
-							let billData = {No: nextBillNo, Discount: discountValue, Vat:vatValue, Filename: filename};
-							if (!hasHiddenRemarkBox) {
-								billData.Remark = $(remarkBox).val();
-							}
-							billSuccessCallback(billData, paymentData);
-						}
-	        });
+		        });
+					}
 
-	        if (shopData.Shop_VatNo !== '') {
-	          createTaxInvoiceCmd = common.doCreateTextCmd('พิมพ์กำกับภาษี', 'green', 'white');
+	        if ((shopData.Shop_VatNo !== '') && (checkVat == true)) {
+	          let createTaxInvoiceCmd = common.doCreateTextCmd('พิมพ์ใบกำกับภาษี', 'green', 'white');
 	          $(createTaxInvoiceCmd).css({'margin-left': '10px'});
 	          $(finalCommandCell).append($(createTaxInvoiceCmd));
 	          $(createTaxInvoiceCmd).on('click', async (evt)=>{
@@ -14278,7 +14310,8 @@ module.exports = function ( jq ) {
 				let orderDateFmt = common.doFormatDateStr(new Date(cutoffDate));
 				cutoffDate = new Date(cutoffDate);
 				let params = {cutoffDate: cutoffDate};
-				let stockRes = await common.doCallApi('/api/shop/stocking/list/by/menuitem/' + menuitem.id, params);
+				let stockCutoffUrl = '/api/shop/stocking/list/by/menuitem/' + menuitem.id;
+				let stockRes = await common.doCallApi(stockCutoffUrl, params);
 				let stockTable = await stock.doRenderCutoffStockTable(workAreaBox, 0, 0, cutoffDate, stockRes, menuitem);
 			});
 
@@ -14287,6 +14320,7 @@ module.exports = function ( jq ) {
 				$(cutoffDateBox).remove();
 				$(backMenuitemCmd).remove();
 				$('#StockTable').remove();
+				$('#NavigBar').remove();
 				$('#TitlePageBox').text('รายการสินค้าของร้าน');
 				$('#NewMenuitemCmdBox').show();
 				$('.menuitem-row').show();
@@ -14376,7 +14410,7 @@ module.exports = function ( jq ) {
 			}
       $(workAreaBox).append($(newMenuitemCmdBox));
 
-//doRenderMenuitemTable();
+
 			let menuitemTable = undefined;
 
 			const doRenderMenuitemTable = function() {
@@ -15552,7 +15586,7 @@ module.exports = function ( jq ) {
             	$(commandCell).append($(increaseBtnCmd)).append($(decreaseBtnCmd)).append($(deleteGoodItemCmd));
 						}
 
-						if ((parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
+						if (/*(orderData.Status > 0)*/ [1, 2].includes(orderData.Status) && (parseInt(shopData.Shop_StockingOption) == 1) && (parseInt(goodItems[i].StockingOption) == 1)) {
 							 let stockInfoCmd = common.doCreateImageCmd('../../images/stock-icon.png', 'เช็คสต็อค');
 							 $(stockInfoCmd).on('click', async (evt)=>{
 								 let cutoffDateValue = '1D';
