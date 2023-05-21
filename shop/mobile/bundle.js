@@ -604,7 +604,7 @@ const doCreatePageLayout = function(){
       $(toggleMenuCmd).attr('src', '../../images/bill-icon.png');
     }
   });
-  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent};
+  let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent, userInfoBox};
   return handle;
 }
 
@@ -912,6 +912,7 @@ module.exports = function ( jq ) {
 			$(customerDlgContent).find('input[type="text"]').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
 			$(pageHandle.menuContent).empty().append($(customerDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
     });
 		$(customerControlCmd).append($(editCustomerCmd));
 
@@ -924,6 +925,7 @@ module.exports = function ( jq ) {
 				$(gooditemDlgContent).find('#SearchKeyInput').css({'width': '180px', 'background': 'url("../../images/search-icon.png") right center / 12% 100% no-repeat'});
 				$(pageHandle.menuContent).empty().append($(gooditemDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
 	    }).css({'display': 'inline-block', 'width': '80px'});
 		}
 
@@ -933,12 +935,14 @@ module.exports = function ( jq ) {
 				let closeOrderDlgContent = await closeorderdlg.doCreateFormDlg(userdata.shop, total, orderObj, invoiceCallback, billCallback, taxinvoiceCallback);
 				$(pageHandle.menuContent).empty().append($(closeOrderDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
 				$(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
 				if (orderObj.Status == 2) {
 					let middleActionCmdCell = $(closeOrderDlgContent).find('#MiddleActionCmdCell');
 					let createInvoiceCmd = $(middleActionCmdCell).find('#CreateInvoiceCmd');
 
 					let textCmdCallback = async function(evt){
 						$(pageHandle.toggleMenuCmd).click();
+						$(pageHandle.userInfoBox).hide();
 						let docParams = {orderId: orderObj.id, shopId: shopId};
 						let docRes = await common.doCallApi('/api/shop/invoice/create/report', docParams);
 						console.log(docRes);
@@ -958,6 +962,7 @@ module.exports = function ( jq ) {
 						let shareCode = orderObj.invoice.Filename.split('.')[0];
 						window.open('/shop/share/?id=' + shareCode, '_blank');
 						$(pageHandle.toggleMenuCmd).click();
+						$(pageHandle.userInfoBox).hide();
 					}
 					let invoiceBox = common.doCreateReportDocButtonCmd(orderObj.invoice.No, textCmdCallback, qrCmdCallback);
 					$(middleActionCmdCell).append($(invoiceBox).css({'margin-left': '4px'}));
@@ -1116,6 +1121,7 @@ module.exports = function ( jq ) {
       $(customerContent).empty().append($(customerDataBox));
 			$(editCustomerCmd).val('แก้ไขลูกค้า');
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
     }
 
     const gooditemSelectedCallback = async function(gooditemSelected){
@@ -1128,11 +1134,11 @@ module.exports = function ( jq ) {
 			let closeOrderCmdBox = $(goodItemTable).find('#CloseOrderCmdBox');
 			$(closeOrderCmdBox).append($(callCreateCloseOrderCmd));
       $(itemlistWorkingBox).empty().append($(goodItemTable));
-			//$(pageHandle.toggleMenuCmd).click();
     }
 
 		const invoiceCallback = async function(newInvoiceData){
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
 			let invoiceParams = {data: newInvoiceData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
 			let invoiceRes = await common.doCallApi('/api/shop/invoice/add', invoiceParams);
 
@@ -1160,6 +1166,7 @@ module.exports = function ( jq ) {
 
 		const billCallback = async function(newBillData, paymentData){
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let billParams = {data: newBillData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: userdata.shop};
 			let billRes = await common.doCallApi('/api/shop/bill/add', billParams);
@@ -1207,6 +1214,7 @@ module.exports = function ( jq ) {
 
 		const taxinvoiceCallback = async function(newTaxInvoiceData, paymentData){
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopId, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: userdata.shop};
 			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
@@ -1230,7 +1238,7 @@ module.exports = function ( jq ) {
 								$(reportBox).slideDown('slow');
 							}
 							let qrCmdCallback = function(evt){
-								let shareCode = orderObj.bill.Filename.split('.')[0];
+								let shareCode = orderObj.taxinvoice.Filename.split('.')[0];
 								window.open('/shop/share/?id=' + shareCode, '_blank');
 							}
 							let taxinvoiceCmdBox = common.doCreateReportDocButtonCmd(orderObj.taxinvoice.No, textCmdCallback, qrCmdCallback);
@@ -1380,6 +1388,7 @@ module.exports = function ( jq ) {
 							});
 							$(pageHandle.menuContent).empty().append($(gooditemForm).css({'position': 'relative', 'margin-top': '15px', 'width': '91%'}));
 							$(pageHandle.toggleMenuCmd).click();
+							$(pageHandle.userInfoBox).hide();
 						});
 					}
 					total = await doCalOrderTotal(orderData.gooditems);
@@ -1544,6 +1553,7 @@ module.exports = function ( jq ) {
 		let cancelCmd = $('<input type="button" value=" กลับ "/>').css({'margin-left': '10px'});
 		$(cancelCmd).on('click', async(evt)=>{
 			$(pageHandle.toggleMenuCmd).click();
+			$(pageHandle.userInfoBox).hide();
 			$(pageHandle.menuContent).empty();
 		});
 		let gooitemCmdCell = $('<td colspan="2" align="center"></td>').append($(saveCmd)).append($(cancelCmd));
@@ -1663,6 +1673,7 @@ module.exports = function ( jq ) {
         let calendar = doCreateCalendar(common.calendarOptions);
         $(pageHandle.menuContent).empty().append($(calendar).css({'position': 'relative', 'margin-top': '15px'}));
         $(pageHandle.toggleMenuCmd).click();
+				$(pageHandle.userInfoBox).hide();
       });
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
