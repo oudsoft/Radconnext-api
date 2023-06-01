@@ -247,6 +247,48 @@ app.post('/list/by/customer/(:customerId)', (req, res) => {
   }
 });
 
+app.post('/active/by/shop/(:shopId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const orderby = [['id', 'ASC']];
+          const shopId = req.params.shopId;
+          const whereCluase = {shopId: shopId};
+          const orderDate = req.body.orderDate;
+          if (orderDate) {
+            let fromDateWithZ = new Date(orderDate);
+            fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7))
+            let toDateWithZ = new Date(orderDate);
+            toDateWithZ = new Date(toDateWithZ.getTime() - (3600000 * 7))
+            toDateWithZ.setDate(toDateWithZ.getDate() + 1);
+            whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+          }
+
+          whereCluase.Status = {[db.Op.in]: [1, 2]};
+
+          const orderInclude = [{model: db.customers, attributes: ['id', 'Name', 'Address', 'Tel']}];
+          const orders = await db.orders.findAll({include: orderInclude, where: whereCluase, order: orderby});
+          res.json({status: {code: 200}, Records: orders});
+
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //Select API
 app.post('/select/(:orderId)', (req, res) => {
   let token = req.headers.authorization;
