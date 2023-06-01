@@ -86,44 +86,45 @@ const doFindItemsDiff = function(newItems, oldItems) {
       let upItems = [];
       let downItems = [];
       let qtys = [];
-      await newItems.forEach(async (itemO1, i) => {
-        let id = Number(itemO1.id);
-        let upItem = await oldItems.find((itemO2, j) =>{
-          if (Number(itemO2.id) == id) {
-            return itemO2;
+      if ((newItems.length > 0) && (oldItems.length > 0)) {
+        await newItems.forEach(async (itemO1, i) => {
+          let id = Number(itemO1.id);
+          let upItem = await oldItems.find((itemO2, j) =>{
+            if (Number(itemO2.id) == id) {
+              return itemO2;
+            }
+          });
+          if (!upItem) {
+            upItems.push(itemO1);
           }
         });
-        if (!upItem) {
-          upItems.push(itemO1);
-        }
-      });
-      await oldItems.forEach(async (itemO2, i) => {
-        let id = Number(itemO2.id);
-        let downItem = await newItems.find((itemO1, j) =>{
-          if (Number(itemO1.id) == id) {
-            return itemO1;
+        await oldItems.forEach(async (itemO2, i) => {
+          let id = Number(itemO2.id);
+          let downItem = await newItems.find((itemO1, j) =>{
+            if (Number(itemO1.id) == id) {
+              return itemO1;
+            }
+          });
+          if (!downItem) {
+            downItems.push(itemO2);
           }
         });
-        if (!downItem) {
-          downItems.push(itemO2);
-        }
-      });
-      await newItems.forEach(async (itemO1, i) => {
-        let id = Number(itemO1.id);
-        let foundItem = await oldItems.find((itemO2, j) =>{
-          if (Number(itemO2.id) == id) {
-            return itemO2;
+        await newItems.forEach(async (itemO1, i) => {
+          let id = Number(itemO1.id);
+          let foundItem = await oldItems.find((itemO2, j) =>{
+            if (Number(itemO2.id) == id) {
+              return itemO2;
+            }
+          });
+          if (foundItem) {
+            let diff = Number(itemO1.Qty) - Number(foundItem.Qty);
+            if (diff != 0) {
+              foundItem.diff = diff;
+              qtys.push(foundItem);
+            }
           }
         });
-        if (foundItem) {
-          let diff = Number(itemO1.Qty) - Number(foundItem.Qty);
-          if (diff != 0) {
-            foundItem.diff = diff;
-            qtys.push(foundItem);
-          }
-        }
-      });
-
+      }
       setTimeout(()=> {
         resolve2({upItems, downItems, qtys});
       },1800);
