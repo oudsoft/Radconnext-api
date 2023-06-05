@@ -350,15 +350,23 @@ app.post('/update', (req, res) => {
       if (ur.length > 0){
         let beforeItems = await db.orders.findAll({ attributes: ['Items', 'shopId'], where: {id: req.body.id}});
         let updateOrder = req.body.data;
-        updateOrder.BeforeItems = beforeItems[0].Items;
-        await db.orders.update(updateOrder, { where: { id: req.body.id } });
-        res.json({Result: "OK", status: {code: 200}});
-        let diffItems = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
-        let updateOrderData = {type: 'shop', orderId: req.body.id, shopId: beforeItems[0].shopId, status: 'New', shop: 'orderupdate', updataData: {diffItems: diffItems}};
-        if ((diffItems.upItems.length > 0) || (diffItems.downItems.length > 0) || (diffItems.qtys.length > 0)) {
-          updateOrderData.msg = 'มีการแก้ไขออร์เดอร์';
+        //console.log('updateOrder=> ' + JSON.stringify(req.body.data));
+        if ((updateOrder) && (updateOrder.Items)) {
+          updateOrder.BeforeItems = beforeItems[0].Items;
+          await db.orders.update(updateOrder, { where: { id: req.body.id } });
+          res.json({Result: "OK", status: {code: 200}});
+          if ((updateOrder.Items) && (updateOrder.Items.length > 0)) {
+            let diffItems = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
+            let updateOrderData = {type: 'shop', orderId: req.body.id, shopId: beforeItems[0].shopId, status: 'New', shop: 'orderupdate', updataData: {diffItems: diffItems}};
+            if ((diffItems.upItems.length > 0) || (diffItems.downItems.length > 0) || (diffItems.qtys.length > 0)) {
+              updateOrderData.msg = 'มีการแก้ไขออร์เดอร์';
+            }
+            wss.doControlShopMessage(updateOrderData);
+          }
+        } else {
+          await db.orders.update({Items: []}, { where: { id: req.body.id } });
+          res.json({status: {code: 200}, Result: 'Blank Order'});
         }
-        wss.doControlShopMessage(updateOrderData);
       } else if (ur.token.expired){
         res.json({status: {code: 210}, token: {expired: true}});
       } else {
@@ -421,6 +429,44 @@ app.post('/item/status/update', (req, res) => {
         res.json({Result: "OK", status: {code: 200}, result: resultItems});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//Swap Item API
+app.post('/swap/item', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let srcOrderId = req.body.srcOrderId;
+        let tgtOrderId = req.body.tgtOrderId;
+        let srcIndex = req.body.srcIndex;
+        let srcOrders = await db.orders.findAll({attributes: ['Items'], where: {id: srcOrderId}});
+        let tgtOrders = await db.orders.findAll({attributes: ['Items'], where: {id: tgtOrderId}});
+
+        let item = srcOrders[0].Items[srcIndex];
+        tgtOrders[0].Items.push(item);
+        srcOrders[0].Items.splice(srcIndex, 1);
+
+        await db.orders.update({Items: srcOrders[0].Items}, { where: { id: srcOrderId } });
+        await db.orders.update({Items: tgtOrders[0].Items}, { where: { id: tgtOrderId } });
+
+        //await srcOrders[0].save();
+        //await tgtOrders[0].save();
+
+        srcOrders = await db.orders.findAll({ attributes: ['Items'], where: {id: srcOrderId}});
+        res.json({status: {code: 200}, srcOrders: srcOrders});
+
+      } else if (ur.token.expired){
+        res.json({status: {code: 210}, token: {expired: true}});
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
