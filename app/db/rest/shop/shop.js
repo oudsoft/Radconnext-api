@@ -88,34 +88,14 @@ app.post('/select/(:shopId)', (req, res) => {
 
 //Add New Hospital API
 app.post('/add', async (req, res) => {
-/*
-  let token = req.headers.authorization;
-  if (token) {
-    auth.doDecodeToken(token).then(async (ur) => {
-      if (ur.length > 0){
-*/
+  let newShop = req.body;
+  let adShop = await db.shops.create(newShop);
 
-        let newShop = req.body;
-        let adShop = await db.shops.create(newShop);
+  let newGroup = {GroupName: 'Default Group', GroupPicture: '/shop/favicon.ico'};
+  let adGroup = await db.menugroups.create(newGroup);
+  await db.menugroups.update({shopId: adShop.id}, {where: {id: adGroup.id}});
 
-        let newGroup = {GroupName: 'Default Group', GroupPicture: '/shop/favicon.ico'};
-        let adGroup = await db.menugroups.create(newGroup);
-        await db.menugroups.update({shopId: adShop.id}, {where: {id: adGroup.id}});
-
-        res.json({Result: "OK", status: {code: 200}, Records: [adShop]});
-/*
-      } else if (ur.token.expired){
-        res.json({ status: {code: 210}, token: {expired: true}});
-      } else {
-        log.info('Can not found user from token.');
-        res.json({status: {code: 203}, error: 'Your token lost.'});
-      }
-    });
-  } else {
-    log.info('Authorization Wrong.');
-    res.json({status: {code: 400}, error: 'Your authorization wrong'});
-  }
-*/
+  res.json({Result: "OK", status: {code: 200}, Records: [adShop]});
 });
 
 //Update Hospital API

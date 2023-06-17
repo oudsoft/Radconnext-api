@@ -96,7 +96,7 @@ app.post('/add', async (req, res) => {
       if (ur.length > 0){
         let newtemplate = req.body.data;
         let adtemplate = await db.templates.create(newtemplate);
-        await db.templates.update({shopId: req.body.shopId},{where: {id: adtemplate.id}});
+        await db.templates.update({shopId: req.body.shopId}, {where: {id: adtemplate.id}});
         const templates = await db.templates.findAll({ attributes: excludeColumn, where: {id: adtemplate.id}});
         res.json({Result: "OK", status: {code: 200}, Record: templates[0]});
       } else if (ur.token.expired){
@@ -179,6 +179,43 @@ app.post('/delete', (req, res) => {
         res.json({Result: "OK", status: {code: 200}});
       } else if (ur.token.expired){
         res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.post('/create/default', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let shopId = req.body.shopId;
+        let defaultInvoiceTemplate = require('../../lib/shop/defaultinvoice.js');
+        let defaultBillTemplate = require('../../lib/shop/defaultbill.js');
+        let defaultInvoice = {
+          Name: 'My Invoice',
+          TypeId: 1,
+          Content: defaultInvoiceTemplate,
+          PaperSize: 2
+        }
+        let defaultBill = {
+          Name: 'My Bill',
+          TypeId: 2,
+          Content: defaultBillTemplate,
+          PaperSize: 2
+        }
+
+        let adtemplate1 = await db.templates.create(defaultInvoice);
+        await db.templates.update({shopId: shopId}, {where: {id: adtemplate1.id}});
+        let adtemplate2 = await db.templates.create(defaultBill);
+        await db.templates.update({shopId: shopId}, {where: {id: adtemplate2.id}});
+        res.json({Result: "Create Default OK", status: {code: 200}});
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});

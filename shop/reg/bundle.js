@@ -143,9 +143,9 @@ module.exports = function ( jq ) {
 	}
 
 	const calendarOptions = {
-		lang:"th",
-		years:"2020-2030",
-		sundayFirst:false,
+		lang: "th",
+		years: "2020-2030",
+		sundayFirst: true,
 	};
 
 	const genUniqueID = function () {
@@ -381,6 +381,19 @@ module.exports = function ( jq ) {
 		}
 	}
 
+	const findCutoffDateFromDateOption = function(dUnit) {
+    let d = dUnit.substring(0, dUnit.length - 1);
+    let u = dUnit.substring(dUnit.length - 1);
+    let now = new Date();
+    if (u === 'D') {
+      return now.setDate(now.getDate() - parseInt(d));
+    } else if (u === 'M') {
+      return now.setMonth(now.getMonth() - parseInt(d));
+    } else if (u === 'Y') {
+      return now.setFullYear(now.getFullYear() - parseInt(d));
+    }
+  }
+
   return {
 		fileUploadMaxSize,
 		shopSensitives,
@@ -403,7 +416,8 @@ module.exports = function ( jq ) {
 		doResetSensitiveWord,
 		doConnectWebsocketMaster,
 		doPopupOrderChangeLog,
-		isMobileDeviceCheck
+		isMobileDeviceCheck,
+		findCutoffDateFromDateOption
 	}
 }
 
@@ -541,6 +555,13 @@ const doShowRegisterForm = function(){
               if (isMobileDevice) {
                 gotoPage = '/shop/mobile/index.html';
               };
+              /*
+              เริ่มสั่งให้เริ่มสร้าง new Template ของ ใบแจ้งหนี้ และ บิลจากตรงนี้ โดยใช้ shopId ที่ได้มา
+              */
+              let params = {shopId: shopId};
+              let templateRes = await common.doCallApi('/api/shop/template/create/default', params);
+              console.log(templateRes);
+              
               window.location.replace(gotoPage);
             } else {
               $.notify("เกิดข้อผิดพลาด ล็อกอินเข้าใช้งานระบบไม่ได้ในขณะนี้", "error");
@@ -566,7 +587,7 @@ const doShowRegisterForm = function(){
 
 const doCreateUserInfoForm = function(successCallback){
   let userInfoFormBox = $('<div></div>');
-  let titleForm = $('<div><h2 style="margin-left: 5px;">ข้อมูลผู้ขอเปิดร้านค้า</h2></div>').css({'width': '100%', 'background-color': 'grey', 'color': 'white'});
+  let titleForm = $('<div><h2 style="margin-left: 5px;">ข้อมูลผู้ขอเปิดร้าน</h2></div>').css({'width': '100%', 'background-color': 'grey', 'color': 'white'});
   let userInfoNameLabel = $('<label>ชื่อ <span style="color: red;">*</span></label>');
   let userInfoNameInput = $('<input type="text"/>').css(inputTextStyle);
   let userInfoNameFrag = $('<p></p>').append($(userInfoNameLabel)).append($(userInfoNameInput));

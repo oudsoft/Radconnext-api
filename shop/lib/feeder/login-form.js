@@ -255,7 +255,7 @@
           $(errorMsgBox).find('.errormessage').text('');
           $(errorMsgBox).hide();
           let user = {username: username, password: password};
-          doCallLoginApi(user).then(async (response) => {
+          doCallLoginApi(user).then((response) => {
             console.log(response);
             if (response.success == false) {
               if (tryLoginCount == 4) {
@@ -278,11 +278,16 @@
                 $(errorMsgBox).show();
               }
             } else {
+              if ((response.info) && (response.info !== '')) {
+                $.notify(response.info, "warn");
+              }
+
               $(usernameInputBox).find('input').css('border', '');
               $(passwordInputBox).find('input').css('border', '');
               $(errorMsgBox).find('.errormessage').text('');
               $(errorMsgBox).hide();
 
+              //console.log(response.data);
               let usertype = response.data.usertype.id;
 
               localStorage.setItem('token', response.token);

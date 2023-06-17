@@ -1,0 +1,521 @@
+const defaultฺBillTemplate = [
+  {
+    "elementType": "image",
+    "x": "0",
+    "y": "20",
+    "width": "100",
+    "height": "60",
+    "id": "image-element-1",
+    "url": "/shop/img/usr/termal-printer.png",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": "",
+    "refresh": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "105",
+    "y": "12",
+    "width": "270",
+    "height": "50",
+    "fontsize": "34",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-1",
+    "title": "$shop_name",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "105",
+    "y": "75",
+    "width": "270",
+    "height": "27",
+    "fontsize": "20",
+    "fontweight": "normal",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-2",
+    "title": "$shop_address",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "static",
+    "x": "0",
+    "y": "160",
+    "width": "69",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-5",
+    "title": "เลขที่",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "75",
+    "y": "160",
+    "width": "295",
+    "height": "28",
+    "fontsize": "20",
+    "fontweight": "normal",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-7",
+    "title": "$print_no",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "static",
+    "x": "0",
+    "y": "192",
+    "width": "70",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-5",
+    "title": "วันที่",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "75",
+    "y": "192",
+    "width": "295",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "normal",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-7",
+    "title": "$print_datetime",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "static",
+    "x": "0",
+    "y": "227",
+    "width": "92",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-4",
+    "title": "ชื่อลูกค้า",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "static",
+    "x": "1",
+    "y": "260",
+    "width": "135",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-5",
+    "title": "ที่อยู่ / เบอร์โทร",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "94",
+    "y": "227",
+    "width": "276",
+    "height": "30",
+    "fontsize": "20",
+    "fontweight": "normal",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-6",
+    "title": "$customer_name",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "dynamic",
+    "x": "142",
+    "y": "260",
+    "width": "228",
+    "height": "28",
+    "fontsize": "20",
+    "fontweight": "normal",
+    "fontstyle": "normal",
+    "fontalign": "left",
+    "refresh": "",
+    "id": "text-element-7",
+    "title": "$customer_tel",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "text",
+    "type": "static",
+    "x": "0",
+    "y": "115",
+    "width": "370",
+    "height": "43",
+    "fontsize": "28",
+    "fontweight": "bold",
+    "fontstyle": "normal",
+    "fontalign": "center",
+    "refresh": "",
+    "id": "text-element-4",
+    "title": "ใบเสร็จรับเงิน",
+    "elementselect": "",
+    "elementdrop": "",
+    "elementresizestop": ""
+  },
+  {
+    "elementType": "table",
+    "id": "table-element-1",
+    "x": "0",
+    "y": "310",
+    "width": "100%",
+    "height": "20",
+    "cols": "5",
+    "border": "1",
+    "rows": [
+      {
+        "elementType": "tr",
+        "id": "headerRow",
+        "backgroundColor": "#ddd",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "headerCell_1",
+            "height": "35",
+            "cellData": "#",
+            "fontweight": "bold",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "10.11"
+          },
+          {
+            "elementType": "td",
+            "id": "headerCell_2",
+            "height": "35",
+            "cellData": "รายการสินค้า",
+            "fontweight": "bold",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "70.23"
+          },
+          {
+            "elementType": "td",
+            "id": "headerCell_4",
+            "height": "35",
+            "cellData": "จำนวน",
+            "fontweight": "bold",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "16.21"
+          },
+          {
+            "elementType": "td",
+            "id": "headerCell_5",
+            "height": "35",
+            "cellData": "รวม",
+            "fontweight": "bold",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "23.01"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "dataRow",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "dataCell_1",
+            "height": "35",
+            "cellData": "$gooditem_no",
+            "fontweight": "normal",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "10.11"
+          },
+          {
+            "elementType": "td",
+            "id": "dataCell_2",
+            "height": "35",
+            "cellData": "$gooditem_name",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "70.23"
+          },
+          {
+            "elementType": "td",
+            "id": "dataCell_4",
+            "height": "35",
+            "cellData": "$gooditem_qty",
+            "fontweight": "normal",
+            "fontalign": "center",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "16.21"
+          },
+          {
+            "elementType": "td",
+            "id": "dataCell_5",
+            "height": "35",
+            "cellData": "$gooditem_total",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "23.01"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "totalRow",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "totalCell_1",
+            "height": "35",
+            "cellData": "รวมค่าสินค้า",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "totalCell_2",
+            "height": "35",
+            "cellData": "$total",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "23.01"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "discountRow",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "discountCell_1",
+            "height": "35",
+            "cellData": "ส่วนลด",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "discountCell_2",
+            "height": "35",
+            "cellData": "$discount",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "23.01"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "grandTotalRow",
+        "backgroundColor": "#ddd",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "grandTotalCell_1",
+            "height": "35",
+            "cellData": "รวมทั้งหมด",
+            "fontweight": "bold",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "grandTotalCell_2",
+            "height": "35",
+            "cellData": "$grandtotal",
+            "fontweight": "bold",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "23.01"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "tr-element-6",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "td-element-15",
+            "height": "35",
+            "cellData": "วิธีชำระ",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "td-element-16",
+            "height": "35",
+            "cellData": "$paytype",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "37.32"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "tr-element-7",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "td-element-17",
+            "height": "35",
+            "cellData": "จำนวน",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "td-element-18",
+            "height": "35",
+            "cellData": "$payamount",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "37.32"
+          }
+        ]
+      },
+      {
+        "elementType": "tr",
+        "id": "tr-element-8",
+        "fields": [
+          {
+            "elementType": "td",
+            "id": "td-element-19",
+            "height": "35",
+            "cellData": "เงินทอน",
+            "fontweight": "normal",
+            "fontalign": "left",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "103.85"
+          },
+          {
+            "elementType": "td",
+            "id": "td-element-20",
+            "height": "35",
+            "cellData": "$cashchange",
+            "fontweight": "normal",
+            "fontalign": "right",
+            "fontsize": "20",
+            "fontstyle": "normal",
+            "valign": "middle",
+            "width": "37.32"
+          }
+        ]
+      }
+    ]
+  }
+];
+
+module.exports = () => {
+  return {
+    defaultBillTemplate
+  }
+}
