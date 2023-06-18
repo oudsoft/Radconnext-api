@@ -15,13 +15,13 @@
 
     const doCreateLogoBox = function(){
       let logoBox = $('<div style="position: relative; width: 100%;"></div>');
-      let logoImage = $('<img src="/images/logo/radconnext-logo.png" style="width: 230px; height: auto;"/>');
+      let logoImage = $('<img src="/shop/img/usr/shop-logo.jpg" style="width: 280px; height: auto;"/>');
       return $(logoBox).append($(logoImage));
     }
 
     const doCreateWelcomeTextBox = function(){
       let welcomeTextBox = $('<div style="position: relative; width: 100%;"></div>');
-      let welcomeText = $('<h2>Welcome to Radconnext</h2>');
+      let welcomeText = $('<h2>Welcome to My Shop</h2>');
       return $(welcomeTextBox).append($(welcomeText));
     }
 
