@@ -190,32 +190,55 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.post('/create/default', (req, res) => {
+app.post('/create/default/(:shopId)', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let shopId = req.body.shopId;
-        let defaultInvoiceTemplate = require('../../lib/shop/defaultinvoice.js');
-        let defaultBillTemplate = require('../../lib/shop/defaultbill.js');
-        let defaultInvoice = {
-          Name: 'My Invoice',
-          TypeId: 1,
-          Content: defaultInvoiceTemplate,
-          PaperSize: 2
-        }
-        let defaultBill = {
-          Name: 'My Bill',
-          TypeId: 2,
-          Content: defaultBillTemplate,
-          PaperSize: 2
-        }
+        try {
+          let shopId = req.params.shopId;
+          /*
+          let defaultInvoiceFile = require('../../../lib/shop/defaultinvoice.js');
+          let defaultBillFile = require('../../../lib/shop/defaultbill.js');
+          */
 
-        let adtemplate1 = await db.templates.create(defaultInvoice);
-        await db.templates.update({shopId: shopId}, {where: {id: adtemplate1.id}});
-        let adtemplate2 = await db.templates.create(defaultBill);
-        await db.templates.update({shopId: shopId}, {where: {id: adtemplate2.id}});
-        res.json({Result: "Create Default OK", status: {code: 200}});
+          let rawdata = fs.readFileSync('../../../lib/shop/defaultinvoice.json');
+          let defaultInvoiceFile = JSON.parse(rawdata);
+
+          rawdata = fs.readFileSync('../../../lib/shop/defaultbill.json');
+          let defaultBillFile = JSON.parse(rawdata);
+
+          let templateOptions = {ppqr: {bill: 1, invoice: 1, taxinvoice: 1}};
+          let defaultInvoice = {
+            Name: 'My Invoice',
+            TypeId: 1,
+            Content: defaultInvoiceFile,
+            shopId: shopId,
+            PaperSize: 2,
+            Options: templateOptions
+          }
+          let defaultBill = {
+            Name: 'My Bill',
+            TypeId: 2,
+            Content: defaultBillFile,
+            shopId: shopId,
+            PaperSize: 2,
+            Options: templateOptions
+          }
+
+          log.info('defaultInvoice=>' + JSON.stringify(defaultInvoice));
+          log.info('defaultBill=>' + JSON.stringify(defaultBill));
+
+          let adtemplate1 = await db.templates.create(defaultInvoice);
+
+          let adtemplate2 = await db.templates.create(defaultBill);
+
+
+          res.json({Result: "Create Default OK", status: {code: 200}});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
       } else {
         log.info('Can not found user from token.');
         res.json({status: {code: 203}, error: 'Your token lost.'});
@@ -243,6 +266,55 @@ app.post('/options/(:shopId)', async (req, res) => {
 
 app.get('/billFieldOptions', (req, res) => {
   res.json(commonreport.billFieldOptions);
+});
+
+app.get('/create/default/(:shopId)', async (req, res) => {
+  try {
+
+    let shopId = req.params.shopId;
+    //let defaultInvoiceFile = require('../../../lib/shop/defaultinvoice.js');
+    let rawdata = fs.readFileSync('../../../lib/shop/defaultinvoice.json');
+    //let rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultinvoice.json');
+    let defaultInvoiceFile = JSON.parse(rawdata);
+    log.info('defaultInvoiceFile=>' + JSON.stringify(defaultInvoiceFile));
+    rawdata = fs.readFileSync('../../../lib/shop/defaultbill.json');
+    //rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultbill.json');
+    let defaultBillFile = JSON.parse(rawdata);
+    log.info('defaultBillFile=>' + JSON.stringify(defaultBillFile));
+    let templateOptions = {ppqr: {bill: 1, invoice: 1, taxinvoice: 1}};
+    let defaultInvoice = {
+      Name: 'My Invoice',
+      TypeId: 1,
+      Content: defaultInvoiceFile,
+      shopId: shopId,
+      PaperSize: 2,
+      Options: templateOptions
+    }
+    let defaultBill = {
+      Name: 'My Bill',
+      TypeId: 2,
+      Content: defaultBillFile,
+      shopId: shopId,
+      PaperSize: 2,
+      Options: templateOptions
+    }
+
+    log.info('defaultInvoice=>' + JSON.stringify(defaultInvoice));
+    log.info('defaultBill=>' + JSON.stringify(defaultBill));
+
+
+    let adtemplate1 = await db.templates.create(defaultInvoice);
+    //await db.templates.update({shopId: shopId}, {where: {id: adtemplate1.id}});
+    let adtemplate2 = await db.templates.create(defaultBill);
+    //await db.templates.update({shopId: shopId}, {where: {id: adtemplate2.id}});
+
+
+    res.json({Result: "Create Default OK", status: {code: 200}});
+
+  } catch(error) {
+    log.error(error);
+    res.json({status: {code: 500}, error: error});
+  }
 });
 
 module.exports = ( dbconn, monitor ) => {

@@ -360,7 +360,8 @@ function doMapDocLinkImage(element, top, paperSize, imageWidth, rsDimension) {
   let y = 0;
   if (paperSize == 1) {
     x = A4Width - w - 10;
-    y = A4Height - h - 90;
+    //y = A4Height - h - 90;
+    y = 1190;
   } else if (paperSize == 2) {
     x = (SlipWidth/2) - (w/2);
     y = top;
@@ -401,9 +402,11 @@ function doCreateReportDOM(elements, variable, qrcodeLink, orderId, paperSize, c
       if (diff > 220) {
         $(advertImageElem).css({'top': 1340 + 'px'});
         $(ppqrImageElem).css({'top': 1190 + 'px'});
+        $(doclinkImageElem).css({'top': 1190 + 'px'});
       } else {
         $(advertImageElem).css({'top': (maxTop + 50)+'px'});
         $(ppqrImageElem).css({'top': (maxTop + 50)+'px'});
+        $(doclinkImageElem).css({'top': (maxTop + 50)+'px'});
       }
     } else if (paperSize == 2) {
       console.log('maxTop=>' + maxTop);

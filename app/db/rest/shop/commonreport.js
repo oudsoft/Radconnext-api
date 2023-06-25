@@ -378,29 +378,16 @@ const doLoadVariable = function(docType, orderId, docNo){
         customer_tel: ((orders[0].customer.Tel) && (orders[0].customer.Tel != ''))?orders[0].customer.Tel:'-',
         order_no: orderId,
         order_by: orders[0].userinfo.User_NameTH + ' ' + orders[0].userinfo.User_LastNameTH,
-        //order_datetime: doFormateDateTimeThaiZone(orders[0].createdAt),
 				order_datetime: formatDateTimeDoc(new Date(orders[0].createdAt)),
         print_no: docs[0].No,
         print_by: docs[0].userinfo.User_NameTH + ' ' + docs[0].userinfo.User_LastNameTH,
-				/*
-        print_datetime: doFormateDateTimeThaiZone(docs[0].createdAt),
-				print_date: doFormateDateThaiZone(docs[0].createdAt),
-				print_time: doFormateTimeThaiZone(docs[0].createdAt),
-				*/
 				print_datetime: formatDateTimeDoc(new Date(docs[0].createdAt)),
 				print_date: formatDateDoc(new Date(docs[0].createdAt)),
 				print_time: formatTimeDoc(new Date(docs[0].createdAt)),
 
 				print_filename: docs[0].Filename,
 				print_status: orders[0].Status,
-        /*
-        gooditem_no', name_th: 'เลขลำดับที่'},
-        gooditem_name', name_th: 'ชื่อสินค้า'},
-        gooditem_unit', name_th: 'หน่วยขายสินค้า'},
-        gooditem_price', name_th: 'ราคาสินค้าต่อหน่วย'},
-        gooditem_qty', name_th: 'จำนวนสินค้า'},
-        gooditem_total', name_th: 'จำนวนเงินของรายการสินค้า'},
-        */
+
         gooditems: orders[0].Items,
 
         total: total,

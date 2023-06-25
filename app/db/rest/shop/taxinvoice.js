@@ -243,6 +243,69 @@ app.post('/create/report', (req, res) => {
   }
 });
 
+app.post('/mount/count/(:shopId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const shopId = req.params.shopId;
+          let whereCluase = {shopId: shopId};
+          let taxinvoiceDate = req.body.taxinvoiceDate; // {taxinvoiceDate: 'yyyy-mm-dd'}
+          let date = undefined;
+          if (taxinvoiceDate) {
+            date = new Date(taxinvoiceDate);
+          } else {
+            date = new Date();
+          }
+          let fromDateWithZ = new Date(date.getFullYear(), date.getMonth(), 1);
+          fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7));
+          let toDateWithZ = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+          toDateWithZ = new Date(toDateWithZ.getTime() - (3600000 * 7));
+          whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+          let taxinvoiceCount = await db.taxinvoices.count({where: whereCluase});
+          res.json({status: {code: 200}, count: taxinvoiceCount});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+app.get('/mount/count/(:shopId)', async (req, res) => {
+  try {
+    let shopId = req.params.shopId;
+    let whereCluase = {shopId: shopId};
+    let taxinvoiceDate = req.query.taxinvoiceDate;
+    let date = undefined;
+    if (taxinvoiceDate) {
+      date = new Date(taxinvoiceDate);
+    } else {
+      date = new Date();
+    }
+    let fromDateWithZ = new Date(date.getFullYear(), date.getMonth(), 1);
+    fromDateWithZ = new Date(fromDateWithZ.getTime() - (3600000 * 7));
+    let toDateWithZ = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    toDateWithZ = new Date(toDateWithZ.getTime() - (3600000 * 7));
+    whereCluase.createdAt = { [db.Op.between]: [new Date(fromDateWithZ), new Date(toDateWithZ)]};
+    let taxinvoiceCount = await db.taxinvoices.count({where: whereCluase});
+    res.json({status: {code: 200}, count: taxinvoiceCount});
+  } catch(error) {
+    log.error(error);
+    res.json({status: {code: 500}, error: error});
+  }
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
