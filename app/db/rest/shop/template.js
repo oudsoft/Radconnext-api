@@ -270,15 +270,28 @@ app.get('/billFieldOptions', (req, res) => {
 
 app.get('/create/default/(:shopId)', async (req, res) => {
   try {
-
+    let directoryPath = path.join(__dirname);
+    log.info('directoryPath=>' + directoryPath)
+    directoryPath = '../../../'
+    fs.readdir(directoryPath, function (err, files) {
+        //handling error
+        if (err) {
+            return console.log('Unable to scan directory: ' + err);
+        }
+        //listing all files using forEach
+        files.forEach(function (file) {
+            // Do whatever you want to do with the file
+            console.log(file);
+        });
+    });
     let shopId = req.params.shopId;
     //let defaultInvoiceFile = require('../../../lib/shop/defaultinvoice.js');
-    let rawdata = fs.readFileSync('../../../lib/shop/defaultinvoice.json');
-    //let rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultinvoice.json');
+    //let rawdata = fs.readFileSync('../../../lib/shop/defaultinvoice.json');
+    let rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultinvoice.json');
     let defaultInvoiceFile = JSON.parse(rawdata);
     log.info('defaultInvoiceFile=>' + JSON.stringify(defaultInvoiceFile));
-    rawdata = fs.readFileSync('../../../lib/shop/defaultbill.json');
-    //rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultbill.json');
+    //rawdata = fs.readFileSync('../../../lib/shop/defaultbill.json');
+    rawdata = fs.readFileSync('../../share/api/app/lib/shop/defaultbill.json');
     let defaultBillFile = JSON.parse(rawdata);
     log.info('defaultBillFile=>' + JSON.stringify(defaultBillFile));
     let templateOptions = {ppqr: {bill: 1, invoice: 1, taxinvoice: 1}};
