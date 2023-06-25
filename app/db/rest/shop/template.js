@@ -199,7 +199,9 @@ app.post('/create/default/(:shopId)', (req, res) => {
           let shopId = req.params.shopId;
 
           let directoryPath = path.join(__dirname, '../../../');
+          
           let rawdata = fs.readFileSync(directoryPath + '/lib/shop/defaultinvoice.json');
+          let defaultInvoiceFile = JSON.parse(rawdata);
 
           rawdata = fs.readFileSync(directoryPath + '/lib/shop/defaultbill.json');
           let defaultBillFile = JSON.parse(rawdata);
@@ -295,9 +297,9 @@ app.get('/create/default/(:shopId)', async (req, res) => {
 
 
     let adtemplate1 = await db.templates.create(defaultInvoice);
-    //await db.templates.update({shopId: shopId}, {where: {id: adtemplate1.id}});
+    await db.templates.update({shopId: shopId}, {where: {id: adtemplate1.id}});
     let adtemplate2 = await db.templates.create(defaultBill);
-    //await db.templates.update({shopId: shopId}, {where: {id: adtemplate2.id}});
+    await db.templates.update({shopId: shopId}, {where: {id: adtemplate2.id}});
 
 
     res.json({Result: "Create Default OK", status: {code: 200}});
