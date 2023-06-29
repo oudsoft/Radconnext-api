@@ -192,7 +192,6 @@ module.exports = function (app) {
 		});
 	});
 
-
   app.post('/shop/share/minetype/(:shareId)', function(req, res) {
     const usrQRCodePath = '/shop/img/usr/qrcode';
     let shareId = req.params.shareId;
@@ -207,6 +206,27 @@ module.exports = function (app) {
       }
     }
   });
+
+  app.post('/shop/upload/template/logo', upload.array('templatelogo'), function(req, res) {
+		let filename = req.files[0].originalname;
+		let fullnames = filename.split('.');
+		let newFileName = genUniqueID() + '.' + fullnames[1];
+		let imgPath = req.files[0].destination + '/' + req.files[0].filename;
+		let newPath = req.files[0].destination + '/template/'  + newFileName;
+		let readStream = fs.createReadStream(imgPath);
+		let writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+
+		var command = parseStr(' rm %s', imgPath);
+
+		runcommand(command).then(async(stdout) => {
+			let link =  DWLD + '/template/' + newFileName;
+			res.status(200).send({status: {code: 200}, text: 'Upload Bill Logo Success.', link: link});
+		}).catch((err) => {
+			console.log('err: 500 >>', err);
+      res.status(500).send({status: {code: 500}, error: ree});
+		});
+	});
 
 	return {
 		genUniqueID,
