@@ -268,8 +268,6 @@ app.post('/update/template/logo', (req, res) => {
             log.info('logoElement=>' + JSON.stringify(logoElement));
             if (logoElement) {
               logoElement.url = link;
-              log.info('contentJsons=>' + JSON.stringify(contentJsons));
-              log.info('templates[0].id=>' + templates[0].id);
               await db.templates.update({Content: contentJsons}, {where: {id: templates[0].id}});
             }
           }
