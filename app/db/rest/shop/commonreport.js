@@ -742,7 +742,8 @@ const doCreateDocLinkElement = function(qrImgUrl, top, left, width, height){
 module.exports = (dbconn, monitor) => {
 	db = dbconn;
 	log = monitor;
-	ppQRgen = require('../../../lib/shop/pp-qrcode.js')(log);
+	let shopLibDir = path.join(__dirname, '../../../');
+	ppQRgen = require(shopLibDir + '/lib/shop/pp-qrcode.js')(log);
   return {
     billFieldOptions,
     doLoadVariable,

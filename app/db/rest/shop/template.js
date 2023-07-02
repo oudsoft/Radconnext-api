@@ -256,6 +256,7 @@ app.post('/update/template/logo', (req, res) => {
         try {
           let shopId = req.body.shopId;
           let link = req.body.link;
+          log.info('link=>' + link);
           let templates = await db.templates.findAll({ attributes: ['id', 'Content'], where: {shopId: shopId, TypeId: 1}});
           if (templates.length > 0) {
             let contentJsons = templates[0].Content;
@@ -264,9 +265,12 @@ app.post('/update/template/logo', (req, res) => {
                 return elem;
               }
             });
+            log.info('logoElement=>' + JSON.stringify(logoElement));
             if (logoElement) {
               logoElement.url = link;
-              await db.templates.update(contentJsons,{where: {id: templates[0].id}});
+              log.info('contentJsons=>' + JSON.stringify(contentJsons));
+              log.info('templates[0].id=>' + templates[0].id);
+              await db.templates.update({Content: contentJsons}, {where: {id: templates[0].id}});
             }
           }
 
@@ -280,7 +284,7 @@ app.post('/update/template/logo', (req, res) => {
             });
             if (logoElement) {
               logoElement.url = link;
-              await db.templates.update(contentJsons,{where: {id: templates[0].id}});
+              await db.templates.update({Content: contentJsons}, {where: {id: templates[0].id}});
             }
           }
 
@@ -296,7 +300,7 @@ app.post('/update/template/logo', (req, res) => {
               });
               if (logoElement) {
                 logoElement.url = link;
-                await db.templates.update(contentJsons,{where: {id: templates[0].id}});
+                await db.templates.update({Content: contentJsons}, {where: {id: templates[0].id}});
               }
             }
           }
