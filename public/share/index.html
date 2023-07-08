@@ -75,9 +75,13 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 }
 /*****************************************************/
   //const radconnextUrl = 'https://radconnext.info';
-  const radconnextUrl = 'https://' + window.location.hostname;
-  const usrUploadPath = '/img/usr/upload/share';
-  const usrSeriesRootPath = '/img/usr/upload';
+  let port = window.location.port;
+  let radconnextUrl = 'https://' + window.location.hostname;
+  if (port != 80) {
+    radconnextUrl = radconnextUrl + ':' + port;
+  }
+  let usrUploadPath = '/img/usr/upload/share';
+  let usrSeriesRootPath = '/img/usr/upload';
 
   const doCallListUsrUpload = function(){
     return new Promise(function(resolve, reject) {
@@ -294,7 +298,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const params = new URLSearchParams(queryString);
   const id = params.get('id');
 
-  const sponsorBox = $('<div style="position: relative; min-height: 170px; width: 100%; text-align: center; border: 2px solid #ddd;" tabindex="1"></div>');
+  const sponsorBox = $('<div style="position: relative; min-height: 170px; width: 100%; text-align: center; border: 2px solid #ddd;", tabindex="1"></div>');
   const linkTo = radconnextUrl + '/share/?seriesId=sponsor-001';
   const imageTitleUrl = radconnextUrl + '/img/usr/upload/sponsor-001/';
   const editPlaySettingCmd = $('<img src="../images/tools-icon.png"/>').css({'position': 'absolute', 'width': '35px', 'height': 'auto', 'cursor': 'pointer', 'right': '2px', 'bottom': '2px', 'display': 'none', 'z-index': '21'});
@@ -349,10 +353,10 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     let seriesIdParam = params.get('seriesId');
     if (seriesIdParam){
       let fakeSeriesId = seriesIdParam.split('k!');
-      const seriesId = fakeSeriesId[0];
+      let seriesId = fakeSeriesId[0];
       //const seriesId = params.get('seriesId');
       //const conId = params.get('conId');
-      const conId = fakeSeriesId[1];
+      let conId = fakeSeriesId[1];
       if (seriesId != null && seriesId != '') {
         if (conId != null && conId != '') {
           let seriesPath = '/share/?seriesId=' + seriesId;
@@ -366,37 +370,43 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             let view = undefined;
             let imageFileName = conId + '.jpg';
             let counterParams = {seriesId: seriesId, contentId: conId};
-            //doCallUpdateViewCounter(counterParams).then(async (updateRes)=>{
-              //console.log(updateRes);
-              //let readRes = await doCallReadViewCounter(counterParams);
-              //console.log(readRes);
-              view = $('<div style="width: 100%; text-align: center;"></div>');
-              let bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
-              let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFileName;
+            view = $('<div style="width: 100%; text-align: center;"></div>');
+            let bottomBar = $('<div style="width: 100%; text-align: center;"></div>');
+            let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFileName;
 
 
-              let img = new Image();
-              img.src = src;
+            let img = new Image();
+            img.src = src;
 
-              //let img = $('<img src="' + src + '" width="100%" height="auto" style="padding: 4px; border: 2px solid grey;"/>');
-              img.onload = function() {
-                if (this.width > screen.width) {
-                  $(img).css({'width': '100%'});
-                }
-              };
+            //let img = $('<img src="' + src + '" width="100%" height="auto" style="padding: 4px; border: 2px solid grey;"/>');
+            img.onload = function() {
+              if (this.width > screen.width) {
+                $(img).css({'width': '100%'});
+              }
+            };
 
-              $(img).css({'margin-top': '50px'});
+            $(img).css({'margin-top': '50px'});
+            $(img).attr('tabindex', 2);
+            $(img).on('click', async (evt)=>{
+              let seriesUrl = '/api/usr/upload/series/' + seriesId;
+              let resMe = await doCallListSeries(seriesUrl);
+              let ind = resMe.indexOf(imageFileName);
+              let nextFileName = resMe[ind+1];
 
-              let downloadCmd = doCreateDownloadCmd(src);
-              $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
-              $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
+              conId = nextFileName.split('.')[0];
 
-              //let newWindow = window.open();
-              //$(newWindow.document.body).append($(view));
+              let newURL = '/share/?seriesId=' + seriesId + 'k!' + conId;
 
-              $('#app').empty().append($(view));
-            //});
+              window.location.replace(newURL);
+            });
+            let downloadCmd = doCreateDownloadCmd(src);
+            $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
+            $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
 
+            //let newWindow = window.open();
+            //$(newWindow.document.body).append($(view));
+
+            $('#app').empty().append($(view));
           } else {
             // play clip ใน mp4
             let clipFileName = conId + '.mp4';
@@ -587,7 +597,6 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
       doPlaySport(currentPlaySportIndex);
 
-
       $(sponsorBox).on('keydown', (evt)=>{
         switch (evt.keyCode) {
           case 39:
@@ -640,7 +649,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       let imageCode = imageFile.split('.');
       let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
       window.open(openUrl, '_blank');
-    })
+    });
     return $(img);
   }
 
@@ -716,18 +725,21 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
-      //console.log(evt);
       $(img).center($(myPBox));
     });
+    console.log($(imgBox));
     $(myPBox).append($(imgBox));
     let closeCmd = $('<input type="button" value=" Close "/>');
     $(closeCmd).on('click', (evt)=>{
       $(myPBox).remove();
     });
 
+    /*
     $(closeCmd).on('click', (evt)=>{
       $(myPBox).remove();
     });
+    */
+
     let settingTimeCmd = $('<input type="button" value=" Time ... "/>').css({'margin-left': '10px'});
     $(settingTimeCmd).on('click', (evt)=>{
       let newValue = prompt("Please enter your new delay time value", delaySecond);
