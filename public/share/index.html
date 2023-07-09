@@ -405,13 +405,13 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
 
             document.addEventListener('swiped-left', function(evt) {
-              console.log(evt.target); // the element that was swiped
-              alert(evt.target);
+              //console.log(evt.target);
+              alert(JSON.stringify(evt.target));
             });
 
-            document.addEventListener('swiped-right', function(e) {
-              console.log(e.target); // the element that was swiped
-              alert(evt.target);
+            document.addEventListener('swiped-right', function(evt) {
+              //console.log(e.target);
+              alert(JSON.stringify(evt.target));
             });
 
             $('#app').empty().append($(view));
