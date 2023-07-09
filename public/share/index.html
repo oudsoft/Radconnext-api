@@ -406,12 +406,12 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
             document.addEventListener('swiped-left', function(evt) {
               //console.log(evt.target);
-              alert(JSON.stringify(evt.target));
+              alert(JSON.stringify(evt.detail));
             });
 
             document.addEventListener('swiped-right', function(evt) {
               //console.log(e.target);
-              alert(JSON.stringify(evt.target));
+              alert(JSON.stringify(evt.detail));
             });
 
             $('#app').empty().append($(view));
