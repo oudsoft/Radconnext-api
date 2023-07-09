@@ -418,7 +418,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
               }
             });
 
-            img.addEventListener('swiped-right', function(evt) {
+            img.addEventListener('swiped-right', async function(evt) {
               if (evt.detail.dir === 'right') {
                 let seriesUrl = '/api/usr/upload/series/' + seriesId;
                 let resMe = await doCallListSeries(seriesUrl);
