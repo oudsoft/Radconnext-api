@@ -404,7 +404,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
             $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
 
-            img.addEventListener('swiped-left', function(evt) {
+            img.addEventListener('swiped-left', async function(evt) {
               //console.log(evt.target);
               alert(JSON.stringify(evt.detail));
               //if (evt.target) {
@@ -419,7 +419,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
                   let newURL = '/share/?seriesId=' + seriesId + 'k!' + conId;
 
                   window.location.replace(newURL);
-                  
+
                 }
               //}
             });
