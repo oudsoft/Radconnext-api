@@ -404,9 +404,24 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
             $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
             $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
 
-            document.addEventListener('swiped-left', function(evt) {
+            img.addEventListener('swiped-left', function(evt) {
               //console.log(evt.target);
               alert(JSON.stringify(evt.detail));
+              //if (evt.target) {
+                if (evt.detail.dir === 'left') {
+                  let seriesUrl = '/api/usr/upload/series/' + seriesId;
+                  let resMe = await doCallListSeries(seriesUrl);
+                  let ind = resMe.indexOf(imageFileName);
+                  let nextFileName = resMe[ind+1];
+
+                  conId = nextFileName.split('.')[0];
+
+                  let newURL = '/share/?seriesId=' + seriesId + 'k!' + conId;
+
+                  window.location.replace(newURL);
+                  
+                }
+              //}
             });
 
             document.addEventListener('swiped-right', function(evt) {
