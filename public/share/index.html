@@ -388,17 +388,20 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 
             $(img).css({'margin-top': '50px'});
             $(img).attr('tabindex', 2);
-            /*
+
             $(img).on('click', async (evt)=>{
               let seriesUrl = '/api/usr/upload/series/' + seriesId;
               let resMe = await doCallListSeries(seriesUrl);
               let ind = resMe.indexOf(imageFileName);
+              if (ind == (resMe.length - 1)) {
+                ind = 0;
+              }
               let nextFileName = resMe[ind+1];
               conId = nextFileName.split('.')[0];
               let newURL = '/share/?seriesId=' + seriesId + 'k!' + conId;
               window.location.replace(newURL);
             });
-            */
+            
             let downloadCmd = doCreateDownloadCmd(src);
             $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
             $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
