@@ -286,7 +286,7 @@ app.post('/update/template/logo', (req, res) => {
             }
           }
 
-          let shops = await db.shops.findAll({ attributes: ['Shop_VatNo'], where: {id: shopId}});
+          let shops = await db.shops.findAll({ attributes: ['Shop_VatNo', 'Shop_LogoFilename'], where: {id: shopId}});
           if ((shops.length > 0) && (shops[0].Shop_VatNo !== '')) {
             templates = await db.templates.findAll({ attributes: ['id', 'Content'], where: {shopId: shopId, TypeId: 3}});
             if (templates.length > 0) {
@@ -302,6 +302,12 @@ app.post('/update/template/logo', (req, res) => {
               }
             }
           }
+
+          if ((shops.length > 0) && (shops[0].Shop_LogoFilename === '')) {
+            let updateShop = {Shop_LogoFilename: link};
+            await db.shops.update(updateShop, {where: {id: shopId}});
+          }
+
           res.status(200).send({status: {code: 200}, text: 'Update Bill Logo Success.', link: link});
         } catch(error) {
           log.error(error);

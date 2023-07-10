@@ -200,7 +200,7 @@
 
     const doCreateRememberMeOptionBox = function(){
       let rememberMeOptionBox = $('<div style="margin-top: 10px;"></div>');
-      let optionBox = $('<input type="checkbox" id="RememberMe" value="1"/>');
+      let optionBox = $('<input type="checkbox" id="RememberMe" value="1"/>'); // checked="checked"
       let labelBox = $('<label for="RememberMe" style="margin-left: 5px;">จดจำบัญชีใช้งานของฉันไว้ในอุปกรณ์นี้</label>');
       let lastStorageOption = localStorage.getItem('rememberme');
       if (lastStorageOption == 1) {
