@@ -303,7 +303,7 @@ app.post('/update/template/logo', (req, res) => {
             }
           }
 
-          if ((shops.length > 0) && (shops[0].Shop_LogoFilename === null) && (shops[0].Shop_LogoFilename === '')) {
+          if ((shops.length > 0) && ((shops[0].Shop_LogoFilename === null) || (shops[0].Shop_LogoFilename === ''))) {
             let updateShop = {Shop_LogoFilename: link};
             await db.shops.update(updateShop, {where: {id: shopId}});
           }
