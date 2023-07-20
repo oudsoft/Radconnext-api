@@ -506,6 +506,7 @@ const common = require('../home/mod/common-lib.js')($);
 
 const orderMng = require('./mod/order-mng-lib.js')($);
 const orderProc = require('./mod/order-proc-lib.js')($);
+const orderForm = require('./mod/order-form-lib.js')($);
 
 let pageHandle = undefined;
 let wss = undefined;
@@ -734,9 +735,16 @@ const doStartTestPPQC = function(evt){
             evt.stopPropagation();
             window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
           });
-          $(ppQRBox).empty().append($(ppqrImage)).css({'height': 'auto'});
+          let openNewOrderCmd = common.doCreateTextCmd('ออกบิลใหม่', 'green', 'white');
+          $(openNewOrderCmd).on('click', (evt)=>{
+            evt.stopPropagation();
+            dlgHandle.closeAlert();
+            let workAreaBox = pageHandle.mainContent;
+            orderForm.doOpenOrderForm(shopData.id, workAreaBox, undefined, undefined, orderMng.doShowOrderList);
+          });
+          $(ppQRBox).empty().append($(ppqrImage)).append($(openNewOrderCmd)).css({'height': 'auto', 'text-align': 'center'});
           $(dlgHandle.cancelCmd).show();
-          $(dlgHandle.cancelCmd).val(' ตกลง ');
+          $(dlgHandle.cancelCmd).val(' ปิด ');
           $(dlgHandle.okCmd).hide();
         } else if (shopRes.status.code == 201) {
           $.notify("ไม่สามารถสร้างพร้อมเพย์คิวอาร์โค้ดได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
@@ -881,7 +889,7 @@ const doOpenUploadBillLogo = function(evt, shopData) {
   $(fileBrowser).click();
 }
 
-},{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){
+},{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-form-lib.js":5,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){
 module.exports = function ( jq ) {
 	const $ = jq;
 
@@ -1405,7 +1413,6 @@ module.exports = function ( jq ) {
 							let newTotal = await doCalOrderTotal(orderData.gooditems);
 							$(totalBox).text(common.doFormatNumber(newTotal));
 						});
-
 						$(splitGoodItemCmd).on('click', async (evt)=>{
 							evt.stopPropagation();
 							let userdata = JSON.parse(localStorage.getItem('userdata'));
