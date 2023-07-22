@@ -5974,10 +5974,6 @@ module.exports = function ( jq ) {
 						$(openNewOrderCmd).on('click', (evt)=>{
 							evt.stopPropagation();
 							dlgHandle.closeAlert();
-							/*
-							let workAreaBox = pageHandle.mainContent;
-							orderForm.doOpenOrderForm(shopData.id, workAreaBox, undefined, undefined, orderMng.doShowOrderList);
-							*/
 							let workAreaBox = $('#WorkingAreaBox');
 							order.doOpenOrderForm(shopData, workAreaBox);
 						});
