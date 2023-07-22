@@ -5978,7 +5978,7 @@ module.exports = function ( jq ) {
 							let workAreaBox = pageHandle.mainContent;
 							orderForm.doOpenOrderForm(shopData.id, workAreaBox, undefined, undefined, orderMng.doShowOrderList);
 							*/
-							let workingAreaBox = $('#WorkingAreaBox');
+							let workAreaBox = $('#WorkingAreaBox');
 							order.doOpenOrderForm(shopData, workAreaBox);
 						});
 
