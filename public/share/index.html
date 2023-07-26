@@ -760,6 +760,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       $(img).center($(myPBox));
 
       $(img).on('swiped-left', async function(evt) {
+        alert(evt.detail.dir);
         if (evt.detail.dir === 'left') {
           let seriesUrl = '/api/usr/upload/series/' + seriesId;
           let resMe = await doCallListSeries(seriesUrl);
@@ -771,11 +772,13 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           let conId = nextFileName.split('.')[0];
           let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
           img.src = src;
+          alert(src);
           $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
         }
       });
 
       $(img).on('swiped-right', async function(evt) {
+        alert(evt.detail.dir);
         if (evt.detail.dir === 'right') {
           let seriesUrl = '/api/usr/upload/series/' + seriesId;
           let resMe = await doCallListSeries(seriesUrl);
@@ -786,6 +789,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           let nextFileName = resMe[ind-1];
           let conId = nextFileName.split('.')[0];
           let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
+          alert(src);
           img.src = src;
           $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
         }
