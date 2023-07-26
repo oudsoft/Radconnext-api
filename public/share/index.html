@@ -756,6 +756,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(myPBox).append($(imgText));
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
+      evt.stopPropagation();
       let img = $(evt.currentTarget);
       $(img).center($(myPBox));
 
