@@ -401,7 +401,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
               let newURL = '/share/?seriesId=' + seriesId + 'k!' + conId;
               window.location.replace(newURL);
             });
-            
+
             let downloadCmd = doCreateDownloadCmd(src);
             $(bottomBar).append($(downloadCmd)).append($(shareCmd)).append($(backCmd));
             $(view).append($(sponsorBox)).append($(img)).append($(bottomBar))
@@ -752,25 +752,67 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 		});
 
     $(myPBox).parent().css({'width': '100%', 'min-height': '100%'});
+    let imgText = $('<p></p>').text(seriesId + ' -> ' + imageLists[0]);
+    $(myPBox).append($(imgText));
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
       $(img).center($(myPBox));
+
+      $(img).on('swiped-left', async function(evt) {
+        if (evt.detail.dir === 'left') {
+          let seriesUrl = '/api/usr/upload/series/' + seriesId;
+          let resMe = await doCallListSeries(seriesUrl);
+          let ind = resMe.indexOf(imageFileName);
+          if (ind == (resMe.length - 1)) {
+            ind = 0;
+          }
+          let nextFileName = resMe[ind+1];
+          let conId = nextFileName.split('.')[0];
+          let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
+          img.src = src;
+          $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+        }
+      });
+
+      $(img).on('swiped-right', async function(evt) {
+        if (evt.detail.dir === 'right') {
+          let seriesUrl = '/api/usr/upload/series/' + seriesId;
+          let resMe = await doCallListSeries(seriesUrl);
+          let ind = resMe.indexOf(imageFileName);
+          if (ind == 0) {
+            ind = resMe.length - 1;
+          }
+          let nextFileName = resMe[ind-1];
+          let conId = nextFileName.split('.')[0];
+          let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
+          img.src = src;
+          $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+        }
+      });
     });
-    console.log($(imgBox));
+
     $(myPBox).append($(imgBox));
-    let closeCmd = $('<input type="button" value=" Close "/>');
+
+    let closeCmd = $('<input type="button" value="Close"/>');
     $(closeCmd).on('click', (evt)=>{
       $(myPBox).remove();
     });
 
-    /*
-    $(closeCmd).on('click', (evt)=>{
-      $(myPBox).remove();
+    let stopPlayToggleCmd = $('<input type="button" value="Stop"/>').css({'margin-left': '10px'});
+    $(stopPlayToggleCmd).on('click', (evt)=>{
+      if ($(stopPlayToggleCmd).val() === 'Stop') {
+        if (previewTimer) {
+          window.clearTimeout(previewTimer);
+          $(stopPlayToggleCmd).val('Play');
+        }
+      } else if ($(stopPlayToggleCmd).val() === 'Play') {
+        doPlayPreview(currentPlayPreviewIndex);
+        $(stopPlayToggleCmd).val('Stop');
+      }
     });
-    */
 
-    let settingTimeCmd = $('<input type="button" value=" Time ... "/>').css({'margin-left': '10px'});
+    let settingTimeCmd = $('<input type="button" value="Time ..."/>').css({'margin-left': '10px'});
     $(settingTimeCmd).on('click', (evt)=>{
       let newValue = prompt("Please enter your new delay time value", delaySecond);
       if (Number(newValue) > 0) {
@@ -778,13 +820,12 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       }
     });
 
-
-    $(myPBox).append($('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(closeCmd)).append($(settingTimeCmd)));
+    $(myPBox).append($('<div></div>').css({'width': '100%', 'text-align': 'center'}).append($(closeCmd)).append($(stopPlayToggleCmd)).append($(settingTimeCmd)));
     $(myPBox).focus();
 
     let currentPlayPreviewIndex = 0;
     let previewTimer = undefined;
-    let delaySecond = 20;
+    let delaySecond = 11;
 
     const doPlayPreview = function(n){
       let src = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[n];
@@ -804,6 +845,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         currentPlayPreviewIndex = i;
         doPlayPreview(currentPlayPreviewIndex);
       }, delaySecond * 1000);
+      $(imgText).empty().text(seriesId + ' -> ' + imageLists[n]);
     }
     doPlayPreview(currentPlayPreviewIndex);
   }

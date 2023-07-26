@@ -1396,7 +1396,9 @@ module.exports = function ( jq ) {
 
   const doShowCustomerItem = function(shopData, workAreaBox){
     return new Promise(async function(resolve, reject) {
-			let itemPerPage = 50;
+			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+			let itemPerPage = userDefualtSetting.itemperpage;
+			//let itemPerPage = 50;
 
       $(workAreaBox).empty();
 			let customerItems = await doLoadCustomerItem(shopData.id);
@@ -1461,6 +1463,10 @@ module.exports = function ( jq ) {
 						pOp = {from: newFrom, to: newTo};
 						customerTable = doCreateCustomerListTable(shopData, workAreaBox, customerItems, newCustomerCmdBox, pOp);
 						$(customerTable).insertBefore($(navigBarBox));
+						/*
+						let userDefualtSetting = {itemperpage:page.perPage, currentPage: defaultNavPage.currentPage};
+						localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
+						*/
 					}
 
 					let navigBarBox = $('<div id="NavigBar"></div>');
@@ -3838,7 +3844,8 @@ module.exports = function ( jq ) {
           $('body').loading('start');
           $('#HistoryTable').remove();
           $('#NavigBar').remove();
-          userDefualtSetting.itemperpage = page.perPage;
+
+					userDefualtSetting = {itemperpage: page.perPage, currentPage: showPage};
           localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
 
           let toPage = Number(page.toPage);
@@ -5489,7 +5496,9 @@ module.exports = function ( jq ) {
 
   const doShowShopItem = function(){
     return new Promise(async function(resolve, reject) {
-			let itemPerPage = 20;
+			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+			let itemPerPage = userDefualtSetting.itemperpage;
+			//console.log(itemPerPage);
 
 			$('#App').empty();
       let shopRes = await common.doCallApi('/api/shop/shop/list', {});
@@ -5540,20 +5549,31 @@ module.exports = function ( jq ) {
 							newTo = shopItems.length - 1;
 						}
 						pOp = {from: newFrom, to: newTo};
+						console.log(pOp);
 						shopTable = doCreateShopListTable(shopItems, pOp);
 						$(shopTable).insertBefore($(navigBarBox));
+						/*
+						let userDefualtSetting = {itemperpage:page.perPage, currentPage: defaultNavPage.currentPage};
+						localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
+						*/
 					}
 
 					let navigBarBox = $('<div id="NavigBar"></div>');
 					let navigatoePage = $(navigBarBox).controlpage(defaultNavPage);
+
 					setTimeout(()=>{
 						$('#App').append($(navigBarBox));
-						navigatoePage.toPage(1);
+						navigatoePage.toPage(userDefualtSetting.currentPage);
 					}, 200);
 				}
 			}
 
-			//$('#App').append($(shopTable));
+			/*
+				การอัพโหลดภาพโลโก้ร้าน ในหน้ารายการตั้งแต่หน้า 2 เมื่ออัพโหลดเสร็จ ระบบจะแสดงรายการในหน้า 1
+				ที่ถูกต้องคือ หน้ารายการที่กำลังสั่งอัพโหลดต่างหาก
+				from หมายถึง fromItem ไม่ใช่ fromPage
+			*/
+
 			doControlItemDisplayPage();
 			resolve();
     });
@@ -6368,7 +6388,8 @@ module.exports = function ( jq ) {
           $('body').loading('start');
           $('#StockTable').remove();
           $('#NavigBar').remove();
-          userDefualtSetting.itemperpage = page.perPage;
+          //userDefualtSetting.itemperpage = page.perPage;
+					userDefualtSetting = {itemperpage: page.perPage, currentPage: showPage};
           localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
 
           let toPage = Number(page.toPage);

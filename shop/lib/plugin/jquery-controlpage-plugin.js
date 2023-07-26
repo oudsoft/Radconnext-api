@@ -26,6 +26,8 @@
       } else {
         settings.currentPage = 1;
       }
+      let userDefualtSetting = {itemperpage: settings.itemperPage, currentPage: settings.currentPage};
+      localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
     }
 
     const doResetButtonCmd = function(wrapper){
