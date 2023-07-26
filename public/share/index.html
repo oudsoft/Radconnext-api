@@ -758,42 +758,65 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
       $(img).center($(myPBox));
+    });
 
-      $(img).on('swiped-left', async function(evt) {
-        alert(evt.detail.dir);
-        if (evt.detail.dir === 'left') {
-          let seriesUrl = '/api/usr/upload/series/' + seriesId;
-          let resMe = await doCallListSeries(seriesUrl);
-          let ind = resMe.indexOf(imageFileName);
-          if (ind == (resMe.length - 1)) {
-            ind = 0;
-          }
-          let nextFileName = resMe[ind+1];
-          let conId = nextFileName.split('.')[0];
-          let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
-          img.src = src;
-          alert(src);
-          $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+    $(img).on('swiped-left', async function(evt) {
+      alert(evt.detail.dir);
+      if (evt.detail.dir === 'left') {
+        /*
+        let seriesUrl = '/api/usr/upload/series/' + seriesId;
+        let resMe = await doCallListSeries(seriesUrl);
+        let ind = resMe.indexOf(imageFileName);
+        if (ind == (resMe.length - 1)) {
+          ind = 0;
         }
-      });
+        let nextFileName = resMe[ind+1];
+        let conId = nextFileName.split('.')[0];
 
-      $(img).on('swiped-right', async function(evt) {
-        alert(evt.detail.dir);
-        if (evt.detail.dir === 'right') {
-          let seriesUrl = '/api/usr/upload/series/' + seriesId;
-          let resMe = await doCallListSeries(seriesUrl);
-          let ind = resMe.indexOf(imageFileName);
-          if (ind == 0) {
-            ind = resMe.length - 1;
-          }
-          let nextFileName = resMe[ind-1];
-          let conId = nextFileName.split('.')[0];
-          let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
-          alert(src);
-          img.src = src;
-          $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+        currentPlayPreviewIndex
+
+        imageLists
+        let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
+        img.src = src;
+        alert(src);
+        */
+
+        $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+
+        ++currentPlayPreviewIndex;
+        if (currentPlayPreviewIndex == imageLists.length) {
+          currentPlayPreviewIndex = 0;
         }
-      });
+        newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+        $(myPBox).find('img').attr('src', newSrc);
+        $(myPBox).find('img').on('click', (evt)=>{
+          openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+          window.open(openUrl, '_blank');
+        })
+        /*
+        if (previewTimer) {
+          window.clearTimeout(previewTimer);
+        }
+        */
+      }
+    });
+
+    $(img).on('swiped-right', async function(evt) {
+      alert(evt.detail.dir);
+      if (evt.detail.dir === 'right') {
+        let seriesUrl = '/api/usr/upload/series/' + seriesId;
+        let resMe = await doCallListSeries(seriesUrl);
+        let ind = resMe.indexOf(imageFileName);
+        if (ind == 0) {
+          ind = resMe.length - 1;
+        }
+        let nextFileName = resMe[ind-1];
+        let conId = nextFileName.split('.')[0];
+        let src = usrSeriesRootPath + '/' + seriesId + '/' + conId + '.jpg';
+        alert(src);
+        img.src = src;
+        $(imgText).empty().text(seriesId + ' -> ' + imageLists[0]);
+      }
     });
 
     $(myPBox).append($(imgBox));
