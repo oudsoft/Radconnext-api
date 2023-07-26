@@ -760,6 +760,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       $(img).center($(myPBox));
 
       $(img).on('swiped-left', async function(evt) {
+        evt.stopPropagation();
         if (evt.detail.dir === 'left') {
           ++currentPlayPreviewIndex;
           if (currentPlayPreviewIndex == imageLists.length) {
@@ -776,6 +777,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       });
 
       $(img).on('swiped-right', async function(evt) {
+        evt.stopPropagation();
         if (evt.detail.dir === 'right') {
           --currentPlayPreviewIndex;
           if (currentPlayPreviewIndex < 0) {
