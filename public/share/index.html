@@ -769,7 +769,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         evt.stopPropagation();
         */
         if (evt.detail.dir === 'left') {
-          $(img).attr('src', '');
+          $(img).attr('src', undefined);
           ++currentPlayPreviewIndex;
           if (currentPlayPreviewIndex == imageLists.length) {
             currentPlayPreviewIndex = 0;
