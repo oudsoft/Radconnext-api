@@ -674,7 +674,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const doCreateImgView = function(seriesId, imageFile){
     let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
     let img = $('<img width="96%" height="auto" src="' + src + '"/>');
-    $(img).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin-top': '0px'});
+    $(img).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'margin-top': '-10px'});
     $(img).on('click', (evt)=> {
       let imageCode = imageFile.split('.');
       let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
