@@ -766,7 +766,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         if (currentPlayPreviewIndex == imageLists.length) {
           currentPlayPreviewIndex = 0;
         }
-        $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]  + ' -> ' + currentPlayPreviewIndex);
+        $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
         let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
         $(img).attr('src', newSrc);
         $(img).on('click', (evt)=>{
