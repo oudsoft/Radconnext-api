@@ -751,37 +751,33 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
 			}
 		});
 
-    $(myPBox).parent().css({'width': '100%', 'min-height': '100%'});
+    $(myPBox).parent().css({'width': '100%', 'min-height': 'auto'});
     let imgText = $('<p></p>').text(seriesId + ' -> ' + imageLists[0]);
     $(myPBox).append($(imgText));
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
       //$(img).center($(myPBox));
-
       $(img).on('swiped-left', function(evt) {
-
         evt.preventDefault();
         evt.stopPropagation();
-        
         if (evt.detail.dir === 'left') {
           $(img).attr('src', undefined);
           ++currentPlayPreviewIndex;
           if (currentPlayPreviewIndex == imageLists.length) {
             currentPlayPreviewIndex = 0;
           }
+          let newImgBox = doCreateImgView(seriesId, imageLists[currentPlayPreviewIndex]);
           $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]  + ' -> ' + currentPlayPreviewIndex);
           let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-          /*
-          $(myPBox).find('img').attr('src', newSrc);
-          $(myPBox).find('img').on('click', (evt)=>{
-          */
           $(img).attr('src', newSrc);
           $(img).on('click', (evt)=>{
             openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
             window.open(openUrl, '_blank');
           });
-          alert(JSON.stringify($(img)))
+          alert(JSON.stringify($(img)));
+          $(myPBox).empty();
+          $(myPBox).append($(imgText)).append($(newImgBox))
         }
       });
 
@@ -795,8 +791,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           }
           $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
           let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-          $(myPBox).find('img').attr('src', newSrc);
-          $(myPBox).find('img').on('click', (evt)=>{
+          $(img).attr('src', newSrc);
+          $(img).on('click', (evt)=>{
             openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
             window.open(openUrl, '_blank');
           });
