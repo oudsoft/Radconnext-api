@@ -779,7 +779,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           $(myPBox).find('img').attr('src', newSrc);
           $(myPBox).find('img').on('click', (evt)=>{
           */
-          $(img).src = newSrc;
+          $(img).attr('src', newSrc);
           $(img).on('click', (evt)=>{
             openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
             window.open(openUrl, '_blank');
