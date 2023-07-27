@@ -756,18 +756,14 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(myPBox).append($(imgText));
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
-      /*
-      evt.preventDefault();
-      evt.stopPropagation();
-      */
       let img = $(evt.currentTarget);
-      $(img).center($(myPBox));
+      //$(img).center($(myPBox));
 
       $(img).on('swiped-left', function(evt) {
-        /*
+
         evt.preventDefault();
         evt.stopPropagation();
-        */
+        
         if (evt.detail.dir === 'left') {
           $(img).attr('src', undefined);
           ++currentPlayPreviewIndex;
