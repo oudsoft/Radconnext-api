@@ -795,11 +795,13 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         });
       }
     });
-
+    
+    /*
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
       $(img).center($(myPBox));
     });
+    */
 
     $(myPBox).append($(imgBox));
 
