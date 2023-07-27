@@ -773,31 +773,31 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
           openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
           window.open(openUrl, '_blank');
         });
-        alert(JSON.stringify($(img)))
       }
     });
 
+    $(imgBox).on('swiped-right', function(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (evt.detail.dir === 'right') {
+        let img = $(evt.currentTarget);
+        --currentPlayPreviewIndex;
+        if (currentPlayPreviewIndex < 0) {
+          currentPlayPreviewIndex = imageLists.length -1;
+        }
+        $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
+        let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+        $(img).attr('src', newSrc);
+        $(img).on('click', (evt)=>{
+          openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+          window.open(openUrl, '_blank');
+        });
+      }
+    });
 
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
-      //$(img).center($(myPBox));
-      $(img).on('swiped-right', function(evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        if (evt.detail.dir === 'right') {
-          --currentPlayPreviewIndex;
-          if (currentPlayPreviewIndex < 0) {
-            currentPlayPreviewIndex = imageLists.length -1;
-          }
-          $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
-          let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-          $(img).attr('src', newSrc);
-          $(img).on('click', (evt)=>{
-            openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
-            window.open(openUrl, '_blank');
-          });
-        }
-      });
+      $(img).center($(myPBox));
     });
 
     $(myPBox).append($(imgBox));
