@@ -756,30 +756,38 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(myPBox).append($(imgText));
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
     $(imgBox).on('load', (evt)=>{
+      /*
       evt.preventDefault();
       evt.stopPropagation();
+      */
       let img = $(evt.currentTarget);
       $(img).center($(myPBox));
 
-      $(img).on('swiped-left', async function(evt) {
+      $(img).on('swiped-left', function(evt) {
+        /*
         evt.preventDefault();
         evt.stopPropagation();
+        */
         if (evt.detail.dir === 'left') {
           ++currentPlayPreviewIndex;
           if (currentPlayPreviewIndex == imageLists.length) {
             currentPlayPreviewIndex = 0;
           }
-          $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
+          $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]  + ' -> ' + currentPlayPreviewIndex);
           newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+          /*
           $(myPBox).find('img').attr('src', newSrc);
           $(myPBox).find('img').on('click', (evt)=>{
+          */
+          $(img).src = newSrc;
+          $(img).on('click', (evt)=>{
             openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
             window.open(openUrl, '_blank');
           });
         }
       });
 
-      $(img).on('swiped-right', async function(evt) {
+      $(img).on('swiped-right', function(evt) {
         evt.preventDefault();
         evt.stopPropagation();
         if (evt.detail.dir === 'right') {
