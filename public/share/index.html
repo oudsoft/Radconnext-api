@@ -769,8 +769,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
         $(img).attr('src', newSrc);
         $(img).on('click', (evt)=>{
-          alert(currentPlayPreviewIndex);
-          openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+          let codeIds = imageLists[currentPlayPreviewIndex].split('.');
+          let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
           window.open(openUrl, '_blank');
         });
       }
@@ -789,8 +789,8 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
         $(img).attr('src', newSrc);
         $(img).on('click', (evt)=>{
-          alert(currentPlayPreviewIndex);
-          openUrl = '/share/?seriesId=' + seriesId + 'k!' + imageLists[currentPlayPreviewIndex];
+          let codeIds = imageLists[currentPlayPreviewIndex].split('.');
+          let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
           window.open(openUrl, '_blank');
         });
       }
