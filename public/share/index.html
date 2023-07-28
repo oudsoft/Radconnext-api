@@ -761,7 +761,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       evt.stopPropagation();
       if (evt.detail.dir === 'left') {
         let img = $(evt.currentTarget);
-        currentPlayPreviewIndex = currentPlayPreviewIndex + 1;
+        ++currentPlayPreviewIndex;
         if (currentPlayPreviewIndex == imageLists.length) {
           currentPlayPreviewIndex = 0;
         }
@@ -770,8 +770,11 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         $(img).attr('src', newSrc);
         $(img).on('click', (evt)=>{
           let codeIds = imageLists[currentPlayPreviewIndex].split('.');
+          $(imgText).append($('<p></p>').text(codeIds[0]));
+          /*
           let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
           window.open(openUrl, '_blank');
+          */
         });
       }
     });
@@ -795,7 +798,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
         });
       }
     });
-    
+
     /*
     $(imgBox).on('load', (evt)=>{
       let img = $(evt.currentTarget);
