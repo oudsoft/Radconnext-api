@@ -272,7 +272,7 @@
               $(this).css({'height': 'auto', 'width': '100%'});
             }
           }
-          let imgLabel = $('<p id="ImgLabel"></p>').css({'color': 'red'});
+          let imgLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
           $(imgLabel).text(imgName);
           $(imgBox).append($(imgLabel));
         };
