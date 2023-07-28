@@ -761,15 +761,16 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
       evt.stopPropagation();
       if (evt.detail.dir === 'left') {
         //let img = $(evt.currentTarget);
-        let img = $(imgBox);
+        //let img = $(imgBox);
+        $(myPBox).find('img').attr("onclick", "").unbind("click");
         ++currentPlayPreviewIndex;
         if (currentPlayPreviewIndex == imageLists.length) {
           currentPlayPreviewIndex = 0;
         }
         $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
         let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-        $(img).attr('src', newSrc);
-        $(img).on('click', (evt)=>{
+        $(imgBox).attr('src', newSrc);
+        $(imgBox).on('click', (evt)=>{
           let codeIds = imageLists[currentPlayPreviewIndex].split('.');
           $(imgText).append($('<p></p>').text(codeIds[0]));
           /*
