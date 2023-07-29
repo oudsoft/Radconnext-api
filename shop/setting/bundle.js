@@ -5494,7 +5494,7 @@ module.exports = function ( jq ) {
 		return $(shopTable);
 	}
 
-  const doShowShopItem = function(){
+  const doShowShopItem = function(currentPage){
     return new Promise(async function(resolve, reject) {
 			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
 			let itemPerPage = userDefualtSetting.itemperpage;
@@ -5535,7 +5535,7 @@ module.exports = function ( jq ) {
 					shopTable = doCreateShopListTable(shopItems, pOp);
 					$('#App').append($(shopTable));
 					let defaultNavPage = {
-						currentPage: 1,
+						currentPage: currentPage? currentPage:1,
 						itemperPage: itemPerPage,
 						totalItem: shopItems.length,
 						styleClass : {'padding': '4px', 'margin-top': '60px'},
@@ -5660,7 +5660,9 @@ module.exports = function ( jq ) {
 							window.open(data.link, '_blank');
 						});
 						*/
-						await doShowShopItem();
+						let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+						let currentPage = userDefualtSetting.currentPage;
+						await doShowShopItem(currentPage);
       		}, 400);
 				}
       },
