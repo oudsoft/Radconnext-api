@@ -5557,7 +5557,7 @@ module.exports = function ( jq ) {
 							newTo = shopItems.length - 1;
 						}
 						pOp = {from: newFrom, to: newTo};
-						console.log(pOp);
+						//console.log(pOp);
 						shopTable = doCreateShopListTable(shopItems, pOp);
 						$(shopTable).insertBefore($(navigBarBox));
 						/*
@@ -6062,7 +6062,7 @@ module.exports = function ( jq ) {
 							order.doOpenOrderForm(shopData, workAreaBox);
 						});
 
-						$(ppQRBox).empty().append($(ppqrImage)).append($(openNewOrderCmd)).css({'text-align': 'center'});
+						$(ppQRBox).empty().append($(ppqrImage)).append($(openNewOrderCmd)).css({'text-align': 'center', 'top': '5px'});
 						$(dlgHandle.cancelCmd).show();
 						$(dlgHandle.cancelCmd).val(' ตกลง ');
 						$(dlgHandle.okCmd).hide();
