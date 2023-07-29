@@ -5498,7 +5498,7 @@ module.exports = function ( jq ) {
     return new Promise(async function(resolve, reject) {
 			let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
 			let itemPerPage = userDefualtSetting.itemperpage;
-			//console.log(itemPerPage);
+			let currentPage = userDefualtSetting.currentPage;
 
 			$('#App').empty();
       let shopRes = await common.doCallApi('/api/shop/shop/list', {});
@@ -5531,7 +5531,8 @@ module.exports = function ( jq ) {
 					shopTable = doCreateShopListTable(shopItems);
 					$('#App').append($(shopTable));
 				} else {
-					let pOp = {from: 0, to: (itemPerPage-1)};
+					let from = (currentPage * itemPerPage) - 1;
+					let pOp = {from: from, to: (from + itemPerPage)-1};
 					shopTable = doCreateShopListTable(shopItems, pOp);
 					$('#App').append($(shopTable));
 					let defaultNavPage = {
