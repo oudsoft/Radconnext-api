@@ -674,7 +674,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
   const doCreateImgView = function(seriesId, imageFile){
     let src = usrSeriesRootPath + '/' + seriesId + '/' + imageFile;
     let img = $('<img width="96%" height="auto" src="' + src + '"/>');
-    $(img).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid #ddd', 'top': '-10px'});
+    $(img).css({'cursor': 'pointer', 'padding': '4px', 'border': '2px solid red', 'top': '-10px'});
     $(img).on('click', (evt)=> {
       let imageCode = imageFile.split('.');
       let openUrl = /*radconnextUrl +*/ '/share/?seriesId=' + seriesId + 'k!' + imageCode[0];
@@ -754,56 +754,62 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
     $(myPBox).parent().css({'width': '100%', 'min-height': 'auto'});
     let imgText = $('<p></p>').text(seriesId + ' -> ' + imageLists[0]);
     $(myPBox).append($(imgText));
+
     let imgBox = doCreateImgView(seriesId, imageLists[0]);
+    let imgMode = 'swiped';
 
     $(imgBox).on('swiped-left', function(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      if (evt.detail.dir === 'left') {
-        $(imgBox).attr("onclick", "").unbind("click");
-        ++currentPlayPreviewIndex;
-        if (currentPlayPreviewIndex == imageLists.length) {
-          currentPlayPreviewIndex = 0;
+      if (imgMode === 'swiped') {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (evt.detail.dir === 'left') {
+          $(imgBox).attr("onclick", "").unbind("click");
+          ++currentPlayPreviewIndex;
+          if (currentPlayPreviewIndex == imageLists.length) {
+            currentPlayPreviewIndex = 0;
+          }
+          $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
+          let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+          $(imgBox).attr('src', newSrc);
+          $(imgBox).on('click', (evt)=>{
+            let codeIds = imageLists[currentPlayPreviewIndex].split('.');
+            $(imgText).append($('<p></p>').text(codeIds[0]));
+            let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
+            window.open(openUrl, '_blank');
+            if (imgMode === 'swiped') {
+              imgMode = 'normal';
+              $(imgBox).css({'border': '2px solid green'});
+            } else if (imgMode === 'normal') {
+              imgMode = 'swiped';
+              $(imgBox).css({'border': '2px solid red'});
+            }
+          });
         }
-        $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
-        let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-        $(imgBox).attr('src', newSrc);
-        $(imgBox).on('click', (evt)=>{
-          let codeIds = imageLists[currentPlayPreviewIndex].split('.');
-          $(imgText).append($('<p></p>').text(codeIds[0]));
-          let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
-          window.open(openUrl, '_blank');
-        });
       }
     });
 
     $(imgBox).on('swiped-right', function(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      if (evt.detail.dir === 'right') {
-        $(imgBox).attr("onclick", "").unbind("click");
-        --currentPlayPreviewIndex;
-        if (currentPlayPreviewIndex < 0) {
-          currentPlayPreviewIndex = imageLists.length -1;
+      if (imgMode === 'swiped') {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (evt.detail.dir === 'right') {
+          $(imgBox).attr("onclick", "").unbind("click");
+          --currentPlayPreviewIndex;
+          if (currentPlayPreviewIndex < 0) {
+            currentPlayPreviewIndex = imageLists.length -1;
+          }
+          $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
+          let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
+          $(imgBox).attr('src', newSrc);
+          $(imgBox).on('click', (evt)=>{
+            let codeIds = imageLists[currentPlayPreviewIndex].split('.');
+            $(imgText).append($('<p></p>').text(codeIds[0]));
+            let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
+            window.open(openUrl, '_blank');
+          });
         }
-        $(imgText).empty().text(seriesId + ' -> ' + imageLists[currentPlayPreviewIndex]);
-        let newSrc = usrSeriesRootPath + '/' + seriesId + '/' + imageLists[currentPlayPreviewIndex];
-        $(imgBox).attr('src', newSrc);
-        $(imgBox).on('click', (evt)=>{
-          let codeIds = imageLists[currentPlayPreviewIndex].split('.');
-          $(imgText).append($('<p></p>').text(codeIds[0]));
-          let openUrl = '/share/?seriesId=' + seriesId + 'k!' + codeIds[0];
-          window.open(openUrl, '_blank');
-        });
       }
     });
-
-    /*
-    $(imgBox).on('load', (evt)=>{
-      let img = $(evt.currentTarget);
-      $(img).center($(myPBox));
-    });
-    */
 
     $(myPBox).append($(imgBox));
 
