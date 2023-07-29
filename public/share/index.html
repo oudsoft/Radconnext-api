@@ -783,6 +783,7 @@ const doCreateSponsorBox = function(imageTitle, linkTo){
               imgMode = 'swiped';
               $(imgBox).css({'border': '2px solid red'});
             }
+            $(imgText).append($('<p></p>').text(imgMode));
           });
         }
       }
