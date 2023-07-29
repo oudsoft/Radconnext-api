@@ -5440,28 +5440,15 @@ module.exports = function ( jq ) {
 
 		let from = ((currentPage-1) * itemPerPage) + 1;;
 		let to = Number(from) + (Number(itemPerPage)-1);
-		console.log(itemPerPage);
-		console.log(currentPage);
-		console.log(from);
-		console.log(to);
-		/*
-		if (pOptions) {
-			from = pOptions.from;
-			to = pOptions.to + 1;
-		}
-		*/
 		for (let x=from; x < to; x++) {
-		//for (let x=0; x < shopItems.length; x++) {
 			let itemRow = $('<tr></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = shopItems[x];
 			if (item) {
-				console.log(item);
 				for (let i=0; i < shopTableFields.length; i++) {
 					if (shopTableFields[i].showHeader) {
 						let field = $('<td align="' + shopTableFields[i].align + '"></td>');
 						if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
-							console.log(item[shopTableFields[i].fieldName]);
 							$(field).text(item[shopTableFields[i].fieldName]);
 							$(itemRow).append($(field));
 						} else {
