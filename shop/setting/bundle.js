@@ -5452,37 +5452,37 @@ module.exports = function ( jq ) {
 		*/
 		for (let x=from; x < to; x++) {
 		//for (let x=0; x < shopItems.length; x++) {
-			console.log(x);
 			let itemRow = $('<tr></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = shopItems[x];
-			for (let i=0; i < shopTableFields.length; i++) {
-				console.log(i);
-				if (shopTableFields[i].showHeader) {
-					let field = $('<td align="' + shopTableFields[i].align + '"></td>');
-					if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
-						console.log(item[shopTableFields[i].fieldName]);
-						$(field).text(item[shopTableFields[i].fieldName]);
-						$(itemRow).append($(field));
-					} else {
-						let shopLogoIcon = new Image();
-						shopLogoIcon.id = 'Shop_LogoFilename_' + item.id;
-						if (item['Shop_LogoFilename'] !== ''){
-							shopLogoIcon.src = item['Shop_LogoFilename'];
+			if (item) {
+				for (let i=0; i < shopTableFields.length; i++) {
+					if (shopTableFields[i].showHeader) {
+						let field = $('<td align="' + shopTableFields[i].align + '"></td>');
+						if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
+							console.log(item[shopTableFields[i].fieldName]);
+							$(field).text(item[shopTableFields[i].fieldName]);
+							$(itemRow).append($(field));
 						} else {
-							shopLogoIcon.src = '/shop/favicon.ico'
+							let shopLogoIcon = new Image();
+							shopLogoIcon.id = 'Shop_LogoFilename_' + item.id;
+							if (item['Shop_LogoFilename'] !== ''){
+								shopLogoIcon.src = item['Shop_LogoFilename'];
+							} else {
+								shopLogoIcon.src = '/shop/favicon.ico'
+							}
+							$(shopLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
+							$(shopLogoIcon).on('click', (evt)=>{
+								window.open(item['Shop_LogoFilename'], '_blank');
+							});
+							$(field).append($(shopLogoIcon));
+							let updateShopLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
+							$(updateShopLogoCmd).on('click', (evt)=>{
+								doStartUploadPicture(evt, field, item.id);
+							});
+							$(field).append($('<div style="width: 100%; text-align: center;"></div>').append($(updateShopLogoCmd)));
+							$(itemRow).append($(field));
 						}
-						$(shopLogoIcon).css({"width": "80px", "height": "auto", "cursor": "pointer", "padding": "2px", "border": "2px solid #ddd"});
-						$(shopLogoIcon).on('click', (evt)=>{
-							window.open(item['Shop_LogoFilename'], '_blank');
-						});
-						$(field).append($(shopLogoIcon));
-						let updateShopLogoCmd = $('<input type="button" value=" เปลี่ยนรูป " class="action-btn"/>');
-						$(updateShopLogoCmd).on('click', (evt)=>{
-							doStartUploadPicture(evt, field, item.id);
-						});
-						$(field).append($('<div style="width: 100%; text-align: center;"></div>').append($(updateShopLogoCmd)));
-						$(itemRow).append($(field));
 					}
 				}
 			}
