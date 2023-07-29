@@ -5434,12 +5434,18 @@ module.exports = function ( jq ) {
 		$(headerRow).append($('<td width="*" align="center"><b>คำสั่ง</b></td>'));
 		$(shopTable).append($(headerRow));
 
-		let from = 0;
-		let to = shopItems.length;
+		let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+		let itemPerPage = userDefualtSetting.itemperpage;
+		let currentPage = userDefualtSetting.currentPage;
+
+		let from = (currentPage * itemPerPage) - 1;;
+		let to = (from + itemPerPage)-1;
+		/*
 		if (pOptions) {
 			from = pOptions.from;
 			to = pOptions.to + 1;
 		}
+		*/
 		for (let x=from; x < to; x++) {
 		//for (let x=0; x < shopItems.length; x++) {
 			let itemRow = $('<tr></tr>');
