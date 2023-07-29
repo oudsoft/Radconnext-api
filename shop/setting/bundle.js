@@ -5440,15 +5440,19 @@ module.exports = function ( jq ) {
 
 		let from = (currentPage * itemPerPage) - 1;;
 		let to = (from + itemPerPage)-1;
-
+		console.log(itemPerPage);
+		console.log(currentPage);
+		console.log(from);
+		console.log(to);
+		/*
 		if (pOptions) {
 			from = pOptions.from;
 			to = pOptions.to + 1;
 		}
-		
+		*/
 		for (let x=from; x < to; x++) {
 		//for (let x=0; x < shopItems.length; x++) {
-		console.log(x);
+			console.log(x);
 			let itemRow = $('<tr></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = shopItems[x];
