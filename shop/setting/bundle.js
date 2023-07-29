@@ -5440,6 +5440,10 @@ module.exports = function ( jq ) {
 
 		let from = ((currentPage-1) * itemPerPage) + 1;;
 		let to = Number(from) + (Number(itemPerPage)-1);
+
+		console.log(from);
+		console.log(to);
+		
 		for (let x=from; x < to; x++) {
 			let itemRow = $('<tr></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
