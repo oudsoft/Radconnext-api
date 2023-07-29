@@ -5448,13 +5448,16 @@ module.exports = function ( jq ) {
 		*/
 		for (let x=from; x < to; x++) {
 		//for (let x=0; x < shopItems.length; x++) {
+		console.log(x);
 			let itemRow = $('<tr></tr>');
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = shopItems[x];
 			for (let i=0; i < shopTableFields.length; i++) {
+				console.log(i);
 				if (shopTableFields[i].showHeader) {
 					let field = $('<td align="' + shopTableFields[i].align + '"></td>');
 					if (shopTableFields[i].fieldName !== 'Shop_LogoFilename') {
+						console.log(item[shopTableFields[i].fieldName]);
 						$(field).text(item[shopTableFields[i].fieldName]);
 						$(itemRow).append($(field));
 					} else {
