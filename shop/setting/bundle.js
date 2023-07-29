@@ -5456,6 +5456,7 @@ module.exports = function ( jq ) {
 			$(itemRow).append($('<td align="center">' + (x+1) + '</td>'));
 			let item = shopItems[x];
 			if (item) {
+				console.log(item);
 				for (let i=0; i < shopTableFields.length; i++) {
 					if (shopTableFields[i].showHeader) {
 						let field = $('<td align="' + shopTableFields[i].align + '"></td>');
@@ -5501,8 +5502,8 @@ module.exports = function ( jq ) {
 				let commandCell = $('<td align="center"></td>');
 				$(commandCell).append($(editShopCmd)).append($(mngShopCmd)).append($(deleteShopCmd));
 				$(itemRow).append($(commandCell));
+				$(shopTable).append($(itemRow));
 			}
-			$(shopTable).append($(itemRow));
 		}
 		return $(shopTable);
 	}
@@ -5539,7 +5540,7 @@ module.exports = function ( jq ) {
 			let shopTable = undefined;
 
 			const doControlItemDisplayPage = function() {
-				console.log(shopItems.length <= itemPerPage);
+				//console.log(shopItems.length <= itemPerPage);
 				if (shopItems.length <= itemPerPage) {
 					shopTable = doCreateShopListTable(shopItems);
 					$('#App').append($(shopTable));
