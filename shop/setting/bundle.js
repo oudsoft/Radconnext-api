@@ -5485,23 +5485,23 @@ module.exports = function ( jq ) {
 						}
 					}
 				}
-			}
-			let editShopCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
-			$(editShopCmd).on('click', (evt)=>{
-				doOpenEditShopForm(item);
-			});
-			let mngShopCmd = $('<input type="button" value=" Manage " class="action-btn"/>').css({'margin-left': '8px'});
-			$(mngShopCmd).on('click', (evt)=>{
-				doOpenManageShop(item, doStartUploadPicture, doOpenEditShopForm);
-			});
-			let deleteShopCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
-			$(deleteShopCmd).on('click', (evt)=>{
-				doDeleteShop(item.id);
-			});
+				let editShopCmd = $('<input type="button" value=" Edit " class="action-btn"/>');
+				$(editShopCmd).on('click', (evt)=>{
+					doOpenEditShopForm(item);
+				});
+				let mngShopCmd = $('<input type="button" value=" Manage " class="action-btn"/>').css({'margin-left': '8px'});
+				$(mngShopCmd).on('click', (evt)=>{
+					doOpenManageShop(item, doStartUploadPicture, doOpenEditShopForm);
+				});
+				let deleteShopCmd = $('<input type="button" value=" Delete " class="action-btn"/>').css({'margin-left': '8px'});
+				$(deleteShopCmd).on('click', (evt)=>{
+					doDeleteShop(item.id);
+				});
 
-			let commandCell = $('<td align="center"></td>');
-			$(commandCell).append($(editShopCmd)).append($(mngShopCmd)).append($(deleteShopCmd));
-			$(itemRow).append($(commandCell));
+				let commandCell = $('<td align="center"></td>');
+				$(commandCell).append($(editShopCmd)).append($(mngShopCmd)).append($(deleteShopCmd));
+				$(itemRow).append($(commandCell));
+			}
 			$(shopTable).append($(itemRow));
 		}
 		return $(shopTable);
