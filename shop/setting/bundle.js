@@ -5438,8 +5438,8 @@ module.exports = function ( jq ) {
 		let itemPerPage = userDefualtSetting.itemperpage;
 		let currentPage = userDefualtSetting.currentPage;
 
-		let from = (currentPage * itemPerPage) - 1;;
-		let to = (from + itemPerPage)-1;
+		let from = ((currentPage-1) * itemPerPage) + 1;;
+		let to = Number(from) + (Number(itemPerPage)-1);
 		console.log(itemPerPage);
 		console.log(currentPage);
 		console.log(from);
