@@ -5662,12 +5662,6 @@ module.exports = function ( jq ) {
 					callback(data);
 				} else {
 					setTimeout(async() => {
-						/*
-						$(shopLogoIcon).attr('src', data.link);
-						$(shopLogoIcon).on('click', (evt)=>{
-							window.open(data.link, '_blank');
-						});
-						*/
 						let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
 						let currentPage = userDefualtSetting.currentPage;
 						await doShowShopItem(currentPage);
@@ -5698,7 +5692,9 @@ module.exports = function ( jq ) {
 						let shopRes = await common.doCallApi('/api/shop/shop/add', newShopFormObj);
 						if (shopRes.status.code == 200) {
 							$.notify("เพิ่มรายการร้านค้าสำเร็จ", "success");
-							await doShowShopItem()
+							let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+							let currentPage = userDefualtSetting.currentPage;
+							await doShowShopItem(currentPage);
 						} else if (shopRes.status.code == 201) {
 							$.notify("ไม่สามารถเพิ่มรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 						} else {
@@ -5743,7 +5739,9 @@ module.exports = function ( jq ) {
 							if (successCallback) {
 								successCallback(editShopFormObj);
 							} else {
-								await doShowShopItem();
+								let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+								let currentPage = userDefualtSetting.currentPage;
+								await doShowShopItem(currentPage);
 							}
 						} else if (shopRes.status.code == 201) {
 							$.notify("ไม่สามารถแก้ไขรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
@@ -5790,7 +5788,9 @@ module.exports = function ( jq ) {
 				let shopRes = await common.doCallApi('/api/shop/shop/delete', {id: shopId});
 				if (shopRes.status.code == 200) {
 					$.notify("ลบรายการร้านค้าสำเร็จ", "success");
-					await doShowShopItem()
+					let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
+					let currentPage = userDefualtSetting.currentPage;
+					await doShowShopItem(currentPage);
 				} else if (shopRes.status.code == 201) {
 					$.notify("ไม่สามารถลบรายการร้านค้าได้ในขณะนี้ โปรดลองใหม่ภายหลัง", "warn");
 				} else {
@@ -6052,6 +6052,8 @@ module.exports = function ( jq ) {
 							window.open('/shop/share/?id=' + shopRes.result.qrFileName, '_blank');
 						});
 
+						let alertTextBox = $('<p></p>').text('ต้องการรับใบเสร็จ โปรดแจ้งแม่ค้า').css({'text-align': 'center', 'font-size': '40px'});
+
 						let openNewOrderCmd = common.doCreateTextCmd('ออกบิลใหม่', 'green', 'white');
 						$(openNewOrderCmd).addClass('sensitive-word');
 						$(newOrderCmd).attr('id', 'newOrderCmd');
@@ -6062,7 +6064,7 @@ module.exports = function ( jq ) {
 							order.doOpenOrderForm(shopData, workAreaBox);
 						});
 
-						$(ppQRBox).empty().append($(ppqrImage)).append($(openNewOrderCmd)).css({'text-align': 'center', 'top': '5px'});
+						$(ppQRBox).empty().append($(ppqrImage)).append($(alertTextBox)).append($(openNewOrderCmd)).css({'display': 'inline-block', 'text-align': 'center', 'margin-top': '20px'});
 						$(dlgHandle.cancelCmd).show();
 						$(dlgHandle.cancelCmd).val(' ตกลง ');
 						$(dlgHandle.okCmd).hide();
