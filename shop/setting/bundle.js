@@ -655,6 +655,7 @@ const doShowShopItems = async function(){
   //shopitem.doShowShopItem();
   let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
   let currentPage = userDefualtSetting.currentPage;
+  console.log(currentPage);
   await shopitem.doShowShopItem(currentPage);
 }
 
