@@ -5677,7 +5677,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doOpenNewShopForm = function(){
-		let initShop = {Shop_BillQuota: 500, Shop_StockingOption: 0};
+		let initShop = {Shop_BillQuota: '500', Shop_StockingOption: '0'};
 		let shopNewForm = doCreateShopForm(initShop);
 		let radNewShopFormBox = $('<div></div>');
 		$(radNewShopFormBox).append($(shopNewForm));
