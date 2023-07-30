@@ -653,9 +653,10 @@ const doTriggerLoading = function(evt) {
 
 const doShowShopItems = async function(){
   //shopitem.doShowShopItem();
-  let userDefualtSetting = JSON.parse(localStorage.getItem('defualsettings'));
-  let currentPage = userDefualtSetting.currentPage;
-  console.log(currentPage);
+  let itemperpage = 20;
+  let currentPage = 1;
+  let userDefualtSetting = {itemperpage: itemperpage, currentPage: currentPage};
+  localStorage.setItem('defualsettings', JSON.stringify(userDefualtSetting));
   await shopitem.doShowShopItem(currentPage);
 }
 
