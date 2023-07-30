@@ -5720,6 +5720,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doOpenEditShopForm = function(shopData, successCallback){
+		console.log(shopData);
 		let shopEditForm = doCreateShopForm(shopData);
 		let radEditShopFormBox = $('<div></div>');
 		$(radEditShopFormBox).append($(shopEditForm));
