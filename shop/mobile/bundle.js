@@ -743,12 +743,7 @@ const doStartTestPPQC = function(evt){
             evt.stopPropagation();
             dlgHandle.closeAlert();
             let workAreaBox = pageHandle.mainContent;
-            //pageHandle = doCreatePageLayout();
             orderForm.setupPageHandle(pageHandle);
-            /*
-            orderMng.setupPageHandle(pageHandle);
-            orderProc.setupPageHandle(pageHandle);
-            */
             orderForm.doOpenOrderForm(shopData.id, workAreaBox, undefined, undefined, orderMng.doShowOrderList);
           });
           $(ppQRBox).empty().append($(ppqrImage)).append($(alertTextBox)).append($(openNewOrderCmd)).css({'display': 'inline-block', 'text-align': 'center', 'margin-top': '20px'});
