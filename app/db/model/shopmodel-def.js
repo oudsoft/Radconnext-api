@@ -278,7 +278,7 @@ const ShopStockingDef = {
 
 const ShopMessageDef = {
   Message : {
-    type: Sequelize.STRING,
+    type: Sequelize.TEXT,
   },
   ToUserId : {
     type: Sequelize.INTEGER
