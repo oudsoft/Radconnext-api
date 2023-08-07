@@ -114,6 +114,11 @@ stockings.belongsTo(orders);
 stockings.belongsTo(users);
 stockings.belongsTo(menuitems);
 
+const messages = sequelize.define('messages', Def.ShopMessageDef);
+messages.belongsTo(shops);
+messages.belongsTo(users);
+messages.belongsTo(userinfoes);
+
 module.exports =  {
   sequelize,
   Op,
@@ -132,5 +137,6 @@ module.exports =  {
   bills,
   taxinvoices,
   templates,
-  stockings
+  stockings,
+  messages
 }

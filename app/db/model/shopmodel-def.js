@@ -276,6 +276,21 @@ const ShopStockingDef = {
   }
 };
 
+const ShopMessageDef = {
+  Message : {
+    type: Sequelize.STRING,
+  },
+  ToUserId : {
+    type: Sequelize.INTEGER
+  },
+  ToShopId : {
+    type: Sequelize.INTEGER
+  },
+  Status : {
+    type: Sequelize.INTEGER // 1-new, 2-open, 3-close
+  }
+};
+
 module.exports = {
   ShopUserTypeDef,
   ShopUserDef,
@@ -291,5 +306,6 @@ module.exports = {
   ShopPaytypeDef,
   ShopPaymentDef,
   ShopTemplateDef,
-  ShopStockingDef
+  ShopStockingDef,
+  ShopMessageDef
 }

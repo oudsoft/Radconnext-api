@@ -103,7 +103,7 @@ app.post('/select/(:billId)', (req, res) => {
         try {
           let billId = req.params.billId;
           const bills = await db.bills.findAll({ attributes: excludeColumn, where: {id: billId}});
-          res.json({status: {code: 200}, Record: customers[0]});
+          res.json({status: {code: 200}, Record: bills[0]});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

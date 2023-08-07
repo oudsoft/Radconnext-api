@@ -15,7 +15,8 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 const doGenOptions = function() {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
-      const shops = await db.shops.findAll({ attributes: ['id', 'Shop_Name'] });
+      const orderby = [['id', 'ASC']];
+      const shops = await db.shops.findAll({ attributes: ['id', 'Shop_Name'], order: orderby });
       const result = [];
       shops.forEach((shop, i) => {
         result.push({Value: shop.id, DisplayText: shop.Shop_Name});
