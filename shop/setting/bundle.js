@@ -3782,6 +3782,14 @@ module.exports = function ( jq ) {
 					});
 
 					$(statusCell).append($(editMessageCmd).css({'margin-left': '5px'})).append($(deleteMessageCmd).css({'margin-left': '5px'}));
+
+					if ((msg.Status == 2) || (msg.Status == 3)) {
+						let resetMessageCmd = common.doCreateTextCmd('รีเซ็ต', 'green', 'white');
+						$(resetMessageCmd).on('click', (evt)=>{
+							doResetMessage(shopData, msg);
+						});
+						$(statusCell).append($(resetMessageCmd).css({'margin-left': '5px'}));
+					}
 				}
 
 				if (msg.Status == 2) {
@@ -3791,6 +3799,7 @@ module.exports = function ( jq ) {
 					});
 					$(statusCell).append($(closeMessageCmd).css({'margin-left': '5px'}))
 				}
+
 				dataRow = $('<tr height="50"></tr>');
 				$(dataRow).append($(datetimeCell)).append($(msgCell)).append($(fromCell)).append($(statusCell));
 				$(msgTable).append($($(dataRow)));
@@ -4013,6 +4022,24 @@ module.exports = function ( jq ) {
 		let params = {data: {Status: 2}, id: msg.id};
 		//console.log(params);
 		common.doCallApi(closeMessageUrl, params).then(async(msgRes)=>{
+			//console.log(msgRes);
+			let myMessageUrl = '/api/shop/message/month/new/count/' + shopData.id
+			params = {userId: userdata.id};
+			let countRes = await common.doCallApi(myMessageUrl, params);
+			if (countRes.count > 0) {
+				$('#MessageAmount').text(countRes.count);
+			} else {
+				$('#MessageAmount').hide();
+			}
+		});
+	}
+
+	const doResetMessage = function(shopData, msg){
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let resetMessageUrl = '/api/shop/message/update';
+		let params = {data: {Status: 1}, id: msg.id};
+		//console.log(params);
+		common.doCallApi(resetMessageUrl, params).then(async(msgRes)=>{
 			//console.log(msgRes);
 			let myMessageUrl = '/api/shop/message/month/new/count/' + shopData.id
 			params = {userId: userdata.id};
