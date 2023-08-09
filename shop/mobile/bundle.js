@@ -663,7 +663,6 @@ const doCreateShopMessageBox = function() {
       $('#MessageAmount').show().text(msgs.length);
     } else {
       $('#MessageAmount').hide();
-      $(messageBox).text('ยังไม่มีข้อความของร้านคุณ').css({'text-align': 'center'});
     }
   });
   return $(messageBox);
