@@ -611,15 +611,78 @@ const doCreatePageLayout = function(){
   return handle;
 }
 
+const doCreateShopMessageBox = function() {
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  let messageBox = $('<div></div>').css({'display': 'none'});
+  let myMessageUrl = '/api/shop/message/shop/mobile/load/' + userdata.shop.id;
+  let params = {shopId: userdata.shop.id};
+  common.doCallApi(myMessageUrl, params).then((msgRes)=>{
+    console.log(msgRes);
+
+    $(messageBox).empty();
+
+    let msgs = msgRes.Records;
+    let totalNew = 0;
+    if (msgs.length > 0) {
+      for (let i=0; i < msgs.length; i++) {
+        let msg = msgs[i];
+        let msgDate = new Date(msg.createdAt);
+        let fmtDate = common.doFormatDateStr(msgDate);
+        let fmtTime = common.doFormatTimeStr(msgDate);
+        let fmUserFullname = undefined;
+        if ((msg.userinfo.User_NameTH !== '') && (msg.userinfo.User_LastNameTH !== '')) {
+          fmUserFullname = msg.userinfo.User_NameTH + ' ' + msg.userinfo.User_LastNameTH;
+        } else {
+          fmUserFullname = msg.userinfo.User_NameEN + ' ' + msg.userinfo.User_LastNameEN;
+        }
+
+        let msgStatus = undefined;
+        if (msg.Status == 1) {
+          msgStatus = 'New';
+          totalNew = totalNew + 1;
+          doUpdateMessageOpen(userdata.shop, msg);
+        } else if (msg.Status == 2) {
+          msgStatus = 'Open';
+        } else if (msg.Status == 3) {
+          msgStatus = 'Close';
+        }
+
+        let msgMainBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'left', 'margin': '8px', 'padding': '10px', 'border': '1px solid grey'});
+        let msgDatetime = $('<p></p>').text('วันที่-เวลา : ' + fmtDate + ' : ' + fmtTime).css({'font-size': '12px', 'line-height': '12px'});
+        let msgFmUserFullname = $('<p></p>').text('จาก : ' + fmUserFullname).css({'font-size': '12px', 'line-height': '12px'});
+        let msgBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'background-color': '#fff'});
+        let msgStatusBox = $('<p></p>').text(msgStatus).css({'font-size': '12px', 'line-height': '12px'});
+        $(msgBox).html(msg.Message);
+        $(msgMainBox).append($(msgDatetime)).append($(msgFmUserFullname)).append($(msgBox)).append($(msgStatusBox));;
+        $(messageBox).append($(msgMainBox));
+      }
+    } else {
+      $(messageBox).text('ยังไม่มีข้อความของร้านคุณ').css({'text-align': 'center'});
+    }
+    if (totalNew > 0) {
+      $('#MessageAmount').show().text(msgs.length);
+    } else {
+      $('#MessageAmount').hide();
+      $(messageBox).text('ยังไม่มีข้อความของร้านคุณ').css({'text-align': 'center'});
+    }
+  });
+  return $(messageBox);
+}
+
 const doCreateUserInfoBox = function(){
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   let userInfoBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
-  let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
+  //let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
+  let userPictureBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
   $(userPictureBox).on('click', (evt)=>{
-    $(userInfo).toggle('slow', 'swing', ()=>{
-      $(userLogoutCmd).toggle('fast', 'linear');
-    });
+    $(userPPQRTestCmd).toggle('fast', 'linear');
+    $(calculatorCmd).toggle('fast', 'linear');
+    $(uploadBillLogoCmd).toggle('fast', 'linear');
+    $(userLogoutCmd).toggle('fast', 'linear');
+    $(messageBox).toggle('fast', 'linear');
   });
+  let userPicture = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
+  $(userPictureBox).append($(userPicture));
   let userInfo = $('<div></div>').text(userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH).css({'position': 'relative', 'margin-top': '-15px', 'padding': '2px', 'font-size': '14px'});
   let userPPQRTestCmd = $('<div id="UserPPQRTestCmd">สร้างพร้อมเพย์คิวอาร์โค้ด</div>').css({'background-color': 'white', 'color': 'black', 'cursor': 'pointer', 'position': 'relative', 'width': '50%', 'margin-top': '10px', 'padding': '2px', 'font-size': '14px', 'margin-left': '25%', 'border': '2px solid black'});
   $(userPPQRTestCmd).on('click', (evt)=>{
@@ -646,7 +709,23 @@ const doCreateUserInfoBox = function(){
     common.doUserLogout();
   });
 
-  return $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userPPQRTestCmd)).append($(calculatorCmd)).append($(uploadBillLogoCmd)).append($(userLogoutCmd));
+  const redCircleAmountStyle = {'display': 'inline-block', 'color': '#fff', 'text-align': 'center', 'line-height': '24px', 'border-radius': '50%', 'font-size': '16px', 'min-width': '28px', 'min-height': '28px', 'margin-top': '10px', 'margin-left': '-10px', 'background-color': 'red', 'position': 'absolute', 'cursor': 'pointer'};
+  let myMessageAmount = $('<div id="MessageAmount">2</div>').css(redCircleAmountStyle);
+  $(userPictureBox).append($(myMessageAmount));
+  let myMessageUrl = '/api/shop/message/month/new/count/' + userdata.shop.id
+  let params = {userId: userdata.id};
+  common.doCallApi(myMessageUrl, params).then((msgRes)=>{
+    if (msgRes.count > 0) {
+      $(myMessageAmount).show().text(msgRes.count);
+    } else {
+      $(myMessageAmount).hide();
+    }
+  });
+
+  let messageBox = doCreateShopMessageBox();
+
+  $(userInfoBox).append($(userPictureBox)).append($(userInfo)).append($(userPPQRTestCmd)).append($(calculatorCmd)).append($(uploadBillLogoCmd)).append($(userLogoutCmd));
+  return $(userInfoBox).append($(messageBox))
 }
 
 const doCreatePPInfoBox = function(shopData) {
@@ -891,6 +970,24 @@ const doOpenUploadBillLogo = function(evt, shopData) {
   });
   $(fileBrowser).appendTo($(pageHandle.mainContent));
   $(fileBrowser).click();
+}
+
+const doUpdateMessageOpen = function(shopData, msg) {
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  let closeMessageUrl = '/api/shop/message/update';
+  let params = {data: {Status: 2}, id: msg.id};
+  //console.log(params);
+  common.doCallApi(closeMessageUrl, params).then(async(msgRes)=>{
+    //console.log(msgRes);
+    let myMessageUrl = '/api/shop/message/month/new/count/' + shopData.id
+    params = {userId: userdata.id};
+    let countRes = await common.doCallApi(myMessageUrl, params);
+    if (countRes.count > 0) {
+      $('#MessageAmount').text(countRes.count);
+    } else {
+      $('#MessageAmount').hide();
+    }
+  });
 }
 
 },{"../../../api/shop/lib/sensitive-word.json":1,"../home/mod/common-lib.js":2,"./mod/order-form-lib.js":5,"./mod/order-mng-lib.js":6,"./mod/order-proc-lib.js":7,"jquery":9}],5:[function(require,module,exports){

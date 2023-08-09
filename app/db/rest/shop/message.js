@@ -102,6 +102,39 @@ app.post('/shop/loadall/(:shopId)', (req, res) => {
   }
 });
 
+//Shop Mobile Messages load Status (1, 2)
+app.post('/shop/mobile/load/(:shopId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const totalLastRow = 20;
+          const orderby = [['Status', 'ASC'], ['id', 'DESC']];
+          const shopId = req.params.shopId;
+          const userInfoModel = {model: db.userinfoes, attributes: ['id', 'User_NameEN', 'User_LastNameEN', 'User_NameTH', 'User_LastNameTH']};
+          const messageInclude = [userInfoModel];
+          const whereCluase = {ToShopId: shopId};
+          const messages = await db.messages.findAll({include: messageInclude, where: whereCluase, order: orderby, limit: totalLastRow});
+          res.json({status: {code: 200}, Records: messages});
+
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else if (ur.token.expired){
+        res.json({ status: {code: 210}, token: {expired: true}});
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //Select API
 app.post('/select/(:messageId)', (req, res) => {
   let token = req.headers.authorization;
