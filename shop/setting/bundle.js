@@ -636,7 +636,15 @@ $( document ).ready(function() {
 	};
 
 	initPage();
-  //doTestCreateInvoice();
+
+  $(window).on('keydown', async (evt)=>{
+    if (evt.ctrlKey && evt.key === 'z') {
+      let protocol = window.location.protocol;
+      let domain = window.location.host;
+      window.location.replace(protocol + '//' + domain + '/shop/mobile');
+    }
+  });
+
   document.addEventListener("loading-trigger", doTriggerLoading);
 });
 

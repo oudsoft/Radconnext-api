@@ -119,6 +119,10 @@ messages.belongsTo(shops);
 messages.belongsTo(users);
 messages.belongsTo(userinfoes);
 
+const payservices = sequelize.define('payservices', Def.ShopPayServiceDef);
+payservices.belongsTo(shops);
+payservices.belongsTo(bills);
+
 module.exports =  {
   sequelize,
   Op,
@@ -138,5 +142,6 @@ module.exports =  {
   taxinvoices,
   templates,
   stockings,
-  messages
+  messages,
+  payservices
 }

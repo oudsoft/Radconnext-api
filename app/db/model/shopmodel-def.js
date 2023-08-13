@@ -291,6 +291,15 @@ const ShopMessageDef = {
   }
 };
 
+const ShopPayServiceDef = {
+  BillUrl : {
+    type: Sequelize.STRING(190),
+  },
+  BillAmount : {
+    type: Sequelize.FLOAT
+  }
+};
+
 module.exports = {
   ShopUserTypeDef,
   ShopUserDef,
@@ -307,5 +316,6 @@ module.exports = {
   ShopPaymentDef,
   ShopTemplateDef,
   ShopStockingDef,
-  ShopMessageDef
+  ShopMessageDef,
+  ShopPayServiceDef
 }

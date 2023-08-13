@@ -128,6 +128,7 @@ module.exports = ( httpsServer, monitor ) => {
 	const shoptemplate = require('./db/rest/shop/template.js')(shopdb, log);
 	const shopstocking = require('./db/rest/shop/stocking.js')(shopdb, log);
 	const shopmessage = require('./db/rest/shop/message.js')(shopdb, log);
+	const payservice = require('./db/rest/shop/payservice.js')(shopdb, log);
 	const shopUploader = require('./lib/shop/uploader.js')(apiApp);
 
 	apiApp.use('/external', externalapiproxy);
@@ -189,7 +190,8 @@ module.exports = ( httpsServer, monitor ) => {
 	apiApp.use('/shop/template', shoptemplate);
 	apiApp.use('/shop/stocking', shopstocking);
 	apiApp.use('/shop/message', shopmessage);
-	
+	apiApp.use('/shop/payservice', payservice);
+
 	const publicDir = path.normalize(__dirname + '/..' + '/public');
 	const internalHTTP = 'http-server ' + publicDir;
 	log.info('Create Internal HTTP Server with command=>' + internalHTTP);
