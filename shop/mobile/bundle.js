@@ -469,7 +469,7 @@ module.exports = function ( jq, wsm ) {
 				if (data.msg) {
 					$.notify(data.msg, "success");
 				}
-				//onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
+				onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
 				$('#NewOrderTab').click();
 				break;
 			}
@@ -1333,6 +1333,7 @@ module.exports = function ( jq ) {
     $(saveNewOrderCmdBox).append($(saveNewOrderCmd));
 		if (orderObj.id) {
 			let changelogs = JSON.parse(localStorage.getItem('changelogs'));
+			//console.log(changelogs);
 			if (changelogs) {
 				let newMsgCounts = await changelogs.filter((item, i) =>{
 					if ((item.orderId == orderObj.id) && (item.status === 'New')) {
