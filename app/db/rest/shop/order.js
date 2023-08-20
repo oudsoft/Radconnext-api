@@ -349,19 +349,23 @@ app.post('/update', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         let beforeItems = await db.orders.findAll({ attributes: ['Items', 'shopId'], where: {id: req.body.id}});
+        //console.log('beforeItems=> ' + JSON.stringify(beforeItems));
         let updateOrder = req.body.data;
-        //console.log('updateOrder=> ' + JSON.stringify(req.body.data));
+        //console.log('updateOrder=> ' + JSON.stringify(updateOrder));
         if ((updateOrder) && (updateOrder.Items)) {
           updateOrder.BeforeItems = beforeItems[0].Items;
           await db.orders.update(updateOrder, { where: { id: req.body.id } });
-          res.json({Result: "OK", status: {code: 200}});
           if ((updateOrder.Items) && (updateOrder.Items.length > 0)) {
             let diffItems = await doFindItemsDiff(updateOrder.Items, updateOrder.BeforeItems);
+            //console.log('diffItems=> ' + JSON.stringify(diffItems));
+            res.json({Result: "OK", status: {code: 200}, DiffItems: diffItems});
             let updateOrderData = {type: 'shop', orderId: req.body.id, shopId: beforeItems[0].shopId, status: 'New', shop: 'orderupdate', updataData: {diffItems: diffItems}};
             if ((diffItems.upItems.length > 0) || (diffItems.downItems.length > 0) || (diffItems.qtys.length > 0)) {
               updateOrderData.msg = 'มีการแก้ไขออร์เดอร์';
             }
             wss.doControlShopMessage(updateOrderData);
+          } else {
+            res.json({Result: "OK", status: {code: 200}});
           }
         } else {
           await db.orders.update({Items: []}, { where: { id: req.body.id } });
@@ -411,20 +415,18 @@ app.post('/item/status/update', (req, res) => {
         let goodId = req.body.goodId;
         let newStatus = req.body.newStatus;
         let whereClous = {id: orderId};
+
+
+        let beforeItems = await db.orders.findAll({ attributes: ['Items', 'shopId'], where: whereClous});
+
         let resultItems = await db.orders.findAll({ attributes: ['Items'], where: whereClous});
         await resultItems[0].Items.forEach((item, i) => {
           if (item.id == goodId){
             item.ItemStatus = newStatus;
           }
         });
-        /*
-        let resu = await resultItems[0].Items.find((item, i) => {
-          if (item.id == goodId){
-            return item;
-          }
-        });
-        */
-        await db.orders.update({Items: resultItems[0].Items}, { where: whereClous});
+
+        await db.orders.update({BeforeItems: beforeItems[0].Items, Items: resultItems[0].Items}, { where: whereClous});
 
         res.json({Result: "OK", status: {code: 200}, result: resultItems});
       } else if (ur.token.expired){

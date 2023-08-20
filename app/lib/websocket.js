@@ -32,7 +32,7 @@ function RadconWebSocketServer (arg, db, log) {
 		//wssPath = wssPath.substring(1);
 		wssPath = wssPath.split('/');
 		log.info(wssPath);
-		let clientId = wssPath[(wssPath.length -2)];
+		let clientId = wssPath[(wssPath.length - 2)];
 		let hospitalId = wssPath[(wssPath.length -1)];
 		/*
 		//-> แบบนี้ user 1 account ใช้งานมากกว่า 1 เครื่องไม่ได้
@@ -738,7 +738,7 @@ function RadconWebSocketServer (arg, db, log) {
 
 	this.doControlShopMessage = function(data){
 	  return new Promise(async function(resolve, reject) {
-			let shopSockets = await $this.findShopLocalSocket(data.shopId)
+			let shopSockets = await $this.findShopLocalSocket(data.shopId);
 			await shopSockets.forEach((socket, i) => {
 				socket.send(JSON.stringify(data));
 			});
