@@ -93,8 +93,13 @@ const ShopShopDef = {
   Shop_StockingOption : {
     type: Sequelize.STRING(1), // <- 0=Not Open Stocking Option, 1=Open Stocking Option
     defaultValue: '0'
+  },
+  Shop_CookingOption : {
+    type: Sequelize.STRING(1), // <- 0=Not Open Cooking Option, 1=Open Cooking Option
+    defaultValue: '0'
   }
 };
+
 const ShopMenuGroupDef = {
   GroupName : {
     type: Sequelize.STRING(80)

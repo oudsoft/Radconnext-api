@@ -381,7 +381,9 @@ module.exports = function ( jq ) {
 
 	const doRemoveChangeLogAt = function(logIndex, diffType, diffIndex){
 		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
-		changelogs[logIndex].diffItems[diffType].splice(diffIndex, 1);
+		if ((changelogs[logIndex]) && (changelogs[logIndex].diffItems[diffType])) {
+			changelogs[logIndex].diffItems[diffType].splice(diffIndex, 1);
+		}
 		localStorage.setItem('changelogs', JSON.stringify(changelogs));
 	}
 
@@ -481,14 +483,12 @@ module.exports = function ( jq, wsm ) {
 
   const onOrderUpdate = async function(wsm, orderId, status, changeOrder){
 		console.log(changeOrder);
+		
 		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
 		if (!changelogs) {
 			changelogs = [];
-			changelogs.push(changelogs);
 		}
-		if (changeOrder) {
-			changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems, date: new Date()});
-		}
+		console.log(changelogs);
 
 		localStorage.setItem('changelogs', JSON.stringify(changelogs));
 		let newMsgCounts = undefined;
@@ -1217,7 +1217,7 @@ module.exports = function ( jq ) {
 						let params = undefined;
 						let orderRes = undefined;
 						if ((orderData) && (orderData.id)) {
-							params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
+							params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: userdata.shop, id: orderData.id};
 							orderRes = await common.doCallApi('/api/shop/order/update', params);
 							if (orderRes.status.code == 200) {
 								$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
@@ -1308,7 +1308,7 @@ module.exports = function ( jq ) {
 						}
 					});
 
-					params = {data: {Items: orderObj.gooditems, Status: 1, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, id: orderData.id};
+					params = {data: {Items: orderObj.gooditems, Status: 1, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: userdata.shop, id: orderData.id};
           orderRes = await common.doCallApi('/api/shop/order/update', params);
           if (orderRes.status.code == 200) {
             $.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
@@ -1333,7 +1333,7 @@ module.exports = function ( jq ) {
     $(saveNewOrderCmdBox).append($(saveNewOrderCmd));
 		if (orderObj.id) {
 			let changelogs = JSON.parse(localStorage.getItem('changelogs'));
-			//console.log(changelogs);
+			console.log(changelogs);
 			if (changelogs) {
 				let newMsgCounts = await changelogs.filter((item, i) =>{
 					if ((item.orderId == orderObj.id) && (item.status === 'New')) {
@@ -2809,7 +2809,8 @@ module.exports = function ( jq ) {
 	}
 
 	const onAccCmdClickEvt = async function(evt, cookData) {
-		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Acc'};
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Acc', shop: userdata.shop};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		let newRest = await menuitemRes.result[0].Items.find((item, i) => {
 			if (item.ItemStatus === 'New') {
@@ -2824,21 +2825,24 @@ module.exports = function ( jq ) {
 	}
 
 	const onRejCmdClickEvt = async function(evt, cookData) {
-		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Rej'};
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Rej', shop: userdata.shop};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		console.log(menuitemRes);
 		$(tabSheetBoxHandle).find('#NewOrderTab').click();
 	}
 
 	const onResetCmdClickEvt = async function(evt, cookData) {
-		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New'};
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New', shop: userdata.shop};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		console.log(menuitemRes);
 		$(tabSheetBoxHandle).find('#NewOrderTab').click();
 	}
 
 	const onDeliCmdClickEvt = async function(evt, cookData) {
-		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Suc'};
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'Suc', shop: userdata.shop};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		$(tabSheetBoxHandle).find('#SucOrderTab').click();
 
@@ -2855,7 +2859,8 @@ module.exports = function ( jq ) {
 	}
 
 	const onRetCmdClickEvt = async function(evt, cookData) {
-		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New'};
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
+		let params = {orderId: cookData.orderId, goodId: cookData.item.goodId, newStatus: 'New', shop: userdata.shop};
     let menuitemRes = await common.doCallApi('/api/shop/order/item/status/update', params);
 		console.log(menuitemRes);
 		$(tabSheetBoxHandle).find('#NewOrderTab').click();

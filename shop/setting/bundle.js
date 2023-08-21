@@ -221,8 +221,9 @@ module.exports = function ( jq ) {
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
-		let wsUrl = 'wss://radconnext.tech/' + username + '/' + shopId + '?type=' + connecttype;
-		//let wsUrl = 'wss://localhost:4443/' + username + '/' + shopId + '?type=' + connecttype;
+		let wsUrl = 'wss://' + hostname + ':' + port + '/' + username + '/' + shopId + '?type=' + connecttype;
+		//let wsUrl = 'wss://radconnext.tech/' + username + '/' + shopId + '?type=' + connecttype;
+
 	  const wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -515,7 +516,8 @@ module.exports = function ( jq, wsm ) {
 			if (modPingCounter == 0) {
 				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
-    } else if (data.type == 'shop') {
+    } else if (data.type === 'shop') {
+			/*
       switch(data.shop) {
 				//when somebody wants to call us
 				case "orderupdate":
@@ -525,31 +527,52 @@ module.exports = function ( jq, wsm ) {
 					onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
 				break;
 			}
+			*/
+
+			switch(data.status) {
+				case "New":
+				console.log(data);
+				if (data.msg) {
+					$.notify(data.msg, "success");
+				}
+				onOrderUpdate(wsm, data.orderId, data.status, data.updataData);
+				$('#NewOrderTab').click();
+				break;
+			}
+
     } else {
 			console.log('Nothing Else');
 		}
   };
 
-  const onOrderUpdate = function(wsm, orderId, status, changeOrder){
+  const onOrderUpdate = async function(wsm, orderId, status, changeOrder){
+		console.log(changeOrder);
 		let changelogs = JSON.parse(localStorage.getItem('changelogs'));
 		if (!changelogs) {
 			changelogs = [];
+			changelogs.push(changelogs);
 		}
-		changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems, date: new Date()});
+		if (changeOrder) {
+			changelogs.push({orderId: orderId, status: status, diffItems: changeOrder.diffItems, date: new Date()});
+		} else {
+			changelogs.push({});
+		}
+
 		localStorage.setItem('changelogs', JSON.stringify(changelogs));
-		$('.order-box').each(async(i, orderBox)=>{
+		let newMsgCounts = undefined;
+		await $('.order-box').each(async(i, orderBox)=>{
 			let orderData = $(orderBox).data('orderData');
-			if (orderData.id == orderId) {
-				let newMsgCounts = await changelogs.filter((item, j) =>{
+			if (orderData.orderId == orderId) {
+				newMsgCounts = await changelogs.filter((item, j) =>{
 					if (item.status === 'New') {
 						return item;
 					}
 				});
-				if (newMsgCounts.length > 0) {
-					$(orderBox).find('#NotifyIndicator').text(newMsgCounts.length).show();
-				}
 			}
-		})
+		});
+		if ((newMsgCounts) && (newMsgCounts.length > 0)) {
+			$('#NewOrderTab').click();
+		}
   }
 
   return {
@@ -637,6 +660,7 @@ $( document ).ready(function() {
 
 	initPage();
 
+  // ปุ่ม ctrl+Z อาจจะมีปัญหาในการพิมพ์ได้
   $(window).on('keydown', async (evt)=>{
     if (evt.ctrlKey && evt.key === 'z') {
       let protocol = window.location.protocol;
@@ -5783,7 +5807,8 @@ module.exports = function ( jq ) {
 		{fieldName: 'Shop_PromptPayName', displayName: 'ขื่อบัญชีพร้อมเพย์', width: '10%', align: 'left', inputSize: '20', verify: false, showHeader: false},
 		{fieldName: 'Shop_BillQuota', displayName: 'Bill Quota', width: '7%', align: 'left', inputSize: '5', verify: false, showHeader: false},
 		{fieldName: 'Shop_StockingOption', displayName: 'Stocking Connect', width: '7%', align: 'left', inputSize: '5', verify: false, showHeader: false},
-		{fieldName: 'id', displayName: 'ShopId', width: '5%', align: 'center', inputSize: '40', verify: false, showHeader: false},
+		{fieldName: 'Shop_CookingOption', displayName: 'Cooking Connect', width: '7%', align: 'left', inputSize: '5', verify: false, showHeader: false},
+		{fieldName: 'id', displayName: 'ShopId', width: '5%', align: 'center', inputSize: '40', verify: false, showHeader: false}
 	];
 
 	const doCreateShopListTable = function(shopItems, pOptions) {
