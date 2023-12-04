@@ -2651,8 +2651,8 @@ module.exports = function ( jq ) {
 
 			let orderListBox = $('<div id="OrderListBox"></div>').css({'position': 'relative', 'width': '100%', 'margin-top': '25px'});
 
+			let cookItems = [];
 			let	promiseList = new Promise(async function(resolve2, reject2){
-				let cookItems = [];
 				for (let i=0; i < orders.length; i++) {
 					for (let j=0; j < orders[i].Items.length; j ++) {
 						//console.log(orders[i].Status); // 1
@@ -2694,7 +2694,6 @@ module.exports = function ( jq ) {
 								console.log(orders[i].Items[j]);
 								console.log(itemStatuses.includes(orders[i].Items[j].ItemStatus)); //false
 								//if (itemStatuses.includes(orders[i].Items[j].ItemStatus)) {
-								if (itemStatuses.indexOf('Acc') < 0) {
 									let diffQty = await doCheckQtyBeforeItems(orders[i].BeforeItems, orders[i].Items[j]);
 									console.log(diffQty);
 									if ((diffQty) && (diffQty.diff > 0)) {
@@ -2708,7 +2707,7 @@ module.exports = function ( jq ) {
 										newCookItem.updatedAt = orders[i].updatedAt;
 										cookItems.push(newCookItem);
 									}
-								}
+								//}
 
 							}
 						}
@@ -2734,7 +2733,7 @@ module.exports = function ( jq ) {
 						let sensitiveWordJSON = JSON.parse(localStorage.getItem('sensitiveWordJSON'));
 						$(notFoundOrderDatbox).find("#notFoundOrderDatbox").text(sensitiveWordJSON.find((item)=>{if(item.elementId === 'notFoundOrderDatbox') return item}).customWord) ;
 					}
-					$(orderListBox).empty().append($(notFoundOrderDatbox));
+					$(orderListBox).append($(notFoundOrderDatbox));
 	        resolve($(orderListBox));
 	      }
       });
@@ -16460,7 +16459,7 @@ module.exports = function ( jq ) {
 	}
 
 	const doEditMenuNameOnTheFly = function(event, gooditems, index, successCallback){
-		let editInput = $('<input type="text"/>').val(gooditems[index].MenuName).css({'width': '200px', 'margin-left': '20px'});
+		let editInput = $('<input type="text"/>').val(gooditems[index].MenuName).css({'width': '340px', 'margin-left': '20px'});
 		$(editInput).on('keyup', (evt)=>{
 			if (evt.keyCode == 13) {
 				$(dlgHandle.okCmd).click();
@@ -16475,7 +16474,7 @@ module.exports = function ( jq ) {
 		let editDlgOption = {
 			title: 'แก้ไขชื่อสินค้า',
 			msg: editBox,
-			width: '350px',
+			width: '450px',
 			onOk: async function(evt) {
 				let newValue = $(editInput).val();
 				if(newValue !== '') {
