@@ -585,6 +585,7 @@ $( document ).ready(function() {
 
   let userdata = JSON.parse(localStorage.getItem('userdata'));
   console.log(userdata);
+  
   if ((!userdata) || (userdata == null)) {
     common.doUserLogout();
   } else {
@@ -1293,8 +1294,12 @@ module.exports = function ( jq ) {
       if (orderObj.customer) {
         let params = undefined;
         let orderRes = undefined;
+				let newStatus = 1;
         if (orderData) {
 					orderRes = await common.doCallApi('/api/shop/order/select/' + orderData.id, {});
+					if (orderRes.Record.Status > 1) {
+						newStatus = orderRes.Record.Status;
+					}
 					await orderObj.gooditems.forEach(async (item, i) => {
 						let findInd = undefined;
 						let findLastItem = await orderRes.Record.Items.find((it, j) => {
@@ -1308,7 +1313,7 @@ module.exports = function ( jq ) {
 						}
 					});
 
-					params = {data: {Items: orderObj.gooditems, Status: 1, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: userdata.shop, id: orderData.id};
+					params = {data: {Items: orderObj.gooditems, Status: newStatus, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: userdata.shop, id: orderData.id};
           orderRes = await common.doCallApi('/api/shop/order/update', params);
           if (orderRes.status.code == 200) {
             $.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
@@ -1764,6 +1769,7 @@ module.exports = function ( jq ) {
 			*/
 			openNewWin(pngReportLink);
 		}).css({'display': 'inline-block', 'width': '120px', 'float': 'right', 'margin-right': '5px'});
+
 		let toggleReportBoxCmd = common.doCreateTextCmd(' เสร็จ ', 'green', 'white', 'green', 'black');
 		$(toggleReportBoxCmd).on('click', (evt)=>{
 			let hasHiddenReportBox = ($(mainBox).css('display') == 'none');
@@ -1818,7 +1824,8 @@ module.exports = function ( jq ) {
 		let cancelCmd = $('<input type="button" value=" กลับ "/>').css({'margin-left': '10px'});
 		$(cancelCmd).on('click', async(evt)=>{
 			$(pageHandle.toggleMenuCmd).click();
-			$(pageHandle.userInfoBox).hide();
+			//$(pageHandle.userInfoBox).hide();
+			$(pageHandle.userInfoBox).show();
 			$(pageHandle.menuContent).empty();
 		});
 		let gooitemCmdCell = $('<td colspan="2" align="center"></td>').append($(saveCmd)).append($(cancelCmd));
@@ -2158,6 +2165,9 @@ module.exports = function ( jq ) {
 			} else {
 				$(canceledOrderHiddenToggleCmd).hide();
 			}
+
+			$(pageHandle.menuContent).empty();
+			$(pageHandle.userInfoBox).show();
 
       resolve();
 
@@ -14593,11 +14603,19 @@ module.exports = function ( jq ) {
 								doShowGooditemPopup(results[i]);
 							});
 	          }
+
+						// console.log(results[i]);
+
 	          let nameCell = $('<td width="30%" align="left">' + results[i].MenuName + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
 	          let qtyCell = $('<td width="10%" align="left"></td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
 	          let priceCell = $('<td width="10%" align="left">' + common.doFormatNumber(results[i].Price) + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
 	          let unitCell = $('<td width="15%" align="left">' + results[i].Unit + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
-	          let groupCell = $('<td width="*" align="left">' + results[i].menugroup.GroupName + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+						let groupCell = undefined;
+						if (results[i].menugroup) {
+	          	groupCell = $('<td width="*" align="left">' + results[i].menugroup.GroupName + '</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+						} else {
+							groupCell = $('<td width="*" align="left">ไม่พบกลุ่มสินค้า</td>').css({'padding-top': '10px', 'padding-bottom': '10px'});
+						}
 	          $(qtyCell).append($(qtyInput)).append($('<span>*</spam>').css({'color': 'red'}));
 	          $(resultRow).append($(pictureCell)).append($(nameCell)).append($(qtyCell)).append($(priceCell)).append($(unitCell)).append($(groupCell));
 	          $(gooditemTable).append($(resultRow));
@@ -15163,8 +15181,12 @@ module.exports = function ( jq ) {
 		let inputField = $('<td width="*" align="left"></td>').css({'padding': '5px'});
 		let inputValue = $('<select id="GroupId"></select>');
 		let menugroups = JSON.parse(localStorage.getItem('menugroups'));
+		let firstGroupId = undefined;
 		menugroups.forEach((item, i) => {
-			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'))
+			$(inputValue).append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+			if (i == 0) {
+				firstGroupId = item.Value;
+			}
 		});
 		$(inputField).append($(inputValue));
 		$(fieldRow).append($(labelField));
@@ -15173,8 +15195,10 @@ module.exports = function ( jq ) {
 
 		if (groupId) {
 			$(inputValue).val(groupId);
-		} else {
+		} else if ((menuitemData) && (menuitemData.menugroupId)){
 			$(inputValue).val(menuitemData.menugroupId);
+		} else {
+			$(inputValue).val(firstGroupId);
 		}
 
 		return $(menuitemFormTable);
