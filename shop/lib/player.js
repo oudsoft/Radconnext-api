@@ -758,7 +758,7 @@
       });
       */
 
-      let minPlayerBoxCmd = $('<div><span>_</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute',/* 'border': '1px solid #dddd',*/ 'padding': '2px', 'vertical-align': 'sup', /* 'top': '-10px',*/ 'bottom': '40px', 'right': '25px'})
+      let minPlayerBoxCmd = $('<div><span>_</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute',/* 'border': '1px solid #dddd',*/ 'padding': '2px', 'vertical-align': 'sup', 'top': '-10px',/*  'bottom': '40px',*/ 'right': '25px'})
       $(minPlayerBoxCmd).on('click', (evt)=>{
         doMinimizeWindow(playerCmdBox, playerViewBox);
       });
