@@ -1145,16 +1145,11 @@ module.exports = function ( jq ) {
 		console.log(orderObj);
 
     $(editCustomerCmd).on('click', async (evt)=>{
-			alert('OK1');
 			let customerDlgContent = await customerdlg.doCreateFormDlg({id: shopId}, customerSelectedCallback);
-			alert('OK2');
 			$(customerDlgContent).find('input[type="text"]').css({'width': '280px', 'background': 'url("../../images/search-icon.png") right center / 8% 100% no-repeat'});
-			alert('OK3');
 			$(pageHandle.menuContent).empty().append($(customerDlgContent).css({'position': 'relative', 'margin-top': '15px'}));
-			alert('OK4');
 			$(pageHandle.toggleMenuCmd).click();
 			$(pageHandle.userInfoBox).hide();
-			alert('OK');
     });
 		$(customerControlCmd).append($(editCustomerCmd));
 
