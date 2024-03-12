@@ -911,7 +911,8 @@ const doStartTestPPQC = function(evt){
   }
   let dlgHandle = $('body').radalert(editDlgOption);
   if (((shopData.Shop_PromptPayNo) && (shopData.Shop_PromptPayNo !== '')) && ((shopData.Shop_PromptPayName) && (shopData.Shop_PromptPayName !== ''))) {
-    $(dlgHandle.cancelCmd).hide();
+    //$(dlgHandle.cancelCmd).hide();
+    $(dlgHandle.cancelCmd).show();
     $(dlgHandle.okCmd).show();
   } else {
     $(dlgHandle.okCmd).hide();
