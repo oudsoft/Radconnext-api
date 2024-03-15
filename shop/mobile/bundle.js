@@ -945,7 +945,7 @@ const doStartTestPPQC = function(evt){
 }
 
 const doOpenPPDataForm = function(evt, shopData) {
-  $(pageHandle.mainContent).empty();
+  //$(pageHandle.mainContent).empty();
   let ppNameInput = $('<input type="text"/>').css({'width': '205px', 'margin-left': '20px'});
   let ppNumberInput = $('<input type="number"/>').css({'width': '200px', 'margin-left': '20px'});
   let ppNameLabel = $('<label>ขื่อบัญชีพร้อมเพย์:</label>').attr('for', $(ppNameInput)).css({'width': '100%'});
@@ -988,9 +988,11 @@ const doOpenPPDataForm = function(evt, shopData) {
           userdata = JSON.parse(localStorage.getItem('userdata'));
           console.log(userdata);
 
-          //$(pageHandle.mainContent).empty();
+          // $(pageHandle.mainContent).empty();
 
-          doStartTestPPQC(evt);
+          // doStartTestPPQC(evt);
+
+          orderMng.doShowOrderList(shopData.id, pageHandle.mainContent);
         } else {
           $.notify("ไม่สามารถบันทึกข้อมูลพร้อมเพย์ได้ในขณะนี้", "error");
         }
