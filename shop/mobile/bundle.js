@@ -846,6 +846,9 @@ const doStartTestPPQC = function(evt){
           evt.stopPropagation();
           dlgHandle.closeAlert();
           doOpenPPDataForm(evt, shopData);
+          $('#TitlePageBox').hide();
+          $('#NewOrderCmdBox').hide();
+          $('#OrderListBox').hide();
         });
 
         let ppCancelCmd = $('<input type="button" value=" ซ่อน "/>').css({'margin-left': '10px'});
@@ -993,6 +996,11 @@ const doOpenPPDataForm = function(evt, shopData) {
           // doStartTestPPQC(evt);
 
           orderMng.doShowOrderList(shopData.id, pageHandle.mainContent);
+
+          $('#TitlePageBox').show();
+          $('#NewOrderCmdBox').show();
+          $('#OrderListBox').show();
+
         } else {
           $.notify("ไม่สามารถบันทึกข้อมูลพร้อมเพย์ได้ในขณะนี้", "error");
         }
@@ -2169,7 +2177,7 @@ module.exports = function ( jq ) {
 			} else {
 				selectDate = common.doFormatDateStr(new Date());
 			}
-      let titlePageBox = $('<div></viv>').css(styleCommon.titlePageBoxStyle);
+      let titlePageBox = $('<div id="TitlePageBox"></viv>').css(styleCommon.titlePageBoxStyle);
 			//let titleTextBox = $('<div></div>').text('รายการออร์เดอร์ของร้าน');
 			let titleTextBox = $('<div class="sensitive-word" id="titleTextBox"></div>').text('รายการออร์เดอร์ของร้าน');
 			let orderDateBox = $('<div></div>').text(selectDate).css(styleCommon.orderDateBoxStyle);
@@ -2190,7 +2198,7 @@ module.exports = function ( jq ) {
       $(titlePageBox).append($(titleTextBox)).append($(orderDateBox));
 			$(workAreaBox).append($(titlePageBox));
 
-      let newOrderCmdBox = $('<div style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
+      let newOrderCmdBox = $('<div id="NewOrderCmdBox" style="padding: 4px;"></div>').css({'width': '99.5%', 'text-align': 'right'});
 			let newOrderCmd = common.doCreateTextCmd('เปิดออร์เดอร์ใหม', 'green', 'white');
 			$(newOrderCmd).addClass('sensitive-word');
 			$(newOrderCmd).attr('id', 'newOrderCmd');
@@ -16116,7 +16124,8 @@ module.exports = function ( jq ) {
 							$(qtyFrag).on('click', (evt)=>{
 								doEditQtyOnTheFly(evt, orderData.gooditems, i, async(newQty)=>{
 									orderData.gooditems[i].Qty = newQty;
-									$(qtyFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Qty)));
+									//$(qtyFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Qty)));
+									$(qtyFrag).text(newQty);
 									subTotal = Number(orderData.gooditems[i].Price) * Number(orderData.gooditems[i].Qty);
 									$(subTotalCell).empty().append($('<span>' +  common.doFormatNumber(subTotal) + '</span>').css({'margin-right': '4px'}));
 									total = await doCalOrderTotal(orderData.gooditems);

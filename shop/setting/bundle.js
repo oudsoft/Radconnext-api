@@ -4961,7 +4961,6 @@ module.exports = function ( jq ) {
 							//$(qtyFrag).css({'cursor': 'pointer', 'text-decoration': 'underline', 'text-decoration-style': 'dotted'});
 							$(qtyFrag).on('click', (evt)=>{
 								doEditQtyOnTheFly(evt, orderData.gooditems, i, async(newQty)=>{
-									console.log(newQty);
 									orderData.gooditems[i].Qty = newQty;
 									//$(qtyFrag).text(common.doFormatNumber(Number(orderData.gooditems[i].Qty)));
 									$(qtyFrag).text(newQty);
