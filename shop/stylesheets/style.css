@@ -151,3 +151,5 @@ p {
 .text-element {cursor: pointer; position: relative ; display: inline-block; left: 10px;}
 .blankPage { position: absolute; width: 100%; min-height: 1410px; /* border: 2px solid blue;*/}
 .unuse-text {color: red; position: absolute; bottom: 0px; text-align: center;}
+
+.success-order-hide {display: none;}
