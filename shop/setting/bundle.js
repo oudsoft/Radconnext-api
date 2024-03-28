@@ -4885,7 +4885,7 @@ module.exports = function ( jq ) {
   		}
   		let closeOrderFormBoxHandle = $('body').radalert(closeOrderformoption);
       $(closeOrderFormBoxHandle.okCmd).hide();
-      resolve(closeOrderFormBoxHandle)
+      resolve(closeOrderFormBoxHandle);
     });
 	}
 
@@ -6574,6 +6574,8 @@ module.exports = function ( jq ) {
 			title: 'เครื่องคิดเลข',
 			msg: $(calcBox),
 			width: '365px',
+			okLabel: ' ปิด ',
+			cancelLabel: ' ปิด ',
 			onOk: function(evt) {
 				$(calcScript).remove();
 				dlgHandle.closeAlert();
@@ -6598,6 +6600,8 @@ module.exports = function ( jq ) {
 			title: 'สรุปกำไร-ขาดทุน',
 			msg: $(earningBox),
 			width: '615px',
+			okLabel: ' ปิด ',
+			cancelLabel: ' ปิด ',
 			onOk: function(evt) {
 				$(earningScript).remove();
 				localStorage.removeItem('earnShopData');
