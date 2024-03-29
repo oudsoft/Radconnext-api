@@ -771,7 +771,9 @@ module.exports = function ( jq ) {
 
   const doCreateFormDlg = function(shopData, orderTotal, orderObj, invoiceSuccessCallback, billSuccessCallback, taxinvoiceSuccessCallback) {
     return new Promise(async function(resolve, reject) {
-			const orderId = orderObj.id;
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let orderId = orderObj.id;
       let payAmountInput = undefined;
       let createTaxInvoiceCmd = undefined;
 
@@ -795,7 +797,8 @@ module.exports = function ( jq ) {
 			const checkboxVatClick = function(evt) {
 				let check = $(checkboxVat).prop('checked');
 				if (check == true){
-					$(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+					let vatVal = (0.07*orderTotal).toFixed(2);
+					$(vatInput).val(vatVal);
 				} else {
 					$(vatInput).val('0');
 				}
@@ -825,7 +828,9 @@ module.exports = function ( jq ) {
         $(vatInput).on('keyup', keyChangeValue);
         dataRow = $('<tr class="first-step"></tr>').css({'height': '40px'});
         $(dataRow).append($('<td align="left">ภาษีมูลค่าเพิ่ม (7%)</td>'));
-        $(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+        //$(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+				let vatVal = (0.07*orderTotal).toFixed(2);
+				$(vatInput).val(vatVal);
         $(dataRow).append($('<td align="right"></td>').append($(checkboxVat)).append($(vatInput)));
         $(closeOrderTable).append($(dataRow));
       } else {
@@ -846,7 +851,8 @@ module.exports = function ( jq ) {
       $(middleActionCmdRow).append($(commandCell));
       $(closeOrderTable).append($(middleActionCmdRow));
 
-			if (orderObj.Status == 1) {
+			/** add admin for edit order and re-create bill/tax-invoice **/
+			if ((orderObj.Status == 1) || (userId == 1)) {
 	      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์ใบแจ้งหนี้', '#F5500E', 'white', '#5D6D7E', '#FF5733');
 				$(createInvoiceCmd).attr('id', 'CreateInvoiceCmd');
 				$(createInvoiceCmd).on('click', async(evt)=>{
@@ -873,7 +879,7 @@ module.exports = function ( jq ) {
 				});
 				$(commandCell).append($(createInvoiceCmd));
 			}
-			if ((orderObj.Status == 1) || (orderObj.Status == 2)) {
+			if ((orderObj.Status == 1) || (orderObj.Status == 2) || (userId == 1)) {
 	      let closeOrderCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
 	      $(closeOrderCmd).css({'margin-left': '10px'});
 	      $(closeOrderCmd).on('click', async(evt)=>{
@@ -4589,6 +4595,7 @@ module.exports = function ( jq ) {
 					let orderRes = undefined;
 					if ((orderData) && (orderData.id)) {
 						params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: shopData, id: orderData.id};
+						console.log(params);
 						orderRes = await common.doCallApi('/api/shop/order/update', params);
 						if (orderRes.status.code == 200) {
 							$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
@@ -4624,7 +4631,15 @@ module.exports = function ( jq ) {
 			if (addNewGoodItemCmd) {
 				$(lastCell).append($(addNewGoodItemCmd));
 			}
-			if ([1, 2].includes(orderObj.Status)) {
+
+			/*
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let userinfoId = userdata.userinfoId;
+			*/
+
+			/** add admin for edit order and re-create bill/tax-invoice **/
+			if (([1, 2].includes(orderObj.Status)) || (userId == 1)) {
 				lastCell = $(goodItemTable).children(":last").children(":last");
 				$(lastCell).append($(callCreateCloseOrderCmd));
 			}
@@ -4799,6 +4814,23 @@ module.exports = function ( jq ) {
 			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
 			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
 
+			/*
+			let newtaxinvoiceData = {No: newtaxinvoice.No, Discount: parseFloat(newtaxinvoice.Discount), Vat: parseFloat(newtaxinvoice.Vat), Filename: newtaxinvoice.Filename};
+			if (newtaxinvoice.Remark) {
+				newtaxinvoiceData.Remark = newtaxinvoice.Remark;
+			}
+
+			let apiUrl = undefined;
+			let taxinvoiceParams = undefined;
+			if (userId == 1) {
+				apiUrl = '/api/shop/taxinvoice/update';
+				taxinvoiceParams = {Discount: parseFloat(newTaxInvoiceData.Discount), Vat: parseFloat(newTaxInvoiceData.Vat)};
+			} else {
+				apiUrl = '/api/shop/taxinvoice/add';
+				taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
+			}
+			*/
+			
 			if (taxinvoiceRes.status.code == 200) {
 				let taxinvoiceId = taxinvoiceRes.Record.id;
 				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
