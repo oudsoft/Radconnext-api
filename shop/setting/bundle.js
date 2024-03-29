@@ -4815,22 +4815,9 @@ module.exports = function ( jq ) {
 			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
 
 			/*
-			let newtaxinvoiceData = {No: newtaxinvoice.No, Discount: parseFloat(newtaxinvoice.Discount), Vat: parseFloat(newtaxinvoice.Vat), Filename: newtaxinvoice.Filename};
-			if (newtaxinvoice.Remark) {
-				newtaxinvoiceData.Remark = newtaxinvoice.Remark;
-			}
-
-			let apiUrl = undefined;
-			let taxinvoiceParams = undefined;
-			if (userId == 1) {
-				apiUrl = '/api/shop/taxinvoice/update';
-				taxinvoiceParams = {Discount: parseFloat(newTaxInvoiceData.Discount), Vat: parseFloat(newTaxInvoiceData.Vat)};
-			} else {
-				apiUrl = '/api/shop/taxinvoice/add';
-				taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
-			}
+				พื้นที่ที่ควรสั่งให้ TaxInvoice มีการอัพเดทและสร้าง เอกสารกระดาษใหม่
 			*/
-			
+
 			if (taxinvoiceRes.status.code == 200) {
 				let taxinvoiceId = taxinvoiceRes.Record.id;
 				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
