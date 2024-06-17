@@ -526,6 +526,7 @@
       let firstOption = $(playerViewBox).find('#FileSourceList').find('option:selected');
       let ownerMediaName = $(firstOption).text();
       console.log(ownerMediaName);
+      console.log($('#ImgLabel').text());
       let maximizeWindowCmd = $('<input type="button" style="position: relative; float: right; bottom: 0px; margin-right: 5px;"/>');
       $(maximizeWindowCmd).css({'font-family': 'THSarabunNew', 'font-size': '20px'});
       if (ownerMediaName !== ''){
@@ -749,15 +750,6 @@
 
       let fullScreenCmd = doCreateFullScreenCmd();
       $(fullScreenCmd).css({'top': '-2px'});
-
-      /*
-      let minimizeWindowCmd = $('<img data-toggle="tooltip" title="Minimize Player"/>');
-      $(minimizeWindowCmd).attr('src', settings.iconRootPath+ '/images/minimize-icon.png');
-      $(minimizeWindowCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px', 'margin-left': '5px'});
-      $(minimizeWindowCmd).on('click', (evt)=>{
-        doMinimizeWindow(playerCmdBox, playerViewBox);
-      });
-      */
 
       let minPlayerBoxCmd = $('<div><span>_</span></div>').css({'font-size': '25px', 'cursor': 'pointer', 'position': 'absolute',/* 'border': '1px solid #dddd',*/ 'padding': '2px', 'vertical-align': 'sup', 'top': '-10px',/*  'bottom': '40px',*/ 'right': '25px'})
       $(minPlayerBoxCmd).on('click', (evt)=>{
