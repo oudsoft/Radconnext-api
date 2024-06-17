@@ -524,7 +524,7 @@
       }
       //let firstOption = $(playerViewBox).find('#FileSourceList').find('option:first');
       let firstOption = $(playerViewBox).find('#FileSourceList').find('option:selected');
-      let ownerMediaName = $(firstOption).text();
+      //let ownerMediaName = $(firstOption).text();
       let ownerMediaName = $('#ImgLabel').text();
       //console.log(ownerMediaName);
       //console.log($('#ImgLabel').text());
