@@ -525,6 +525,7 @@
       //let firstOption = $(playerViewBox).find('#FileSourceList').find('option:first');
       let firstOption = $(playerViewBox).find('#FileSourceList').find('option:selected');
       let ownerMediaName = $(firstOption).text();
+      console.log(ownerMediaName);
       let maximizeWindowCmd = $('<input type="button" style="position: relative; float: right; bottom: 0px; margin-right: 5px;"/>');
       $(maximizeWindowCmd).css({'font-family': 'THSarabunNew', 'font-size': '20px'});
       if (ownerMediaName !== ''){

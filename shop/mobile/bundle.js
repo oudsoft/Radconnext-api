@@ -156,7 +156,7 @@ module.exports = function ( jq ) {
 
 	const calendarOptions = {
 		lang: "th",
-		years: "2020-2030",
+		years: "2020-2040",
 		sundayFirst: true,
 	};
 
@@ -641,9 +641,17 @@ const doCreatePageLayout = function(){
     if ($(toggleMenuCmd).css('left') == '10px') {
       $(toggleMenuCmd).animate({left: '90%'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/cross-mark-icon.png');
+      /*
+      $('#UserInfoBox').hide();
+      $('#MenuContent').show();
+      */
     } else {
       $(toggleMenuCmd).animate({left: '10px'}, timeAnimate);
       $(toggleMenuCmd).attr('src', '../../images/bill-icon.png');
+      /*
+      $('#UserInfoBox').show();
+      $('#MenuContent').hide();
+      */
     }
   });
   let handle = {mainBox, menuBox, toggleMenuCmd, mainContent, menuContent, userInfoBox};
@@ -709,7 +717,7 @@ const doCreateShopMessageBox = function() {
 
 const doCreateUserInfoBox = function(){
   let userdata = JSON.parse(localStorage.getItem('userdata'));
-  let userInfoBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
+  let userInfoBox = $('<div id="UserInfoBox"></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
   //let userPictureBox = $('<img src="../../images/avatar-icon.png"/>').css({'position': 'relative', 'width': '50px', 'height': 'auto', 'cursor': 'pointer', 'margin-top': '-2px'});
   let userPictureBox = $('<div></div>').css({'position': 'relative', 'width': '100%', 'text-align': 'center'});
   $(userPictureBox).on('click', (evt)=>{
@@ -14036,7 +14044,9 @@ module.exports = function ( jq ) {
 
   const doCreateFormDlg = function(shopData, orderTotal, orderObj, invoiceSuccessCallback, billSuccessCallback, taxinvoiceSuccessCallback) {
     return new Promise(async function(resolve, reject) {
-			const orderId = orderObj.id;
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let orderId = orderObj.id;
       let payAmountInput = undefined;
       let createTaxInvoiceCmd = undefined;
 
@@ -14060,7 +14070,8 @@ module.exports = function ( jq ) {
 			const checkboxVatClick = function(evt) {
 				let check = $(checkboxVat).prop('checked');
 				if (check == true){
-					$(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+					let vatVal = (0.07*orderTotal).toFixed(2);
+					$(vatInput).val(vatVal);
 				} else {
 					$(vatInput).val('0');
 				}
@@ -14090,7 +14101,9 @@ module.exports = function ( jq ) {
         $(vatInput).on('keyup', keyChangeValue);
         dataRow = $('<tr class="first-step"></tr>').css({'height': '40px'});
         $(dataRow).append($('<td align="left">ภาษีมูลค่าเพิ่ม (7%)</td>'));
-        $(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+        //$(vatInput).val(common.doFormatNumber(0.07*orderTotal));
+				let vatVal = (0.07*orderTotal).toFixed(2);
+				$(vatInput).val(vatVal);
         $(dataRow).append($('<td align="right"></td>').append($(checkboxVat)).append($(vatInput)));
         $(closeOrderTable).append($(dataRow));
       } else {
@@ -14111,7 +14124,8 @@ module.exports = function ( jq ) {
       $(middleActionCmdRow).append($(commandCell));
       $(closeOrderTable).append($(middleActionCmdRow));
 
-			if (orderObj.Status == 1) {
+			/** add admin for edit order and re-create bill/tax-invoice **/
+			if ((orderObj.Status == 1) || (userId == 1)) {
 	      let createInvoiceCmd = common.doCreateTextCmd('พิมพ์ใบแจ้งหนี้', '#F5500E', 'white', '#5D6D7E', '#FF5733');
 				$(createInvoiceCmd).attr('id', 'CreateInvoiceCmd');
 				$(createInvoiceCmd).on('click', async(evt)=>{
@@ -14138,7 +14152,7 @@ module.exports = function ( jq ) {
 				});
 				$(commandCell).append($(createInvoiceCmd));
 			}
-			if ((orderObj.Status == 1) || (orderObj.Status == 2)) {
+			if ((orderObj.Status == 1) || (orderObj.Status == 2) || (userId == 1)) {
 	      let closeOrderCmd = common.doCreateTextCmd('เก็บเงิน', 'green', 'white');
 	      $(closeOrderCmd).css({'margin-left': '10px'});
 	      $(closeOrderCmd).on('click', async(evt)=>{
@@ -15669,8 +15683,10 @@ module.exports = function ( jq ) {
 			$('#OrderListBox').remove();
 			let orderListBox = await doCreateOrderList(shopData, workAreaBox, selectDate);
 			$(workAreaBox).append($(orderListBox));
-			//console.log($(orderListBox).find('.canceled-order').length);
-			if ($(orderListBox).find('.canceled-order')){
+
+			console.log('try + ', $(orderListBox).find('.canceled-order').length);
+
+			if ($(orderListBox).find('.canceled-order').length > 0){
 				$(canceledOrderHiddenToggleCmd).show();
 			} else {
 				$(canceledOrderHiddenToggleCmd).hide();
@@ -15792,6 +15808,7 @@ module.exports = function ( jq ) {
 					let orderRes = undefined;
 					if ((orderData) && (orderData.id)) {
 						params = {data: {Items: orderObj.gooditems, Status: orderObj.Status, customerId: orderObj.customer.id, userId: userId, userinfoId: userinfoId}, shop: shopData, id: orderData.id};
+						console.log(params);
 						orderRes = await common.doCallApi('/api/shop/order/update', params);
 						if (orderRes.status.code == 200) {
 							$.notify("บันทึกรายการออร์เดอร์สำเร็จ", "success");
@@ -15827,7 +15844,15 @@ module.exports = function ( jq ) {
 			if (addNewGoodItemCmd) {
 				$(lastCell).append($(addNewGoodItemCmd));
 			}
-			if ([1, 2].includes(orderObj.Status)) {
+
+			/*
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			let userId = userdata.id;
+			let userinfoId = userdata.userinfoId;
+			*/
+
+			/** add admin for edit order and re-create bill/tax-invoice **/
+			if (([1, 2].includes(orderObj.Status)) || (userId == 1)) {
 				lastCell = $(goodItemTable).children(":last").children(":last");
 				$(lastCell).append($(callCreateCloseOrderCmd));
 			}
@@ -16002,6 +16027,10 @@ module.exports = function ( jq ) {
 			let taxinvoiceParams = {data: newTaxInvoiceData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId, shopData: shopData};
 			let taxinvoiceRes = await common.doCallApi('/api/shop/taxinvoice/add', taxinvoiceParams);
 
+			/*
+				พื้นที่ที่ควรสั่งให้ TaxInvoice มีการอัพเดทและสร้าง เอกสารกระดาษใหม่
+			*/
+
 			if (taxinvoiceRes.status.code == 200) {
 				let taxinvoiceId = taxinvoiceRes.Record.id;
 				let paymentParams = {data: paymentData, shopId: shopData.id, orderId: orderObj.id, userId: userId, userinfoId: userinfoId};
@@ -16090,7 +16119,7 @@ module.exports = function ( jq ) {
   		}
   		let closeOrderFormBoxHandle = $('body').radalert(closeOrderformoption);
       $(closeOrderFormBoxHandle.okCmd).hide();
-      resolve(closeOrderFormBoxHandle)
+      resolve(closeOrderFormBoxHandle);
     });
 	}
 
