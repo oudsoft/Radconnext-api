@@ -464,6 +464,7 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
+      $(fileSrcListBox).resizable({containment: 'parent'});
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
