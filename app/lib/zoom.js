@@ -3,7 +3,7 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 const crypto = require('crypto') // crypto comes with Node.js
-const request = require('request-promise');
+const request = require('node-request-promise');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -64,14 +64,14 @@ function nextExpired() {
 function requestZoomApi(url, params, method){
   return new Promise(function(resolve, reject) {
     let zoomToken = zoomApiJWTToken();
+    /*
     let options = {
       uri: url,
       method: method,
       qs: {
-        status: 'active' // -> uri + '?status=active'
+        status: 'active'
       },
       auth: {
-        //Provide your token here
         'bearer': zoomToken
       },
       headers: {
@@ -79,13 +79,37 @@ function requestZoomApi(url, params, method){
         'content-type': 'application/json'
       },
       body: params,
-      json: true // Automatically parses the JSON string in the response
+      json: true
     };
     request(options).then(function (response) {
       resolve(response);
     }).catch(function (err) {
       reject(err)
     });
+    */
+    let headers = {
+      qs: {
+        status: 'active'
+      },
+      auth: {
+        'bearer': zoomToken
+      },
+      headers: {
+        'User-Agent': 'Zoom-Jwt-Request',
+        'content-type': 'application/json'
+      },
+      json: true
+    };
+    let res = undefined;
+		if (method.toLowerCase() == 'get') {
+			res = await request.get(url);
+			resolve({status: {code: 200}, res: res});
+		} else if (method.toLowerCase() == 'post') {
+			res = await request.post(url, params, headers);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}
   });
 }
 

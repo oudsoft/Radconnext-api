@@ -2,7 +2,7 @@ const fs = require('fs');
 const util = require("util");
 const path = require('path');
 const url = require('url');
-const request = require('request-promise');
+const request = require('node-request-promise');
 const fetch = require('node-fetch');
 const exec = require('child_process').exec;
 const cron = require('node-cron');
@@ -16,8 +16,9 @@ const TZ = 'Asia/Bangkok';
 //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const proxyRequest = function(rqParam) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(async function(resolve, reject) {
 		let rqBody = JSON.stringify(rqParam.body);
+		/*
 		let proxyParams = {
 			method: rqParam.method,
 			url: rqParam.uri,
@@ -39,6 +40,22 @@ const proxyRequest = function(rqParam) {
 				reject({status: {code: 500}, err: err});
 			}
 		});
+		*/
+		let res = undefined;
+		let headers = undefined;
+		if (rqParam.Authorization) {
+			headers = rqParam.Authorization;
+		}
+
+		if (rqParam.method.toLowerCase() == 'get') {
+			res = await request.get(rqParam.uri);
+			resolve({status: {code: 200}, res: res});
+		} else if (rqParam.method.toLowerCase() == 'post') {
+			res = await request.post(rqParam.uri, rqBody, headers);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}
 	});
 }
 
@@ -465,7 +482,8 @@ const doCalUrgentVoiceCall = function(mn){
 }
 
 const voipRequest = function(rqParam) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(async function(resolve, reject) {
+		/*
 		let proxyParams = {
 			method: rqParam.method,
 			url: rqParam.uri,
@@ -482,6 +500,22 @@ const voipRequest = function(rqParam) {
 				reject({status: {code: 500}, err: err});
 			}
 		});
+		*/
+		let res = undefined;
+		let headers = undefined;
+		if (rqParam.Authorization) {
+			headers = rqParam.Authorization;
+		}
+
+		if (rqParam.method.toLowerCase() == 'get') {
+			res = await request.get(rqParam.uri);
+			resolve({status: {code: 200}, res: res});
+		} else if (rqParam.method.toLowerCase() == 'post') {
+			res = await request.post(rqParam.uri, rqParam.body, headers);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}
 	});
 }
 

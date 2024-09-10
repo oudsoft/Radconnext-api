@@ -4,13 +4,14 @@ const fs = require('fs');
 const util = require("util");
 const path = require('path');
 const url = require('url');
-const request = require('request-promise');
+const request = require('node-request-promise');
 const express = require('express');
 const app = express();
 
 const proxyRequest = function(rqParam) {
-	return new Promise(function(resolve, reject) {
-		//console.log(rqParam);
+	return new Promise(async function(resolve, reject) {
+		console.log(rqParam);
+		/*
 		request({
 			method: rqParam.method,
 			url: rqParam.url,
@@ -22,11 +23,24 @@ const proxyRequest = function(rqParam) {
 				reject({status: {code: 500}, err: err});
 			}
 		});
+		*/
+		let res = undefined;
+		if (rqParam.method.toLowerCase() == 'get') {
+			res = await request.get(rqParam.url);
+			resolve({status: {code: 200}, res: res});
+		} else if (rqParam.method.toLowerCase() == 'post') {
+			res = await request.post(rqParam.url, rqParam.body, rqParam.options);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}
 	});
 }
 
 const proxyZoomRequest = function(rqParam) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(async function(resolve, reject) {
+		console.log(rqParam);
+		/*
 		request({
 			method: rqParam.method,
 			url: rqParam.url,
@@ -39,6 +53,17 @@ const proxyZoomRequest = function(rqParam) {
 				reject({status: {code: 500}, err: err});
 			}
 		});
+		*/
+		let res = undefined;
+		if (rqParam.method.toLowerCase() == 'get') {
+			res = await request.get(rqParam.url);
+			resolve({status: {code: 200}, res: res});
+		} else if (rqParam.method.toLowerCase() == 'post') {
+			res = await request.post(rqParam.url, rqParam.body, rqParam.options);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}		
 	});
 }
 

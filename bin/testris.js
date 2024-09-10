@@ -1,8 +1,9 @@
-const request = require('request-promise');
+const request = require('node-request-promise');
 
 const proxyRequest = function(rqParam) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(async function(resolve, reject) {
 		let rqBody = JSON.stringify(rqParam.body);
+		/*
 		let proxyParams = {
 			method: rqParam.method,
 			url: rqParam.uri,
@@ -12,10 +13,6 @@ const proxyRequest = function(rqParam) {
 			},
 			body: rqBody
 		};
-		if (rqParam.Authorization) {
-			proxyParams.headers.Authorization = rqParam.Authorization;
-		}
-		console.log('proxyParams=>' + JSON.stringify(proxyParams));
 		request(proxyParams, (err, res, body) => {
 			if (!err) {
 				resolve({status: {code: 200}, res: res});
@@ -24,6 +21,21 @@ const proxyRequest = function(rqParam) {
 				reject({status: {code: 500}, err: err});
 			}
 		});
+		*/
+		let headers = {'Content-Type': 'application/json'};
+		if (rqParam.Authorization) {
+			headers.Authorization = rqParam.Authorization;
+		}
+		let res = undefined;
+		if (rqParam.method.toLowerCase() == 'get') {
+			res = await request.get(rqParam.uri);
+			resolve({status: {code: 200}, res: res});
+		} else if (rqParam.method.toLowerCase() == 'post') {
+			res = await request.post(rqParam.uri, rqBody, headers);
+			resolve({status: {code: 200}, res: res});
+		} else {
+			reject({status: {code: 500, error: 'incurrect request method'}});
+		}
 	});
 }
 

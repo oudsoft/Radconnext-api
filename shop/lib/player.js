@@ -770,7 +770,7 @@
     }
 
     const formatDateStr = function(d) {
-  		var yy, mm, dd, hh, mn, ss;
+  		let yy, mm, dd, hh, mn, ss;
   		yy = d.getFullYear();
   		if (d.getMonth() + 1 < 10) {
   			mm = '0' + (d.getMonth() + 1);
@@ -797,7 +797,7 @@
       } else {
         ss = '' + d.getSeconds();
       }
-  		var td = `${yy}${mm}${dd}-${hh}${mn}${ss}`;
+  		let td = `${yy}${mm}${dd}-${hh}${mn}${ss}`;
   		return td;
   	}
 

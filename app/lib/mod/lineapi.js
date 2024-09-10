@@ -2,7 +2,7 @@ const fs = require('fs');
 const util = require("util");
 const path = require('path');
 const url = require('url');
-const request = require('request-promise');
+const request = require('node-request-promise');
 
 var db, log;
 
@@ -17,8 +17,9 @@ const backMenu = [{id: 'x001', name: 'กลับ'}];
 const toggleAccMenu = [{id: 'x501', name: 'เปิด'}, {id: 'x502', name: 'ปิด'}];
 
 const getUserProfile = (userId) => {
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
     var lineHeader = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + process.env.LINE_API_ACCESS_TOKEN};
+    /*
     request({
       method: 'GET',
       uri: "https://api.line.me/v2/bot/profile/" + userId,
@@ -30,12 +31,19 @@ const getUserProfile = (userId) => {
         reject(err);
       }
     });
+    */
+
+    let headers = {headers: lineHeader};
+    let url = 'https://api.line.me/v2/bot/profile/' + userId;
+    let res = await request.get(url, headers);
+    resolve({status: {code: 200}, res: res});
   });
 }
 
 const replyConnect = (token, messages)=>{
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 		var lineHeader = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + process.env.LINE_API_ACCESS_TOKEN};
+    /*
 		request({
 			method: 'POST',
 			uri: process.env.LINE_MESSAGING_API_URL + "/reply",
@@ -52,12 +60,22 @@ const replyConnect = (token, messages)=>{
         log.error('Reply Error =>' + json.stringify(err));
 			}
 		});
+    */
+    let headers = {headers: lineHeader};
+    let url = process.env.LINE_MESSAGING_API_URL + "/reply";
+    let body = JSON.stringify({
+      replyToken: token,
+      messages: [messages]
+    });
+    let res = await request.post(url, body, headers);
+    resolve({status: {code: 200}, res: res});
 	});
 }
 
 const pushConnect = (userId, messages) => {
-	return new Promise(function(resolve, reject) {
+	return new Promise(async function(resolve, reject) {
 		var lineHeader = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + process.env.LINE_API_ACCESS_TOKEN};
+    /*
 		request({
 			method: 'POST',
 			uri: process.env.LINE_MESSAGING_API_URL + "/push",
@@ -73,6 +91,15 @@ const pushConnect = (userId, messages) => {
 				reject({code: 500, error: err});
 			}
     });
+    */
+    let headers = {headers: lineHeader};
+    let url = process.env.LINE_MESSAGING_API_URL + "/push";
+    let body = JSON.stringify({
+      to: userId,
+      messages: [messages]
+    });
+    let res = await request.post(url, body, headers);
+    resolve({status: {code: 200}, res: res});
 	});
 }
 
