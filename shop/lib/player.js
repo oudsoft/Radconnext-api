@@ -464,6 +464,16 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
+      $(fileSrcListBox).resizable({containment: 'parent',
+      stop: function(evt) {
+        $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+      }
+      });
+      $(fileSrcSelector).resizable({containment: 'parent',
+        stop: function(evt) {
+          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+        }
+      });
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
