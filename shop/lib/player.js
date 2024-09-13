@@ -19,7 +19,7 @@
   }
 
   $.fn.player = function( options ) {
-    var settings = $.extend({
+    let settings = $.extend({
       imgSize: '330',
       timeDelay: 7,
       iconRootPath: '../../'
@@ -41,7 +41,7 @@
     let playerCmdBox = undefined;
     let playerViewBox = undefined;
 
-    let recorder =undefined;
+    let recorder = undefined;
     let captureDimension = undefined;
     let playerStream = undefined;
     let audioStream = undefined;
@@ -111,7 +111,6 @@
         if (n == selectedFiles.length){
           n = 0;
         }
-        //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
         let fileURL = selectedFiles[n].url;
         doOpenEditor(fileURL);
       });
@@ -212,7 +211,6 @@
       if (n == selectedFiles.length){
         n = 0;
       }
-      //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
       let fileURL = selectedFiles[n].url;
       let fileType = selectedFiles[n].type
       if (fileType.indexOf("image") >= 0){
@@ -321,7 +319,6 @@
               if (n == selectedFiles.length){
                 n = 0;
               }
-              //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
               let fileURL = selectedFiles[n].url;
               localVideo.src = fileURL;
               $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
@@ -369,7 +366,6 @@
               if (n == selectedFiles.length){
                 n = 0;
               }
-              //var fileURL = clipURL.createObjectURL(selectedFiles[n]);
               let fileURL = selectedFiles[n].url;
               localAudio.src = fileURL;
               $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
@@ -464,26 +460,11 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
-      $(fileSrcListBox).resizable({containment: 'body',
-        start: function(evt) {
-          $('body').css({'width': '100%', 'height': '100%'});
-        },
-        stop: function(evt) {
-          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-        }
-      });
-      $(fileSrcSelector).resizable({containment: 'parent',
-        start: function(evt) {
-          $('body').css({'width': '100%', 'height': '100%'});
-        },
-        stop: function(evt) {
-          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-        }
-      });
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
-    const doOpenFileChooser = function(){
+    //const doOpenFileChooser = function(evt){
+    const doOpenFileChooser11 = function(evt){
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'body'});
@@ -613,7 +594,7 @@
     const doOpenEditor = function(fileURL){
       let w = $(playerViewBox).find('.imgbox').find('img').width();
       let h = $(playerViewBox).find('.imgbox').find('img').height();
-      var editorbox = $('<div id="EditorBox"></div>');
+      let editorbox = $('<div id="EditorBox"></div>');
       let pinSwitchBox = $('<div style="position: absolute; display: inline-block; right: 5px; top: 5px;"></div>');
 			let pinOption = {
 				onActionCallback: (evt)=>{
@@ -689,14 +670,14 @@
 
     const requestFullScreen = function(element) {
       return new Promise(function(resolve, reject) {
-        var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+        let requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
         if (requestMethod) { // Native full screen.
           requestMethod.call(element);
-          var width = window.innerWidth;
-          var height = window.innerHeight;
+          let width = window.innerWidth;
+          let height = window.innerHeight;
           resolve({width: width, height: height});
         } else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
-          var wscript = new ActiveXObject("WScript.Shell");
+          let wscript = new ActiveXObject("WScript.Shell");
           if (wscript !== null) {
             wscript.SendKeys("{F11}");
           }
@@ -743,7 +724,7 @@
       $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px'});
       $(fileChooserCmd).on('click', (evt)=>{
         selectedFiles = [];
-        doOpenFileChooser(evt);
+        doOpenFileChooser11(evt);
       });
 
       let autoPlayCmd = $('<img id="AutoPlayCmd" data-toggle="tooltip" title="Start/Stop Slide Show"/>');
@@ -785,7 +766,7 @@
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
 
-    const formatDateStr = function(d) {
+    const formatDateStr = function(d){
   		let yy, mm, dd, hh, mn, ss;
   		yy = d.getFullYear();
   		if (d.getMonth() + 1 < 10) {
@@ -883,7 +864,7 @@
           localVideo.style.width = captureDimension.width + 'px';
           localVideo.style.height = 'auto';
         }
-        var localVideo = document.createElement('video');
+        let localVideo = document.createElement('video');
         $(playerViewBox).append($(localVideo));
         localVideo.id = 'LocalVideo';
         localVideo.style.position = 'absolute';
@@ -912,10 +893,10 @@
 
     const doStopRecord = async function(evt){
       recorder.ondataavailable = function(e) {
-        var url = window.URL.createObjectURL(e.data);
-        var dateStr = formatDateStr(new Date());
-        var fileName = ['video-', dateStr, '.webm'].join('');
-        var pom = document.createElement('a');
+        let url = window.URL.createObjectURL(e.data);
+        let dateStr = formatDateStr(new Date());
+        let fileName = ['video-', dateStr, '.webm'].join('');
+        let pom = document.createElement('a');
         pom.setAttribute('href', url);
         pom.setAttribute('download', fileName);
         delay(4000).then(()=> {
@@ -952,7 +933,7 @@
     });
 
     /* public method of plugin */
-    var output = {
+    let output = {
       settings: settings,
       handle: this,
       player: player,
