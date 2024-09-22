@@ -417,7 +417,7 @@
           if (timer) {
             window.clearTimeout(timer);
           }
-          $(playerViewBox).find('#LocalVideo').remove();
+          //$(playerViewBox).find('#LocalVideo').remove();
           $(playerViewBox).find('.imgbox').remove();
           $(playerCmdBox).find('#NavBar').remove();
           doPlayExternalVideo(fileURL);
