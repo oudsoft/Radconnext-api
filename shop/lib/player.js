@@ -463,8 +463,7 @@
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
-    //const doOpenFileChooser = function(evt){
-    const doOpenFileChooser11 = function(evt){
+    const doOpenFileChooser = function(evt){
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'body'});
@@ -724,7 +723,7 @@
       $(fileChooserCmd).css({'position': 'relative', 'width': '40px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-5px'});
       $(fileChooserCmd).on('click', (evt)=>{
         selectedFiles = [];
-        doOpenFileChooser11(evt);
+        doOpenFileChooser(evt);
       });
 
       let autoPlayCmd = $('<img id="AutoPlayCmd" data-toggle="tooltip" title="Start/Stop Slide Show"/>');
