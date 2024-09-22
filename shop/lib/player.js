@@ -294,39 +294,44 @@
         window.clearTimeout(timer);
       }
       if (URL !== null) {
-        let localVideo = document.createElement('video');
-        $(playerViewBox).append($(localVideo));
-        localVideo.id = 'LocalVideo';
-        localVideo.style.position = 'relative';
-        localVideo.style.display = 'inline-block';
-        localVideo.style.width = settings.imgSize + 'px';
-        localVideo.style.height = 'auto';
-        localVideo.style.border = '1px solid green';
-        localVideo.style.padding = '2px';
-        localVideo.style.top = '-90px';
-        localVideo.controls = true;
-        localVideo.autoplay = true;
-        localVideo.crossorigin = "anonymous";
-        localVideo.src = URL;
-        setTimeout(() => {
-          localVideo.addEventListener("canplay",  function() {
-            localVideo.play();
-          });
-          localVideo.addEventListener("ended",  function() {
-            if (isAutoPlay){
-              let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
-              n = parseInt(n) + 1;
-              if (n == selectedFiles.length){
-                n = 0;
+        let lV = document.getElementById('LocalVideo');
+        if (lV === null) {
+          let localVideo = document.createElement('video');
+          $(playerViewBox).append($(localVideo));
+          localVideo.id = 'LocalVideo';
+          localVideo.style.position = 'relative';
+          localVideo.style.display = 'inline-block';
+          localVideo.style.width = settings.imgSize + 'px';
+          localVideo.style.height = 'auto';
+          localVideo.style.border = '1px solid green';
+          localVideo.style.padding = '2px';
+          localVideo.style.top = '-90px';
+          localVideo.controls = true;
+          localVideo.autoplay = true;
+          localVideo.crossorigin = "anonymous";
+          localVideo.src = URL;
+          setTimeout(() => {
+            localVideo.addEventListener("canplay",  function() {
+              localVideo.play();
+            });
+            localVideo.addEventListener("ended",  function() {
+              if (isAutoPlay){
+                let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+                n = parseInt(n) + 1;
+                if (n == selectedFiles.length){
+                  n = 0;
+                }
+                let fileURL = selectedFiles[n].url;
+                localVideo.src = fileURL;
+                $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
               }
-              let fileURL = selectedFiles[n].url;
-              localVideo.src = fileURL;
-              $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
-            }
-          });
-        }, 2500);
-        $(localVideo).draggable({containment: 'parent'});
-        $(localVideo).resizable({containment: 'parent'});
+            });
+          }, 2500);
+          $(localVideo).draggable({containment: 'parent'});
+          $(localVideo).resizable({containment: 'parent'});
+        } else {
+          lV.src = URL;
+        }
       } else {
         console.log('Error=> clipURL is null');
       }

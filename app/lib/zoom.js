@@ -62,7 +62,7 @@ function nextExpired() {
 }
 
 function requestZoomApi(url, params, method){
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
     let zoomToken = zoomApiJWTToken();
     /*
     let options = {

@@ -24,7 +24,7 @@ const windowsappStatic = express.static(windowsappPath);
 const windowsappIndex = serveIndex(windowsappPath, {'icons': true});
 
 const uploader = require('./lib/uploader.js')(apiApp);
-const notificator = require('./lib/notification.js')(apiApp);
+//const notificator = require('./lib/notification.js')(apiApp);
 
 apiApp.use('/windowsapp', windowsappStatic, windowsappIndex);
 

@@ -16,7 +16,7 @@ setTimeout(()=>{
 
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	$('head').append('<script type="text/javascript" src="/shop/lib/player.js?ty=6451k18w"></script>');
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k18w"></script>');
 	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
 	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
