@@ -25,11 +25,13 @@ if (!fs.existsSync(archiveDir)) {
 	fs.mkdirSync(archiveDir);
 }
 
+///////////////////////////////
 unzipper.Open.file(archiveFile).then(await (directory)=>{
 	await directory.extract({ path: archiveDir })
 });
 
-fs.createReadStream('path/to/archive.zip').pipe(unzipper.Extract({ path: 'output/path' }));
+fs.createReadStream(archiveFile).pipe(unzipper.Extract({ path: archiveDir }));
+///////////////////////////////
 
 archiveStreamReader.on('data', function(chunk) {
 	archiveProgressSize += chunk.length;
