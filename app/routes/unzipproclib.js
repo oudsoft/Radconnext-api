@@ -3,6 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const unzip = require('unzip');
 
+const unzip = require('unzipper');
+
+////////////////////////////
+// https://www.npmjs.com/package/unzipper
+
 const procArgs = process.argv;
 console.log(procArgs);
 
@@ -24,11 +29,9 @@ if (!fs.existsSync(archiveDir)) {
 archiveStreamReader.on('data', function(chunk) {
 	archiveProgressSize += chunk.length;
 	let percent = ((archiveProgressSize/1000) / archiveFileSize) * 100;
-	console.log('Progress=>' + archiveFileSize + '/' + archiveProgressSize + '=>' + percent); 
+	console.log('Progress=>' + archiveFileSize + '/' + archiveProgressSize + '=>' + percent);
 });
 
 archiveStreamReader.pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
 	console.log('Success');
 });
-
-
