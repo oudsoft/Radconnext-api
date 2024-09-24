@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const unzip = require('unzip');
 
-const unzip = require('unzipper');
+const unzipper = require('unzipper');
 
 ////////////////////////////
 // https://www.npmjs.com/package/unzipper
@@ -21,10 +21,15 @@ let archiveProgressSize = 0;
 
 let archiveStreamReader = fs.createReadStream(archiveFile);
 
-
 if (!fs.existsSync(archiveDir)) {
 	fs.mkdirSync(archiveDir);
 }
+
+unzipper.Open.file(archiveFile).then(await (directory)=>{
+	await directory.extract({ path: archiveDir })
+});
+
+fs.createReadStream('path/to/archive.zip').pipe(unzipper.Extract({ path: 'output/path' }));
 
 archiveStreamReader.on('data', function(chunk) {
 	archiveProgressSize += chunk.length;
