@@ -156,7 +156,7 @@ module.exports = function ( jq ) {
 
 	const calendarOptions = {
 		lang: "th",
-		years: "2020-2030",
+		years: "2020-2040",
 		sundayFirst: true,
 	};
 
@@ -3219,6 +3219,10 @@ module.exports = function ( jq ) {
 		$(optionSelector).append($('<option value="3M">3 เดือนที่แล้ว</option>'));
 		$(optionSelector).append($('<option value="6M">6 เดือนที่แล้ว</option>'));
 		$(optionSelector).append($('<option value="1Y">1 ปีที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="2Y">2 ปีที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="3Y">3 ปีที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="4Y">4 ปีที่แล้ว</option>'));
+		$(optionSelector).append($('<option value="5Y">5 ปีที่แล้ว</option>'));
 		return $(optionSelector);
 	}
 
@@ -5361,6 +5365,12 @@ module.exports = function ( jq ) {
 					$('#App').append($(summaryBox).css({'padding': '5px'}));
 					resolve(ob[0]);
         });
+
+				//.off() ยกเลิกตัวจัดการเหตุการณ์ที่แนบมากับ .on()
+				/*
+				$('#SummaryBox').off('click');
+				*/
+
       } else {
 				let notFoundOrderDatbox = $('<div>ไม่พบรายการ<span id="notFoundOrderDatbox" class="sensitive-word">ออร์เดอร์</span>ของวันที่ ' + orderDate + '</div>');
 				if (common.shopSensitives.includes(shopData.id)) {
@@ -5819,7 +5829,8 @@ module.exports = function ( jq ) {
   return {
     doShowOrderList,
 		doShowCalendarDlg,
-		doOpenOrderForm
+		doOpenOrderForm,
+		doShowSummaryOrder
 	}
 }
 
