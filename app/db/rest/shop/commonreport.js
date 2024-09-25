@@ -3,10 +3,11 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 const requester = require('requests');
-const PDFParser = require('pdf2json');
+//const PDFParser = require('pdf2json');
+const countPages = require('page-count');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const cheerio = require('cheerio');
+//const cheerio = require('cheerio');
 const exec = require('child_process').exec;
 const THBText = require('thai-baht-text');
 
