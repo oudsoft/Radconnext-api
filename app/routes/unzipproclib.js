@@ -1,11 +1,11 @@
 /*unzipproclib.js */
 const fs = require('fs');
 const path = require('path');
-const unzip = require('unzip');
+//const unzip = require('unzip');
 
 const unzipper = require('unzipper');
 
-////////////////////////////
+//////////////////////////////
 // https://www.npmjs.com/package/unzipper
 
 const procArgs = process.argv;
@@ -33,6 +33,7 @@ unzipper.Open.file(archiveFile).then(await (directory)=>{
 fs.createReadStream(archiveFile).pipe(unzipper.Extract({ path: archiveDir }));
 ///////////////////////////////
 
+/*
 archiveStreamReader.on('data', function(chunk) {
 	archiveProgressSize += chunk.length;
 	let percent = ((archiveProgressSize/1000) / archiveFileSize) * 100;
@@ -42,3 +43,4 @@ archiveStreamReader.on('data', function(chunk) {
 archiveStreamReader.pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
 	console.log('Success');
 });
+*/
