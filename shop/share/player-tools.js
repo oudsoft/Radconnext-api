@@ -138,7 +138,7 @@ https://radconnext.tech/shop/share/?id=fce4d4f4-35cb
 	var po = document.createElement('script');
 	po.type = 'text/javascript';
 	po.async = true;
-	po.src = 'https://radconnext.tech/shop/shop/lib/jquery.js';
+	po.src = 'https://radconnext.tech/shop/lib/jquery.js';
 	var s = document.getElementsByTagName('script')[0];
 	s.parentNode.insertBefore(po, s);
 })();
