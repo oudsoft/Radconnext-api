@@ -441,7 +441,7 @@
         }
 
         if (isAutoPlay == true) {
-          $(playerCmdBox).find('#AutoPlayCmd').click();
+          //$(playerCmdBox).find('#AutoPlayCmd').click();
         }
       });
       let addFileCmd = $('<span>+</span>').css({'font-size': '28px', 'padding': '2px', 'cursor': 'pointer'});
