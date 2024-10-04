@@ -467,7 +467,7 @@
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
       /********************************************/
-      $(fileSrcListBox).resizable({containment: 'parent',
+      $(fileSrcListBox).resizable({containment: 'body',
         stop: function(evt) {
           evt.stopPropagation();
           $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
