@@ -42,11 +42,13 @@ setTimeout(()=>{
 		$(myPBox).focus();
 		$('body').css({'width': '100%', 'heigth': '100%'});
 
-	}, 5000);
+	}, 2500);
 
-	$("#FileSrcListBox").resizable({minHeight: 100, minWidth: 200});
-	$("#FileSourceList").resizable({minHeight: 100,	minWidth: 200});
-
+	setTimeout(()=>{
+		$("#FileSrcListBox").resizable({minHeight: 100, minWidth: 200});
+		$("#FileSourceList").resizable({minHeight: 100,	minWidth: 200});
+	}, 1000);
+	
 }, 1500);
 
 /*
