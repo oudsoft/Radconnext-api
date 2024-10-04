@@ -480,7 +480,7 @@
         }
       });
       /********************************************/
-      $(srcFileListBox).draggable({containment: 'body'});
+      //$(srcFileListBox).draggable({containment: 'body'});
       $(playerViewBox).append($(srcFileListBox));
       doCreateFileChooser(srcFileListBox, ()=>{
         if (isAutoPlay == true) {
