@@ -466,14 +466,6 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
-      /********************************************/
-      $(fileSrcListBox).resizable({containment: 'body',
-        stop: function(evt) {
-          evt.stopPropagation();
-          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-        }
-      });
-      /********************************************/
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
@@ -481,6 +473,14 @@
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'body'});
+      /********************************************/
+      $(srcFileListBox).resizable({containment: 'body',
+        stop: function(evt) {
+          evt.stopPropagation();
+          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+        }
+      });
+      /********************************************/
       $(playerViewBox).append($(srcFileListBox));
       doCreateFileChooser(srcFileListBox, ()=>{
         if (isAutoPlay == true) {
