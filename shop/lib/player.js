@@ -387,7 +387,7 @@
 
     const doCreateFileListBox = function(){
       let fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 2px solid green; top: -90px; background-color: #dddd"></div>');
-    	let fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 500px; margin-top: 10px;"></select>');
+    	let fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 400px; margin-top: 10px;"></select>');
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
         let selectedFileType = selectedFiles[n].type;
