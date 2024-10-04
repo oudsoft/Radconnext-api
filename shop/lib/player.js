@@ -472,7 +472,6 @@
     const doOpenFileChooser = function(evt){
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
-      $(srcFileListBox).draggable({containment: 'body'});
       /********************************************/
       $(srcFileListBox).resizable({containment: 'body',
         stop: function(evt) {
@@ -481,6 +480,7 @@
         }
       });
       /********************************************/
+      $(srcFileListBox).draggable({containment: 'body'});
       $(playerViewBox).append($(srcFileListBox));
       doCreateFileChooser(srcFileListBox, ()=>{
         if (isAutoPlay == true) {
