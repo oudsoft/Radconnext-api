@@ -43,8 +43,10 @@ setTimeout(()=>{
 		$('body').css({'width': '100%', 'heigth': '100%'});
 
 		setTimeout(()=>{
-			$("#FileSrcListBox").resizable(/*{minHeight: 100, minWidth: 200}*/);
-			$("#FileSourceList").resizable(/*{minHeight: 100,	minWidth: 200}*/);
+			//$("#FileSrcListBox").resizable(/*{minHeight: 100, minWidth: 200}*/);
+			//$("#FileSourceList").resizable(/*{minHeight: 100,	minWidth: 200}*/);
+			$(myPBox.fileList).resizable();
+			$(myPBox.fileSrc).resizable();
 		}, 1000);
 
 	}, 2500);
