@@ -472,24 +472,6 @@
     const doOpenFileChooser = function(evt){
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
-      $("#FileSrcListBox").resizable({
-        minHeight: 100,
-        minWidth: 200
-      });
-      $("#FileSourceList").resizable({
-        minHeight: 100,
-        minWidth: 200
-      });
-
-      /********************************************/
-      /*
-      $(srcFileListBox).resizable({containment: 'body',
-        stop: function(evt) {
-          evt.stopPropagation();
-          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
-        }
-      });
-      /********************************************/
       $(srcFileListBox).draggable({containment: 'body'});
 
       $(playerViewBox).append($(srcFileListBox));
