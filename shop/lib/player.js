@@ -467,11 +467,11 @@
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
       /********************************************/
-      $(fileSrcListBox).on('resize', function() {
-        let w = $(this).width();
-        let h = $(this).height();
-        $(fileCmdBox).css({width: w + 'px'});
-        $(fileSrcSelector).css({width: w + 'px', height: h + 'px'});
+      $(fileSrcListBox).resizable({containment: 'parent',
+        stop: function(evt) {
+          evt.stopPropagation();
+          $(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
+        }
       });
       /********************************************/
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
