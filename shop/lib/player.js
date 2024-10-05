@@ -773,6 +773,9 @@
       $(configCmd).css({'top': '-14px'});
       let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord).css({'top': '-22px'});
 
+      $(fileSrcListBox).resizable();
+			$(fileSrcSelector).resizable();
+
       $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd))/*.append($(minimizeWindowCmd))*/.append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(minPlayerBoxCmd)).append($(closePlayerBoxCmd));
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }

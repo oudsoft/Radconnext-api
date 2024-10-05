@@ -48,8 +48,7 @@ setTimeout(()=>{
 			$(myPBox.fileList).resizable();
 			$(myPBox.fileSrc).resizable();
 		}, 1000);
-
-	}, 2500);
+	}, 1500);
 }, 1500);
 
 /*
