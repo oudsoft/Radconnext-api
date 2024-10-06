@@ -337,6 +337,15 @@
         } else {
           lV.src = URL;
         }
+
+        /********************************************/
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        let vdoName = selectedFiles[n].name;
+        let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
+        $(vdoLabel).text(vdoName);
+        $(playerViewBox).append($(vdoLabel));
+
+
       } else {
         console.log('Error=> clipURL is null');
       }
