@@ -342,6 +342,7 @@
         /********************************************/
         $('#ImgLabel').remove();
         let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n);
         let vdoName = selectedFiles[n].name;
         let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
         $(vdoLabel).text(vdoName);
