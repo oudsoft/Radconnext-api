@@ -338,6 +338,7 @@
           lV.src = URL;
         }
 
+        //Add Video Name to Video player
         /********************************************/
         let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
         let vdoName = selectedFiles[n].name;
