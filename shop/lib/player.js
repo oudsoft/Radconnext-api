@@ -299,7 +299,7 @@
       }
       if (URL !== null) {
         let lV = document.getElementById('LocalVideo');
-        console.log(lV);
+        //console.log(lV);
         if (lV === null) {
           let localVideo = document.createElement('video');
           $(playerViewBox).append($(localVideo));
