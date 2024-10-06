@@ -338,15 +338,14 @@
           lV.src = URL;
         }
 
-        //Add Video Name to Video player
+        //Add Video Name Text to Video player
         /********************************************/
+        $('#ImgLabel').remove();
         let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
         let vdoName = selectedFiles[n].name;
         let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
         $(vdoLabel).text(vdoName);
         $(playerViewBox).append($(vdoLabel));
-
-
       } else {
         console.log('Error=> clipURL is null');
       }
