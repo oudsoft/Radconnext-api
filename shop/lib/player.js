@@ -46,6 +46,7 @@
     let playerStream = undefined;
     let audioStream = undefined;
 
+    //This call for use at doCreateFileListBox function
     let fileSrcListBox = undefined;
     let fileSrcSelector = undefined;
 
@@ -470,6 +471,8 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
+      $(fileSrcSelector).resizable();
+      $(fileSrcListBox).resizable();
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
