@@ -15,7 +15,10 @@ setTimeout(()=>{
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/setting/plugin/jqury-readystate-plugin.js"></script>');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k18w"></script>');
+
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=kim"></script>');
+	//$('head').append('<script type="text/javascript" src="../lib/player.js?ty=kim"></script>');
+
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');

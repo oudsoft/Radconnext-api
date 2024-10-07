@@ -448,7 +448,7 @@
           $(fileSrcListBox).resizable({
             containment: 'body',
             stop: function(evt){
-              $(fileSrcSelector).css({width: (evt.target.clientWidth-4), height: (evt.target.clientHeight-4)})
+              $(fileSrcSelector).css({width: (evt.target.clientWidth-10), height: (evt.target.clientHeight-70)})
             }
           });
           let navBar = doCreateNavBar();
