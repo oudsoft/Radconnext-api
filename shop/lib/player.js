@@ -445,6 +445,12 @@
           doPlayExternalVideo(fileURL);
           $(playerViewBox).find('#LocalVideo').draggable({containment: 'body'});
           $(playerViewBox).find('#LocalVideo').resizable({containment: 'body'});
+          $(fileSrcListBox).resizable({
+            containment: 'body',
+            stop: function(evt){
+              $(fileSrcSelector).css({width: (evt.target.clientWidth-4), height: (evt.target.clientHeight-4)})
+            }
+          });
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
         } else if (selectedFileType === "audio/mpeg"){
