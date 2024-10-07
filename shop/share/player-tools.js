@@ -17,7 +17,7 @@ setTimeout(()=>{
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
 
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=kim"></script>');
-	//$('head').append('<script type="text/javascript" src="../lib/player.js?ty=kim"></script>');
+	//$('head').append('<script type="text/javascript" src="../lib/player.js?ty=kim"></script>'); //<-- ไว้เทสที่ Local(ท้องถิ่น) Locale(สถานที่)
 
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{

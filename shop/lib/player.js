@@ -421,11 +421,13 @@
           $(playerCmdBox).find('#NavBar').remove();
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
-          $(imgBox).draggable({containment: 'body', stop: function(evt){
+          $(imgBox).draggable({containment: 'body',
+              stop: function(evt){
               evt.stopPropagation();
             }
           });
-          $(imgBox).resizable({containment: 'body', stop: function(evt){
+          $(imgBox).resizable({containment: 'body',
+              stop: function(evt){
               settings.imgSize = evt.target.clientWidth;
             }
           });
