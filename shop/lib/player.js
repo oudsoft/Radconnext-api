@@ -329,6 +329,12 @@
                 let fileURL = selectedFiles[n].url;
                 localVideo.src = fileURL;
                 $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
+
+                $('#ImgLabel').remove();
+                let vdoName = selectedFiles[n].name;
+                let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
+                $(vdoLabel).text(vdoName);
+                $(playerViewBox).append($(vdoLabel));
               }
             });
           }, 2500);
