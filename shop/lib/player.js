@@ -56,15 +56,20 @@
       $(nextImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(nextImgCmd).on('click', (evt)=>{
         /*********************************************/
-        let n = $(fileSrcSelector).prop('selectedIndex');
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n) + 1;
+        if (n == selectedFiles.length){
+          n = 0;
+        }
         let selectedFileType = selectedFiles[n].type;
         if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
           doShowNextImage();
         } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
           let fileURL = selectedFiles[n].url;
           doPlayExternalVideo(fileURL);
+          $('#FileSourceList').prop('selectedIndex', n);
+          $('#FileSourceList').change();
         }
-        /*********************************************/
       });
       return $(nextImgCmd);
     }
@@ -74,7 +79,20 @@
       $(prevImgCmd).attr('src', settings.iconRootPath + '/images/prev-cmd-icon.png');
       $(prevImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(prevImgCmd).on('click', (evt)=>{
-        doShowPrevImage();
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n) - 1;
+        if (n < 0){
+          n = selectedFiles.length - 1;
+        }
+        let selectedFileType = selectedFiles[n].type;
+        if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
+          doShowPrevImage();
+        } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
+          let fileURL = selectedFiles[n].url;
+          doPlayExternalVideo(fileURL);
+          $('#FileSourceList').prop('selectedIndex', n);
+          $('#FileSourceList').change();
+        }
       });
       return $(prevImgCmd);
     }
