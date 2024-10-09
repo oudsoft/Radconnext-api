@@ -55,7 +55,16 @@
       $(nextImgCmd).attr('src', settings.iconRootPath + '/images/next-cmd-icon.png');
       $(nextImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(nextImgCmd).on('click', (evt)=>{
-        doShowNextImage();
+        /*********************************************/
+        let n = $(fileSrcSelector).prop('selectedIndex');
+        let selectedFileType = selectedFiles[n].type;
+        if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
+          doShowNextImage();
+        } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
+          let fileURL = selectedFiles[n].url;
+          doPlayExternalVideo(fileURL);
+        }
+        /*********************************************/
       });
       return $(nextImgCmd);
     }
