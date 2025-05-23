@@ -46,12 +46,30 @@
     let playerStream = undefined;
     let audioStream = undefined;
 
+    //This call for use at doCreateFileListBox function
+    let fileSrcListBox = undefined;
+    let fileSrcSelector = undefined;
+
     const doCreateNextCmd = function(){
       let nextImgCmd = $('<img id="NextCmd" data-toggle="tooltip" title="Next"/>');
       $(nextImgCmd).attr('src', settings.iconRootPath + '/images/next-cmd-icon.png');
       $(nextImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(nextImgCmd).on('click', (evt)=>{
-        doShowNextImage();
+        /*********************************************/
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n) + 1;
+        if (n == selectedFiles.length){
+          n = 0;
+        }
+        let selectedFileType = selectedFiles[n].type;
+        if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
+          doShowNextImage();
+        } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
+          let fileURL = selectedFiles[n].url;
+          doPlayExternalVideo(fileURL);
+          $('#FileSourceList').prop('selectedIndex', n);
+          $('#FileSourceList').change();
+        }
       });
       return $(nextImgCmd);
     }
@@ -61,7 +79,20 @@
       $(prevImgCmd).attr('src', settings.iconRootPath + '/images/prev-cmd-icon.png');
       $(prevImgCmd).css({'position': 'relative', 'width': '30px', 'height': 'auto', 'cursor': 'pointer', 'padding': '4px', 'top': '-4px', 'margin-left': '10px'});
       $(prevImgCmd).on('click', (evt)=>{
-        doShowPrevImage();
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n) - 1;
+        if (n < 0){
+          n = selectedFiles.length - 1;
+        }
+        let selectedFileType = selectedFiles[n].type;
+        if ((selectedFileType === "image/jpeg") || (selectedFileType === "image/png")){
+          doShowPrevImage();
+        } else if ((selectedFileType === "video/mp4") || (selectedFileType === "video/webm")) {
+          let fileURL = selectedFiles[n].url;
+          doPlayExternalVideo(fileURL);
+          $('#FileSourceList').prop('selectedIndex', n);
+          $('#FileSourceList').change();
+        }
       });
       return $(prevImgCmd);
     }
@@ -295,7 +326,7 @@
       }
       if (URL !== null) {
         let lV = document.getElementById('LocalVideo');
-        console.log(lV);
+        //console.log(lV);
         if (lV === null) {
           let localVideo = document.createElement('video');
           $(playerViewBox).append($(localVideo));
@@ -325,6 +356,12 @@
                 let fileURL = selectedFiles[n].url;
                 localVideo.src = fileURL;
                 $(playerViewBox).find('#FileSourceList').prop('selectedIndex', n);
+
+                $('#ImgLabel').remove();
+                let vdoName = selectedFiles[n].name;
+                let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
+                $(vdoLabel).text(vdoName);
+                $(playerViewBox).append($(vdoLabel));
               }
             });
           }, 2500);
@@ -333,6 +370,16 @@
         } else {
           lV.src = URL;
         }
+
+        //Add Video Name Text to Video player
+        /********************************************/
+        $('#ImgLabel').remove();
+        let n = $(playerViewBox).find('#FileSourceList').prop('selectedIndex');
+        n = parseInt(n);
+        let vdoName = selectedFiles[n].name;
+        let vdoLabel = $('<p id="ImgLabel"></p>').css({'color': settings.ggFontColor});
+        $(vdoLabel).text(vdoName);
+        $(playerViewBox).append($(vdoLabel));
       } else {
         console.log('Error=> clipURL is null');
       }
@@ -386,8 +433,9 @@
     }
 
     const doCreateFileListBox = function(){
-      let fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 2px solid green; top: -90px; background-color: #dddd"></div>');
-    	let fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 300px; margin-top: 10px;"></select>');
+      /*Change to Class Variable for External use */
+      fileSrcListBox = $('<div id="FileSrcListBox" style="position: absolute; padding:5px; border: 2px solid green; top: -90px; background-color: #dddd"></div>');
+    	fileSrcSelector = $('<select id="FileSourceList" multiple size="6" style="height: 190px; width: 400px; margin-top: 10px;"></select>');
       $(fileSrcSelector).on('change', (evt)=>{
         let n = $(fileSrcSelector).prop('selectedIndex');
         let selectedFileType = selectedFiles[n].type;
@@ -400,11 +448,13 @@
           $(playerCmdBox).find('#NavBar').remove();
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
-          $(imgBox).draggable({containment: 'body', stop: function(evt){
+          $(imgBox).draggable({containment: 'body',
+            stop: function(evt){
               evt.stopPropagation();
             }
           });
-          $(imgBox).resizable({containment: 'body', stop: function(evt){
+          $(imgBox).resizable({containment: 'body',
+            stop: function(evt){
               settings.imgSize = evt.target.clientWidth;
             }
           });
@@ -424,6 +474,17 @@
           doPlayExternalVideo(fileURL);
           $(playerViewBox).find('#LocalVideo').draggable({containment: 'body'});
           $(playerViewBox).find('#LocalVideo').resizable({containment: 'body'});
+          $(fileSrcListBox).resizable({
+            containment: 'body',
+            start: function(evt) {
+              console.log(evt.target);
+              console.log($(evt.target));
+              //$(fileSrcSelector).css({'left': '100%', 'top': '100%'});
+            },
+            stop: function(evt){
+              $(fileSrcSelector).css({width: (evt.target.clientWidth-10), height: (evt.target.clientHeight-90)})
+            }
+          });
           let navBar = doCreateNavBar();
           $(navBar).appendTo($(playerCmdBox));
         } else if (selectedFileType === "audio/mpeg"){
@@ -441,7 +502,7 @@
         }
 
         if (isAutoPlay == true) {
-          $(playerCmdBox).find('#AutoPlayCmd').click();
+          //$(playerCmdBox).find('#AutoPlayCmd').click();
         }
       });
       let addFileCmd = $('<span>+</span>').css({'font-size': '28px', 'padding': '2px', 'cursor': 'pointer'});
@@ -466,6 +527,8 @@
       });
       let fileCmdBox = $('<div style="text-align: left;"></div>');
       $(fileCmdBox).append($(addFileCmd)).append($(deleteFileCmd));
+      $(fileSrcSelector).resizable();
+      $(fileSrcListBox).resizable();
       return $(fileSrcListBox).append($(fileCmdBox)).append($(fileSrcSelector));
     }
 
@@ -473,7 +536,9 @@
       $(playerViewBox).find('#FileSrcListBox').remove();
       let srcFileListBox = doCreateFileListBox();
       $(srcFileListBox).draggable({containment: 'body'});
+
       $(playerViewBox).append($(srcFileListBox));
+
       doCreateFileChooser(srcFileListBox, ()=>{
         if (isAutoPlay == true) {
           window.clearTimeout(timer);
@@ -767,6 +832,9 @@
       $(configCmd).css({'top': '-14px'});
       let recordSwitch = doCreateRecordSwitch(doStartRecord, doStopRecord).css({'top': '-22px'});
 
+      $(fileSrcListBox).resizable();
+			$(fileSrcSelector).resizable();
+
       $(playerCmdBox).append($(fileChooserCmd)).append($(autoPlayCmd))/*.append($(minimizeWindowCmd))*/.append($(fullScreenCmd)).append($(configCmd)).append($(togglePlayListCmd)).append($(recordSwitch)).append($(minPlayerBoxCmd)).append($(closePlayerBoxCmd));
       return $(playerMainBox).append($(playerCmdBox)).append($(playerViewBox));
     }
@@ -943,7 +1011,9 @@
       handle: this,
       player: player,
       next: doShowNextImage,
-      prev: doShowPrevImage
+      prev: doShowPrevImage,
+      fileList: fileSrcListBox,
+      fileSrc: fileSrcSelector
     }
 
     return output;

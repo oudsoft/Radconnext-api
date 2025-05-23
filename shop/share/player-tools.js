@@ -13,23 +13,22 @@ setTimeout(()=>{
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/tui-image-editor.min.js"></script>');
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/lib/simpleUpload.min.js"></script>');
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/setting/plugin/jqury-readystate-plugin.js"></script>');
-
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
 	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
-	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k18w"></script>');
-	//$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=6451k10"></script>');
-	//$('head').append('<script type="text/javascript" src="/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
+
+	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/player.js?ty=kim"></script>');
+	//$('head').append('<script type="text/javascript" src="../lib/player.js?ty=kim"></script>'); //<-- ไว้เทสที่ Local(ท้องถิ่น) Locale(สถานที่)
+
 	$('head').append('<script type="text/javascript" src="https://radconnext.tech/shop/lib/imageeditor.js?tt=mo9i456f"></script>');
 	setTimeout(()=>{
 		let myPBox = $('<div id="PBox" tabindex="1"></div>');
 		$(myPBox).css(pBoxStyle);
 		myPlayerHandle = $(myPBox).player({timeDelay: 7, ggFontColor: 'red', imgSize: 330, iconRootPath: 'https://radconnext.tech/', backgroundColor: 'grey'});
 
-		$(myPBox).draggable({containment: "parent"});
+		$(myPBox).draggable({containment: 'parent'});
 		$(myPBox).resizable({containment: 'parent',
 			stop: function(evt) {
 				evt.stopPropagation();
-				//$(myPBox).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
 				$(this).css({'width': evt.target.clientWidth, 'height': evt.target.clientHeight});
 			}
 		});
@@ -41,8 +40,15 @@ setTimeout(()=>{
 		$('body').append($(myPBox));
 		$(myPBox).focus();
 		$('body').css({'width': '100%', 'heigth': '100%'});
-	}, 500);
-}, 500);
+
+		setTimeout(()=>{
+			//$("#FileSrcListBox").resizable(/*{minHeight: 100, minWidth: 200}*/);
+			//$("#FileSourceList").resizable(/*{minHeight: 100,	minWidth: 200}*/);
+			$(myPBox.fileList).resizable();
+			$(myPBox.fileSrc).resizable();
+		}, 1000);
+	}, 1000);
+}, 1000);
 
 /*
 
@@ -138,7 +144,7 @@ https://radconnext.tech/shop/share/?id=fce4d4f4-35cb
 	var po = document.createElement('script');
 	po.type = 'text/javascript';
 	po.async = true;
-	po.src = 'https://radconnext.tech/shop/shop/lib/jquery.js';
+	po.src = 'https://radconnext.tech/shop/lib/jquery.js';
 	var s = document.getElementsByTagName('script')[0];
 	s.parentNode.insertBefore(po, s);
 })();
