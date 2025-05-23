@@ -1,3 +1,5 @@
+/* player.js */
+
 (function($) {
 
   File.prototype.toObject = function () {
