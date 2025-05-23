@@ -5,10 +5,15 @@ const os = require('os');
 const path = require('path');
 const multer = require('multer');
 const base64Img = require('base64-img');
-const unzip = require('unzip');
+//const unzip = require('unzip');
+const unzipper = require('unzipper');
 const exec = require('child_process').exec;
 
+<<<<<<< HEAD
 ///////////////////////////////////////////
+=======
+////////////////////////////////////////////
+>>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
 
 //const express = require('express');
 //const router = express.Router();
@@ -137,7 +142,8 @@ module.exports = (app, wsServer, wsClient) =>{
 				ws.send(JSON.stringify({type: 'triggerunzipprogress', data: {archiveFileSize: archiveFileSize,  archiveProgressSize: archiveProgressSize}}));
 			});
 		});
-		let archiveStreamWriter = await archiveStreamReader.pipe(unzip.Extract({ path: archiveDir }));
+		//let archiveStreamWriter = await archiveStreamReader.pipe(unzip.Extract({ path: archiveDir }));
+		let archiveStreamWriter = await archiveStreamReader.pipe(unzipper.Extract({ path: archiveDir }));
 		archiveStreamWriter.on('close', function () {
 			log.info('Unzip Archive Success, and start import for you.');
 			getFiles(archiveDir).then((files) => {

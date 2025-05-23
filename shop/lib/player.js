@@ -449,12 +449,20 @@
           let imgBox = doCreateImagePreview(fileURL, imgName);
           $(playerViewBox).append($(imgBox));
           $(imgBox).draggable({containment: 'body',
+<<<<<<< HEAD
             stop: function(evt){
+=======
+              stop: function(evt){
+>>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
               evt.stopPropagation();
             }
           });
           $(imgBox).resizable({containment: 'body',
+<<<<<<< HEAD
             stop: function(evt){
+=======
+              stop: function(evt){
+>>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
               settings.imgSize = evt.target.clientWidth;
             }
           });
@@ -476,6 +484,7 @@
           $(playerViewBox).find('#LocalVideo').resizable({containment: 'body'});
           $(fileSrcListBox).resizable({
             containment: 'body',
+<<<<<<< HEAD
             start: function(evt) {
               console.log(evt.target);
               console.log($(evt.target));
@@ -483,6 +492,10 @@
             },
             stop: function(evt){
               $(fileSrcSelector).css({width: (evt.target.clientWidth-10), height: (evt.target.clientHeight-90)})
+=======
+            stop: function(evt){
+              $(fileSrcSelector).css({width: (evt.target.clientWidth-10), height: (evt.target.clientHeight-70)})
+>>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
             }
           });
           let navBar = doCreateNavBar();

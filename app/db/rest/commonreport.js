@@ -3,27 +3,29 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 const requester = require('requests');
-const PDFParser = require('pdf2json');
+//const PDFParser = require('pdf2json');
+const countPages = require('page-count');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const cheerio = require('cheerio');
+//const cheerio = require('cheerio');
 
 var log, db, websocket, uti, common;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 const doCountPagePdf = function(pdfFile){
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
+    /*
     let pdfParser = new PDFParser();
     pdfParser.on('pdfParser_dataReady', function(data) {
-      //log.info('data.formImage.Pages.length=>' + data.Pages.length);
-      //let pageCount = data && data.formImage && data.formImage.Pages && data.formImage.Pages.length ? data.formImage.Pages.length : 0;
       let pageCount = data && data.Pages && data.Pages.length ? data.Pages.length : 0;
       resolve(pageCount);
     });
-    // pdfParser.on('pdfParser_dataError', _.bind(_onPFBinDataError, self));
-
     pdfParser.loadPDF(pdfFile);
+    */
+    const pdfBuffer = fs.readFileSync(pdfFile);
+    const pageCount = await countPages.count(pdfBuffer);
+    resolve(pageCount);
   });
 }
 

@@ -5,13 +5,18 @@ const util = require("util");
 const path = require('path');
 const url = require('url');
 const archiver = require('archiver');
-const unzip = require('unzip');
+//const unzip = require('unzip');
+const unzipper = require('unzipper');
 const fetch = require('node-fetch');
 const exec = require('child_process').exec;
 const express = require('express');
 const app = express();
 
+<<<<<<< HEAD
 /////////////////
+=======
+//////////////////
+>>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
 
 const { promisify } = require('util');
 const { resolve } = require('path');
@@ -545,7 +550,8 @@ app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req
 		let archiveDir = formatStr('%s/%s', usrUploadDir, archiveCode);
 		let command = formatStr('mkdir %s', archiveDir);
 		let stdout = await runcommand(command);
-		fs.createReadStream(archiveParh).pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
+		//fs.createReadStream(archiveParh).pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
+    fs.createReadStream(archiveFile).pipe(unzipper.Extract({ path: archiveDir })).on('close', function () {
 			log.info('Unzip Archive Success, and start import for you.');
 			getFiles(archiveDir).then((files) => {
 				const delay = 5000;
