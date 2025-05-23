@@ -50,12 +50,7 @@
     "split-file": "^2.3.0",
     "stream": "0.0.2",
     "thai-baht-text": "^1.0.8",
-<<<<<<< HEAD
-    "unzip": "^0.1.11",
-    "unzipper" : "0.12.3",
-=======
     "unzipper": "0.12.3",
->>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
     "web-push": "^3.4.4",
     "websocket": "^1.0.34",
     "winston": "^3.2.1",
