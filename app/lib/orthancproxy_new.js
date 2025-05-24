@@ -12,12 +12,6 @@ const exec = require('child_process').exec;
 const express = require('express');
 const app = express();
 
-<<<<<<< HEAD
-/////////////////
-=======
-//////////////////
->>>>>>> 05a79bbccd133a95ff11ffe68dffa44e0045571e
-
 const { promisify } = require('util');
 const { resolve } = require('path');
 const readdir = promisify(fs.readdir);
