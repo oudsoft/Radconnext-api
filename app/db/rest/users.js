@@ -214,7 +214,8 @@ app.put('/(:userId)', async function(req, res) {
 		log.error(error)
 	}
 });
-app.put('/settype/(:userId)/(:typeId)', async function(req, res) {
+
+app.put('/settype/:userId/:typeId', async function(req, res) {
   const userId = req.params.userId;
   const typeId = req.params.typeId;
   try {
@@ -226,7 +227,8 @@ app.put('/settype/(:userId)/(:typeId)', async function(req, res) {
 		log.error(error)
 	}
 });
-app.put('/setstatus/(:userId)/(:statusId)', async function(req, res) {
+
+app.put('/setstatus/:userId/:statusId', async function(req, res) {
   const userId = req.params.userId;
   const statusId = req.params.statusId;
   try {
@@ -238,7 +240,8 @@ app.put('/setstatus/(:userId)/(:statusId)', async function(req, res) {
 		log.error(error)
 	}
 });
-app.put('/sethospital/(:userId)/(:hospitalId)', async function(req, res) {
+
+app.put('/sethospital/:userId/:hospitalId', async function(req, res) {
   const userId = req.params.userId;
   const hospitalId = req.params.hospitalId;
   try {
@@ -250,7 +253,8 @@ app.put('/sethospital/(:userId)/(:hospitalId)', async function(req, res) {
 		log.error(error)
 	}
 });
-app.put('/setinfo/(:userId)/(:infoId)', async function(req, res) {
+
+app.put('/setinfo/:userId/:infoId', async function(req, res) {
   const userId = req.params.userId;
   const infoId = req.params.infoId;
   try {
@@ -262,6 +266,7 @@ app.put('/setinfo/(:userId)/(:infoId)', async function(req, res) {
 		log.error(error)
 	}
 });
+
 app.delete('/(:userId)', async function(req, res) {
   const userId = req.params.userId;
   try {

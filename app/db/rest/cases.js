@@ -1117,7 +1117,7 @@ app.post('/rezip', async (req, res) => {
   }
 });
 
-app.get('/reset/refer/(:caseId)/(:referId)', async (req, res) => {
+app.get('/reset/refer/:caseId/:referId', async (req, res) => {
   const caseId = req.params.caseId;
   const referId = req.params.referId;
   await Case.update({Case_RefferalId: referId}, { where: { id: caseId } });

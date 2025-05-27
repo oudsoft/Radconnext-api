@@ -530,6 +530,7 @@ app.post('/convert/ai/report', function(req, res) {
 	});
 });
 
+/*
 app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req, res) {
 	let hospitalId = req.params.hospitalId;
 	uti.doLoadOrthancTarget(hospitalId, req.hostname).then(async (orthanc) => {
@@ -544,7 +545,6 @@ app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req
 		let archiveDir = formatStr('%s/%s', usrUploadDir, archiveCode);
 		let command = formatStr('mkdir %s', archiveDir);
 		let stdout = await runcommand(command);
-		//fs.createReadStream(archiveParh).pipe(unzip.Extract({ path: archiveDir })).on('close', function () {
     fs.createReadStream(archiveFile).pipe(unzipper.Extract({ path: archiveDir })).on('close', function () {
 			log.info('Unzip Archive Success, and start import for you.');
 			getFiles(archiveDir).then((files) => {
@@ -568,7 +568,6 @@ app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req
 						let item = files[i];
 						let pathFormat = item.split(' ').join('\\ ');
 						let importRes = await importDicom(pathFormat, i);
-            //socket
             if (pacsImportOption) {
               let startUrlAt = item.indexOf('/img');
               let internalUrl = item.substring(startUrlAt);
@@ -601,6 +600,7 @@ app.post('/importarchive/(:hospitalId)/(:archivecode)/(:username)', function(req
 		});
 	});
 });
+*/
 
 app.post('/importdicom', function(req, res) {
 	let hospitalId = req.body.hospitalId;

@@ -310,7 +310,8 @@ app.get('/socket/client/(:socketname)', async(req, res) => {
 
 // /api/dicomtransferlog/3/21776058-56a21078-f5e147ef-03854de7-88c7f837
 // http://202.28.68.28:8042/studies/929a9934-78066d77-49181fbd-05cad6c2-18e9114e
-app.get('/test/(:orthancId)/(:studyId)', async (req, res) => {
+
+app.get('/test/:orthancId/:studyId', async (req, res) => {
   let orthancId = req.params.orthancId;
   let studyId = req.params.studyId;
   let hostname = req.hostname;

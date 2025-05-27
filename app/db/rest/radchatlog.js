@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 var db, log, auth;
 
-app.get('/select/(:topicType)/(:topicId)', async (req, res) => {
+app.get('/select/:topicType/:topicId', async (req, res) => {
   let topicType = req.params.topicType;
   let topicId = req.params.topicId;
   let whereCondition = {

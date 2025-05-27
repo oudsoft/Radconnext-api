@@ -139,8 +139,7 @@ app.post('/join/update/(:radioId)', (req, res) => {
   }
 });
 
-//caseaccept load update API
-app.post('/caseaccept/(:radioId)/(:hospitalId)', (req, res) => {
+app.post('/caseaccept/:radioId/:hospitalId', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
@@ -182,8 +181,7 @@ app.post('/caseaccept/(:radioId)/(:hospitalId)', (req, res) => {
   }
 });
 
-//caseaccept reset update API
-app.post('/caseaccept/reset/(:radioId)/(:hospitalId)', (req, res) => {
+app.post('/caseaccept/reset/:radioId/:hospitalId', (req, res) => {
   let token = req.headers.authorization;
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {

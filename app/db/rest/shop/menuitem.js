@@ -190,7 +190,7 @@ app.post('/delete', (req, res) => {
   }
 });
 
-app.get('/options/(:shopId)/(:groupId)', (req, res) => {
+app.get('/options/:shopId/:groupId', (req, res) => {
   let shopId = req.params.shopId;
   let groupId = req.params.groupId
   doGenOptions(shopId, groupId).then((result) => {
@@ -198,7 +198,7 @@ app.get('/options/(:shopId)/(:groupId)', (req, res) => {
   })
 });
 
-app.post('/options/(:shopId)/(:groupId)', async (req, res) => {
+app.post('/options/:shopId/:groupId', async (req, res) => {
   let shopId = req.params.shopId;
   let groupId = req.params.groupId
   doGenOptions(shopId, groupId).then((result) => {

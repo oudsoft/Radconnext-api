@@ -345,7 +345,7 @@ app.get('/radio/profile/(:radioId)', async (req, res) => {
   res.json({status: {code: 200}, result: profileRes});
 });
 
-app.get('/do/test/push/(:lineUserId)/(:msg)', async (req, res) => {
+app.get('/do/test/push/:lineUserId/:msg', async (req, res) => {
   let lineUserId = req.params.lineUserId;
   let msg = req.params.msg;
   let pushRes = await common.doTestPushConnect(lineUserId, msg);
